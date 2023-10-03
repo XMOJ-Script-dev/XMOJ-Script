@@ -4089,7 +4089,7 @@ int main()
                                         let ReplyContentElement = document.createElement("div"); CardBodyElement.appendChild(ReplyContentElement);
                                         ReplyContentElement.innerHTML = PurifyHTML(marked.parse(Replies[i].Content)).replaceAll(/@([a-zA-Z0-9]+)/g, `<b>@</b><span class="ms-1 Usernames">$1</span>`);
                                         if (Replies[i].EditTime != null) {
-                                            if (Replies[i].EditPerson !== CurrentUsername) {
+                                            if (Replies[i].EditPerson == CurrentUsername) {
                                                 ReplyContentElement.innerHTML += `<span class="text-muted" style="font-size: 12px">最后编辑于${GetRelativeTime(Replies[i].EditTime)}</span>`;
                                             }
                                             else {
