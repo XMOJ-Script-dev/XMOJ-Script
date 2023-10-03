@@ -29,6 +29,16 @@
                     "Description": "增加名字"
                 }
             ]
+        },
+        "1.0.203": {
+            "UpdateDate": 1696342022363,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 57,
+                    "Description": "add more credits"
+                }
+            ]
         }
     }
 }
