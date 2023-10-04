@@ -83,6 +83,16 @@
                     "Description": "Dev Release"
                 }
             ]
+        },
+        "1.0.208": {
+            "UpdateDate": 1696423279222,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 94,
+                    "Description": "分离预览版API和发行版API"
+                }
+            ]
         }
     }
 }
