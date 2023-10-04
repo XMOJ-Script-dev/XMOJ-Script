@@ -83,6 +83,16 @@
                     "Description": "Dev Release"
                 }
             ]
+        },
+        "1.0.208": {
+            "UpdateDate": 1696429996532,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 95,
+                    "Description": "修复编辑用户显示"
+                }
+            ]
         }
     }
 }
