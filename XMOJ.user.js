@@ -18,6 +18,7 @@
 // @grant        GM_setClipboard
 // @grant        unsafeWindow
 // @connect      api.xmoj-bbs.tech
+// @connect      api2.xmoj-bbs.tech
 // @connect      challenges.cloudflare.com
 // @connect      cppinsights.io
 // @connect      127.0.0.1
@@ -32,6 +33,10 @@
 
 const CaptchaSiteKey = "0x4AAAAAAALBT58IhyDViNmv";
 const AdminUserList = ["zhuchenrui2", "shanwenxiao", "admin", "wangmaohua"];
+
+
+let ServerURL = (UtilityEnabled("DebugMode") ? "https://xmoj-script-dev.github.io/XMOJ-Script" : "https://web.xmoj-bbs.tech")
+let APIURL = (UltityEnabled("DebugMode") ? "https://api2.xmoj-bbs.tech" : "api.xmoj-bbs.tech")
 
 let PurifyHTML = (Input) => {
     return DOMPurify.sanitize(Input, {
@@ -296,7 +301,7 @@ let RequestAPI = (Action, Data, CallBack) => {
     let DataString = JSON.stringify(PostData);
     GM_xmlhttpRequest({
         method: "POST",
-        url: "https://api.xmoj-bbs.tech/" + Action,
+        url: APIURL + Action,
         // url: "http://127.0.0.1:8787/" + Action,
         headers: {
             "Content-Type": "application/json"
@@ -337,7 +342,6 @@ GM_registerMenuCommand("重置数据", () => {
 });
 
 let SearchParams = new URLSearchParams(location.search);
-let ServerURL = (UtilityEnabled("DebugMode") ? "https://xmoj-script-dev.github.io/XMOJ-Script" : "https://web.xmoj-bbs.tech")
 let CurrentUsername = document.querySelector("#profile").innerText;
 CurrentUsername = CurrentUsername.replaceAll(/[^a-zA-Z0-9]/g, "");
 let IsAdmin = AdminUserList.indexOf(CurrentUsername) !== -1;
