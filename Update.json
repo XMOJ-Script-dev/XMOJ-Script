@@ -95,12 +95,12 @@
             ]
         },
         "1.0.209": {
-            "UpdateDate": 1696490173345,
+            "UpdateDate": 1696490377673,
             "Prerelease": true,
             "UpdateContents": [
                 {
                     "PR": 98,
-                    "Description": "minor improvements"
+                    "Description": "修复部分功能"
                 }
             ]
         }
