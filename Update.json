@@ -231,6 +231,32 @@
                     "Description": "Why?"
                 }
             ]
+        },
+        "1.0.220": {
+            "UpdateDate": 1696857913037,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 113,
+                    "Description": "更改学术模式"
+                },
+                {
+                    "PR": 114,
+                    "Description": "改变自动提交当年代码样式"
+                },
+                {
+                    "PR": 117,
+                    "Description": "不自动提交已AC题目"
+                },
+                {
+                    "PR": 119,
+                    "Description": "预编译使用C++14"
+                },
+                {
+                    "PR": 128,
+                    "Description": "Why?"
+                }
+            ]
         }
     }
 }
