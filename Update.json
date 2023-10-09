@@ -271,6 +271,16 @@
                     "Description": " bump version "
                 }
             ]
+        },
+        "1.0.222": {
+            "UpdateDate": 1696860193859,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 135,
+                    "Description": "Update XMOJ.user.js"
+                }
+            ]
         }
     }
 }
