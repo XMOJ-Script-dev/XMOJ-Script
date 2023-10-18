@@ -2490,17 +2490,17 @@ else {
                 document.getElementById("AtcoderAccount").value = AtcoderAccount;
                 document.getElementById("USACOAccount").value = USACOAccount;
                 document.getElementById("LuoguAccount").value = LuoguAccount;
-                RequestAPI("GetBadge", {
-                    "UserID": String(CurrentUsername)
-                }, (Response) => {
+               RequestAPI("GetBadge", {
+                   "UserID": String(CurrentUsername)
+               }, (Response) => {
                     if (Response.Success) {
                         BadgeRow.style.display = "";
-                        BadgeContent.value = Response.Data.Content;
-                        BadgeBackgroundColor.value = Response.Data.BackgroundColor;
-                        BadgeColor.value = Response.Data.Color;
-                        SuccessElement.innerText += "，用户标签会在一天内生效";
-                    }
-                });
+                       BadgeContent.value = Response.Data.Content;
+                       BadgeBackgroundColor.value = Response.Data.BackgroundColor;
+                       BadgeColor.value = Response.Data.Color;
+                       SuccessElement.innerText += "，用户标签会在一天内生效";
+                   }
+               });
                 ModifyInfo.addEventListener("click", async () => {
                     ModifyInfo.disabled = true;
                     ModifyInfo.querySelector("span").style.display = "";
