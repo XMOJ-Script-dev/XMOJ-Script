@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.0.223
+// @version      1.0.228
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -31,7 +31,7 @@
  */
 
 const CaptchaSiteKey = "0x4AAAAAAALBT58IhyDViNmv";
-const AdminUserList = ["zhuchenrui2", "shanwenxiao", "admin", "wangmaohua"];
+const AdminUserList = ["zhuchenrui2", "shanwenxiao", "admin", "shihongxi"];
 
 let PurifyHTML = (Input) => {
     return DOMPurify.sanitize(Input, {
@@ -168,7 +168,7 @@ let GetUsernameHTML = async (Element, Username, Simple = false, Href = "http://w
         //     HTMLData += "link-fuchsia"
         // }
         // else
-            if (Rating > 500) {
+        if (Rating > 500) {
             HTMLData += "link-danger";
         } else if (Rating >= 400) {
             HTMLData += "link-warning";
@@ -186,7 +186,7 @@ let GetUsernameHTML = async (Element, Username, Simple = false, Href = "http://w
         if (AdminUserList.includes(Username)) {
             HTMLData += `<span class="badge text-bg-danger ms-2">管理员</span>`;
         }
-        if (Username == "chenlangning"){
+        if (Username == "chenlangning") {
             HTMLData += `<span class="badge text-bg-success ms-2">吉祥物</span>`;
         }
         let BadgeInfo = await GetUserBadge(Username);
@@ -971,10 +971,12 @@ else {
                     { "ID": "ACMRank", "Type": "A", "Name": "比赛ACM排名，并且能下载ACM排名" },
                     { "ID": "Discussion", "Type": "F", "Name": "恢复讨论与短消息功能" },
                     { "ID": "MoreSTD", "Type": "F", "Name": "查看到更多标程" },
-                    { "ID": "StudyMode", "Type": "A", "Name": "学术模式", "Children": [
-                        { "ID": "ApplyData", "Type": "A", "Name": "获取数据功能" },
-                        { "ID": "AutoCheat", "Type": "A", "Name": "自动提交当年代码" }
-                    ]},
+                    {
+                        "ID": "StudyMode", "Type": "A", "Name": "学术模式", "Children": [
+                            { "ID": "ApplyData", "Type": "A", "Name": "获取数据功能" },
+                            { "ID": "AutoCheat", "Type": "A", "Name": "自动提交当年代码" }
+                        ]
+                    },
                     { "ID": "Rating", "Type": "A", "Name": "添加用户评分和用户名颜色" },
                     { "ID": "AutoRefresh", "Type": "A", "Name": "比赛列表、比赛排名界面自动刷新" },
                     { "ID": "AutoCountdown", "Type": "A", "Name": "比赛列表等界面的时间自动倒计时" },
@@ -1704,21 +1706,21 @@ else {
                                 }
                                 AutoCheatButton.disabled = false;
                             });
-                            let Rows = document.querySelector("#problemset > tbody").rows;
-                            for (let i = 0; i < Rows.length; i++) {
-                                ContestProblems.push(Rows[i].children[1].innerText.substring(Rows[i].children[1].innerText.indexOf('.') + 2)).toFixed;
-                            }
-                            AutoCheatButton.addEventListener("click", async () => {
+                        let Rows = document.querySelector("#problemset > tbody").rows;
+                        for (let i = 0; i < Rows.length; i++) {
+                            ContestProblems.push(Rows[i].children[1].innerText.substring(Rows[i].children[1].innerText.indexOf('.') + 2)).toFixed;
+                        }
+                        AutoCheatButton.addEventListener("click", async () => {
                             AutoCheatButton.disabled = true;
                             let Submitted = false;
-                            for (let i = 0; i < ContestProblems.length; i++){
+                            for (let i = 0; i < ContestProblems.length; i++) {
                                 let PID = ContestProblems[i];
-                                if (ACProblems.indexOf(Number(PID)) == -1){
-                                    console.log("Ignoring problem " + PID+ " as it has not been solved yet.");
+                                if (ACProblems.indexOf(Number(PID)) == -1) {
+                                    console.log("Ignoring problem " + PID + " as it has not been solved yet.");
                                     continue;
                                 }
                                 if (Rows[i].children[0].children[0].classList.contains("status_y")) {
-                                    console.log("Ignoring problem " + PID+ " as it has already been solved in this contest.");
+                                    console.log("Ignoring problem " + PID + " as it has already been solved in this contest.");
                                     continue;
                                 }
                                 console.log("Submitting problem " + PID);
@@ -1751,12 +1753,12 @@ else {
                                         "enable_O2=on"
                                 });
                             }
-                            if(!Submitted){
+                            if (!Submitted) {
                                 AutoCheatButton.innerHTML = "没有可以提交的题目!";
                                 await new Promise(r => setTimeout(r, 1000));
                             }
                             AutoCheatButton.disabled = false;
-                            if(Submitted) location.reload();
+                            if (Submitted) location.reload();
                             else AutoCheatButton.innerHTML = "自动提交当年代码";
                         });
                     }
@@ -2021,7 +2023,7 @@ else {
                                     }
                                     if (RowData.QuickSubmitCount >= 2) {
                                         let QuickSubmitBadge = document.createElement("span"); UsernameCell.appendChild(QuickSubmitBadge);
-                                        QuickSubmitBadge.innerText = "疑似提交当年代码";
+                                        QuickSubmitBadge.innerText = "作弊者";
                                         QuickSubmitBadge.className = "badge text-bg-warning ms-2";
                                     }
 
@@ -2037,8 +2039,8 @@ else {
                                         "xiaoguanxun": "肖贯勋", "xiaojiasheng": "肖嘉盛", "xiaruicheng": "夏瑞成", "xiaweimin": "夏蔚民", "xiaxuran": "夏诩然", "xiebingxiu": "谢秉修", "xiebingxiu": "谢秉修", "xieliren": "谢立仁", "xinyihan": "辛轶涵", "xuconghan": "徐从瀚", "xukan": "徐衎",
                                         "xuweiyi": "徐维易", "yanghaochen": "杨皓宸", "yezijiong": "叶梓炅", "youzhouhang": "尤周杭", "yuanruiqing": "袁瑞擎", "yutingjun": "于庭郡", "zhangchenming": "张宸铭", "zhangqiuze": "张秋泽", "zhangshuxuan": "张澍萱", "zhangwenda": "张闻达", "zhangyifu": "张亦夫",
                                         "zhangyouheng": "张佑恒", "zhaochenshen": "赵晨神", "zhaochenwei": "赵晨伟", "zhengyinan": "郑逸楠", "zhonghongyi": "钟弘毅", "zhoujunyu": "周峻瑜", "zhouziyi": "周子逸", "zhouziyou": "周子游", "zhuchenrui2": "朱晨瑞", "zhuruichen": "朱睿宸", "zhuxule": "朱徐乐",
-                                        "zhuyikun": "朱奕坤", "leiwenda": "雷文达", "wangyuancheng": "王源成", "zhuyiyang": "朱奕阳", "hanjialin": "韩佳霖", "zhaozichen": "赵紫辰", "zhuaiwei": "朱艾薇", "linlitong": "林立桐", "xuyan":"徐衍", "fenghaochen": "冯皓宸" ,"lutianlang": "陆天朗", "tangyuhan": "唐钰涵",
-                                        "jiangbowen": "姜博文", "shangguanbocheng": "上官伯呈" , "wangchengqi": "王呈齐", "yanpeitong": "颜培桐", "gongcheng": "龚橙", "weijiefu": "韦杰夫", "": ""
+                                        "zhuyikun": "朱奕坤", "leiwenda": "雷文达", "wangyuancheng": "王源成", "zhuyiyang": "朱奕阳", "hanjialin": "韩佳霖", "zhaozichen": "赵紫辰", "zhuaiwei": "朱艾薇", "linlitong": "林立桐", "xuyan": "徐衍", "fenghaochen": "冯皓宸", "lutianlang": "陆天朗", "tangyuhan": "唐钰涵",
+                                        "jiangbowen": "姜博文", "shangguanbocheng": "上官伯呈", "wangchengqi": "王呈齐", "yanpeitong": "颜培桐", "gongcheng": "龚橙", "weijiefu": "韦杰夫", "": ""
                                     };
                                     NameCell.innerText = (Names[RowData.Username] == undefined ? "" : Names[RowData.Username]);
 
@@ -2479,7 +2481,7 @@ else {
                     <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none"></span>
                 </button>
                 <div class="alert alert-danger mb-3" role="alert" id="ErrorElement" style="display: none;"></div>
-                <div class="alert alert-success mb-3" role="alert" id="SuccessElement" style="display: none;">修改成功</div>
+                <div class="alert alert-success mb-3" role="alert" id="SuccessElement" style="display: none;">修改成功（修改Badge请向管理组提出申请）</div>
                 <br>`;
                 document.getElementById("Nickname").value = Nickname;
                 document.getElementById("School").value = School;
@@ -3028,7 +3030,7 @@ else {
                 if (document.getElementById("apply_data")) {
                     let ApplyDiv = document.getElementById("apply_data").parentElement;
                     console.log("启动！！！");
-                    if(UtilityEnabled("ApplyData")){
+                    if (UtilityEnabled("ApplyData")) {
                         let GetDataButton = document.createElement("button");
                         GetDataButton.className = "ms-2 btn btn-outline-secondary";
                         GetDataButton.innerText = "获取数据";
@@ -3260,8 +3262,7 @@ int main()
             Temp = document.querySelector("#problemstatus > tbody").children;
             for (let i = 0; i < Temp.length; i++) {
                 if (Temp[i].children[5].children[0] != null) {
-                    Temp[i].children[1].innerHTML = `<a href="${Temp[i].children[5].children[0].href}"></a>`;
-                    Temp[i].children[1].children[0].innerText = Temp[i].children[1].innerText;
+                    Temp[i].children[1].innerHTML = `<a href="${Temp[i].children[5].children[0].href}">${Temp[i].children[1].innerText.trim()}</a>`;
                 }
                 GetUsernameHTML(Temp[i].children[2], Temp[i].children[2].innerText);
                 Temp[i].children[3].remove();
