@@ -351,6 +351,16 @@
                     "Description": "修复部分题目状态页没有运行编号 (#155)"
                 }
             ]
+        },
+        "1.0.230": {
+            "UpdateDate": 1697640761292,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 157,
+                    "Description": " 修复部分题目状态页没有运行编号 (#155)  "
+                }
+            ]
         }
     }
 }
