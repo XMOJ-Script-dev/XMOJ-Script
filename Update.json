@@ -341,6 +341,16 @@
                     "Description": "增加开发组成员"
                 }
             ]
+        },
+        "1.0.229": {
+            "UpdateDate": 1697640660452,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 156,
+                    "Description": "修复部分题目状态页没有运行编号 (#155)"
+                }
+            ]
         }
     }
 }
