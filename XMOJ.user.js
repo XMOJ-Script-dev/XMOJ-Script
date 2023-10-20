@@ -187,7 +187,7 @@ let GetUsernameHTML = async (Element, Username, Simple = false, Href = "http://w
             HTMLData += `<span class="badge text-bg-danger ms-2">管理员</span>`;
         }
         if (Username == "chenlangning"){
-            HTMLData += `<span class="badge text-bg-success ms-2">吉祥物</span>`;
+            HTMLData += `<span class="badge ms-2" style="background-color: #6633cc; color: #ffffff">吉祥物</span>`;
         }
         let BadgeInfo = await GetUserBadge(Username);
         if (BadgeInfo.Content != "") {
