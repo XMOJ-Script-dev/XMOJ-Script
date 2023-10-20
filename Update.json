@@ -291,6 +291,76 @@
                     "Description": "Update XMOJ.user.js"
                 }
             ]
+        },
+        "1.0.224": {
+            "UpdateDate": 1697249568431,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 140,
+                    "Description": "121 feature request 抄std的给badge作弊者"
+                }
+            ]
+        },
+        "1.0.225": {
+            "UpdateDate": 1697351158955,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 144,
+                    "Description": "禁止用户修改badge，只允许用户向管理组提出修改请求"
+                }
+            ]
+        },
+        "1.0.226": {
+            "UpdateDate": 1697351411842,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 145,
+                    "Description": "Emergency Fix"
+                }
+            ]
+        },
+        "1.0.227": {
+            "UpdateDate": 1697367771069,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 149,
+                    "Description": "Update XMOJ.user.js"
+                }
+            ]
+        },
+        "1.0.228": {
+            "UpdateDate": 1697368165342,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 151,
+                    "Description": "增加开发组成员"
+                }
+            ]
+        },
+        "1.0.229": {
+            "UpdateDate": 1697640660452,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 156,
+                    "Description": "修复部分题目状态页没有运行编号 (#155)"
+                }
+            ]
+        },
+        "1.0.230": {
+            "UpdateDate": 1697725858941,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 160,
+                    "Description": "1.修改了大量中文 2.写明提醒内容 3.update 关键字词替换"
+                }
+            ]
         }
     }
 }

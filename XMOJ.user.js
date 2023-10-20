@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.0.223
+// @version      1.0.230
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -31,7 +31,7 @@
  */
 
 const CaptchaSiteKey = "0x4AAAAAAALBT58IhyDViNmv";
-const AdminUserList = ["zhuchenrui2", "shanwenxiao", "admin", "wangmaohua"];
+const AdminUserList = ["zhuchenrui2", "shanwenxiao", "admin", "shihongxi"];
 
 let PurifyHTML = (Input) => {
     return DOMPurify.sanitize(Input, {
@@ -168,7 +168,7 @@ let GetUsernameHTML = async (Element, Username, Simple = false, Href = "http://w
         //     HTMLData += "link-fuchsia"
         // }
         // else
-            if (Rating > 500) {
+        if (Rating > 500) {
             HTMLData += "link-danger";
         } else if (Rating >= 400) {
             HTMLData += "link-warning";
@@ -233,11 +233,7 @@ let TimeToStringTime = (Time) => {
             return Time + "ms";
         } else if (Time < 1000 * 60) {
             return (Time / 1000).toFixed(2) + "s";
-        } else if (Time < 1000 * 60 * 60) {
-            return (Time / 1000 / 60).toFixed(2) + "min";
-        } else {
-            return (Time / 1000 / 60 / 60).toFixed(2) + "h";
-        }
+        } 
     }
     else {
         return Time;
@@ -390,7 +386,8 @@ else {
             document.body.innerHTML = String(document.body.innerHTML).replaceAll("小明", "高老师");
             document.body.innerHTML = String(document.body.innerHTML).replaceAll("下海", "上海");
             document.body.innerHTML = String(document.body.innerHTML).replaceAll("海上", "上海");
-            document.body.innerHTML = String(document.body.innerHTML).replaceAll("小红", "低老师");
+            document.body.innerHTML = String(document.body.innerHTML).replaceAll("小红", "徐师娘");
+            document.body.innerHTML = String(document.body.innerHTML).replaceAll("小粉", "彩虹");
             document.body.innerHTML = String(document.body.innerHTML).replaceAll("高老师们", "我们");
             document.body.innerHTML = String(document.body.innerHTML).replaceAll("自高老师", "自我");
             document.title = String(document.title).replaceAll("小明", "高老师");
@@ -777,7 +774,7 @@ else {
                             ToastHeader.classList.add("toast-header");
                             let ToastTitle = document.createElement("strong");
                             ToastTitle.classList.add("me-auto");
-                            ToastTitle.innerHTML = "提醒";
+                            ToastTitle.innerHTML = "提醒：有人@你";
                             ToastHeader.appendChild(ToastTitle);
                             let ToastTime = document.createElement("small");
                             ToastTime.classList.add("text-body-secondary");
@@ -839,7 +836,7 @@ else {
                             ToastHeader.classList.add("toast-header");
                             let ToastTitle = document.createElement("strong");
                             ToastTitle.classList.add("me-auto");
-                            ToastTitle.innerHTML = "提醒";
+                            ToastTitle.innerHTML = "提醒：有新消息";
                             ToastHeader.appendChild(ToastTitle);
                             let ToastTime = document.createElement("small");
                             ToastTime.classList.add("text-body-secondary");
@@ -901,7 +898,7 @@ else {
                 Alert.classList.add("alert");
                 Alert.classList.add("alert-primary");
                 Alert.role = "alert";
-                Alert.innerHTML = `欢迎使用XMOJ增强脚本！点击
+                Alert.innerHTML = `欢迎您使用XMOJ增强脚本！点击
                 <a class="alert-link" href="http://www.xmoj.tech/modifypage.php?ByUserScript=1" target="_blank">此处</a>
                 查看更新日志。`;
                 Container.appendChild(Alert);
@@ -910,7 +907,7 @@ else {
                 UtilitiesCard.classList.add("mb-3");
                 let UtilitiesCardHeader = document.createElement("div");
                 UtilitiesCardHeader.classList.add("card-header");
-                UtilitiesCardHeader.innerText = "功能列表";
+                UtilitiesCardHeader.innerText = "XMOJ增强脚本功能列表";
                 UtilitiesCard.appendChild(UtilitiesCardHeader);
                 let UtilitiesCardBody = document.createElement("div");
                 UtilitiesCardBody.classList.add("card-body");
@@ -971,10 +968,12 @@ else {
                     { "ID": "ACMRank", "Type": "A", "Name": "比赛ACM排名，并且能下载ACM排名" },
                     { "ID": "Discussion", "Type": "F", "Name": "恢复讨论与短消息功能" },
                     { "ID": "MoreSTD", "Type": "F", "Name": "查看到更多标程" },
-                    { "ID": "StudyMode", "Type": "A", "Name": "学术模式", "Children": [
-                        { "ID": "ApplyData", "Type": "A", "Name": "获取数据功能" },
-                        { "ID": "AutoCheat", "Type": "A", "Name": "自动提交当年代码" }
-                    ]},
+                    {
+                        "ID": "StudyMode", "Type": "A", "Name": "学术模式", "Children": [
+                            { "ID": "ApplyData", "Type": "A", "Name": "获取数据功能" },
+                            { "ID": "AutoCheat", "Type": "A", "Name": "自动提交当年代码" }
+                        ]
+                    },
                     { "ID": "Rating", "Type": "A", "Name": "添加用户评分和用户名颜色" },
                     { "ID": "AutoRefresh", "Type": "A", "Name": "比赛列表、比赛排名界面自动刷新" },
                     { "ID": "AutoCountdown", "Type": "A", "Name": "比赛列表等界面的时间自动倒计时" },
@@ -994,7 +993,7 @@ else {
                             { "ID": "Translate", "Type": "F", "Name": "统一使用中文，翻译了部分英文*" },
                             { "ID": "ReplaceLinks", "Type": "F", "Name": "将网站中所有以方括号包装的链接替换为按钮" },
                             { "ID": "RemoveUseless", "Type": "D", "Name": "删去无法使用的功能*" },
-                            { "ID": "ReplaceXM", "Type": "F", "Name": "将网站中所有“小明”和“我”关键字替换为“高老师”，所有“小红”替换为“低老师”，所有“下海”、“海上”替换为“上海”" }
+                            { "ID": "ReplaceXM", "Type": "F", "Name": "将网站中所有“小明”和“我”关键字替换为“高老师”，所有“小红”替换为“徐师娘”，所有“小粉”替换为“彩虹”，所有“下海”、“海上”替换为“上海”" }
                         ]
                     },
                     { "ID": "AutoLogin", "Type": "A", "Name": "在需要登录的界面自动跳转到登陆界面" },
@@ -1324,7 +1323,7 @@ else {
                     let ImproveACRateButton = document.createElement("button");
                     document.querySelector("body > div.container > div > div.input-append").appendChild(ImproveACRateButton);
                     ImproveACRateButton.className = "btn btn-outline-secondary";
-                    ImproveACRateButton.innerText = "提高AC率";
+                    ImproveACRateButton.innerText = "提高正确率";
                     ImproveACRateButton.disabled = true;
                     let ACProblems = [];
                     await fetch("http://www.xmoj.tech/userinfo.php?user=" + CurrentUsername)
@@ -1704,21 +1703,21 @@ else {
                                 }
                                 AutoCheatButton.disabled = false;
                             });
-                            let Rows = document.querySelector("#problemset > tbody").rows;
-                            for (let i = 0; i < Rows.length; i++) {
-                                ContestProblems.push(Rows[i].children[1].innerText.substring(Rows[i].children[1].innerText.indexOf('.') + 2)).toFixed;
-                            }
-                            AutoCheatButton.addEventListener("click", async () => {
+                        let Rows = document.querySelector("#problemset > tbody").rows;
+                        for (let i = 0; i < Rows.length; i++) {
+                            ContestProblems.push(Rows[i].children[1].innerText.substring(Rows[i].children[1].innerText.indexOf('.') + 2)).toFixed;
+                        }
+                        AutoCheatButton.addEventListener("click", async () => {
                             AutoCheatButton.disabled = true;
                             let Submitted = false;
-                            for (let i = 0; i < ContestProblems.length; i++){
+                            for (let i = 0; i < ContestProblems.length; i++) {
                                 let PID = ContestProblems[i];
-                                if (ACProblems.indexOf(Number(PID)) == -1){
-                                    console.log("Ignoring problem " + PID+ " as it has not been solved yet.");
+                                if (ACProblems.indexOf(Number(PID)) == -1) {
+                                    console.log("Ignoring problem " + PID + " as it has not been solved yet.");
                                     continue;
                                 }
                                 if (Rows[i].children[0].children[0].classList.contains("status_y")) {
-                                    console.log("Ignoring problem " + PID+ " as it has already been solved in this contest.");
+                                    console.log("Ignoring problem " + PID + " as it has already been solved in this contest.");
                                     continue;
                                 }
                                 console.log("Submitting problem " + PID);
@@ -1751,12 +1750,12 @@ else {
                                         "enable_O2=on"
                                 });
                             }
-                            if(!Submitted){
+                            if (!Submitted) {
                                 AutoCheatButton.innerHTML = "没有可以提交的题目!";
                                 await new Promise(r => setTimeout(r, 1000));
                             }
                             AutoCheatButton.disabled = false;
-                            if(Submitted) location.reload();
+                            if (Submitted) location.reload();
                             else AutoCheatButton.innerHTML = "自动提交当年代码";
                         });
                     }
@@ -2021,7 +2020,7 @@ else {
                                     }
                                     if (RowData.QuickSubmitCount >= 2) {
                                         let QuickSubmitBadge = document.createElement("span"); UsernameCell.appendChild(QuickSubmitBadge);
-                                        QuickSubmitBadge.innerText = "疑似提交当年代码";
+                                        QuickSubmitBadge.innerText = "作弊者";
                                         QuickSubmitBadge.className = "badge text-bg-warning ms-2";
                                     }
 
@@ -2037,8 +2036,8 @@ else {
                                         "xiaoguanxun": "肖贯勋", "xiaojiasheng": "肖嘉盛", "xiaruicheng": "夏瑞成", "xiaweimin": "夏蔚民", "xiaxuran": "夏诩然", "xiebingxiu": "谢秉修", "xiebingxiu": "谢秉修", "xieliren": "谢立仁", "xinyihan": "辛轶涵", "xuconghan": "徐从瀚", "xukan": "徐衎",
                                         "xuweiyi": "徐维易", "yanghaochen": "杨皓宸", "yezijiong": "叶梓炅", "youzhouhang": "尤周杭", "yuanruiqing": "袁瑞擎", "yutingjun": "于庭郡", "zhangchenming": "张宸铭", "zhangqiuze": "张秋泽", "zhangshuxuan": "张澍萱", "zhangwenda": "张闻达", "zhangyifu": "张亦夫",
                                         "zhangyouheng": "张佑恒", "zhaochenshen": "赵晨神", "zhaochenwei": "赵晨伟", "zhengyinan": "郑逸楠", "zhonghongyi": "钟弘毅", "zhoujunyu": "周峻瑜", "zhouziyi": "周子逸", "zhouziyou": "周子游", "zhuchenrui2": "朱晨瑞", "zhuruichen": "朱睿宸", "zhuxule": "朱徐乐",
-                                        "zhuyikun": "朱奕坤", "leiwenda": "雷文达", "wangyuancheng": "王源成", "zhuyiyang": "朱奕阳", "hanjialin": "韩佳霖", "zhaozichen": "赵紫辰", "zhuaiwei": "朱艾薇", "linlitong": "林立桐", "xuyan":"徐衍", "fenghaochen": "冯皓宸" ,"lutianlang": "陆天朗", "tangyuhan": "唐钰涵",
-                                        "jiangbowen": "姜博文", "shangguanbocheng": "上官伯呈" , "wangchengqi": "王呈齐", "yanpeitong": "颜培桐", "gongcheng": "龚橙", "weijiefu": "韦杰夫", "": ""
+                                        "zhuyikun": "朱奕坤", "leiwenda": "雷文达", "wangyuancheng": "王源成", "zhuyiyang": "朱奕阳", "hanjialin": "韩佳霖", "zhaozichen": "赵紫辰", "zhuaiwei": "朱艾薇", "linlitong": "林立桐", "xuyan": "徐衍", "fenghaochen": "冯皓宸", "lutianlang": "陆天朗", "tangyuhan": "唐钰涵",
+                                        "jiangbowen": "姜博文", "shangguanbocheng": "上官伯呈", "wangchengqi": "王呈齐", "yanpeitong": "颜培桐", "gongcheng": "龚橙", "weijiefu": "韦杰夫", "": ""
                                     };
                                     NameCell.innerText = (Names[RowData.Username] == undefined ? "" : Names[RowData.Username]);
 
@@ -2084,7 +2083,7 @@ else {
                 let DownloadButton = document.createElement("button");
                 document.querySelector("body > div.container > div > center").insertBefore(DownloadButton, document.querySelector("body > div.container > div > center > a"));
                 DownloadButton.className = "btn btn-outline-secondary";
-                DownloadButton.innerText = "下载排名";
+                DownloadButton.innerText = "下载ACM排名";
                 DownloadButton.style.marginBottom = "20px";
                 DownloadButton.addEventListener("click", () => {
                     location.href = "http://www.xmoj.tech/contestrank.xls.php?cid=" + SearchParams.get("cid");
@@ -2447,7 +2446,7 @@ else {
                     <div class="col-9"><input type="password" id="NewPassword" class="form-control"></div>
                 </div>
                 <div class="row g-2 align-items-center col-6 mb-1">
-                    <div class="col-3"><label for="NewPasswordAgain" class="col-form-label">重复密码</label></div>
+                    <div class="col-3"><label for="NewPasswordAgain" class="col-form-label">请重复密码</label></div>
                     <div class="col-9"><input type="password" id="NewPasswordAgain" class="form-control"></div>
                 </div>
                 <div class="row g-2 align-items-center col-6 mb-1">
@@ -2479,7 +2478,7 @@ else {
                     <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none"></span>
                 </button>
                 <div class="alert alert-danger mb-3" role="alert" id="ErrorElement" style="display: none;"></div>
-                <div class="alert alert-success mb-3" role="alert" id="SuccessElement" style="display: none;">修改成功</div>
+                <div class="alert alert-success mb-3" role="alert" id="SuccessElement" style="display: none;">修改成功（修改Badge请向管理组提出申请）</div>
                 <br>`;
                 document.getElementById("Nickname").value = Nickname;
                 document.getElementById("School").value = School;
@@ -2488,17 +2487,17 @@ else {
                 document.getElementById("AtcoderAccount").value = AtcoderAccount;
                 document.getElementById("USACOAccount").value = USACOAccount;
                 document.getElementById("LuoguAccount").value = LuoguAccount;
-                RequestAPI("GetBadge", {
-                    "UserID": String(CurrentUsername)
-                }, (Response) => {
+               RequestAPI("GetBadge", {
+                   "UserID": String(CurrentUsername)
+               }, (Response) => {
                     if (Response.Success) {
                         BadgeRow.style.display = "";
-                        BadgeContent.value = Response.Data.Content;
-                        BadgeBackgroundColor.value = Response.Data.BackgroundColor;
-                        BadgeColor.value = Response.Data.Color;
-                        SuccessElement.innerText += "，用户标签会在一天内生效";
-                    }
-                });
+                       BadgeContent.value = Response.Data.Content;
+                       BadgeBackgroundColor.value = Response.Data.BackgroundColor;
+                       BadgeColor.value = Response.Data.Color;
+                       SuccessElement.innerText += "，用户标签会在一天内生效";
+                   }
+               });
                 ModifyInfo.addEventListener("click", async () => {
                     ModifyInfo.disabled = true;
                     ModifyInfo.querySelector("span").style.display = "";
@@ -2701,7 +2700,7 @@ else {
                 </div>
                 <p class="mt-2 text-muted">
                     您必须要上传标程以后才能使用“查看标程”功能。点击“上传标程”按钮以后，系统会自动上传标程，请您耐心等待。<br>
-                    首次上传标程可能会比较慢，请耐心等待。后续上传标程将会快很多。<br>
+                    首次上传标程可能会比较慢，请耐心等待。后续上传标程将会快很多。请不要直接抄袭或递交标程，否则会给予"作弊者"badge的惩罚！<br>
                     上传的内容不是您AC的程序，而是您AC的题目对应的用户std的程序。所以您可以放心上传，不会泄露您的代码。<br>
                     系统每过30天会自动提醒您上传标程，您必须要上传标程，否则将会被禁止使用“查看标程”功能。<br>
                 </p>`;
@@ -3028,7 +3027,7 @@ else {
                 if (document.getElementById("apply_data")) {
                     let ApplyDiv = document.getElementById("apply_data").parentElement;
                     console.log("启动！！！");
-                    if(UtilityEnabled("ApplyData")){
+                    if (UtilityEnabled("ApplyData")) {
                         let GetDataButton = document.createElement("button");
                         GetDataButton.className = "ms-2 btn btn-outline-secondary";
                         GetDataButton.innerText = "获取数据";
@@ -3260,8 +3259,7 @@ int main()
             Temp = document.querySelector("#problemstatus > tbody").children;
             for (let i = 0; i < Temp.length; i++) {
                 if (Temp[i].children[5].children[0] != null) {
-                    Temp[i].children[1].innerHTML = `<a href="${Temp[i].children[5].children[0].href}"></a>`;
-                    Temp[i].children[1].children[0].innerText = Temp[i].children[1].innerText;
+                    Temp[i].children[1].innerHTML = `<a href="${Temp[i].children[5].children[0].href}">${Temp[i].children[1].innerText.trim()}</a>`;
                 }
                 GetUsernameHTML(Temp[i].children[2], Temp[i].children[2].innerText);
                 Temp[i].children[3].remove();
@@ -3508,7 +3506,7 @@ int main()
                     AddUser.disabled = true;
                     RequestAPI("SendMail", {
                         "ToUser": String(UsernameData),
-                        "Content": String("你好，我是" + localStorage.getItem("UserScript-Username"))
+                        "Content": String("您好，我是" + localStorage.getItem("UserScript-Username"))
                     }, (ResponseData) => {
                         AddUser.children[0].style.display = "none";
                         AddUser.disabled = false;
