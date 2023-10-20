@@ -361,6 +361,16 @@
                     "Description": "1.修改了大量中文 2.写明提醒内容 3.update 关键字词替换"
                 }
             ]
+        },
+        "1.0.231": {
+            "UpdateDate": 1697789098055,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 163,
+                    "Description": "a small, cosmetic, change"
+                }
+            ]
         }
     }
 }
