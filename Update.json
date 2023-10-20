@@ -363,12 +363,12 @@
             ]
         },
         "1.0.231": {
-            "UpdateDate": 1697789098055,
+            "UpdateDate": 1697789116509,
             "Prerelease": true,
             "UpdateContents": [
                 {
                     "PR": 163,
-                    "Description": "a small, cosmetic, change"
+                    "Description": "让cln的badge好看一点"
                 }
             ]
         }
