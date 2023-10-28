@@ -429,6 +429,16 @@
                     "Description": "为用户脚本增加icon"
                 }
             ]
+        },
+        "1.0.235": {
+            "UpdateDate": 1698483768738,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 179,
+                    "Description": "Update README.md"
+                }
+            ]
         }
     }
 }
