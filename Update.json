@@ -409,6 +409,16 @@
                     "Description": "让cln的badge好看一点"
                 }
             ]
+        },
+        "1.0.233": {
+            "UpdateDate": 1697864346624,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 169,
+                    "Description": "为用户脚本增加icon"
+                }
+            ]
         }
     }
 }

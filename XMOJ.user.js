@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.0.232
+// @version      1.0.233
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -22,6 +22,7 @@
 // @connect      cppinsights.io
 // @connect      127.0.0.1
 // @license      GPL
+// @icon         https://web.xmoj-bbs.tech/favicon.ico
 // ==/UserScript==
 
 /**
