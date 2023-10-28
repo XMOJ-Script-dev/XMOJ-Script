@@ -53,20 +53,7 @@
 
 ![](Image/01.png)
 ![](Image/02.png)
-![](Image/03.png)
-![](Image/04.png)
-![](Image/05.png)
-![](Image/06.png)
-![](Image/07.png)
-![](Image/08.png)
-![](Image/09.png)
-![](Image/10.png)
-![](Image/11.png)
-![](Image/12.png)
-![](Image/13.png)
-![](Image/14.png)
-![](Image/15.png)
-![](Image/16.png)
+更多图片可在[官网](https://www.xmoj-bbs.tech)上查看
 
 通过小明的OJ，您将能够更便捷地参与竞赛，提高AC率，管理代码，优化学习体验，同时享受美化界面带来的愉悦感受。
 无论是竞技还是学习，这个脚本都将成为您在XMOJ平台上的得力助手。
