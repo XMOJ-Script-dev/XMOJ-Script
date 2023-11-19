@@ -10,7 +10,7 @@
 原项目: https://github.com/langningchen/XMOJ-Script
 
 ### 帮助文档
-地址：docs.xmoj-bbs.tech
+地址：https://docs.xmoj-bbs.tech
 仓库：https://github.com/XMOJ-Script-dev/docs
 
 ### 介绍
