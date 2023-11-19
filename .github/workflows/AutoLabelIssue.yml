@@ -18,10 +18,7 @@ jobs:
         with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
-      - name: Label issue
-        env:
-          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
       - run: |
           cd ./Update
           npm install
-          node ./AutoLabel.js ${{ secrets.GITHUB_TOKEN }}
+          node ./AutoLabel.js ${{ steps.generate_token.outputs.token }}
