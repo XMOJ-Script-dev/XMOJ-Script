@@ -9,6 +9,10 @@
 
 原项目: https://github.com/langningchen/XMOJ-Script
 
+### 帮助文档
+地址：https://docs.xmoj-bbs.tech
+仓库：https://github.com/XMOJ-Script-dev/docs
+
 ### 介绍
 
 小明的OJ是一个功能强大的浏览器扩展，旨在提升用户在小明的OJ（某虚拟在线竞赛平台）上的使用体验。
