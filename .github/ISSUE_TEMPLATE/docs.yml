@@ -1,0 +1,25 @@
+name: 帮助文档反馈
+description: 帮助文档有问题
+labels: docs, needs-triage
+assignees: PythonSmall-Q
+title: "[Docs]"
+body:
+- type: checkboxes
+  attributes:
+    label: 检查项
+    description: 请逐个检查下列项目，并勾选确认。
+    options:
+    - label: 我已确认了帮助文档已为最新版，且最新版未修复这个 Bug 。
+      required: true
+    - label: 我已在 [Issues 页面](https://github.com/XMOJ-Script-dev/XMOJ-Script/issues) 中搜索，确认了这一 Bug 未被提交过。
+      required: true
+- type: textarea
+  attributes:
+    label: 描述
+    description: 详细描述该 问题 的具体表现。
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: 修改建议
+    description: 详细描述要怎么修改
