@@ -5,11 +5,17 @@ on:
   workflow_dispatch:
 jobs:
   DeleteActions:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest 
     steps:
+      - name: Generate a token
+        id: generate_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - name: DeleteActions
         run: |
-          echo ${{ secrets.GITHUB_TOKEN }} | gh auth login --with-token
+          echo ${{ steps.generate_token.outputs.token }} | gh auth login --with-token
           for WorkflowRun in $(gh api repos/${{ github.repository }}/actions/runs --paginate -q '.workflow_runs[] | select(.status == "completed") | select(.name | contains("AutoLabelIssue") or contains("AuthLabelPR") or contains("UpdateToRelease") or contains("UpdateVersion")) | "\(.id)"')
           do
             gh api --method DELETE /repos/${{ github.repository }}/actions/runs/$WorkflowRun
@@ -20,8 +26,14 @@ jobs:
       issues: write
       pull-requests: write
     steps:
+      - name: Generate a token
+        id: generate_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - uses: actions/stale@v8
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token:  ${{ steps.generate_token.outputs.token }}
           days-before-stale: 7
           exempt-issue-labels: frozen
