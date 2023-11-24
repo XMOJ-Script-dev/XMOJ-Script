@@ -59,6 +59,7 @@ console.warn("XMOJ.user.js has been updated.");
 
 execSync("git config --global user.email \"github-actions[bot]@users.noreply.github.com\"");
 execSync("git config --global user.name \"github-actions[bot]\"");
+execSync("git pull");
 execSync("git push origin --delete actions/temp || true");
 execSync("git checkout -b actions/temp");
 execSync("git commit -a -m \"Update to release " + CurrentVersion + "\"");
