@@ -6,8 +6,6 @@ website:
   - '*.html'
 update-script:
   - Update/**
-server:
-  - Server/**
 GitHub-related:
   - '.github/**'
 addon-script:

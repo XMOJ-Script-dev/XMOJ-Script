@@ -5,6 +5,7 @@ on:
       - dev
     paths:
       - XMOJ.user.js
+  workflow_dispatch:
 jobs:
   Prerelease:
     runs-on: ubuntu-latest

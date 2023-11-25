@@ -1,7 +1,7 @@
 name: 综合 Bug 反馈
 description: 有功能有问题
 labels: bug, needs-triage
-assignees: PythonSmall-Q, boomzero, shihongxi
+# assignees: PythonSmall-Q, boomzero, shihongxi
 title: "[Bug]"
 body:
 - type: checkboxes
