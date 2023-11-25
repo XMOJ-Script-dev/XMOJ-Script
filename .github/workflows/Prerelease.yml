@@ -11,16 +11,24 @@ jobs:
     runs-on: ubuntu-latest
     permissions: write-all
     steps:
+      - name: Generate a token
+        id: generate_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Get version
+        env:
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
         id: get_version
         run: node ./Update/GetVersion.js
       - id: create_release
         uses: softprops/action-gh-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
         with:
           tag_name: ${{ steps.get_version.outputs.version }}
           generate_release_notes: true

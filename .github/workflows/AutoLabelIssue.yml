@@ -6,15 +6,19 @@ on:
       - edited
 jobs:
   AutoLabel:
-    permissions:
-      issues: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Generate a token
+        id: generate_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - run: |
           cd ./Update
           npm install
-          node ./AutoLabel.js ${{ secrets.GITHUB_TOKEN }}
+          node ./AutoLabel.js ${{ steps.generate_token.outputs.token }}
