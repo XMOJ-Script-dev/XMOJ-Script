@@ -15,6 +15,12 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     steps:
+      - name: Generate a token
+        id: generate_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - uses: actions/checkout@v4
       - name: Update version
-        run: node ./Update/UpdateVersion.js ${{ secrets.GITHUB_TOKEN }} ${{ github.event.number }} "${{ github.event.pull_request.title }}"
+        run: node ./Update/UpdateVersion.js ${{ steps.generate_token.outputs.token }} ${{ github.event.number }} "${{ github.event.pull_request.title }}"
