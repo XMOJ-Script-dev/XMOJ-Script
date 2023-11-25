@@ -375,7 +375,12 @@ else {
         if (UtilityEnabled("Translate")) {
             document.querySelector("#navbar > ul:nth-child(1) > li:nth-child(2) > a").innerText = "题库";
         }
-
+        //send analytics
+        RequestAPI("SendData", {}, (result) => {
+            if(UtilityEnabled("DebugMode")) {
+                console.log(result);
+            }
+        });
         if (UtilityEnabled("ReplaceLinks")) {
             document.body.innerHTML =
                 String(document.body.innerHTML).replaceAll(
@@ -393,7 +398,7 @@ else {
             document.body.innerHTML = String(document.body.innerHTML).replaceAll("自高老师", "自我");
             document.title = String(document.title).replaceAll("小明", "高老师");
         }
-
+        
         if (UtilityEnabled("NewBootstrap")) {
             let Temp = document.querySelectorAll("link");
             for (var i = 0; i < Temp.length; i++) {
