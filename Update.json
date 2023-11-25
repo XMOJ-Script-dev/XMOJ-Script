@@ -555,6 +555,16 @@
                     "Description": "使用Base64编码icon"
                 }
             ]
+        },
+        "1.0.246": {
+            "UpdateDate": 1700888945298,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 239,
+                    "Description": "manual UpdateToRelease"
+                }
+            ]
         }
     }
 }
