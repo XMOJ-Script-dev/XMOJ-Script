@@ -555,6 +555,32 @@
                     "Description": "使用Base64编码icon"
                 }
             ]
+        },
+        "1.0.246": {
+            "UpdateDate": 1700888616705,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 220,
+                    "Description": "Update Prerelease.yml"
+                },
+                {
+                    "PR": 221,
+                    "Description": "烦死了。。。"
+                },
+                {
+                    "PR": 222,
+                    "Description": "Update Prerelease.yml"
+                },
+                {
+                    "PR": 223,
+                    "Description": "wtf"
+                },
+                {
+                    "PR": 232,
+                    "Description": "使用Base64编码icon"
+                }
+            ]
         }
     }
 }
