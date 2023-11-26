@@ -605,6 +605,16 @@
                     "Description": "修复提交按钮"
                 }
             ]
+        },
+        "1.0.249": {
+            "UpdateDate": 1701009563232,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 269,
+                    "Description": "显示最后在线时间"
+                }
+            ]
         }
     }
 }
