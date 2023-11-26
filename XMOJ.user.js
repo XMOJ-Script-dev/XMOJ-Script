@@ -187,7 +187,7 @@ let GetUsernameHTML = async (Element, Username, Simple = false, Href = "http://w
         if (AdminUserList.includes(Username)) {
             HTMLData += `<span class="badge text-bg-danger ms-2">管理员</span>`;
         }
-        if (Username == "chenlangning"){
+        if (Username == "chenlangning") {
             HTMLData += `<span class="badge ms-2" style="background-color: #6633cc; color: #ffffff">吉祥物</span>`;
         }
         let BadgeInfo = await GetUserBadge(Username);
@@ -234,7 +234,7 @@ let TimeToStringTime = (Time) => {
             return Time + "ms";
         } else if (Time < 1000 * 60) {
             return (Time / 1000).toFixed(2) + "s";
-        } 
+        }
     }
     else {
         return Time;
@@ -377,7 +377,7 @@ else {
         }
         //send analytics
         RequestAPI("SendData", {}, (result) => {
-            if(UtilityEnabled("DebugMode")) {
+            if (UtilityEnabled("DebugMode")) {
                 console.log(result);
             }
         });
@@ -398,7 +398,7 @@ else {
             document.body.innerHTML = String(document.body.innerHTML).replaceAll("自高老师", "自我");
             document.title = String(document.title).replaceAll("小明", "高老师");
         }
-        
+
         if (UtilityEnabled("NewBootstrap")) {
             let Temp = document.querySelectorAll("link");
             for (var i = 0; i < Temp.length; i++) {
@@ -1142,12 +1142,26 @@ else {
                 document.querySelector("body > div > div.mt-3 > center").lastChild.style.marginLeft = "10px";
                 //修复提交按钮
                 let SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(12)');
+                if (SubmitLink == null) { //如果是比赛题目
+                    SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(10)');
+                }
+                if (SubmitLink == null) {
+                    SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(11)');
+                }
+                if (SubmitLink == null) {
+                    SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(13)');
+                }
+                if (SubmitLink == null) {
+                    SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(9)');
+                }
                 let SubmitButton = document.createElement('button');
                 SubmitButton.id = 'SubmitButton';
                 SubmitButton.className = 'btn btn-outline-secondary';
                 SubmitButton.textContent = '提交';
-                SubmitButton.onclick = function() {
+                SubmitButton.href = SubmitLink.href;
+                SubmitButton.onclick = function () {
                     window.location.href = SubmitLink.href;
+                    console.log(SubmitLink.href);
                 };
 
                 // Replace the <a> element with the button
@@ -1157,6 +1171,10 @@ else {
                 let target = SubmitButton.outerHTML;
                 let result = str.replace(new RegExp(`(.?)${target}(.?)`, 'g'), target);
                 document.querySelector('.mt-3 > center:nth-child(1)').innerHTML = result;
+                document.querySelector('html body.placeholder-glow div.container div.mt-3 center button#SubmitButton.btn.btn-outline-secondary').onclick = function () {
+                    window.location.href = SubmitLink.href;
+                    console.log(SubmitLink.href);
+                };
                 Temp = document.querySelectorAll(".sampledata");
                 for (var i = 0; i < Temp.length; i++) {
                     Temp[i].parentElement.className = "card";
@@ -2511,17 +2529,17 @@ else {
                 document.getElementById("AtcoderAccount").value = AtcoderAccount;
                 document.getElementById("USACOAccount").value = USACOAccount;
                 document.getElementById("LuoguAccount").value = LuoguAccount;
-               RequestAPI("GetBadge", {
-                   "UserID": String(CurrentUsername)
-               }, (Response) => {
+                RequestAPI("GetBadge", {
+                    "UserID": String(CurrentUsername)
+                }, (Response) => {
                     if (Response.Success) {
                         BadgeRow.style.display = "";
-                       BadgeContent.value = Response.Data.Content;
-                       BadgeBackgroundColor.value = Response.Data.BackgroundColor;
-                       BadgeColor.value = Response.Data.Color;
-                       SuccessElement.innerText += "，用户标签会在一天内生效";
-                   }
-               });
+                        BadgeContent.value = Response.Data.Content;
+                        BadgeBackgroundColor.value = Response.Data.BackgroundColor;
+                        BadgeColor.value = Response.Data.Color;
+                        SuccessElement.innerText += "，用户标签会在一天内生效";
+                    }
+                });
                 ModifyInfo.addEventListener("click", async () => {
                     ModifyInfo.disabled = true;
                     ModifyInfo.querySelector("span").style.display = "";
