@@ -2692,8 +2692,8 @@ else {
                 }
                 document.querySelector("#statics > tbody > tr:nth-child(1) > td:nth-child(3)").remove();
 
-                let UserID, UserName;
-                [UserID, UserName] = document.querySelector("#statics > caption").childNodes[0].data.trim().split("--");
+                let UserID, UserNick;
+                [UserID, UserNick] = document.querySelector("#statics > caption").childNodes[0].data.trim().split("--");
                 document.querySelector("#statics > caption").remove();
 
                 let Row = document.createElement("div"); Row.className = "row";
@@ -2719,10 +2719,20 @@ else {
                 UserInfoElement.classList.add("col-auto");
                 UserInfoElement.style.lineHeight = "40px";
                 UserInfoElement.innerHTML += "用户名：" + UserID + "<br>";
-                UserInfoElement.innerHTML += "昵称：" + UserName + "<br>";
+                UserInfoElement.innerHTML += "昵称：" + UserNick + "<br>";
                 if (UtilityEnabled("Rating")) {
                     UserInfoElement.innerHTML += "评分：" + ((await GetUserInfo(UserID)).Rating) + "<br>";
                 }
+                RequestAPI("LastOnline", {"Username": UserID}, (result) => {
+                    if (UtilityEnabled("DebugMode")) {
+                        console.log('lastOnline:' + result.Data.logintime);
+                    }
+                    if (result.Success) {
+                        UserInfoElement.innerHTML += "最后在线：" + GetRelativeTime(result.Data.logintime) + "<br>";
+                    } else {
+                        UserInfoElement.innerHTML += "最后在线：从未<br>";
+                    }
+                });
                 LeftTopDiv.appendChild(UserInfoElement);
                 LeftDiv.appendChild(LeftTopDiv);
 
