@@ -1140,6 +1140,18 @@ else {
                     "-Problem-" + SearchParams.get("pid") + "-PID");
 
                 document.querySelector("body > div > div.mt-3 > center").lastChild.style.marginLeft = "10px";
+                //修复提交按钮
+                let SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(12)');
+                let SubmitButton = document.createElement('button');
+                SubmitButton.id = 'SubmitButton';
+                SubmitButton.className = 'btn btn-outline-secondary';
+                SubmitButton.textContent = '提交';
+                SubmitButton.onclick = function() {
+                    window.location.href = SubmitLink.href;
+                };
+
+                // Replace the <a> element with the button
+                SubmitLink.parentNode.replaceChild(SubmitButton, SubmitLink);
                 Temp = document.querySelectorAll(".sampledata");
                 for (var i = 0; i < Temp.length; i++) {
                     Temp[i].parentElement.className = "card";
