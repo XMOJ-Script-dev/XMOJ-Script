@@ -1152,6 +1152,11 @@ else {
 
                 // Replace the <a> element with the button
                 SubmitLink.parentNode.replaceChild(SubmitButton, SubmitLink);
+                // Remove the button's outer []
+                let str = document.querySelector('.mt-3 > center:nth-child(1)').innerHTML;
+                let target = SubmitButton.outerHTML;
+                let result = str.replace(new RegExp(`(.?)${target}(.?)`, 'g'), target);
+                document.querySelector('.mt-3 > center:nth-child(1)').innerHTML = result;
                 Temp = document.querySelectorAll(".sampledata");
                 for (var i = 0; i < Temp.length; i++) {
                     Temp[i].parentElement.className = "card";
