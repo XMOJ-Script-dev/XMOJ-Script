@@ -595,6 +595,16 @@
                     "Description": "发送统计数据"
                 }
             ]
+        },
+        "1.0.248": {
+            "UpdateDate": 1700976004641,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 267,
+                    "Description": "修复提交按钮"
+                }
+            ]
         }
     }
 }
