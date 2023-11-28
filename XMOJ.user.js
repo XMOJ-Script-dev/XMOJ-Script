@@ -2723,14 +2723,19 @@ else {
                 if (UtilityEnabled("Rating")) {
                     UserInfoElement.innerHTML += "评分：" + ((await GetUserInfo(UserID)).Rating) + "<br>";
                 }
+                // Create a placeholder for the last online time
+                let lastOnlineElement = document.createElement('div');
+                lastOnlineElement.innerHTML = "最后在线：加载中...<br>";
+                UserInfoElement.appendChild(lastOnlineElement);
+
                 RequestAPI("LastOnline", {"Username": UserID}, (result) => {
-                    if (UtilityEnabled("DebugMode")) {
-                        console.log('lastOnline:' + result.Data.logintime);
-                    }
                     if (result.Success) {
-                        UserInfoElement.innerHTML += "最后在线：" + GetRelativeTime(result.Data.logintime) + "<br>";
+                        if (UtilityEnabled("DebugMode")) {
+                            console.log('lastOnline:' + result.Data.logintime);
+                        }
+                        lastOnlineElement.innerHTML = "最后在线：" + GetRelativeTime(result.Data.logintime) + "<br>";
                     } else {
-                        UserInfoElement.innerHTML += "最后在线：从未<br>";
+                        lastOnlineElement.innerHTML = "最后在线：近三个月内从未<br>";
                     }
                 });
                 LeftTopDiv.appendChild(UserInfoElement);
