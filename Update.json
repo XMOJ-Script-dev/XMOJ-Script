@@ -615,6 +615,16 @@
                     "Description": "显示最后在线时间"
                 }
             ]
+        },
+        "1.0.250": {
+            "UpdateDate": 1701264987062,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 273,
+                    "Description": "send extra information"
+                }
+            ]
         }
     }
 }
