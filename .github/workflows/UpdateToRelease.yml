@@ -17,12 +17,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Generate a token
-        id: generate_token
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ secrets.APP_ID }}
-          private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - name: Update to release
         run: |
           if [[ ${{ github.event.pull_request.head.ref }} != dev && $(git diff --name-only HEAD HEAD~1) == *XMOJ.user.js* ]]; then
@@ -30,7 +24,7 @@ jobs:
             gh pr comment ${{ github.event.pull_request.number }} --body "请向\`dev\`分支提交pull request, 本pull request将被自动关闭"
             gh pr close ${{ github.event.pull_request.number }}
           else
-            node ./Update/UpdateToRelease.js ${{ steps.generate_token.outputs.token }} ${{ github.event.number }}
+            node ./Update/UpdateToRelease.js ${{ secrets.GITHUB_TOKEN }} ${{ github.event.number }}
           fi
         env:
-          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
