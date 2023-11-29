@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.0.249
+// @version      1.0.250
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -288,7 +288,9 @@ let RequestAPI = (Action, Data, CallBack) => {
             "SessionID": Session,
             "Username": CurrentUsername,
         },
-        "Data": Data
+        "Data": Data,
+        "Version": GM_info.script.version,
+        "DebugMode": UtilityEnabled("DebugMode")
     };
     let DataString = JSON.stringify(PostData);
     GM_xmlhttpRequest({
