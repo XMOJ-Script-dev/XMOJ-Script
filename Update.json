@@ -625,6 +625,16 @@
                     "Description": "send extra information"
                 }
             ]
+        },
+        "1.0.251": {
+            "UpdateDate": 1701426631116,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 276,
+                    "Description": "Update XMOJ.user.js"
+                }
+            ]
         }
     }
 }
