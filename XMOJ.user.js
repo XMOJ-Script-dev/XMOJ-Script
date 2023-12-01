@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.0.247
+// @version      1.0.252
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
 // @match        http://*.xmoj.tech/*
+// @match        https://*.xmoj.tech/*
 // @match        http://116.62.212.172/*
 // @require      https://cdn.bootcdn.net/ajax/libs/crypto-js/4.1.1/crypto-js.min.js
 // @require      https://cdn.bootcdn.net/ajax/libs/codemirror/6.65.7/codemirror.min.js
@@ -187,7 +188,7 @@ let GetUsernameHTML = async (Element, Username, Simple = false, Href = "http://w
         if (AdminUserList.includes(Username)) {
             HTMLData += `<span class="badge text-bg-danger ms-2">管理员</span>`;
         }
-        if (Username == "chenlangning"){
+        if (Username == "chenlangning") {
             HTMLData += `<span class="badge ms-2" style="background-color: #6633cc; color: #ffffff">吉祥物</span>`;
         }
         let BadgeInfo = await GetUserBadge(Username);
@@ -234,7 +235,7 @@ let TimeToStringTime = (Time) => {
             return Time + "ms";
         } else if (Time < 1000 * 60) {
             return (Time / 1000).toFixed(2) + "s";
-        } 
+        }
     }
     else {
         return Time;
@@ -288,7 +289,9 @@ let RequestAPI = (Action, Data, CallBack) => {
             "SessionID": Session,
             "Username": CurrentUsername,
         },
-        "Data": Data
+        "Data": Data,
+        "Version": GM_info.script.version,
+        "DebugMode": UtilityEnabled("DebugMode")
     };
     let DataString = JSON.stringify(PostData);
     GM_xmlhttpRequest({
@@ -377,7 +380,7 @@ else {
         }
         //send analytics
         RequestAPI("SendData", {}, (result) => {
-            if(UtilityEnabled("DebugMode")) {
+            if (UtilityEnabled("DebugMode")) {
                 console.log(result);
             }
         });
@@ -398,7 +401,7 @@ else {
             document.body.innerHTML = String(document.body.innerHTML).replaceAll("自高老师", "自我");
             document.title = String(document.title).replaceAll("小明", "高老师");
         }
-        
+
         if (UtilityEnabled("NewBootstrap")) {
             let Temp = document.querySelectorAll("link");
             for (var i = 0; i < Temp.length; i++) {
@@ -1140,6 +1143,41 @@ else {
                     "-Problem-" + SearchParams.get("pid") + "-PID");
 
                 document.querySelector("body > div > div.mt-3 > center").lastChild.style.marginLeft = "10px";
+                //修复提交按钮
+                let SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(12)');
+                if (SubmitLink == null) { //如果是比赛题目
+                    SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(10)');
+                }
+                if (SubmitLink == null) {
+                    SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(11)');
+                }
+                if (SubmitLink == null) {
+                    SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(13)');
+                }
+                if (SubmitLink == null) {
+                    SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(9)');
+                }
+                let SubmitButton = document.createElement('button');
+                SubmitButton.id = 'SubmitButton';
+                SubmitButton.className = 'btn btn-outline-secondary';
+                SubmitButton.textContent = '提交';
+                SubmitButton.href = SubmitLink.href;
+                SubmitButton.onclick = function () {
+                    window.location.href = SubmitLink.href;
+                    console.log(SubmitLink.href);
+                };
+
+                // Replace the <a> element with the button
+                SubmitLink.parentNode.replaceChild(SubmitButton, SubmitLink);
+                // Remove the button's outer []
+                let str = document.querySelector('.mt-3 > center:nth-child(1)').innerHTML;
+                let target = SubmitButton.outerHTML;
+                let result = str.replace(new RegExp(`(.?)${target}(.?)`, 'g'), target);
+                document.querySelector('.mt-3 > center:nth-child(1)').innerHTML = result;
+                document.querySelector('html body.placeholder-glow div.container div.mt-3 center button#SubmitButton.btn.btn-outline-secondary').onclick = function () {
+                    window.location.href = SubmitLink.href;
+                    console.log(SubmitLink.href);
+                };
                 Temp = document.querySelectorAll(".sampledata");
                 for (var i = 0; i < Temp.length; i++) {
                     Temp[i].parentElement.className = "card";
@@ -2494,17 +2532,17 @@ else {
                 document.getElementById("AtcoderAccount").value = AtcoderAccount;
                 document.getElementById("USACOAccount").value = USACOAccount;
                 document.getElementById("LuoguAccount").value = LuoguAccount;
-               RequestAPI("GetBadge", {
-                   "UserID": String(CurrentUsername)
-               }, (Response) => {
+                RequestAPI("GetBadge", {
+                    "UserID": String(CurrentUsername)
+                }, (Response) => {
                     if (Response.Success) {
                         BadgeRow.style.display = "";
-                       BadgeContent.value = Response.Data.Content;
-                       BadgeBackgroundColor.value = Response.Data.BackgroundColor;
-                       BadgeColor.value = Response.Data.Color;
-                       SuccessElement.innerText += "，用户标签会在一天内生效";
-                   }
-               });
+                        BadgeContent.value = Response.Data.Content;
+                        BadgeBackgroundColor.value = Response.Data.BackgroundColor;
+                        BadgeColor.value = Response.Data.Color;
+                        SuccessElement.innerText += "，用户标签会在一天内生效";
+                    }
+                });
                 ModifyInfo.addEventListener("click", async () => {
                     ModifyInfo.disabled = true;
                     ModifyInfo.querySelector("span").style.display = "";
@@ -2657,8 +2695,8 @@ else {
                 }
                 document.querySelector("#statics > tbody > tr:nth-child(1) > td:nth-child(3)").remove();
 
-                let UserID, UserName;
-                [UserID, UserName] = document.querySelector("#statics > caption").childNodes[0].data.trim().split("--");
+                let UserID, UserNick;
+                [UserID, UserNick] = document.querySelector("#statics > caption").childNodes[0].data.trim().split("--");
                 document.querySelector("#statics > caption").remove();
 
                 let Row = document.createElement("div"); Row.className = "row";
@@ -2684,10 +2722,25 @@ else {
                 UserInfoElement.classList.add("col-auto");
                 UserInfoElement.style.lineHeight = "40px";
                 UserInfoElement.innerHTML += "用户名：" + UserID + "<br>";
-                UserInfoElement.innerHTML += "昵称：" + UserName + "<br>";
+                UserInfoElement.innerHTML += "昵称：" + UserNick + "<br>";
                 if (UtilityEnabled("Rating")) {
                     UserInfoElement.innerHTML += "评分：" + ((await GetUserInfo(UserID)).Rating) + "<br>";
                 }
+                // Create a placeholder for the last online time
+                let lastOnlineElement = document.createElement('div');
+                lastOnlineElement.innerHTML = "最后在线：加载中...<br>";
+                UserInfoElement.appendChild(lastOnlineElement);
+
+                RequestAPI("LastOnline", {"Username": UserID}, (result) => {
+                    if (result.Success) {
+                        if (UtilityEnabled("DebugMode")) {
+                            console.log('lastOnline:' + result.Data.logintime);
+                        }
+                        lastOnlineElement.innerHTML = "最后在线：" + GetRelativeTime(result.Data.logintime) + "<br>";
+                    } else {
+                        lastOnlineElement.innerHTML = "最后在线：近三个月内从未<br>";
+                    }
+                });
                 LeftTopDiv.appendChild(UserInfoElement);
                 LeftDiv.appendChild(LeftTopDiv);
 
