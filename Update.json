@@ -654,7 +654,17 @@
                 },
                 {
                     "PR": 276,
-                    "Description": "Update XMOJ.user.js"
+                    "Description": "Change the include statement"
+                }
+            ]
+        },
+        "1.0.253": {
+            "UpdateDate": 1701491993821,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 282,
+                    "Description": "use https in xmoj"
                 }
             ]
         }
