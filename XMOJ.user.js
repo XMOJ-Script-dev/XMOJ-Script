@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.0.249
+// @version      1.0.252
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
 // @match        http://*.xmoj.tech/*
+// @match        https://*.xmoj.tech/*
 // @match        http://116.62.212.172/*
 // @require      https://cdn.bootcdn.net/ajax/libs/crypto-js/4.1.1/crypto-js.min.js
 // @require      https://cdn.bootcdn.net/ajax/libs/codemirror/6.65.7/codemirror.min.js
@@ -288,7 +289,9 @@ let RequestAPI = (Action, Data, CallBack) => {
             "SessionID": Session,
             "Username": CurrentUsername,
         },
-        "Data": Data
+        "Data": Data,
+        "Version": GM_info.script.version,
+        "DebugMode": UtilityEnabled("DebugMode")
     };
     let DataString = JSON.stringify(PostData);
     GM_xmlhttpRequest({

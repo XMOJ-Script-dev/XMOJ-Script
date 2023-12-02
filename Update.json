@@ -615,6 +615,48 @@
                     "Description": "显示最后在线时间"
                 }
             ]
+        },
+        "1.0.250": {
+            "UpdateDate": 1701264987062,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 273,
+                    "Description": "send extra information"
+                }
+            ]
+        },
+        "1.0.251": {
+            "UpdateDate": 1701426631116,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 276,
+                    "Description": "Update XMOJ.user.js"
+                }
+            ]
+        },
+        "1.0.252": {
+            "UpdateDate": 1701435211051,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 267,
+                    "Description": "修复提交按钮"
+                },
+                {
+                    "PR": 269,
+                    "Description": "显示最后在线时间"
+                },
+                {
+                    "PR": 273,
+                    "Description": "send extra information"
+                },
+                {
+                    "PR": 276,
+                    "Description": "Update XMOJ.user.js"
+                }
+            ]
         }
     }
 }
