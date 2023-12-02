@@ -637,24 +637,12 @@
             ]
         },
         "1.0.252": {
-            "UpdateDate": 1701435211051,
-            "Prerelease": false,
+            "UpdateDate": 1701491609776,
+            "Prerelease": true,
             "UpdateContents": [
                 {
-                    "PR": 267,
-                    "Description": "修复提交按钮"
-                },
-                {
-                    "PR": 269,
-                    "Description": "显示最后在线时间"
-                },
-                {
-                    "PR": 273,
-                    "Description": "send extra information"
-                },
-                {
-                    "PR": 276,
-                    "Description": "Update XMOJ.user.js"
+                    "PR": 282,
+                    "Description": "use https in xmoj"
                 }
             ]
         }
