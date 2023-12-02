@@ -80,7 +80,7 @@ let GetUserInfo = async (Username) => {
             "EmailHash": localStorage.getItem("UserScript-User-" + Username + "-EmailHash")
         }
     }
-    return await fetch("http://www.xmoj.tech/userinfo.php?user=" + Username).then((Response) => {
+    return await fetch("https://www.xmoj.tech/userinfo.php?user=" + Username).then((Response) => {
         return Response.text();
     }).then((Response) => {
         if (Response.indexOf("No such User!") !== -1) {
@@ -140,7 +140,7 @@ let GetUserBadge = async (Username) => {
         }
     }
 };
-let GetUsernameHTML = async (Element, Username, Simple = false, Href = "http://www.xmoj.tech/userinfo.php?user=") => {
+let GetUsernameHTML = async (Element, Username, Simple = false, Href = "https://www.xmoj.tech/userinfo.php?user=") => {
     Username = Username.replaceAll(/[^a-zA-Z0-9]/g, "");
     let ID = "Username-" + Username + "-" + Math.random();
     Element.id = ID;
@@ -341,7 +341,10 @@ let ServerURL = (UtilityEnabled("DebugMode") ? "https://ghpages.xmoj-bbs.tech/" 
 let CurrentUsername = document.querySelector("#profile").innerText;
 CurrentUsername = CurrentUsername.replaceAll(/[^a-zA-Z0-9]/g, "");
 let IsAdmin = AdminUserList.indexOf(CurrentUsername) !== -1;
-
+if (location.href.startsWith('http://')){
+    //use https
+    location.href = location.href.replace('http://', 'https://');
+}
 if (location.host != "www.xmoj.tech") {
     location.host = "www.xmoj.tech";
 }
