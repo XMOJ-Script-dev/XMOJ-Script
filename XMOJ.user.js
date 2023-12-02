@@ -272,6 +272,7 @@ let TidyTable = (Table) => {
 };
 let UtilityEnabled = (Name) => {
     if (localStorage.getItem("UserScript-Setting-" + Name) == null) {
+        //DebugMode is off by default
         localStorage.setItem("UserScript-Setting-" + Name, (Name == "DebugMode" ? "false" : "true"));
     }
     return localStorage.getItem("UserScript-Setting-" + Name) == "true";
