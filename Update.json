@@ -659,10 +659,10 @@
             ]
         },
         "1.0.253": {
-            "UpdateDate": 1701435211051,
+            "UpdateDate": 1701491866837,
             "Prerelease": false,
             "UpdateContents": [
-               {
+                {
                     "PR": 282,
                     "Description": "use https in xmoj"
                 }
