@@ -660,7 +660,7 @@
         },
         "1.0.253": {
             "UpdateDate": 1701491866837,
-            "Prerelease": false,
+            "Prerelease": true,
             "UpdateContents": [
                 {
                     "PR": 282,
