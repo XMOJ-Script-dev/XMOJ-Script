@@ -657,6 +657,26 @@
                     "Description": "Change the include statement"
                 }
             ]
+        },
+        "1.0.253": {
+            "UpdateDate": 1701491993821,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 282,
+                    "Description": "use https in xmoj"
+                }
+            ]
+        },
+        "1.0.254": {
+            "UpdateDate": 1701511837385,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 282,
+                    "Description": "use https in xmoj"
+                }
+            ]
         }
     }
 }
