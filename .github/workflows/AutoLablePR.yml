@@ -17,7 +17,7 @@ jobs:
         with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
-      - uses: actions/labeler@v5
+      - uses: actions/labeler@v4
         with:
           repo-token: ${{ steps.generate_token.outputs.token }}
           dot: true
