@@ -24,7 +24,7 @@ console.log("Last JSON version  : " + LastJSONVersion);
 console.log("Last PR            : " + LastPR);
 console.log("Last description   : " + LastDescription);
 console.log("Last release online: " + LastReleaseVersionOnline);
-if (LastJSONVersion.split(".")[2] != LastJSVersion.split(".")[2]) {
+if (LastJSONVersion != LastJSVersion) {
     console.error("XMOJ.user.js and Update.json have different patch versions.");
     process.exit(1);
 }
