@@ -677,6 +677,13 @@
                     "Description": "use https in xmoj"
                 }
             ]
+        },
+        "1.1.0": {
+            "UpdateDate": 1701511837385,
+            "Prerelease": true,
+            "UpdateContents": [
+                {}
+            ]
         }
     }
 }
