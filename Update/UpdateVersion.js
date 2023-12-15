@@ -54,9 +54,9 @@ console.log("Changed files      : " + ChangedFileList.join(", "));
 let CommitMessage = "";
 if (LastPR == CurrentPR && NpmVersion == LastJSVersion) {
     console.warn("Warning: PR is the same as last version.");
-    JSONObject.UpdateHistory[CurrentVersion].UpdateDate = Date.now();
-    JSONObject.UpdateHistory[CurrentVersion].UpdateContents[0].Description = CurrentDescription;
-    CommitMessage = "Update time and description of " + CurrentVersion;
+    JSONObject.UpdateHistory[LastJSVersion].UpdateDate = Date.now();
+    JSONObject.UpdateHistory[LastJSVersion].UpdateContents[0].Description = CurrentDescription;
+    CommitMessage = "Update time and description of " + LastJSVersion;
 }
 else if (ChangedFileList.indexOf("XMOJ.user.js") == -1) {
     console.warn("XMOJ.user.js is not changed, so the version should not be updated.");
