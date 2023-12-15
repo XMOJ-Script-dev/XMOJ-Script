@@ -669,12 +669,12 @@
             ]
         },
         "1.0.254": {
-            "UpdateDate": 1701511837385,
-            "Prerelease": false,
+            "UpdateDate": 1702640105102,
+            "Prerelease": true,
             "UpdateContents": [
                 {
-                    "PR": 282,
-                    "Description": "use https in xmoj"
+                    "PR": 298,
+                    "Description": "Add Docs"
                 }
             ]
         }
