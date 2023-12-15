@@ -76,5 +76,5 @@ execSync("git config --global user.email \"github-actions[bot]@users.noreply.git
 execSync("git config --global user.name \"github-actions[bot]\"");
 execSync("git pull");
 execSync("git commit -a -m \"" + CommitMessage + "\"");
-execSync("git push");
+execSync("git push -f");
 console.log("Pushed to GitHub.");
