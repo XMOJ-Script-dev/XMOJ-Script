@@ -5,7 +5,7 @@ const JSONFileName = "./Update.json";
 const JSFileName = "./XMOJ.user.js";
 var JSONFileContent = readFileSync(JSONFileName, "utf8");
 var JSFileContent = readFileSync(JSFileName, "utf8");
-var NpmVersion = execSync("npm show xmoj-script version").toString().trim();
+var NpmVersion = execSync("jq -r '.version' package.json").toString().trim();
 
 var JSONObject = JSON.parse(JSONFileContent);
 
