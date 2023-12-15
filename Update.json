@@ -697,6 +697,16 @@
                     "Description": "Add Docs"
                 }
             ]
+        },
+        "1.1.2": {
+            "UpdateDate": 1702645577793,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 301,
+                    "Description": "改变更新架构"
+                }
+            ]
         }
     }
 }
