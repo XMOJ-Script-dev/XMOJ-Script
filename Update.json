@@ -684,6 +684,16 @@
             "UpdateContents": [
                 {}
             ]
+        },
+        "1.1.1": {
+            "UpdateDate": 1702641659793,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 300,
+                    "Description": "Add Docs"
+                }
+            ]
         }
     }
 }
