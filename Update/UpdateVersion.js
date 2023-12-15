@@ -35,7 +35,7 @@ execSync("git config --global user.email \"github-actions[bot]@users.noreply.git
 execSync("git config --global user.name \"github-actions[bot]\"");
 
 if (LastJSVersion != NpmVersion) {
-    console.warn("Assuming you manually ran npm version");
+    console.warn("Assuming you manually ran npm version.");
 } else {
     execSync("npm version patch");
 }
@@ -43,9 +43,6 @@ if (LastJSVersion != NpmVersion) {
 var CurrentVersion = execSync("jq -r '.version' package.json").toString().trim();
 var CurrentPR = Number(PRNumber);
 var CurrentDescription = String(process.argv[4]);
-if (LastPR == CurrentPR || JSONObject.UpdateHistory[LastJSONVersion].Prerelease == false && LastReleaseVersionOnline != LastJSONVersion) {
-    CurrentVersion = LastJSONVersion;
-}
 
 console.log("Current version    : " + CurrentVersion);
 console.log("Current PR         : " + CurrentPR);
