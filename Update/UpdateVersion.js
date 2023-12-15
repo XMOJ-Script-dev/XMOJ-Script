@@ -31,6 +31,9 @@ if (LastJSONVersion != LastJSVersion) {
     process.exit(1);
 }
 
+execSync("git config --global user.email \"github-actions[bot]@users.noreply.github.com\"");
+execSync("git config --global user.name \"github-actions[bot]\"");
+
 if (LastJSVersion != NpmVersion) {
     console.warn("Assuming you manually ran npm version");
 } else {
@@ -80,8 +83,6 @@ writeFileSync(JSONFileName, JSON.stringify(JSONObject, null, 4), "utf8");
 
 console.warn("Update.json has been updated.");
 
-execSync("git config --global user.email \"github-actions[bot]@users.noreply.github.com\"");
-execSync("git config --global user.name \"github-actions[bot]\"");
 execSync("git pull");
 execSync("git commit -a -m \"" + CommitMessage + "\"");
 execSync("git push -f");
