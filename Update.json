@@ -679,10 +679,13 @@
             ]
         },
         "1.1.0": {
-            "UpdateDate": 1701511837385,
+            "UpdateDate": 1702641659793,
             "Prerelease": true,
             "UpdateContents": [
-                {}
+                {
+                    "PR": 300,
+                    "Description": "Add Docs"
+                }
             ]
         },
         "1.1.1": {
