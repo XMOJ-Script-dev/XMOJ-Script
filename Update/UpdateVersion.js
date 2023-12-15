@@ -19,17 +19,25 @@ var LastVersion = LastJSVersion.split(".");
 var LastPR = JSONObject.UpdateHistory[LastJSONVersion].UpdateContents[0].PR;
 var LastDescription = JSONObject.UpdateHistory[LastJSONVersion].UpdateContents[0].Description;
 var LastReleaseVersionOnline = execSync("gh release list --exclude-pre-releases --limit 1").toString().trim().split("\t")[2];
+var NpmVersion = execSync("npm show xmoj-script version").toString().trim();
 console.log("Last JS version    : " + LastJSVersion);
 console.log("Last JSON version  : " + LastJSONVersion);
 console.log("Last PR            : " + LastPR);
 console.log("Last description   : " + LastDescription);
 console.log("Last release online: " + LastReleaseVersionOnline);
+console.log("npm version        : " + NpmVersion);
 if (LastJSONVersion != LastJSVersion) {
     console.error("XMOJ.user.js and Update.json have different patch versions.");
     process.exit(1);
 }
 
-var CurrentVersion = LastVersion[0] + "." + LastVersion[1] + "." + (parseInt(LastVersion[2]) + 1);
+if (LastJSVersion != NpmVersion) {
+    console.warn("Assuming you manually ran npm version");
+} else {
+    execSync("npm version patch");
+}
+
+var CurrentVersion = execSync("npm show xmoj-script version").toString().trim();
 var CurrentPR = Number(PRNumber);
 var CurrentDescription = String(process.argv[4]);
 if (LastPR == CurrentPR || JSONObject.UpdateHistory[LastJSONVersion].Prerelease == false && LastReleaseVersionOnline != LastJSONVersion) {
