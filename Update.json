@@ -717,6 +717,16 @@
                     "Description": "改变更新架构"
                 }
             ]
+        },
+        "1.1.4": {
+            "UpdateDate": 1702648905908,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 301,
+                    "Description": "改变更新架构"
+                }
+            ]
         }
     }
 }
