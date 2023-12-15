@@ -36,7 +36,7 @@ execSync("git config --global user.name \"github-actions[bot]\"");
 
 if (LastJSVersion != NpmVersion) {
     console.warn("Assuming you manually ran npm version.");
-} else {
+} else if(!(LastPR == CurrentPR && NpmVersion == LastJSVersion)) {
     execSync("npm version patch");
 }
 
