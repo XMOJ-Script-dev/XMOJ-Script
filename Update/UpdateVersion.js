@@ -55,7 +55,7 @@ var ChangedFileList = execSync("gh pr diff " + CurrentPR + " --name-only").toStr
 console.log("Changed files      : " + ChangedFileList.join(", "));
 
 let CommitMessage = "";
-if (LastPR == CurrentPR) {
+if (LastPR == CurrentPR && NpmVersion == LastJSVersion) {
     console.warn("Warning: PR is the same as last version.");
     JSONObject.UpdateHistory[CurrentVersion].UpdateDate = Date.now();
     JSONObject.UpdateHistory[CurrentVersion].UpdateContents[0].Description = CurrentDescription;
