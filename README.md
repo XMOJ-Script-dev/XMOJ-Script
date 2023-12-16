@@ -68,18 +68,17 @@
 ### 安装
 请参考 [官网介绍](https://www.xmoj-bbs.tech) 。
 
-### 加入我们
+### 贡献
 您想为我们的脚本添砖加瓦吗？快加入我们，为小明的OJ用户创造更美好的环境！（具体要求参见Code Of Conduct）
 
 小明的OJ增强脚本开发期待以您的邂逅！
 
-### 贡献
-请注意, 外部开发者应向`extern-contrib`提交 pull requests。
+> [!IMPORTANT]
+> 请注意, 外部开发者应向`extern-contrib`提交 pull requests。
 
 ### How to set up a development server
-In the 'Server/Sources' folder input your GitHub PAT and Cloudflare Turnstile Site key in 'Secrets.ts', and run:
 ```bash
-cd Server
+cd backend
 npm install 
 npx wrangler d1 execute DB --file ./Source/Initial.sql --local
 npx wrangler dev
