@@ -17,9 +17,17 @@ jobs:
         with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          registry-url: https://registry.npmjs.org/
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Publish to npm
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
       - name: Get version
         env:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
