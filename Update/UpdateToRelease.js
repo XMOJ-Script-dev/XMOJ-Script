@@ -43,7 +43,8 @@ console.log("Current version    : " + CurrentVersion);
 JSONObject.UpdateHistory[CurrentVersion] = {
     "UpdateDate": Date.now(),
     "Prerelease": false,
-    "UpdateContents": []
+    "UpdateContents": [],
+    "Notes": "No release notes were provided for this release."
 };
 
 for (var i = Object.keys(JSONObject.UpdateHistory).length - 2; i >= 0; i--) {
