@@ -15,6 +15,7 @@ var JSONObject = JSON.parse(JSONFileContent);
 
 var LastJSONVersion = Object.keys(JSONObject.UpdateHistory)[Object.keys(JSONObject.UpdateHistory).length - 1];
 var LastJSVersion = JSFileContent.match(/@version\s+(\d+\.\d+\.\d+)/)[1];
+var NpmVersion = execSync("jq -r '.version' package.json").toString().trim();
 var LastVersion = LastJSVersion.split(".");
 var LastPR = JSONObject.UpdateHistory[LastJSONVersion].UpdateContents[0].PR;
 var LastType = JSONObject.UpdateHistory[LastJSONVersion].Prerelease ? "Prerelease" : "Release";
@@ -22,15 +23,21 @@ console.log("Last JS version    : " + LastJSVersion);
 console.log("Last JSON version  : " + LastJSONVersion);
 console.log("Last PR            : " + LastPR);
 console.log("Last type          : " + LastType);
-if (LastJSONVersion.split(".")[2] != LastJSVersion.split(".")[2]) {
+console.log("npm version        : " + NpmVersion);
+if (LastJSONVersion != LastJSVersion) {
     console.error("XMOJ.user.js and Update.json have different patch versions.");
     process.exit(1);
 }
 
-var CurrentVersion = LastVersion[0] + "." + LastVersion[1] + "." + (parseInt(LastVersion[2]) + 1);
-if (LastType == "Release") {
-    CurrentVersion = LastJSONVersion;
+execSync("git config --global user.email \"github-actions[bot]@users.noreply.github.com\"");
+execSync("git config --global user.name \"github-actions[bot]\"");
+
+if (LastJSVersion != NpmVersion) {
+    console.warn("Assuming you manually ran npm version.");
+} else {
+    execSync("npm version patch");
 }
+var CurrentVersion = execSync("jq -r '.version' package.json").toString().trim();
 console.log("Current version    : " + CurrentVersion);
 
 JSONObject.UpdateHistory[CurrentVersion] = {
@@ -58,8 +65,6 @@ var NewJSFileContent = JSFileContent.replace(/@version(\s+)\d+\.\d+\.\d+/, "@ver
 writeFileSync(JSFileName, NewJSFileContent, "utf8");
 console.warn("XMOJ.user.js has been updated.");
 
-execSync("git config --global user.email \"github-actions[bot]@users.noreply.github.com\"");
-execSync("git config --global user.name \"github-actions[bot]\"");
 execSync("git pull");
 execSync("git push origin --delete actions/temp || true");
 execSync("git checkout -b actions/temp");

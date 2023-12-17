@@ -677,6 +677,46 @@
                     "Description": "use https in xmoj"
                 }
             ]
+        },
+        "1.1.0": {
+            "UpdateDate": 1702641659793,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 300,
+                    "Description": "Add Docs"
+                }
+            ]
+        },
+        "1.1.1": {
+            "UpdateDate": 1702641844861,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 300,
+                    "Description": "Add Docs"
+                }
+            ]
+        },
+        "1.1.2": {
+            "UpdateDate": 1702687185849,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 301,
+                    "Description": "改变更新架构"
+                }
+            ]
+        },
+        "1.1.3": {
+            "UpdateDate": 1702821395564,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 302,
+                    "Description": "Update allowed tags in PurifyHTML function to allow the  tag"
+                }
+            ]
         }
     }
 }

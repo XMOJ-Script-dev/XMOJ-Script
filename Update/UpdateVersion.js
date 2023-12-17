@@ -19,22 +19,29 @@ var LastVersion = LastJSVersion.split(".");
 var LastPR = JSONObject.UpdateHistory[LastJSONVersion].UpdateContents[0].PR;
 var LastDescription = JSONObject.UpdateHistory[LastJSONVersion].UpdateContents[0].Description;
 var LastReleaseVersionOnline = execSync("gh release list --exclude-pre-releases --limit 1").toString().trim().split("\t")[2];
+var NpmVersion = execSync("jq -r '.version' package.json").toString().trim();
 console.log("Last JS version    : " + LastJSVersion);
 console.log("Last JSON version  : " + LastJSONVersion);
 console.log("Last PR            : " + LastPR);
 console.log("Last description   : " + LastDescription);
 console.log("Last release online: " + LastReleaseVersionOnline);
-if (LastJSONVersion.split(".")[2] != LastJSVersion.split(".")[2]) {
+console.log("npm version        : " + NpmVersion);
+if (LastJSONVersion != LastJSVersion) {
     console.error("XMOJ.user.js and Update.json have different patch versions.");
     process.exit(1);
 }
 
-var CurrentVersion = LastVersion[0] + "." + LastVersion[1] + "." + (parseInt(LastVersion[2]) + 1);
+execSync("git config --global user.email \"github-actions[bot]@users.noreply.github.com\"");
+execSync("git config --global user.name \"github-actions[bot]\"");
 var CurrentPR = Number(PRNumber);
 var CurrentDescription = String(process.argv[4]);
-if (LastPR == CurrentPR || JSONObject.UpdateHistory[LastJSONVersion].Prerelease == false && LastReleaseVersionOnline != LastJSONVersion) {
-    CurrentVersion = LastJSONVersion;
+if (LastJSVersion != NpmVersion) {
+    console.warn("Assuming you manually ran npm version.");
+} else if(!(LastPR == CurrentPR && NpmVersion == LastJSVersion)) {
+    execSync("npm version patch");
 }
+
+var CurrentVersion = execSync("jq -r '.version' package.json").toString().trim();
 
 console.log("Current version    : " + CurrentVersion);
 console.log("Current PR         : " + CurrentPR);
@@ -44,11 +51,11 @@ var ChangedFileList = execSync("gh pr diff " + CurrentPR + " --name-only").toStr
 console.log("Changed files      : " + ChangedFileList.join(", "));
 
 let CommitMessage = "";
-if (LastPR == CurrentPR) {
+if (LastPR == CurrentPR && NpmVersion == LastJSVersion) {
     console.warn("Warning: PR is the same as last version.");
-    JSONObject.UpdateHistory[CurrentVersion].UpdateDate = Date.now();
-    JSONObject.UpdateHistory[CurrentVersion].UpdateContents[0].Description = CurrentDescription;
-    CommitMessage = "Update time and description of " + CurrentVersion;
+    JSONObject.UpdateHistory[LastJSVersion].UpdateDate = Date.now();
+    JSONObject.UpdateHistory[LastJSVersion].UpdateContents[0].Description = CurrentDescription;
+    CommitMessage = "Update time and description of " + LastJSVersion;
 }
 else if (ChangedFileList.indexOf("XMOJ.user.js") == -1) {
     console.warn("XMOJ.user.js is not changed, so the version should not be updated.");
@@ -73,9 +80,7 @@ writeFileSync(JSONFileName, JSON.stringify(JSONObject, null, 4), "utf8");
 
 console.warn("Update.json has been updated.");
 
-execSync("git config --global user.email \"github-actions[bot]@users.noreply.github.com\"");
-execSync("git config --global user.name \"github-actions[bot]\"");
 execSync("git pull");
 execSync("git commit -a -m \"" + CommitMessage + "\"");
-execSync("git push");
+execSync("git push -f");
 console.log("Pushed to GitHub.");
