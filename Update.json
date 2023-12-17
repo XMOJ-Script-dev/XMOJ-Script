@@ -717,6 +717,17 @@
                     "Description": "Update allowed tags in PurifyHTML function to allow the  tag"
                 }
             ]
+        },
+        "1.1.4": {
+            "UpdateDate": 1702822405812,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 305,
+                    "Description": "add release notes (#303)"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
