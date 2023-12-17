@@ -60,7 +60,8 @@ else if (ChangedFileList.indexOf("XMOJ.user.js") == -1) {
         "UpdateContents": [{
             "PR": CurrentPR,
             "Description": CurrentDescription
-        }]
+        }],
+        "Notes": "No release notes were provided for this release."
     };
     writeFileSync(JSFileName, JSFileContent.replace(/@version(\s+)\d+\.\d+\.\d+/, "@version$1" + CurrentVersion), "utf8");
     console.warn("XMOJ.user.js has been updated.");

@@ -744,6 +744,10 @@ else {
                     UpdateDataCardSubtitle.innerHTML = GetRelativeTime(Data.UpdateDate);
                     let UpdateDataCardText = document.createElement("p"); UpdateDataCardBody.appendChild(UpdateDataCardText);
                     UpdateDataCardText.className = "card-text";
+                    //release notes
+                    if (Data.Notes != undefined){
+                        UpdateDataCardText.innerHTML = Data.ReleaseNotes;
+                    }
                     let UpdateDataCardList = document.createElement("ul"); UpdateDataCardText.appendChild(UpdateDataCardList);
                     UpdateDataCardList.className = "list-group list-group-flush";
                     for (let j = 0; j < Data.UpdateContents.length; j++) {
@@ -2428,6 +2432,10 @@ else {
                             UpdateDataCardSubtitle.innerHTML = GetRelativeTime(Data.UpdateDate);
                             let UpdateDataCardText = document.createElement("p"); UpdateDataCardBody.appendChild(UpdateDataCardText);
                             UpdateDataCardText.className = "card-text";
+                            //release notes
+                            if (Data.Notes != undefined) {
+                                UpdateDataCardText.innerHTML = Data.Notes;
+                            }
                             let UpdateDataCardList = document.createElement("ul"); UpdateDataCardText.appendChild(UpdateDataCardList);
                             UpdateDataCardList.className = "list-group list-group-flush";
                             for (let j = 0; j < Data.UpdateContents.length; j++) {
