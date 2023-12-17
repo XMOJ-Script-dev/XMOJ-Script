@@ -727,7 +727,7 @@
                     "Description": "add release notes (#303)"
                 }
             ],
-            "Notes": "No release notes were provided for this release."
+            "Notes": "Hello, release notes! test 测试"
         }
     }
 }
