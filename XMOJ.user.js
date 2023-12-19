@@ -448,6 +448,7 @@ else {
             document.body.innerHTML = String(document.body.innerHTML).replaceAll("海上", "上海");
             document.body.innerHTML = String(document.body.innerHTML).replaceAll("小红", "徐师娘");
             document.body.innerHTML = String(document.body.innerHTML).replaceAll("小粉", "彩虹");
+            document.body.innerHTML = String(document.body.innerHTML).replaceAll("提交上节课的代码", "自动提交当年代码");
             document.body.innerHTML = String(document.body.innerHTML).replaceAll("高老师们", "我们");
             document.body.innerHTML = String(document.body.innerHTML).replaceAll("自高老师", "自我");
             document.title = String(document.title).replaceAll("小明", "高老师");
