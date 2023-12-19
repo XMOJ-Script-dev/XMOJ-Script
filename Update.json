@@ -739,6 +739,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.6": {
+            "UpdateDate": 1702995220469,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 312,
+                    "Description": "fix rel notes"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
