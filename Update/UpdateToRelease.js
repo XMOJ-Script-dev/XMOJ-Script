@@ -65,6 +65,7 @@ var NewJSFileContent = JSFileContent.replace(/@version(\s+)\d+\.\d+\.\d+/, "@ver
 writeFileSync(JSFileName, NewJSFileContent, "utf8");
 console.warn("XMOJ.user.js has been updated.");
 
+execSync("git config pull.rebase false");
 execSync("git pull");
 execSync("git push origin --delete actions/temp || true");
 execSync("git checkout -b actions/temp");

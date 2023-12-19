@@ -80,6 +80,7 @@ writeFileSync(JSONFileName, JSON.stringify(JSONObject, null, 4), "utf8");
 
 console.warn("Update.json has been updated.");
 
+execSync("git config pull.rebase false");
 execSync("git pull");
 execSync("git commit -a -m \"" + CommitMessage + "\"");
 execSync("git push -f");
