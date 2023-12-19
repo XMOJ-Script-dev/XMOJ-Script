@@ -741,12 +741,12 @@
             "Notes": "No release notes were provided for this release."
         },
         "1.1.6": {
-            "UpdateDate": 1702995220469,
+            "UpdateDate": 1702995227762,
             "Prerelease": true,
             "UpdateContents": [
                 {
                     "PR": 312,
-                    "Description": "fix rel notes"
+                    "Description": "fix release notes"
                 }
             ],
             "Notes": "No release notes were provided for this release."
