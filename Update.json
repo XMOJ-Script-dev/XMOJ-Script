@@ -728,6 +728,17 @@
                 }
             ],
             "Notes": "Hello, release notes! test 测试"
+        },
+        "1.1.5": {
+            "UpdateDate": 1702993118366,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 310,
+                    "Description": "Add an Easter egg"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
