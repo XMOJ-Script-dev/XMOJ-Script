@@ -793,7 +793,7 @@ else {
                     UpdateDataCardText.className = "card-text";
                     //release notes
                     if (Data.Notes != undefined){
-                        UpdateDataCardText.innerHTML = Data.ReleaseNotes;
+                        UpdateDataCardText.innerHTML = Data.Notes;
                     }
                     let UpdateDataCardList = document.createElement("ul"); UpdateDataCardText.appendChild(UpdateDataCardList);
                     UpdateDataCardList.className = "list-group list-group-flush";
