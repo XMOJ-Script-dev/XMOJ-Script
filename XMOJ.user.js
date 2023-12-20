@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.1.5
+// @version      1.1.6
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -794,7 +794,7 @@ else {
                     UpdateDataCardText.className = "card-text";
                     //release notes
                     if (Data.Notes != undefined){
-                        UpdateDataCardText.innerHTML = Data.ReleaseNotes;
+                        UpdateDataCardText.innerHTML = Data.Notes;
                     }
                     let UpdateDataCardList = document.createElement("ul"); UpdateDataCardText.appendChild(UpdateDataCardList);
                     UpdateDataCardList.className = "list-group list-group-flush";
