@@ -750,6 +750,56 @@
                 }
             ],
             "Notes": "Welcome!"
+        },
+        "1.1.7": {
+            "UpdateDate": 1703253098623,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 315,
+                    "Description": "修复无法在某些页面检查登录状态"
+                }
+            ],
+            "Notes": "<big>test:</big> 这个算公告吗？@<a href=\"https://www.xmoj.tech/userinfo.php?user=chenlangning\" class=\"link-offset-2 link-underline-opacity-50 link-danger\" ;\"=\"\">chenlangning</a>"
+        },
+        "1.1.8": {
+            "UpdateDate": 1703253440322,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 300,
+                    "Description": "Add Docs"
+                },
+                {
+                    "PR": 300,
+                    "Description": "Add Docs"
+                },
+                {
+                    "PR": 301,
+                    "Description": "改变更新架构"
+                },
+                {
+                    "PR": 302,
+                    "Description": "Update allowed tags in PurifyHTML function to allow the  tag"
+                },
+                {
+                    "PR": 305,
+                    "Description": "add release notes (#303)"
+                },
+                {
+                    "PR": 310,
+                    "Description": "Add an Easter egg"
+                },
+                {
+                    "PR": 312,
+                    "Description": "fix release notes"
+                },
+                {
+                    "PR": 315,
+                    "Description": "修复无法在某些页面检查登录状态"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
