@@ -750,6 +750,17 @@
                 }
             ],
             "Notes": "Welcome!"
+        },
+        "1.1.7": {
+            "UpdateDate": 1703253098623,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 315,
+                    "Description": "修复无法在某些页面检查登录状态"
+                }
+            ],
+            "Notes": "<big>test:</big> 这个算release notes吗？<a href=\"https://www.xmoj.tech/userinfo.php?user=chenlangning\" class=\"link-offset-2 link-underline-opacity-50 link-danger\" ;\"=\"\">chenlangning</a>"
         }
     }
 }

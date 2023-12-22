@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.1.6
+// @version      1.1.7
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -383,6 +383,12 @@ GM_registerMenuCommand("重置数据", () => {
         location.reload();
     }
 });
+
+//otherwise CurrentUsername might be undefined
+if (UtilityEnabled("AutoLogin") && document.querySelector("body > a:nth-child(1)") != null && document.querySelector("body > a:nth-child(1)").innerText == "请登录后继续操作") {
+    localStorage.setItem("UserScript-LastPage", location.pathname + location.search);
+    location.href = "https://www.xmoj.tech/loginpage.php";
+}
 
 let SearchParams = new URLSearchParams(location.search);
 let ServerURL = (UtilityEnabled("DebugMode") ? "https://ghpages.xmoj-bbs.tech/" : "https://web.xmoj-bbs.tech")
