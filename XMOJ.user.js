@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.0.254
+// @version      1.1.8
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -37,10 +37,15 @@ const AdminUserList = ["zhuchenrui2", "shanwenxiao", "admin", "shihongxi"];
 
 let PurifyHTML = (Input) => {
     return DOMPurify.sanitize(Input, {
-        "ALLOWED_TAGS": ["a", "b", "blockquote", "br", "code", "dd", "del", "div", "dl", "dt", "em", "h1", "h2", "h3", "h4", "h5", "h6", "h7", "h8", "hr", "i", "img", "ins", "kbd", "li", "ol", "p", "pre", "q", "rp", "rt", "ruby", "s", "samp", "strike", "strong", "sub", "sup", "table", "tbody", "td", "tfoot", "th", "thead", "tr", "tt", "ul", "var"],
+        "ALLOWED_TAGS": ["a", "b", "big", "blockquote", "br", "code", "dd", "del", "div", "dl", "dt", "em", "h1", "h2", "h3", "h4", "h5", "h6", "h7", "h8", "hr", "i", "img", "ins", "kbd", "li", "ol", "p", "pre", "q", "rp", "rt", "ruby", "s", "samp", "strike", "strong", "sub", "sup", "table", "tbody", "td", "tfoot", "th", "thead", "tr", "tt", "ul", "var"],
         "ALLOWED_ATTR": ["abbr", "accept", "accept-charset", "accesskey", "action", "align", "alt", "axis", "border", "cellpadding", "cellspacing", "char", "charoff", "charset", "checked", "cite", "clear", "color", "cols", "colspan", "compact", "coords", "datetime", "dir", "disabled", "enctype", "for", "frame", "headers", "height", "href", "hreflang", "hspace", "ismap", "itemprop", "label", "lang", "longdesc", "maxlength", "media", "method", "multiple", "name", "nohref", "noshade", "nowrap", "prompt", "readonly", "rel", "rev", "rows", "rowspan", "rules", "scope", "selected", "shape", "size", "span", "src", "start", "summary", "tabindex", "target", "title", "type", "usemap", "valign", "value", "vspace", "width"]
     });
 }
+/**
+ * Calculates the relative time based on the input date.
+ * @param {string|Date} Input - The input date.
+ * @returns {string} The relative time in a formatted string.
+ */
 let GetRelativeTime = (Input) => {
     Input = new Date(Input);
     let Now = new Date().getTime();
@@ -105,6 +110,15 @@ let GetUserInfo = async (Username) => {
         }
     });
 };
+/**
+ * Retrieves the badge information for a given user.
+ * 
+ * @param {string} Username - The username of the user.
+ * @returns {Promise<Object>} - A promise that resolves to an object containing the badge information.
+ * @property {string} BackgroundColor - The background color of the badge.
+ * @property {string} Color - The color of the badge.
+ * @property {string} Content - The content of the badge.
+ */
 let GetUserBadge = async (Username) => {
     if (localStorage.getItem("UserScript-User-" + Username + "-Badge-LastUpdateTime") != null &&
         new Date().getTime() - parseInt(localStorage.getItem("UserScript-User-" + Username + "-Badge-LastUpdateTime")) < 1000 * 60 * 60 * 24) {
@@ -140,6 +154,14 @@ let GetUserBadge = async (Username) => {
         }
     }
 };
+/**
+ * Sets the HTML content of an element to display a username with optional additional information.
+ * @param {HTMLElement} Element - The element to set the HTML content.
+ * @param {string} Username - The username to display.
+ * @param {boolean} [Simple=false] - Indicates whether to display additional information or not.
+ * @param {string} [Href="https://www.xmoj.tech/userinfo.php?user="] - The URL to link the username to.
+ * @returns {Promise<void>} - A promise that resolves when the HTML content is set.
+ */
 let GetUsernameHTML = async (Element, Username, Simple = false, Href = "https://www.xmoj.tech/userinfo.php?user=") => {
     Username = Username.replaceAll(/[^a-zA-Z0-9]/g, "");
     let ID = "Username-" + Username + "-" + Math.random();
@@ -199,6 +221,11 @@ let GetUsernameHTML = async (Element, Username, Simple = false, Href = "https://
     document.getElementById(ID).innerHTML = HTMLData;
     document.getElementById(ID).getElementsByTagName("a")[0].appendChild(document.createTextNode(Username));
 };
+/**
+ * Converts the given number of seconds to a formatted string representation of hours, minutes, and seconds.
+ * @param {number} InputSeconds - The number of seconds to convert.
+ * @returns {string} The formatted string representation of the input seconds.
+ */
 let SecondsToString = (InputSeconds) => {
     let Hours = Math.floor(InputSeconds / 3600);
     let Minutes = Math.floor((InputSeconds % 3600) / 60);
@@ -207,12 +234,22 @@ let SecondsToString = (InputSeconds) => {
         (Minutes < 10 ? "0" : "") + Minutes + ":" +
         (Seconds < 10 ? "0" : "") + Seconds;
 }
+/**
+ * Converts a string in the format "hh:mm:ss" to the equivalent number of seconds.
+ * @param {string} InputString - The input string to convert.
+ * @returns {number} The number of seconds equivalent to the input string.
+ */
 let StringToSeconds = (InputString) => {
     let SplittedString = InputString.split(":");
     return parseInt(SplittedString[0]) * 60 * 60 +
         parseInt(SplittedString[1]) * 60 +
         parseInt(SplittedString[2]);
 }
+/**
+ * Converts a memory size in bytes to a human-readable string representation.
+ * @param {number} Memory - The memory size in bytes.
+ * @returns {string} The human-readable string representation of the memory size.
+ */
 let SizeToStringSize = (Memory) => {
     if (UtilityEnabled("AddUnits")) {
         if (Memory < 1024) {
@@ -229,6 +266,11 @@ let SizeToStringSize = (Memory) => {
         return Memory;
     }
 };
+/**
+ * Converts a time value to a string representation.
+ * @param {number} Time - The time value to convert.
+ * @returns {string|number} - The converted time value as a string, or the original value if UtilityEnabled("AddUnits") is false.
+ */
 let TimeToStringTime = (Time) => {
     if (UtilityEnabled("AddUnits")) {
         if (Time < 1000) {
@@ -241,6 +283,11 @@ let TimeToStringTime = (Time) => {
         return Time;
     }
 };
+/**
+ * Tidies up the given table by applying Bootstrap styling and removing unnecessary attributes.
+ * 
+ * @param {HTMLElement} Table - The table element to be tidied up.
+ */
 let TidyTable = (Table) => {
     if (UtilityEnabled("NewBootstrap") && Table != null) {
         Table.className = "table table-hover";
@@ -272,6 +319,7 @@ let TidyTable = (Table) => {
 };
 let UtilityEnabled = (Name) => {
     if (localStorage.getItem("UserScript-Setting-" + Name) == null) {
+        //DebugMode is off by default
         localStorage.setItem("UserScript-Setting-" + Name, (Name == "DebugMode" ? "false" : "true"));
     }
     return localStorage.getItem("UserScript-Setting-" + Name) == "true";
@@ -335,6 +383,12 @@ GM_registerMenuCommand("重置数据", () => {
         location.reload();
     }
 });
+
+//otherwise CurrentUsername might be undefined
+if (UtilityEnabled("AutoLogin") && document.querySelector("body > a:nth-child(1)") != null && document.querySelector("body > a:nth-child(1)").innerText == "请登录后继续操作") {
+    localStorage.setItem("UserScript-LastPage", location.pathname + location.search);
+    location.href = "https://www.xmoj.tech/loginpage.php";
+}
 
 let SearchParams = new URLSearchParams(location.search);
 let ServerURL = (UtilityEnabled("DebugMode") ? "https://ghpages.xmoj-bbs.tech/" : "https://web.xmoj-bbs.tech")
@@ -400,6 +454,7 @@ else {
             document.body.innerHTML = String(document.body.innerHTML).replaceAll("海上", "上海");
             document.body.innerHTML = String(document.body.innerHTML).replaceAll("小红", "徐师娘");
             document.body.innerHTML = String(document.body.innerHTML).replaceAll("小粉", "彩虹");
+            document.body.innerHTML = String(document.body.innerHTML).replaceAll("提交上节课的代码", "自动提交当年代码");
             document.body.innerHTML = String(document.body.innerHTML).replaceAll("高老师们", "我们");
             document.body.innerHTML = String(document.body.innerHTML).replaceAll("自高老师", "自我");
             document.title = String(document.title).replaceAll("小明", "高老师");
@@ -743,6 +798,10 @@ else {
                     UpdateDataCardSubtitle.innerHTML = GetRelativeTime(Data.UpdateDate);
                     let UpdateDataCardText = document.createElement("p"); UpdateDataCardBody.appendChild(UpdateDataCardText);
                     UpdateDataCardText.className = "card-text";
+                    //release notes
+                    if (Data.Notes != undefined){
+                        UpdateDataCardText.innerHTML = Data.Notes;
+                    }
                     let UpdateDataCardList = document.createElement("ul"); UpdateDataCardText.appendChild(UpdateDataCardList);
                     UpdateDataCardList.className = "list-group list-group-flush";
                     for (let j = 0; j < Data.UpdateContents.length; j++) {
@@ -2427,6 +2486,10 @@ else {
                             UpdateDataCardSubtitle.innerHTML = GetRelativeTime(Data.UpdateDate);
                             let UpdateDataCardText = document.createElement("p"); UpdateDataCardBody.appendChild(UpdateDataCardText);
                             UpdateDataCardText.className = "card-text";
+                            //release notes
+                            if (Data.Notes != undefined) {
+                                UpdateDataCardText.innerHTML = Data.Notes;
+                            }
                             let UpdateDataCardList = document.createElement("ul"); UpdateDataCardText.appendChild(UpdateDataCardList);
                             UpdateDataCardList.className = "list-group list-group-flush";
                             for (let j = 0; j < Data.UpdateContents.length; j++) {

@@ -16,9 +16,17 @@ jobs:
         with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 16
+          registry-url: https://registry.npmjs.org/
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Publish to npm
+        run: npm publish --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
       - name: Get version
         id: get_version
         run: node ./Update/GetVersion.js
@@ -38,8 +46,8 @@ jobs:
           accountId: 89969bdf9d5ab8202f8ad8b8ae2c40b8
           projectName: xmoj-script
           directory: .
-      - uses: actions/configure-pages@v3
+      - uses: actions/configure-pages@v4
       - uses: actions/upload-pages-artifact@v2
         with:
           path: .
-      - uses: actions/deploy-pages@v2
+      - uses: actions/deploy-pages@v3
