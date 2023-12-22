@@ -384,6 +384,12 @@ GM_registerMenuCommand("重置数据", () => {
     }
 });
 
+//otherwise CurrentUsername might be undefined
+if (UtilityEnabled("AutoLogin") && document.querySelector("body > a:nth-child(1)") != null && document.querySelector("body > a:nth-child(1)").innerText == "请登录后继续操作") {
+    localStorage.setItem("UserScript-LastPage", location.pathname + location.search);
+    location.href = "https://www.xmoj.tech/loginpage.php";
+}
+
 let SearchParams = new URLSearchParams(location.search);
 let ServerURL = (UtilityEnabled("DebugMode") ? "https://ghpages.xmoj-bbs.tech/" : "https://web.xmoj-bbs.tech")
 let CurrentUsername = document.querySelector("#profile").innerText;
