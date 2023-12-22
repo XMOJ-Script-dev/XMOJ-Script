@@ -760,7 +760,7 @@
                     "Description": "修复无法在某些页面检查登录状态"
                 }
             ],
-            "Notes": "No release notes were provided for this release."
+            "Notes": "<big>test:</big> 这个算release notes吗？<a href=\"https://www.xmoj.tech/userinfo.php?user=chenlangning\" class=\"link-offset-2 link-underline-opacity-50 link-danger\" ;\"=\"\">chenlangning</a>"
         }
     }
 }
