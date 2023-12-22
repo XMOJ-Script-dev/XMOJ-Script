@@ -750,6 +750,17 @@
                 }
             ],
             "Notes": "Welcome!"
+        },
+        "1.1.7": {
+            "UpdateDate": 1703250572709,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 315,
+                    "Description": "修复无法在某些页面检查登录状态"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
