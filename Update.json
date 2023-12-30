@@ -888,7 +888,7 @@
                     "Description": "优化用户体验"
                 }
             ],
-            "Notes": "No release notes were provided for this release."
+            "Notes": "增加bug上报和主页按钮"
         }
     }
 }
