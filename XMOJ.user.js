@@ -4,9 +4,8 @@
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
-// @match        http://*.xmoj.tech/*
-// @match        https://*.xmoj.tech/*
-// @match        http://116.62.212.172/*
+// @match        *://*.xmoj.tech/*
+// @match        *://116.62.212.172/*
 // @require      https://cdn.bootcdn.net/ajax/libs/crypto-js/4.1.1/crypto-js.min.js
 // @require      https://cdn.bootcdn.net/ajax/libs/codemirror/6.65.7/codemirror.min.js
 // @require      https://cdn.bootcdn.net/ajax/libs/codemirror/6.65.7/mode/clike/clike.min.js
