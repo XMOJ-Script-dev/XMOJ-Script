@@ -18,6 +18,8 @@
 // @grant        GM_xmlhttpRequest
 // @grant        GM_setClipboard
 // @grant        unsafeWindow
+// @homepage     https://www.xmoj-bbs.tech/
+// @supportURL   https://github.com/XMOJ-Script-dev/XMOJ-Script
 // @connect      api.xmoj-bbs.tech
 // @connect      challenges.cloudflare.com
 // @connect      cppinsights.io
