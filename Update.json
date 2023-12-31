@@ -889,6 +889,17 @@
                 }
             ],
             "Notes": "增加bug上报和主页按钮"
+        },
+        "1.1.12": {
+            "UpdateDate": 1704017187302,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 329,
+                    "Description": "增加权限"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
