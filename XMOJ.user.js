@@ -17,6 +17,8 @@
 // @grant        GM_xmlhttpRequest
 // @grant        GM_setClipboard
 // @grant        unsafeWindow
+// @grant        GM_setValue
+// @grant        GM_getValue
 // @homepage     https://www.xmoj-bbs.tech/
 // @supportURL   https://github.com/XMOJ-Script-dev/XMOJ-Script
 // @connect      api.xmoj-bbs.tech
