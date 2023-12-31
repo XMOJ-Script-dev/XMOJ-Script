@@ -8,3 +8,4 @@ if (localStorage.getItem("UserScript-2024newyear") == null) {
         localStorage.setItem("UserScript-2024newyear", "true")
     }
 }
+//happy 2024 new year
