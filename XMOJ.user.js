@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.1.11
+// @version      1.1.12
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -17,6 +17,8 @@
 // @grant        GM_xmlhttpRequest
 // @grant        GM_setClipboard
 // @grant        unsafeWindow
+// @grant        GM_setValue
+// @grant        GM_getValue
 // @homepage     https://www.xmoj-bbs.tech/
 // @supportURL   https://github.com/XMOJ-Script-dev/XMOJ-Script
 // @connect      api.xmoj-bbs.tech
