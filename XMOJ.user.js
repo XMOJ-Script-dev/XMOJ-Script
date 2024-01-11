@@ -3303,6 +3303,10 @@ int main()
                     "Image": "https://a.fsdn.com/allura/p/dev-cpp/icon",
                     "URL": "https://sourceforge.net/projects/dev-cpp/"
                 }, {
+                    "Name": "DevC++ 5.11 TDM-GCC 4.9.2",
+                    "Image": "https://www.xmoj.tech/image/devcpp.png",
+                    "URL": "https://www.xmoj.tech/downloads/Dev-Cpp+5.11+TDM-GCC+4.9.2+Setup.exe"
+                }, {
                     "Name": "Orwell Dev-C++",
                     "Image": "https://a.fsdn.com/allura/p/orwelldevcpp/icon",
                     "URL": "https://sourceforge.net/projects/orwelldevcpp/"
