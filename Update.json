@@ -843,7 +843,62 @@
         "1.1.10": {
             "UpdateDate": 1703254332078,
             "Prerelease": false,
-            "UpdateContents": [],
+            "UpdateContents": [
+                {
+                    "PR": 300,
+                    "Description": "Add Docs"
+                },
+                {
+                    "PR": 300,
+                    "Description": "Add Docs"
+                },
+                {
+                    "PR": 301,
+                    "Description": "改变更新架构"
+                },
+                {
+                    "PR": 302,
+                    "Description": "Update allowed tags in PurifyHTML function to allow the  tag"
+                },
+                {
+                    "PR": 305,
+                    "Description": "add release notes (#303)"
+                },
+                {
+                    "PR": 310,
+                    "Description": "Add an Easter egg"
+                },
+                {
+                    "PR": 312,
+                    "Description": "fix release notes"
+                },
+                {
+                    "PR": 315,
+                    "Description": "修复无法在某些页面检查登录状态"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.11": {
+            "UpdateDate": 1703923205023,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 327,
+                    "Description": "优化用户体验"
+                }
+            ],
+            "Notes": "增加bug上报和主页按钮"
+        },
+        "1.1.12": {
+            "UpdateDate": 1704017187302,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 329,
+                    "Description": "增加权限"
+                }
+            ],
             "Notes": "No release notes were provided for this release."
         }
     }
