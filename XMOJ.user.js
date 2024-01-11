@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.1.12
+// @version      1.1.13
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -3302,6 +3302,10 @@ int main()
                     "Name": "Bloodshed Dev-C++",
                     "Image": "https://a.fsdn.com/allura/p/dev-cpp/icon",
                     "URL": "https://sourceforge.net/projects/dev-cpp/"
+                }, {
+                    "Name": "DevC++ 5.11 TDM-GCC 4.9.2",
+                    "Image": "https://www.xmoj.tech/image/devcpp.png",
+                    "URL": "https://www.xmoj.tech/downloads/Dev-Cpp+5.11+TDM-GCC+4.9.2+Setup.exe"
                 }, {
                     "Name": "Orwell Dev-C++",
                     "Image": "https://a.fsdn.com/allura/p/orwelldevcpp/icon",
