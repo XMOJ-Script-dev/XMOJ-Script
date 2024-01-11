@@ -900,6 +900,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.13": {
+            "UpdateDate": 1704936560583,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 340,
+                    "Description": "add the native link"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
