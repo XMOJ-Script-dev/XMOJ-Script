@@ -1,3 +1,6 @@
+> [!NOTE]
+> This eula only applies to our instance of xmoj-bbs, not xmoj-bbs itself. (xmoj-bbs is licenced under AGPL)
+
 ### XMOJ讨论区用户服务协议
 
 欢迎阅读《XMOJ讨论区用户服务协议》(以下简称“本协议”)。本协议阐述之条款和条件适用于您（以下简称“用户”）使用XMOJ讨论区的各种产品和服务。
