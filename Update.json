@@ -900,6 +900,21 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.13": {
+            "UpdateDate": 1705649591969,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 327,
+                    "Description": "优化用户体验"
+                },
+                {
+                    "PR": 329,
+                    "Description": "增加权限"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
