@@ -43,7 +43,7 @@ const AdminUserList = ["zhuchenrui2", "shanwenxiao", "admin", "shihongxi"];
 
 try {
     new SC_Statistic({
-        key: "高级统计key",
+        key: "9ghqb0n5holr3ea7",
     });
 } catch (e) {
     console.warn("statistic failed: ", e);
