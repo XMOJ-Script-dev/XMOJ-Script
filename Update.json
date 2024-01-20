@@ -918,10 +918,10 @@
             "UpdateContents": [
                 {
                     "PR": 356,
-                    "Description": "script-cat统计模块"
+                    "Description": "增加script-cat统计模块"
                 }
             ],
-            "Notes": "No release notes were provided for this release."
+            "Notes": "收集用户的版本信息，设备型号等非敏感数据"
         }
     }
 }
