@@ -1,5 +1,15 @@
 - [ ] 我已认真阅读贡献指南 (contributing guidelines) 和社区公约 (code of conduct)，并遵循了如何参与页及格式手册页的相应规范。
 
+By making a contribution to this project, I certify that:
+
+The contribution was created in whole or in part by me and I have the right to submit it under the open source license indicated in the file; or
+
+The contribution is based upon previous work that, to the best of my knowledge, is covered under an appropriate open source license and I have the right under that license to submit that work with modifications, whether created in whole or in part by me, under the same open source license (unless I am permitted to submit under a different license), as indicated in the file; or
+
+The contribution was provided directly to me by some other person who certified 1., 2. or 3. and I have not modified it.
+
+I understand and agree that this project and the contribution are public and that a record of the contribution (including all personal information I submit with it, including my sign-off) is maintained indefinitely and may be redistributed consistent with this project or the open source license(s) involved.
+
 <!--
 这是 Pull Request 的描述页面，可拖动输入框右下角调节大小。尽管按下绿色按钮提交后，您仍可以对描述进行修改，但还请您先阅读以下注意事项。
 - 请不要删去本区域文字，或在此修改内容，因为本区域作为注释内容是不可见的。你应该点击 Preview 查看描述页效果。
