@@ -917,11 +917,15 @@
             "Prerelease": true,
             "UpdateContents": [
                 {
+                    "PR": 355,
+                    "Description": "fix #332"
+                },
+                {
                     "PR": 356,
                     "Description": "增加script-cat统计模块"
                 }
             ],
-            "Notes": "收集用户的版本信息，设备型号等非敏感数据"
+            "Notes": "收集用户的版本信息，设备型号等非敏感数据 + 修复题解标题"
         }
     }
 }

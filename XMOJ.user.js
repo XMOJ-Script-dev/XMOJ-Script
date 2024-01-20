@@ -1221,7 +1221,7 @@ else {
                 document.querySelector("body > div > div.mt-3 > center").lastChild.style.marginLeft = "10px";
                 //修复提交按钮
                 let SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(12)');
-                if (SubmitLink == null) { //如果是比赛题目
+                if (SubmitLink == null) { //a special type of problem
                     SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(10)');
                 }
                 if (SubmitLink == null) {
@@ -3426,6 +3426,9 @@ int main()
             Pagination += `</ul></nav>`;
             document.querySelector("body > div > div.mt-3 > center").innerHTML += Pagination;
         } else if (location.pathname == "/problem_solution.php") {
+            if (UtilityEnabled("RemoveUseless")) {
+                document.querySelector("h2.lang_en").remove(); //fixes #332
+            }
             if (UtilityEnabled("CopyMD")) {
                 await fetch(location.href).then((Response) => {
                     return Response.text();
