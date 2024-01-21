@@ -16,8 +16,8 @@ var JSONObject = JSON.parse(JSONFileContent);
 var LastJSONVersion = Object.keys(JSONObject.UpdateHistory)[Object.keys(JSONObject.UpdateHistory).length - 1];
 var LastJSVersion = JSFileContent.match(/@version\s+(\d+\.\d+\.\d+)/)[1];
 var LastVersion = LastJSVersion.split(".");
-var LastPR = 371;
-var LastDescription = " ";
+var LastPR = JSONObject.UpdateHistory[LastJSONVersion].UpdateContents[0].PR;
+var LastDescription = JSONObject.UpdateHistory[LastJSONVersion].UpdateContents[0].Description;
 var LastReleaseVersionOnline = execSync("gh release list --exclude-pre-releases --limit 1").toString().trim().split("\t")[2];
 var NpmVersion = execSync("jq -r '.version' package.json").toString().trim();
 console.log("Last JS version    : " + LastJSVersion);
@@ -31,6 +31,8 @@ if (LastJSONVersion != LastJSVersion) {
     process.exit(1);
 }
 
+execSync("git config --global user.email \"github-actions[bot]@users.noreply.github.com\"");
+execSync("git config --global user.name \"github-actions[bot]\"");
 var CurrentPR = Number(PRNumber);
 var CurrentDescription = String(process.argv[4]);
 if (LastJSVersion != NpmVersion) {
