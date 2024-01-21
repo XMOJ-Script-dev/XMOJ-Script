@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.1.18
+// @version      1.1.19
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -946,7 +946,7 @@ else {
                             ToastViewButton.classList.add("btn", "btn-primary", "btn-sm");
                             ToastViewButton.innerText = "查看";
                             ToastViewButton.addEventListener("click", () => {
-                                open("https://www.xmoj.tech/mail.php?other=" + MentionList[i].FromUserID, "_blank");
+                                open("https://www.xmoj.tech/mail.php?to_user=" + MentionList[i].FromUserID, "_blank");
                                 RequestAPI("ReadMailMention", {
                                     "MentionID": Number(MentionList[i].MentionID)
                                 }, () => { });
@@ -3568,7 +3568,7 @@ int main()
                     }
                 });
         } else if (location.pathname == "/mail.php") {
-            if (SearchParams.get("other") == null) {
+            if (SearchParams.get("to_user") == null) {
                 document.querySelector("body > div > div.mt-3").innerHTML = `<div class="row g-2 align-items-center">
                         <div class="col-auto form-floating">
                             <input class="form-control" id="Username" placeholder=" " spellcheck="false" data-ms-editor="true">
@@ -3612,7 +3612,7 @@ int main()
                                 let Row = document.createElement("tr"); ReceiveTable.children[1].appendChild(Row);
                                 let UsernameCell = document.createElement("td"); Row.appendChild(UsernameCell);
                                 let UsernameSpan = document.createElement("span"); UsernameCell.appendChild(UsernameSpan);
-                                GetUsernameHTML(UsernameSpan, Data[i].OtherUser, false, "https://www.xmoj.tech/mail.php?other=");
+                                GetUsernameHTML(UsernameSpan, Data[i].OtherUser, false, "https://www.xmoj.tech/mail.php?to_user=");
                                 if (Data[i].UnreadCount != 0) {
                                     let UnreadCountSpan = document.createElement("span"); UsernameCell.appendChild(UnreadCountSpan);
                                     UnreadCountSpan.className = "ms-1 badge text-bg-danger";
@@ -3687,7 +3687,7 @@ int main()
                         </thead>
                         <tbody></tbody>
                     </table>`;
-                GetUsernameHTML(ToUser, SearchParams.get("other"));
+                GetUsernameHTML(ToUser, SearchParams.get("to_user"));
                 let RefreshMessage = (Silent = true) => {
                     if (!Silent) {
                         MessageTable.children[1].innerHTML = "";
@@ -3700,7 +3700,7 @@ int main()
                         }
                     }
                     RequestAPI("GetMail", {
-                        "OtherUser": String(SearchParams.get("other"))
+                        "OtherUser": String(SearchParams.get("to_user"))
                     }, async (ResponseData) => {
                         if (ResponseData.Success) {
                             ErrorElement.style.display = "none";
@@ -3744,7 +3744,7 @@ int main()
                     Send.children[0].style.display = "";
                     let ContentData = Content.value;
                     RequestAPI("SendMail", {
-                        "ToUser": String(SearchParams.get("other")),
+                        "ToUser": String(SearchParams.get("to_user")),
                         "Content": String(ContentData)
                     }, (ResponseData) => {
                         Send.disabled = false;
