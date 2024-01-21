@@ -1005,6 +1005,17 @@
             "Prerelease": false,
             "UpdateContents": [],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.19": {
+            "UpdateDate": 1705841147601,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 372,
+                    "Description": "undefined"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
