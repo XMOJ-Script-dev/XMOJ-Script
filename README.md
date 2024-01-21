@@ -67,6 +67,7 @@
 
 ### 安装
 请参考 [官网介绍](https://www.xmoj-bbs.tech) 。
+如果您无法打开该网站，请前往[这里](https://scriptcat.org/zh-CN/script-show-page/1500/)安装。
 
 ### 贡献
 您想为我们的脚本添砖加瓦吗？快加入我们，为小明的OJ用户创造更美好的环境！（具体要求参见Code Of Conduct）
