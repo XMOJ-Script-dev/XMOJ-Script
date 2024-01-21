@@ -999,6 +999,23 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.18": {
+            "UpdateDate": 1705813603117,
+            "Prerelease": false,
+            "UpdateContents": [],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.19": {
+            "UpdateDate": 1705841193051,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 372,
+                    "Description": "use the same peram (?to_user) as xmoj"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
