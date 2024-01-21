@@ -968,6 +968,12 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.17": {
+            "UpdateDate": 1705808495397,
+            "Prerelease": false,
+            "UpdateContents": [],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
