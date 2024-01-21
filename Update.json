@@ -928,31 +928,16 @@
             "Notes": "收集用户的版本信息，设备型号等非敏感数据 + 修复题解标题"
         },
         "1.1.15": {
-            "UpdateDate": 1705807862246,
-            "Prerelease": false,
+            "UpdateDate": 1705807807990,
+            "Prerelease": true,
             "UpdateContents": [
                 {
-                    "PR": 327,
-                    "Description": "优化用户体验"
-                },
-                {
-                    "PR": 329,
-                    "Description": "增加权限"
-                },
-                {
-                    "PR": 340,
-                    "Description": "add the native link"
-                },
-                {
-                    "PR": 356,
-                    "Description": "增加script-cat统计模块"
-                },
-                {
-                    "PR": 355,
-                    "Description": "fix #332"
+                    "PR": 357,
+                    "Description": "cleanup"
                 }
             ],
-            "Notes": "No release notes were provided for this release."
+            "Notes": "This release fixes a lot of things"
+
         }
     }
 }

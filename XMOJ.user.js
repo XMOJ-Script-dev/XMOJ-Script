@@ -13,14 +13,12 @@
 // @require      https://cdn.bootcdn.net/ajax/libs/diff_match_patch/20121119/diff_match_patch_uncompressed.js
 // @require      https://cdn.bootcdn.net/ajax/libs/dompurify/3.0.2/purify.min.js
 // @require      https://cdn.bootcdn.net/ajax/libs/marked/4.3.0/marked.min.js
-// @require      https://scriptcat.org/lib/881/1.2.0/script-statistics.js
 // @grant        GM_registerMenuCommand
 // @grant        GM_xmlhttpRequest
 // @grant        GM_setClipboard
 // @grant        unsafeWindow
 // @grant        GM_setValue
 // @grant        GM_getValue
-// @antifeature tracking
 // @homepage     https://www.xmoj-bbs.tech/
 // @supportURL   https://github.com/XMOJ-Script-dev/XMOJ-Script
 // @connect      api.xmoj-bbs.tech
@@ -40,14 +38,6 @@
 
 const CaptchaSiteKey = "0x4AAAAAAALBT58IhyDViNmv";
 const AdminUserList = ["zhuchenrui2", "shanwenxiao", "admin", "shihongxi"];
-
-try {
-    new SC_Statistic({
-        key: "9ghqb0n5holr3ea7",
-    });
-} catch (e) {
-    console.warn("statistic failed: ", e);
-}
 
 let PurifyHTML = (Input) => {
     return DOMPurify.sanitize(Input, {
