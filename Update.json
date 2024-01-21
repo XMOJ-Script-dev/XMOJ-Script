@@ -922,10 +922,10 @@
                 },
                 {
                     "PR": 356,
-                    "Description": "增加script-cat统计模块"
+                    "Description": "N/A"
                 }
             ],
-            "Notes": "收集用户的版本信息，设备型号等非敏感数据 + 修复题解标题"
+            "Notes": "修复题解标题"
         },
         "1.1.15": {
             "UpdateDate": 1705807807990,
@@ -956,7 +956,7 @@
                 },
                 {
                     "PR": 356,
-                    "Description": "增加script-cat统计模块"
+                    "Description": "N/A"
                 },
                 {
                     "PR": 355,
