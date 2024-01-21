@@ -3,6 +3,7 @@ name: Generate sitemap
 on:
   push:
     branches: [ master ]
+    paths: [ '**.html', '**.user.js' ]
 
 jobs:
   sitemap_job:
@@ -18,6 +19,7 @@ jobs:
       id: sitemap
       uses: cicirello/generate-sitemap@v1
       with:
+        exclude-paths: /404.html
         base-url-path: https://xmoj-bbs.tech/
     
     - name: Output stats
