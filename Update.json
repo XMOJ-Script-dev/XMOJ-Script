@@ -972,7 +972,32 @@
         "1.1.17": {
             "UpdateDate": 1705808495397,
             "Prerelease": false,
-            "UpdateContents": [],
+            "UpdateContents": [
+                {
+                    "PR": 327,
+                    "Description": "优化用户体验"
+                },
+                {
+                    "PR": 329,
+                    "Description": "增加权限"
+                },
+                {
+                    "PR": 340,
+                    "Description": "add the native link"
+                },
+                {
+                    "PR": 356,
+                    "Description": "N/A"
+                },
+                {
+                    "PR": 355,
+                    "Description": "fix #332"
+                },
+                {
+                    "PR": 357,
+                    "Description": "cleanup"
+                }
+            ],
             "Notes": "No release notes were provided for this release."
         }
     }
