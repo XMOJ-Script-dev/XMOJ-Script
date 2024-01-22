@@ -1026,7 +1026,7 @@
                     "Description": "add spellcheck"
                 }
             ],
-            "Notes": "No release notes were provided for this release."
+            "Notes": "This release enables spell checking for bbs and short_msg! \uD83C\uDF89\nI did it 5 minutes after proposing it, swx."
         }
     }
 }

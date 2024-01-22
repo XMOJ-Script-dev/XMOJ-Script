@@ -4,8 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5e980562-396b-40f1-9d8f-058ee50050b2" name="Changes" comment="fix #332">
-      <change beforePath="$PROJECT_DIR$/XMOJ.user.js" beforeDir="false" afterPath="$PROJECT_DIR$/XMOJ.user.js" afterDir="false" />
+    <list default="true" id="5e980562-396b-40f1-9d8f-058ee50050b2" name="Changes" comment="feat: enable spell checking for bbs and short_msg">
+      <change beforePath="$PROJECT_DIR$/Update.json" beforeDir="false" afterPath="$PROJECT_DIR$/Update.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -13,12 +13,23 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="Git.Settings">
+    <option name="PUSH_AUTO_UPDATE" value="true" />
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="9a1884976b31cc96a04fd2e6e5ba983a269c0087" />
+        <entry key="$PROJECT_DIR$" value="dev" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GithubProjectSettings">
+    <option name="branchProtectionPatterns">
+      <list>
+        <option value="master" />
+        <option value="dev" />
+        <option value="actions\/temp" />
+        <option value="extern-contrib" />
+      </list>
+    </option>
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
@@ -27,6 +38,9 @@
   &quot;associatedIndex&quot;: 8
 }</component>
   <component name="ProjectId" id="2bDel13UW5QC5DaJyPIfOCjNLw2" />
+  <component name="ProjectLevelVcsManager">
+    <OptionsSetting value="false" id="Update" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -35,7 +49,7 @@
   "keyToString": {
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "dev",
+    "git-widget-placeholder": "boomzero/spellcheck",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -63,7 +77,15 @@
       <option name="project" value="LOCAL" />
       <updated>1705754532454</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="feat: enable spell checking for bbs and short_msg">
+      <option name="closed" value="true" />
+      <created>1705929052061</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1705929052061</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -82,6 +104,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="fix #332" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix #332" />
+    <MESSAGE value="feat: enable spell checking for bbs and short_msg" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: enable spell checking for bbs and short_msg" />
   </component>
 </project>
