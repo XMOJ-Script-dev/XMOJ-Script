@@ -1029,12 +1029,12 @@
             "Notes": "This release enables spell checking for bbs and short_msg! 🎉\nI did it 5 minutes after proposing it, swx."
         },
         "1.1.21": {
-            "UpdateDate": 1705929712659,
+            "UpdateDate": 1705929832424,
             "Prerelease": true,
             "UpdateContents": [
                 {
                     "PR": 377,
-                    "Description": "spellcheck that works"
+                    "Description": "fix spellcheck"
                 }
             ],
             "Notes": "Oops, sorry. I forgot to add the spellcheck some text fields. Anyway, it's fixed now. 😅"
