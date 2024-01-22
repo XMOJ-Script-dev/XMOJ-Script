@@ -1027,6 +1027,17 @@
                 }
             ],
             "Notes": "This release enables spell checking for bbs and short_msg! 🎉\nI did it 5 minutes after proposing it, swx."
+        },
+        "1.1.21": {
+            "UpdateDate": 1705929712659,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 377,
+                    "Description": "spellcheck that works"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
