@@ -4,9 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5e980562-396b-40f1-9d8f-058ee50050b2" name="Changes" comment="feat: enable spell checking for bbs and short_msg">
-      <change beforePath="$PROJECT_DIR$/Update.json" beforeDir="false" afterPath="$PROJECT_DIR$/Update.json" afterDir="false" />
-    </list>
+    <list default="true" id="5e980562-396b-40f1-9d8f-058ee50050b2" name="Changes" comment="feat: enable spell checking for bbs and short_msg" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -49,7 +47,7 @@
   "keyToString": {
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "boomzero/spellcheck",
+    "git-widget-placeholder": "dev",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
