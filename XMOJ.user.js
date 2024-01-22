@@ -3913,7 +3913,7 @@ int main()
                     <div>
                         <label for="ContentElement" class="mb-1">回复</label>
                         <div class="input-group">
-                            <textarea class="col-6 form-control" id="ContentElement" rows="3" placeholder="请输入内容"></textarea>
+                            <textarea spellcheck="true" class="col-6 form-control" id="ContentElement" rows="3" placeholder="请输入内容"></textarea>
                             <div class="col-6 form-control" id="PreviewTab"></div>
                         </div>
                         <div class="cf-turnstile mt-2" id="CaptchaContainer"></div>
@@ -4094,7 +4094,7 @@ int main()
                                 </div>
                             </div>
                             <div class="input-group">
-                                <textarea class="col-6 form-control" id="ContentElement" rows="3" placeholder="请输入内容"></textarea>
+                                <textarea spellcheck="true" class="col-6 form-control" id="ContentElement" rows="3" placeholder="请输入内容"></textarea>
                                 <div class="col-6 form-control" id="PreviewTab"></div>
                             </div>
                             <div class="cf-turnstile mt-2" id="CaptchaContainer"></div>
