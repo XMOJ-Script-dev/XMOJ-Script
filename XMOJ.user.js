@@ -3667,7 +3667,7 @@ int main()
                             <label for="ToUser">接收用户</label>
                         </div>
                         <div class="col-md form-floating">
-                            <input class="form-control" id="Content" placeholder=" ">
+                            <input spellcheck="true" class="form-control" id="Content" placeholder=" ">
                             <label for="Content">内容</label>
                         </div>
                     </div>
@@ -3908,7 +3908,7 @@ int main()
                     </div>
                     <div class="form-group mb-3">
                         <label for="Title" class="mb-1">标题</label>
-                        <input type="text" class="form-control" id="TitleElement" placeholder="请输入标题">
+                        <input spellcheck="true" type="text" class="form-control" id="TitleElement" placeholder="请输入标题">
                     </div>
                     <div>
                         <label for="ContentElement" class="mb-1">回复</label>
