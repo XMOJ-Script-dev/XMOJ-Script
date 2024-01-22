@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5e980562-396b-40f1-9d8f-058ee50050b2" name="Changes" comment="chore: use the same peram as xmoj">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Update/UpdateVersion.js" beforeDir="false" afterPath="$PROJECT_DIR$/Update/UpdateVersion.js" afterDir="false" />
+    <list default="true" id="5e980562-396b-40f1-9d8f-058ee50050b2" name="Changes" comment="feat: enable spell checking for bbs and short_msg">
+      <change beforePath="$PROJECT_DIR$/Update.json" beforeDir="false" afterPath="$PROJECT_DIR$/Update.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -14,6 +13,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="Git.Settings">
+    <option name="PUSH_AUTO_UPDATE" value="true" />
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
         <entry key="$PROJECT_DIR$" value="dev" />
@@ -49,7 +49,7 @@
   "keyToString": {
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "boomzero/sync-inst-msg",
+    "git-widget-placeholder": "boomzero/spellcheck",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -77,13 +77,13 @@
       <option name="project" value="LOCAL" />
       <updated>1705754532454</updated>
     </task>
-    <task id="LOCAL-00002" summary="chore: use the same peram as xmoj">
+    <task id="LOCAL-00002" summary="feat: enable spell checking for bbs and short_msg">
       <option name="closed" value="true" />
-      <created>1705840682961</created>
+      <created>1705929052061</created>
       <option name="number" value="00002" />
       <option name="presentableId" value="LOCAL-00002" />
       <option name="project" value="LOCAL" />
-      <updated>1705840682961</updated>
+      <updated>1705929052061</updated>
     </task>
     <option name="localTasksCounter" value="3" />
     <servers />
@@ -104,8 +104,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="fix #332" />
-    <MESSAGE value="add metadata" />
-    <MESSAGE value="chore: use the same peram as xmoj" />
-    <option name="LAST_COMMIT_MESSAGE" value="chore: use the same peram as xmoj" />
+    <MESSAGE value="feat: enable spell checking for bbs and short_msg" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: enable spell checking for bbs and short_msg" />
   </component>
 </project>
