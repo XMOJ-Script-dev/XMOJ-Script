@@ -77,6 +77,9 @@
 > [!IMPORTANT]
 > 请注意, 外部开发者应向`extern-contrib`提交 pull requests。
 
+### Project Status
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FXMOJ-Script-dev%2FXMOJ-Script.svg?type=shield&issueType=license)](https://app.fossa.com/projects/git%2Bgithub.com%2FXMOJ-Script-dev%2FXMOJ-Script?ref=badge_shield&issueType=license)
+
 ### How to set up a development server
 ```bash
 cd backend
