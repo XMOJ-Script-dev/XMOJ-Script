@@ -4,6 +4,7 @@
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/XMOJ-Script-dev/XMOJ-Script)
 ![GitHub release](https://img.shields.io/github/v/release/XMOJ-Script-dev/XMOJ-Script)
 ![GitHub issues](https://img.shields.io/github/issues/XMOJ-Script-dev/XMOJ-Script)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FXMOJ-Script-dev%2FXMOJ-Script.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FXMOJ-Script-dev%2FXMOJ-Script?ref=badge_shield)
 
 [点击此处访问官网查看更多内容](https://web.xmoj-bbs.tech)
 
@@ -92,3 +93,7 @@ npm install
 npx wrangler d1 execute DB --file ./Source/Initial.sql --local
 npx wrangler dev
 ```
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FXMOJ-Script-dev%2FXMOJ-Script.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FXMOJ-Script-dev%2FXMOJ-Script?ref=badge_large)
