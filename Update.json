@@ -1016,6 +1016,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.20": {
+            "UpdateDate": 1706024609702,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 372,
+                    "Description": "use the same peram (?to_user) as xmoj"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
