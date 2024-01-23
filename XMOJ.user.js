@@ -1860,6 +1860,8 @@ else {
                                         "source=" + encodeURIComponent(Code) + "&" +
                                         "enable_O2=on"
                                 });
+                                //sleep for one second
+                                await new Promise(r => setTimeout(r, 500));
                             }
                             if (!Submitted) {
                                 AutoCheatButton.innerHTML = "没有可以提交的题目!";
