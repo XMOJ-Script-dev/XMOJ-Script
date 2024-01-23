@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.1.21
+// @version      1.1.22
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -1860,6 +1860,8 @@ else {
                                         "source=" + encodeURIComponent(Code) + "&" +
                                         "enable_O2=on"
                                 });
+                                //sleep for one second
+                                await new Promise(r => setTimeout(r, 500));
                             }
                             if (!Submitted) {
                                 AutoCheatButton.innerHTML = "没有可以提交的题目!";
