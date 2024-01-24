@@ -20,7 +20,7 @@
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @homepage     https://www.xmoj-bbs.tech/
-// @supportURL   https://github.com/XMOJ-Script-dev/XMOJ-Script
+// @supportURL   https://bugs.xmoj-bbs.tech
 // @connect      api.xmoj-bbs.tech
 // @connect      challenges.cloudflare.com
 // @connect      cppinsights.io
