@@ -2863,14 +2863,14 @@ else {
                         if (Result.Success) {
                             let StdList = Result.Data.StdList;
                             for (let i = 0; i < ACList.length; i++) {
-                                if (StdList.indexOf(ACList[i]) === -1) {
+                                if (StdList.indexOf(ACList[i]) === -1 && ACList[i] !== 0) {
                                     await new Promise((Resolve) => {
                                         RequestAPI("UploadStd", {
                                             "ProblemID": Number(ACList[i])
                                         }, (Result) => {
                                             if (!Result.Success) {
                                                 ErrorElement.style.display = "block";
-                                                ErrorElement.innerText += Result.Message + "<br>";
+                                                ErrorElement.innerText += Result.Message + "\n";
                                                 UploadProgress.classList.add("bg-warning");
                                             }
                                             UploadProgress.innerText = (i / ACList.length * 100).toFixed(1) + "% (" + ACList[i] + ")";

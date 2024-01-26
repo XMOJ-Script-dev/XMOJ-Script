@@ -6,7 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="5e980562-396b-40f1-9d8f-058ee50050b2" name="Changes" comment="rel notes">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/XMOJ.user.js" beforeDir="false" afterPath="$PROJECT_DIR$/XMOJ.user.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -17,7 +16,7 @@
     <option name="PUSH_AUTO_UPDATE" value="true" />
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="boomzero/spellcheck" />
+        <entry key="$PROJECT_DIR$" value="dev" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -50,7 +49,7 @@
   &quot;keyToString&quot;: {
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;dev&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;boomzero/sleep&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -72,6 +71,8 @@
       <workItem from="1705754620181" duration="179000" />
       <workItem from="1705983633802" duration="23000" />
       <workItem from="1705983664600" duration="25000" />
+      <workItem from="1705983697556" duration="665000" />
+      <workItem from="1706178503577" duration="12000" />
     </task>
     <task id="LOCAL-00001" summary="fix #332">
       <option name="closed" value="true" />
@@ -105,7 +106,15 @@
       <option name="project" value="LOCAL" />
       <updated>1705929806772</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="rel notes">
+      <option name="closed" value="true" />
+      <created>1705983751371</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1705983751371</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
