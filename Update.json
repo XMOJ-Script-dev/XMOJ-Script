@@ -1082,6 +1082,41 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.26": {
+            "UpdateDate": 1706250296931,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 372,
+                    "Description": "use the same peram (?to_user) as xmoj"
+                },
+                {
+                    "PR": 375,
+                    "Description": "add spellcheck"
+                },
+                {
+                    "PR": 377,
+                    "Description": "fix spellcheck"
+                },
+                {
+                    "PR": 378,
+                    "Description": "sleep for a sec after submitting to prevent xmoj from crashing"
+                },
+                {
+                    "PR": 390,
+                    "Description": "更新support链接"
+                },
+                {
+                    "PR": 393,
+                    "Description": "make the upload_std interface prettier"
+                },
+                {
+                    "PR": 394,
+                    "Description": "fix problemstatus"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
