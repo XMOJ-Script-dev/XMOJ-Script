@@ -1116,7 +1116,13 @@
                     "Description": "fix problemstatus"
                 }
             ],
-            "Notes": "Version 1.1.26 of xmoj-script ships a lot of quality of life improvements and bug fixes. \n\n- Add spell checking for bbs and short_msg\n- Fix the problem status page\n- Make the upload_std interface prettier\n- Use the same parameter as xmoj for the native link\n- Sleep for a second after submitting to prevent xmoj from crashing\n- Update support link \n <big>Please note that upload_std now uploads the user's code if there is no std.\n See you in the next release!\uD83C\uDF86</big>"
+            "Notes": "Version 1.1.26 of xmoj-script ships a lot of quality of life improvements and bug fixes. \n\n- Add spell checking for bbs and short_msg\n- Fix the problem status page\n- Make the upload_std interface prettier\n- Use the same parameter as xmoj for the native link\n- Sleep for a second after submitting to prevent xmoj from crashing\n- Update support link \n <big>Please note that upload_std now uploads the user's code if there is no std.\n See you in the next release!🎆</big>"
+        },
+        "1.1.27": {
+            "UpdateDate": 1706250606794,
+            "Prerelease": false,
+            "UpdateContents": [],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
