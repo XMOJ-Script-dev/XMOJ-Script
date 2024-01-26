@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.1.24
+// @version      1.1.25
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -3404,15 +3404,15 @@ int main()
             }
 
 
-            let CurrentPage = parseInt(SearchParams.get("page") || 1);
+            let CurrentPage = parseInt(SearchParams.get("page") || 0);
             let PID = Number(SearchParams.get("id"));
             let Pagination = `<nav class="center"><ul class="pagination justify-content-center">`;
-            if (CurrentPage != 1) {
-                Pagination += `<li class="page-item"><a href="https://www.xmoj.tech/problemstatus.php?id=${PID + `&page=1" class="page-link">&laquo;</a></li><li class="page-item"><a href="https://www.xmoj.tech/problemstatus.php?id=` + PID + `&page=` + (CurrentPage - 1) + `" class="page-link">` + (CurrentPage - 1)}</a></li>`;
+            if (CurrentPage !== 0) {
+                Pagination += `<li class="page-item"><a href="https://www.xmoj.tech/problemstatus.php?id=${PID + `&page=0" class="page-link">&laquo;</a></li><li class="page-item"><a href="https://www.xmoj.tech/problemstatus.php?id=` + PID + `&page=` + (CurrentPage - 1) + `" class="page-link">` + (CurrentPage)}</a></li>`;
             }
-            Pagination += `<li class="active page-item"><a href="https://www.xmoj.tech/problemstatus.php?id=${PID + `&page=` + CurrentPage + `" class="page-link">` + CurrentPage}</a></li>`;
+            Pagination += `<li class="active page-item"><a href="https://www.xmoj.tech/problemstatus.php?id=${PID + `&page=` + CurrentPage + `" class="page-link">` + (CurrentPage + 1)}</a></li>`;
             if (document.querySelector("#problemstatus > tbody").children != null && document.querySelector("#problemstatus > tbody").children.length == 20) {
-                Pagination += `<li class="page-item"><a href="https://www.xmoj.tech/problemstatus.php?id=${PID + `&page=` + (CurrentPage + 1) + `" class="page-link">` + (CurrentPage + 1) + `</a></li><li class="page-item"><a href="https://www.xmoj.tech/problemstatus.php?id=` + PID + `&page=` + (CurrentPage + 1)}" class="page-link">&raquo;</a></li>`;
+                Pagination += `<li class="page-item"><a href="https://www.xmoj.tech/problemstatus.php?id=${PID + `&page=` + (CurrentPage + 1) + `" class="page-link">` + (CurrentPage + 2) + `</a></li><li class="page-item"><a href="https://www.xmoj.tech/problemstatus.php?id=` + PID + `&page=` + (CurrentPage + 1)}" class="page-link">&raquo;</a></li>`;
             }
             Pagination += `</ul></nav>`;
             document.querySelector("body > div > div.mt-3 > center").innerHTML += Pagination;

@@ -1071,6 +1071,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.25": {
+            "UpdateDate": 1706250229435,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 394,
+                    "Description": "fix problemstatus"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
