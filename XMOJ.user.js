@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.1.23
+// @version      1.1.24
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -2833,7 +2833,6 @@ else {
                 <p class="mt-2 text-muted">
                     您必须要上传标程以后才能使用“查看标程”功能。点击“上传标程”按钮以后，系统会自动上传标程，请您耐心等待。<br>
                     首次上传标程可能会比较慢，请耐心等待。后续上传标程将会快很多。请不要直接抄袭或递交标程，否则会给予"作弊者"badge的惩罚！<br>
-                    上传的内容不是您AC的程序，而是您AC的题目对应的用户std的程序。所以您可以放心上传，不会泄露您的代码。<br>
                     系统每过30天会自动提醒您上传标程，您必须要上传标程，否则将会被禁止使用“查看标程”功能。<br>
                 </p>`;
                 UploadStd.addEventListener("click", async () => {
@@ -2863,14 +2862,14 @@ else {
                         if (Result.Success) {
                             let StdList = Result.Data.StdList;
                             for (let i = 0; i < ACList.length; i++) {
-                                if (StdList.indexOf(ACList[i]) === -1) {
+                                if (StdList.indexOf(ACList[i]) === -1 && ACList[i] !== 0) {
                                     await new Promise((Resolve) => {
                                         RequestAPI("UploadStd", {
                                             "ProblemID": Number(ACList[i])
                                         }, (Result) => {
                                             if (!Result.Success) {
                                                 ErrorElement.style.display = "block";
-                                                ErrorElement.innerText += Result.Message + "<br>";
+                                                ErrorElement.innerText += Result.Message + "\n";
                                                 UploadProgress.classList.add("bg-warning");
                                             }
                                             UploadProgress.innerText = (i / ACList.length * 100).toFixed(1) + "% (" + ACList[i] + ")";
