@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5e980562-396b-40f1-9d8f-058ee50050b2" name="Changes" comment="rel notes">
+    <list default="true" id="5e980562-396b-40f1-9d8f-058ee50050b2" name="Changes" comment="don't lie">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/XMOJ.user.js" beforeDir="false" afterPath="$PROJECT_DIR$/XMOJ.user.js" afterDir="false" />
     </list>
@@ -17,7 +17,7 @@
     <option name="PUSH_AUTO_UPDATE" value="true" />
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="boomzero/spellcheck" />
+        <entry key="$PROJECT_DIR$" value="boomzero/better-std" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -46,19 +46,20 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;http.proxy&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "boomzero/fix-problemstatus",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "http.proxy",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -73,6 +74,8 @@
       <workItem from="1705983664600" duration="25000" />
       <workItem from="1705983697556" duration="665000" />
       <workItem from="1706178503577" duration="12000" />
+      <workItem from="1706244790380" duration="1136000" />
+      <workItem from="1706249755388" duration="321000" />
     </task>
     <task id="LOCAL-00001" summary="fix #332">
       <option name="closed" value="true" />
@@ -114,7 +117,23 @@
       <option name="project" value="LOCAL" />
       <updated>1705983751371</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="make the std interface better">
+      <option name="closed" value="true" />
+      <created>1706244937094</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1706244937094</updated>
+    </task>
+    <task id="LOCAL-00007" summary="don't lie">
+      <option name="closed" value="true" />
+      <created>1706245114097</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1706245114098</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -136,6 +155,8 @@
     <MESSAGE value="feat: enable spell checking for bbs and short_msg" />
     <MESSAGE value="spellcheck that works" />
     <MESSAGE value="rel notes" />
-    <option name="LAST_COMMIT_MESSAGE" value="rel notes" />
+    <MESSAGE value="make the std interface better" />
+    <MESSAGE value="don't lie" />
+    <option name="LAST_COMMIT_MESSAGE" value="don't lie" />
   </component>
 </project>
