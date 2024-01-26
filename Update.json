@@ -1027,6 +1027,39 @@
                 }
             ],
             "Notes": "This release enables spell checking for bbs and short_msg! 🎉\nI did it 5 minutes after proposing it, swx."
+        },
+        "1.1.21": {
+            "UpdateDate": 1705929832424,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 377,
+                    "Description": "fix spellcheck"
+                }
+            ],
+            "Notes": "Oops, sorry. I forgot to add the spellcheck some text fields. Anyway, it's fixed now. 😅"
+        },
+        "1.1.22": {
+            "UpdateDate": 1705983862747,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 378,
+                    "Description": "sleep for a sec after submitting to prevent xmoj from crashing"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.23": {
+            "UpdateDate": 1706103530551,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 390,
+                    "Description": "更新support链接"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
