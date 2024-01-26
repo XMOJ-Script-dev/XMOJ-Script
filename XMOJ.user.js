@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.1.19
+// @version      1.1.28
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -20,7 +20,7 @@
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @homepage     https://www.xmoj-bbs.tech/
-// @supportURL   https://github.com/XMOJ-Script-dev/XMOJ-Script
+// @supportURL   https://bugs.xmoj-bbs.tech
 // @connect      api.xmoj-bbs.tech
 // @connect      challenges.cloudflare.com
 // @connect      cppinsights.io
@@ -1860,6 +1860,8 @@ else {
                                         "source=" + encodeURIComponent(Code) + "&" +
                                         "enable_O2=on"
                                 });
+                                //sleep for one second
+                                await new Promise(r => setTimeout(r, 500));
                             }
                             if (!Submitted) {
                                 AutoCheatButton.innerHTML = "没有可以提交的题目!";
@@ -2831,7 +2833,6 @@ else {
                 <p class="mt-2 text-muted">
                     您必须要上传标程以后才能使用“查看标程”功能。点击“上传标程”按钮以后，系统会自动上传标程，请您耐心等待。<br>
                     首次上传标程可能会比较慢，请耐心等待。后续上传标程将会快很多。请不要直接抄袭或递交标程，否则会给予"作弊者"badge的惩罚！<br>
-                    上传的内容不是您AC的程序，而是您AC的题目对应的用户std的程序。所以您可以放心上传，不会泄露您的代码。<br>
                     系统每过30天会自动提醒您上传标程，您必须要上传标程，否则将会被禁止使用“查看标程”功能。<br>
                 </p>`;
                 UploadStd.addEventListener("click", async () => {
@@ -2861,14 +2862,14 @@ else {
                         if (Result.Success) {
                             let StdList = Result.Data.StdList;
                             for (let i = 0; i < ACList.length; i++) {
-                                if (StdList.indexOf(ACList[i]) === -1) {
+                                if (StdList.indexOf(ACList[i]) === -1 && ACList[i] !== 0) {
                                     await new Promise((Resolve) => {
                                         RequestAPI("UploadStd", {
                                             "ProblemID": Number(ACList[i])
                                         }, (Result) => {
                                             if (!Result.Success) {
                                                 ErrorElement.style.display = "block";
-                                                ErrorElement.innerText += Result.Message + "<br>";
+                                                ErrorElement.innerText += Result.Message + "\n";
                                                 UploadProgress.classList.add("bg-warning");
                                             }
                                             UploadProgress.innerText = (i / ACList.length * 100).toFixed(1) + "% (" + ACList[i] + ")";
@@ -3403,15 +3404,15 @@ int main()
             }
 
 
-            let CurrentPage = parseInt(SearchParams.get("page") || 1);
+            let CurrentPage = parseInt(SearchParams.get("page") || 0);
             let PID = Number(SearchParams.get("id"));
             let Pagination = `<nav class="center"><ul class="pagination justify-content-center">`;
-            if (CurrentPage != 1) {
-                Pagination += `<li class="page-item"><a href="https://www.xmoj.tech/problemstatus.php?id=${PID + `&page=1" class="page-link">&laquo;</a></li><li class="page-item"><a href="https://www.xmoj.tech/problemstatus.php?id=` + PID + `&page=` + (CurrentPage - 1) + `" class="page-link">` + (CurrentPage - 1)}</a></li>`;
+            if (CurrentPage !== 0) {
+                Pagination += `<li class="page-item"><a href="https://www.xmoj.tech/problemstatus.php?id=${PID + `&page=0" class="page-link">&laquo;</a></li><li class="page-item"><a href="https://www.xmoj.tech/problemstatus.php?id=` + PID + `&page=` + (CurrentPage - 1) + `" class="page-link">` + (CurrentPage)}</a></li>`;
             }
-            Pagination += `<li class="active page-item"><a href="https://www.xmoj.tech/problemstatus.php?id=${PID + `&page=` + CurrentPage + `" class="page-link">` + CurrentPage}</a></li>`;
+            Pagination += `<li class="active page-item"><a href="https://www.xmoj.tech/problemstatus.php?id=${PID + `&page=` + CurrentPage + `" class="page-link">` + (CurrentPage + 1)}</a></li>`;
             if (document.querySelector("#problemstatus > tbody").children != null && document.querySelector("#problemstatus > tbody").children.length == 20) {
-                Pagination += `<li class="page-item"><a href="https://www.xmoj.tech/problemstatus.php?id=${PID + `&page=` + (CurrentPage + 1) + `" class="page-link">` + (CurrentPage + 1) + `</a></li><li class="page-item"><a href="https://www.xmoj.tech/problemstatus.php?id=` + PID + `&page=` + (CurrentPage + 1)}" class="page-link">&raquo;</a></li>`;
+                Pagination += `<li class="page-item"><a href="https://www.xmoj.tech/problemstatus.php?id=${PID + `&page=` + (CurrentPage + 1) + `" class="page-link">` + (CurrentPage + 2) + `</a></li><li class="page-item"><a href="https://www.xmoj.tech/problemstatus.php?id=` + PID + `&page=` + (CurrentPage + 1)}" class="page-link">&raquo;</a></li>`;
             }
             Pagination += `</ul></nav>`;
             document.querySelector("body > div > div.mt-3 > center").innerHTML += Pagination;
@@ -3667,7 +3668,7 @@ int main()
                             <label for="ToUser">接收用户</label>
                         </div>
                         <div class="col-md form-floating">
-                            <input class="form-control" id="Content" placeholder=" ">
+                            <input spellcheck="true" class="form-control" id="Content" placeholder=" ">
                             <label for="Content">内容</label>
                         </div>
                     </div>
@@ -3908,12 +3909,12 @@ int main()
                     </div>
                     <div class="form-group mb-3">
                         <label for="Title" class="mb-1">标题</label>
-                        <input type="text" class="form-control" id="TitleElement" placeholder="请输入标题">
+                        <input spellcheck="true" type="text" class="form-control" id="TitleElement" placeholder="请输入标题">
                     </div>
                     <div>
                         <label for="ContentElement" class="mb-1">回复</label>
                         <div class="input-group">
-                            <textarea class="col-6 form-control" id="ContentElement" rows="3" placeholder="请输入内容"></textarea>
+                            <textarea spellcheck="true" class="col-6 form-control" id="ContentElement" rows="3" placeholder="请输入内容"></textarea>
                             <div class="col-6 form-control" id="PreviewTab"></div>
                         </div>
                         <div class="cf-turnstile mt-2" id="CaptchaContainer"></div>
@@ -4094,7 +4095,7 @@ int main()
                                 </div>
                             </div>
                             <div class="input-group">
-                                <textarea class="col-6 form-control" id="ContentElement" rows="3" placeholder="请输入内容"></textarea>
+                                <textarea spellcheck="true" class="col-6 form-control" id="ContentElement" rows="3" placeholder="请输入内容"></textarea>
                                 <div class="col-6 form-control" id="PreviewTab"></div>
                             </div>
                             <div class="cf-turnstile mt-2" id="CaptchaContainer"></div>
