@@ -1128,6 +1128,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.31": {
+            "UpdateDate": 1706507178378,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 403,
+                    "Description": "make the script much faster"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
