@@ -1150,6 +1150,17 @@
                 }
             ],
             "Notes": "Because choices..."
+        },
+        "1.1.33": {
+            "UpdateDate": 1706509685600,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 407,
+                    "Description": "superdebug mode"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
