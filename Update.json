@@ -1139,6 +1139,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.32": {
+            "UpdateDate": 1706509019854,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 406,
+                    "Description": "more choices"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
