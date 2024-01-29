@@ -328,7 +328,7 @@ let TidyTable = (Table) => {
 let UtilityEnabled = (Name) => {
     if (localStorage.getItem("UserScript-Setting-" + Name) == null) {
         //DebugMode is off by default
-        localStorage.setItem("UserScript-Setting-" + Name, (Name == "DebugMode" ? "false" : "true"));
+        localStorage.setItem("UserScript-Setting-" + Name, (Name == "DebugMode" || Name == "UnpkgCdn" ? "false" : "true"));
     }
     return localStorage.getItem("UserScript-Setting-" + Name) == "true";
 };
@@ -487,8 +487,7 @@ if (location.host != "www.xmoj.tech") {
             } else {
                 document.querySelector("html").setAttribute("data-bs-theme", "light");
             }
-
-            let resources = [
+            var resources = [
                 {
                     type: 'script',
                     src: 'https://cdn.bootcdn.net/ajax/libs/popper.js/2.11.7/umd/popper.min.js',
@@ -520,7 +519,10 @@ if (location.host != "www.xmoj.tech") {
                     isModule: true
                 }
             ];
-
+            if (UtilityEnabled("UnpkgCdn")) {
+                resources[0].src = 'https://unpkg.com/@popperjs/core@2.11.8/dist/umd/popper.min.js';
+                resources[4].href = 'https://unpkg.com/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css';
+            }
             let loadResources = async () => {
                 let promises = resources.map(resource => {
                     return new Promise((resolve, reject) => {
@@ -1133,7 +1135,8 @@ if (location.host != "www.xmoj.tech") {
                     {"ID": "CompareSource", "Type": "A", "Name": "比较代码"},
                     {"ID": "BBSPopup", "Type": "A", "Name": "讨论提醒"},
                     {"ID": "MessagePopup", "Type": "A", "Name": "短消息提醒"},
-                    {"ID": "DebugMode", "Type": "A", "Name": "调试模式（仅供开发者使用）"}
+                    {"ID": "DebugMode", "Type": "A", "Name": "调试模式（仅供开发者使用）"},
+                    {"ID": "UnpkgCdn", "Type": "A", "Name": "使用unpkg CDN(不建议使用)"},
                 ]));
                 let UtilitiesCardFooter = document.createElement("div");
                 UtilitiesCardFooter.className = "card-footer text-muted";

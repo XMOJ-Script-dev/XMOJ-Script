@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5e980562-396b-40f1-9d8f-058ee50050b2" name="Changes" comment="fix #364; fix #342; fmt; make the script faster" />
+    <list default="true" id="5e980562-396b-40f1-9d8f-058ee50050b2" name="Changes" comment="fix the mess swx created">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/XMOJ.user.js" beforeDir="false" afterPath="$PROJECT_DIR$/XMOJ.user.js" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -73,7 +76,7 @@
       <workItem from="1706178503577" duration="12000" />
       <workItem from="1706244790380" duration="1136000" />
       <workItem from="1706249755388" duration="321000" />
-      <workItem from="1706489417047" duration="1617000" />
+      <workItem from="1706489417047" duration="3359000" />
     </task>
     <task id="LOCAL-00001" summary="fix #332">
       <option name="closed" value="true" />
@@ -171,7 +174,23 @@
       <option name="project" value="LOCAL" />
       <updated>1706506650673</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="fix the mess swx created">
+      <option name="closed" value="true" />
+      <created>1706506948675</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1706506948675</updated>
+    </task>
+    <task id="LOCAL-00014" summary="fix the mess swx created">
+      <option name="closed" value="true" />
+      <created>1706507021921</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1706507021921</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -198,6 +217,7 @@
     <MESSAGE value="write rel notes" />
     <MESSAGE value="你说的对, 但是你没有implement" />
     <MESSAGE value="fix #364; fix #342; fmt; make the script faster" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix #364; fix #342; fmt; make the script faster" />
+    <MESSAGE value="fix the mess swx created" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix the mess swx created" />
   </component>
 </project>
