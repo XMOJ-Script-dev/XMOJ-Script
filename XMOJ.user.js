@@ -2133,7 +2133,7 @@ else {
                                     }
                                     if (RowData.QuickSubmitCount >= 2) {
                                         let QuickSubmitBadge = document.createElement("span"); UsernameCell.appendChild(QuickSubmitBadge);
-                                        QuickSubmitBadge.innerText = "作弊者";
+                                        QuickSubmitBadge.innerText = "疑似提交当年代码";
                                         QuickSubmitBadge.className = "badge text-bg-warning ms-2";
                                     }
 
@@ -2373,6 +2373,9 @@ else {
                         location.href = Response.url;
                     }
                     else {
+                        if (UtilityEnabled("DebugMode")){
+                            console.log("Submission failed! Response:", Response.text());
+                        }
                         ErrorElement.style.display = "block";
                         ErrorMessage.style.color = "red";
                         ErrorMessage.innerText = "提交失败！请关闭脚本后重试！";
@@ -2832,7 +2835,7 @@ else {
                 </div>
                 <p class="mt-2 text-muted">
                     您必须要上传标程以后才能使用“查看标程”功能。点击“上传标程”按钮以后，系统会自动上传标程，请您耐心等待。<br>
-                    首次上传标程可能会比较慢，请耐心等待。后续上传标程将会快很多。请不要直接抄袭或递交标程，否则会给予"作弊者"badge的惩罚！<br>
+                    首次上传标程可能会比较慢，请耐心等待。后续上传标程将会快很多。<br>
                     系统每过30天会自动提醒您上传标程，您必须要上传标程，否则将会被禁止使用“查看标程”功能。<br>
                 </p>`;
                 UploadStd.addEventListener("click", async () => {
