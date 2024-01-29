@@ -1117,6 +1117,28 @@
                 }
             ],
             "Notes": "Note: v1.1.26-27 is gone.\nVersion 1.1.28 of xmoj-script ships a lot of quality of life improvements and bug fixes. \n\n- Add spell checking for bbs and short_msg\n- Fix the problem status page\n- Make the upload_std interface prettier\n- Use the same parameter as xmoj for the native link\n- Sleep for a second after submitting to prevent xmoj from crashing\n- Update support link \n <big>Please note that upload_std now uploads the user's code if there is no std.\n See you in the next release!🎆</big>"
+        },
+        "1.1.30": {
+            "UpdateDate": 1706507043236,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 403,
+                    "Description": "make the script much faster"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.31": {
+            "UpdateDate": 1706507178378,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 403,
+                    "Description": "make the script much faster"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }

@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.1.28
+// @version      1.1.31
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -55,13 +55,21 @@ let GetRelativeTime = (Input) => {
     let Now = new Date().getTime();
     let Delta = Now - Input.getTime();
     let RelativeName = "";
-    if (Delta < 0) { RelativeName = "未来"; }
-    else if (Delta <= 1000 * 60) { RelativeName = "刚刚"; }
-    else if (Delta <= 1000 * 60 * 60) { RelativeName = Math.floor((Now - Input) / 1000 / 60) + "分钟前"; }
-    else if (Delta <= 1000 * 60 * 60 * 24) { RelativeName = Math.floor((Now - Input) / 1000 / 60 / 60) + "小时前"; }
-    else if (Delta <= 1000 * 60 * 60 * 24 * 31) { RelativeName = Math.floor((Now - Input) / 1000 / 60 / 60 / 24) + "天前"; }
-    else if (Delta <= 1000 * 60 * 60 * 24 * 365) { RelativeName = Math.floor((Now - Input) / 1000 / 60 / 60 / 24 / 31) + "个月前"; }
-    else { RelativeName = Math.floor((Now - Input) / 1000 / 60 / 60 / 24 / 365) + "年前"; }
+    if (Delta < 0) {
+        RelativeName = "未来";
+    } else if (Delta <= 1000 * 60) {
+        RelativeName = "刚刚";
+    } else if (Delta <= 1000 * 60 * 60) {
+        RelativeName = Math.floor((Now - Input) / 1000 / 60) + "分钟前";
+    } else if (Delta <= 1000 * 60 * 60 * 24) {
+        RelativeName = Math.floor((Now - Input) / 1000 / 60 / 60) + "小时前";
+    } else if (Delta <= 1000 * 60 * 60 * 24 * 31) {
+        RelativeName = Math.floor((Now - Input) / 1000 / 60 / 60 / 24) + "天前";
+    } else if (Delta <= 1000 * 60 * 60 * 24 * 365) {
+        RelativeName = Math.floor((Now - Input) / 1000 / 60 / 60 / 24 / 31) + "个月前";
+    } else {
+        RelativeName = Math.floor((Now - Input) / 1000 / 60 / 60 / 24 / 365) + "年前";
+    }
     return "<span title=\"" + Input.toLocaleString() + "\">" + RelativeName + "</span>";
 };
 let RenderMathJax = async () => {
@@ -116,7 +124,7 @@ let GetUserInfo = async (Username) => {
 };
 /**
  * Retrieves the badge information for a given user.
- * 
+ *
  * @param {string} Username - The username of the user.
  * @returns {Promise<Object>} - A promise that resolves to an object containing the badge information.
  * @property {string} BackgroundColor - The background color of the badge.
@@ -183,8 +191,7 @@ let GetUsernameHTML = async (Element, Username, Simple = false, Href = "https://
         HTMLData += `<img src="`;
         if (UserInfo.EmailHash == undefined) {
             HTMLData += `https://cravatar.cn/avatar/00000000000000000000000000000000?d=mp&f=y`;
-        }
-        else {
+        } else {
             HTMLData += `https://cravatar.cn/avatar/${UserInfo.EmailHash}?d=retro`;
         }
         HTMLData += `" class="rounded me-2" style="width: 20px; height: 20px; ">`;
@@ -205,8 +212,7 @@ let GetUsernameHTML = async (Element, Username, Simple = false, Href = "https://
         } else {
             HTMLData += "link-info";
         }
-    }
-    else {
+    } else {
         HTMLData += "link-info";
     }
     HTMLData += `\";"></a>`;
@@ -265,8 +271,7 @@ let SizeToStringSize = (Memory) => {
         } else {
             return (Memory / 1024 / 1024 / 1024).toFixed(2) + "GB";
         }
-    }
-    else {
+    } else {
         return Memory;
     }
 };
@@ -282,14 +287,13 @@ let TimeToStringTime = (Time) => {
         } else if (Time < 1000 * 60) {
             return (Time / 1000).toFixed(2) + "s";
         }
-    }
-    else {
+    } else {
         return Time;
     }
 };
 /**
  * Tidies up the given table by applying Bootstrap styling and removing unnecessary attributes.
- * 
+ *
  * @param {HTMLElement} Table - The table element to be tidied up.
  */
 let TidyTable = (Table) => {
@@ -399,14 +403,13 @@ let ServerURL = (UtilityEnabled("DebugMode") ? "https://ghpages.xmoj-bbs.tech/" 
 let CurrentUsername = document.querySelector("#profile").innerText;
 CurrentUsername = CurrentUsername.replaceAll(/[^a-zA-Z0-9]/g, "");
 let IsAdmin = AdminUserList.indexOf(CurrentUsername) !== -1;
-if (location.href.startsWith('http://')){
+if (location.href.startsWith('http://')) {
     //use https
     location.href = location.href.replace('http://', 'https://');
 }
 if (location.host != "www.xmoj.tech") {
     location.host = "www.xmoj.tech";
-}
-else {
+} else {
     document.body.classList.add("placeholder-glow");
     if (document.querySelector("#navbar") != null) {
         if (document.querySelector("body > div > div.jumbotron") != null) {
@@ -469,61 +472,81 @@ else {
             for (var i = 0; i < Temp.length; i++) {
                 if (Temp[i].href.indexOf("bootstrap.min.css") != -1) {
                     Temp[i].remove();
-                }
-                else if (Temp[i].href.indexOf("white.css") != -1) {
+                } else if (Temp[i].href.indexOf("white.css") != -1) {
                     Temp[i].remove();
-                }
-                else if (Temp[i].href.indexOf("semantic.min.css") != -1) {
+                } else if (Temp[i].href.indexOf("semantic.min.css") != -1) {
                     Temp[i].remove();
-                }
-                else if (Temp[i].href.indexOf("bootstrap-theme.min.css") != -1) {
+                } else if (Temp[i].href.indexOf("bootstrap-theme.min.css") != -1) {
                     Temp[i].remove();
-                }
-                else if (Temp[i].href.indexOf("problem.css") != -1) {
+                } else if (Temp[i].href.indexOf("problem.css") != -1) {
                     Temp[i].remove();
                 }
             }
             if (UtilityEnabled("DarkMode")) {
                 document.querySelector("html").setAttribute("data-bs-theme", "dark");
-            }
-            else {
+            } else {
                 document.querySelector("html").setAttribute("data-bs-theme", "light");
             }
 
-            let PopperScriptElement = document.createElement("script"); document.head.appendChild(PopperScriptElement);
-            PopperScriptElement.type = "module";
-            PopperScriptElement.src = "https://cdn.bootcdn.net/ajax/libs/popper.js/2.11.7/umd/popper.min.js";
-            let CodeMirrorStyleElement = document.createElement("link"); document.head.appendChild(CodeMirrorStyleElement);
-            CodeMirrorStyleElement.rel = "stylesheet";
-            CodeMirrorStyleElement.href = "https://cdn.bootcdn.net/ajax/libs/codemirror/6.65.7/codemirror.min.css";
-            let CodeMirrorThemeStyleElement = document.createElement("link"); document.head.appendChild(CodeMirrorThemeStyleElement);
-            CodeMirrorThemeStyleElement.rel = "stylesheet";
-            CodeMirrorThemeStyleElement.href = "https://cdn.bootcdn.net/ajax/libs/codemirror/6.65.7/theme/darcula.min.css";
-            let CodeMirrorMergeStyleElement = document.createElement("link"); document.head.appendChild(CodeMirrorMergeStyleElement);
-            CodeMirrorMergeStyleElement.rel = "stylesheet";
-            CodeMirrorMergeStyleElement.href = "https://cdn.bootcdn.net/ajax/libs/codemirror/6.65.7/addon/merge/merge.min.css";
-            let BootstrapStyleElement = document.createElement("link"); document.head.appendChild(BootstrapStyleElement);
-            BootstrapStyleElement.rel = "stylesheet";
-            BootstrapStyleElement.href = "https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0-alpha3/css/bootstrap.min.css";
-            await new Promise((Resolve) => {
-                PopperScriptElement.onload = () => {
-                    Resolve();
-                };
-            });
-            Temp = document.querySelectorAll("script");
-            for (var i = 0; i < Temp.length; i++) {
-                if (Temp[i].src.indexOf("bootstrap.min.js") != -1) {
-                    Temp[i].remove();
-                    let BootstrapScriptElement = document.createElement("script"); document.head.appendChild(BootstrapScriptElement);
-                    BootstrapScriptElement.type = "module";
-                    BootstrapScriptElement.src = "https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0-alpha3/js/bootstrap.min.js";
-                    await new Promise((Resolve) => {
-                        BootstrapScriptElement.onload = () => {
-                            Resolve();
-                        };
-                    });
+            let resources = [
+                {
+                    type: 'script',
+                    src: 'https://cdn.bootcdn.net/ajax/libs/popper.js/2.11.7/umd/popper.min.js',
+                    isModule: true
+                },
+                {
+                    type: 'link',
+                    href: 'https://cdn.bootcdn.net/ajax/libs/codemirror/6.65.7/codemirror.min.css',
+                    rel: 'stylesheet'
+                },
+                {
+                    type: 'link',
+                    href: 'https://cdn.bootcdn.net/ajax/libs/codemirror/6.65.7/theme/darcula.min.css',
+                    rel: 'stylesheet'
+                },
+                {
+                    type: 'link',
+                    href: 'https://cdn.bootcdn.net/ajax/libs/codemirror/6.65.7/addon/merge/merge.min.css',
+                    rel: 'stylesheet'
+                },
+                {
+                    type: 'link',
+                    href: 'https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0-alpha3/css/bootstrap.min.css',
+                    rel: 'stylesheet'
+                },
+                {
+                    type: 'script',
+                    src: 'https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0-alpha3/js/bootstrap.min.js',
+                    isModule: true
                 }
-            }
+            ];
+
+            let loadResources = async () => {
+                let promises = resources.map(resource => {
+                    return new Promise((resolve, reject) => {
+                        let element;
+                        if (resource.type === 'script') {
+                            element = document.createElement('script');
+                            element.src = resource.src;
+                            if (resource.isModule) {
+                                element.type = 'module';
+                            }
+                            element.onload = resolve;
+                            element.onerror = reject;
+                        } else if (resource.type === 'link') {
+                            element = document.createElement('link');
+                            element.href = resource.href;
+                            element.rel = resource.rel;
+                            resolve(); // Stylesheets don't have an onload event
+                        }
+                        document.head.appendChild(element);
+                    });
+                });
+
+                await Promise.all(promises);
+            };
+
+            loadResources();
             document.querySelector("nav").className = "navbar navbar-expand-lg bg-body-tertiary";
             document.querySelector("#navbar > ul:nth-child(1)").classList = "navbar-nav me-auto mb-2 mb-lg-0";
             document.querySelector("body > div > nav > div > div.navbar-header").outerHTML = `<a class="navbar-brand" href="https://www.xmoj.tech/">${UtilityEnabled("ReplaceXM") ? "高老师" : "小明"}的OJ</a><button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"><span class="navbar-toggler-icon"></span></button>`;
@@ -669,7 +692,8 @@ else {
                     (Hours < 10 ? "0" : "") + Hours + ":" +
                     (Minutes < 10 ? "0" : "") + Minutes + ":" +
                     (Seconds < 10 ? "0" : "") + Seconds;
-            } catch (Error) { }
+            } catch (Error) {
+            }
 
             if (UtilityEnabled("ResetType")) {
                 if (document.querySelector("#profile") != undefined &&
@@ -677,8 +701,7 @@ else {
                     if (document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul").childNodes.length == 3) {
                         document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul").childNodes[3].remove();
                     }
-                }
-                else if (document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul > li:nth-child(3) > a > span") != undefined &&
+                } else if (document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul > li:nth-child(3) > a > span") != undefined &&
                     document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul > li:nth-child(3) > a > span").innerText != "个人中心") {
                     let PopupUL = document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul");
                     PopupUL.innerHTML = `<li class="dropdown-item">修改帐号</li>
@@ -734,7 +757,7 @@ else {
             }
         }, 100);
 
-        fetch(ServerURL + "/Update.json", { cache: "no-cache" })
+        fetch(ServerURL + "/Update.json", {cache: "no-cache"})
             .then((Response) => {
                 return Response.json();
             })
@@ -762,61 +785,78 @@ else {
                 }
                 if (localStorage.getItem("UserScript-Update-LastVersion") != GM_info.script.version) {
                     localStorage.setItem("UserScript-Update-LastVersion", GM_info.script.version);
-                    let UpdateDiv = document.createElement("div"); document.querySelector("body").appendChild(UpdateDiv);
+                    let UpdateDiv = document.createElement("div");
+                    document.querySelector("body").appendChild(UpdateDiv);
                     UpdateDiv.className = "modal fade";
                     UpdateDiv.id = "UpdateModal";
                     UpdateDiv.tabIndex = -1;
-                    let UpdateDialog = document.createElement("div"); UpdateDiv.appendChild(UpdateDialog);
+                    let UpdateDialog = document.createElement("div");
+                    UpdateDiv.appendChild(UpdateDialog);
                     UpdateDialog.className = "modal-dialog";
-                    let UpdateContent = document.createElement("div"); UpdateDialog.appendChild(UpdateContent);
+                    let UpdateContent = document.createElement("div");
+                    UpdateDialog.appendChild(UpdateContent);
                     UpdateContent.className = "modal-content";
-                    let UpdateHeader = document.createElement("div"); UpdateContent.appendChild(UpdateHeader);
+                    let UpdateHeader = document.createElement("div");
+                    UpdateContent.appendChild(UpdateHeader);
                     UpdateHeader.className = "modal-header";
-                    let UpdateTitle = document.createElement("h5"); UpdateHeader.appendChild(UpdateTitle);
+                    let UpdateTitle = document.createElement("h5");
+                    UpdateHeader.appendChild(UpdateTitle);
                     UpdateTitle.className = "modal-title";
                     UpdateTitle.innerText = "更新日志";
-                    let UpdateCloseButton = document.createElement("button"); UpdateHeader.appendChild(UpdateCloseButton);
+                    let UpdateCloseButton = document.createElement("button");
+                    UpdateHeader.appendChild(UpdateCloseButton);
                     UpdateCloseButton.type = "button";
                     UpdateCloseButton.className = "btn-close";
                     UpdateCloseButton.setAttribute("data-bs-dismiss", "modal");
-                    let UpdateBody = document.createElement("div"); UpdateContent.appendChild(UpdateBody);
+                    let UpdateBody = document.createElement("div");
+                    UpdateContent.appendChild(UpdateBody);
                     UpdateBody.className = "modal-body";
-                    let UpdateFooter = document.createElement("div"); UpdateContent.appendChild(UpdateFooter);
+                    let UpdateFooter = document.createElement("div");
+                    UpdateContent.appendChild(UpdateFooter);
                     UpdateFooter.className = "modal-footer";
-                    let UpdateButton = document.createElement("button"); UpdateFooter.appendChild(UpdateButton);
+                    let UpdateButton = document.createElement("button");
+                    UpdateFooter.appendChild(UpdateButton);
                     UpdateButton.type = "button";
                     UpdateButton.className = "btn btn-secondary";
                     UpdateButton.setAttribute("data-bs-dismiss", "modal");
                     UpdateButton.innerText = "关闭";
                     let Version = Object.keys(Response.UpdateHistory)[Object.keys(Response.UpdateHistory).length - 1]
                     let Data = Response.UpdateHistory[Version];
-                    let UpdateDataCard = document.createElement("div"); UpdateBody.appendChild(UpdateDataCard);
+                    let UpdateDataCard = document.createElement("div");
+                    UpdateBody.appendChild(UpdateDataCard);
                     UpdateDataCard.className = "card mb-3";
-                    let UpdateDataCardBody = document.createElement("div"); UpdateDataCard.appendChild(UpdateDataCardBody);
+                    let UpdateDataCardBody = document.createElement("div");
+                    UpdateDataCard.appendChild(UpdateDataCardBody);
                     UpdateDataCardBody.className = "card-body";
-                    let UpdateDataCardTitle = document.createElement("h5"); UpdateDataCardBody.appendChild(UpdateDataCardTitle);
+                    let UpdateDataCardTitle = document.createElement("h5");
+                    UpdateDataCardBody.appendChild(UpdateDataCardTitle);
                     UpdateDataCardTitle.className = "card-title";
                     UpdateDataCardTitle.innerText = Version;
-                    let UpdateDataCardSubtitle = document.createElement("h6"); UpdateDataCardBody.appendChild(UpdateDataCardSubtitle);
+                    let UpdateDataCardSubtitle = document.createElement("h6");
+                    UpdateDataCardBody.appendChild(UpdateDataCardSubtitle);
                     UpdateDataCardSubtitle.className = "card-subtitle mb-2 text-muted";
                     UpdateDataCardSubtitle.innerHTML = GetRelativeTime(Data.UpdateDate);
-                    let UpdateDataCardText = document.createElement("p"); UpdateDataCardBody.appendChild(UpdateDataCardText);
+                    let UpdateDataCardText = document.createElement("p");
+                    UpdateDataCardBody.appendChild(UpdateDataCardText);
                     UpdateDataCardText.className = "card-text";
                     //release notes
-                    if (Data.Notes != undefined){
+                    if (Data.Notes != undefined) {
                         UpdateDataCardText.innerHTML = Data.Notes;
                     }
-                    let UpdateDataCardList = document.createElement("ul"); UpdateDataCardText.appendChild(UpdateDataCardList);
+                    let UpdateDataCardList = document.createElement("ul");
+                    UpdateDataCardText.appendChild(UpdateDataCardList);
                     UpdateDataCardList.className = "list-group list-group-flush";
                     for (let j = 0; j < Data.UpdateContents.length; j++) {
-                        let UpdateDataCardListItem = document.createElement("li"); UpdateDataCardList.appendChild(UpdateDataCardListItem);
+                        let UpdateDataCardListItem = document.createElement("li");
+                        UpdateDataCardList.appendChild(UpdateDataCardListItem);
                         UpdateDataCardListItem.className = "list-group-item";
                         UpdateDataCardListItem.innerHTML =
                             "(<a href=\"https://github.com/XMOJ-Script-dev/XMOJ-Script/pull/" + Data.UpdateContents[j].PR + "\" target=\"_blank\">" +
                             "#" + Data.UpdateContents[j].PR + "</a>) " +
                             Data.UpdateContents[j].Description;
                     }
-                    let UpdateDataCardLink = document.createElement("a"); UpdateDataCardBody.appendChild(UpdateDataCardLink);
+                    let UpdateDataCardLink = document.createElement("a");
+                    UpdateDataCardBody.appendChild(UpdateDataCardLink);
                     UpdateDataCardLink.className = "card-link";
                     UpdateDataCardLink.href = "https://github.com/XMOJ-Script-dev/XMOJ-Script/releases/tag/" + Version;
                     UpdateDataCardLink.target = "_blank";
@@ -824,7 +864,7 @@ else {
                     new bootstrap.Modal(document.getElementById("UpdateModal")).show();
                 }
             });
-        fetch(ServerURL + "/AddonScript.js", { cache: "no-cache" })
+        fetch(ServerURL + "/AddonScript.js", {cache: "no-cache"})
             .then((Response) => {
                 return Response.text();
             })
@@ -873,7 +913,8 @@ else {
                             ToastDismissButton.addEventListener("click", () => {
                                 RequestAPI("ReadBBSMention", {
                                     "MentionID": Number(MentionList[i].MentionID)
-                                }, () => { });
+                                }, () => {
+                                });
                                 Toast.remove();
                             });
                             ToastFooter.appendChild(ToastDismissButton);
@@ -885,7 +926,8 @@ else {
                                 open("https://www.xmoj.tech/discuss3/thread.php?tid=" + MentionList[i].PostID, "_blank");
                                 RequestAPI("ReadBBSMention", {
                                     "MentionID": Number(MentionList[i].MentionID)
-                                }, () => { });
+                                }, () => {
+                                });
                             });
                             ToastFooter.appendChild(ToastViewButton);
                             ToastBody.appendChild(ToastFooter);
@@ -938,7 +980,8 @@ else {
                             ToastDismissButton.addEventListener("click", () => {
                                 RequestAPI("ReadMailMention", {
                                     "MentionID": Number(MentionList[i].MentionID)
-                                }, () => { });
+                                }, () => {
+                                });
                             });
                             ToastFooter.appendChild(ToastDismissButton);
                             let ToastViewButton = document.createElement("button");
@@ -949,7 +992,8 @@ else {
                                 open("https://www.xmoj.tech/mail.php?to_user=" + MentionList[i].FromUserID, "_blank");
                                 RequestAPI("ReadMailMention", {
                                     "MentionID": Number(MentionList[i].MentionID)
-                                }, () => { });
+                                }, () => {
+                                });
                             });
                             ToastFooter.appendChild(ToastViewButton);
                             ToastBody.appendChild(ToastFooter);
@@ -994,11 +1038,9 @@ else {
                         Row.classList.add("list-group-item");
                         if (Data[i].Type == "A") {
                             Row.classList.add("list-group-item-success");
-                        }
-                        else if (Data[i].Type == "F") {
+                        } else if (Data[i].Type == "F") {
                             Row.classList.add("list-group-item-warning");
-                        }
-                        else if (Data[i].Type == "D") {
+                        } else if (Data[i].Type == "D") {
                             Row.classList.add("list-group-item-danger");
                         }
                         if (Data[i].Children == undefined) {
@@ -1012,8 +1054,7 @@ else {
                             }
                             if (localStorage.getItem("UserScript-Setting-" + Data[i].ID) == "false") {
                                 CheckBox.checked = false;
-                            }
-                            else {
+                            } else {
                                 CheckBox.checked = true;
                             }
                             CheckBox.addEventListener("change", () => {
@@ -1026,8 +1067,7 @@ else {
                             Label.htmlFor = Data[i].ID;
                             Label.innerText = Data[i].Name;
                             Row.appendChild(Label);
-                        }
-                        else {
+                        } else {
                             let Label = document.createElement("label");
                             Label.innerText = Data[i].Name;
                             Row.appendChild(Label);
@@ -1040,56 +1080,60 @@ else {
                     return List;
                 };
                 UtilitiesCardBody.appendChild(CreateList([
-                    { "ID": "ACMRank", "Type": "A", "Name": "比赛ACM排名，并且能下载ACM排名" },
-                    { "ID": "Discussion", "Type": "F", "Name": "恢复讨论与短消息功能" },
-                    { "ID": "MoreSTD", "Type": "F", "Name": "查看到更多标程" },
+                    {"ID": "ACMRank", "Type": "A", "Name": "比赛ACM排名，并且能下载ACM排名"},
+                    {"ID": "Discussion", "Type": "F", "Name": "恢复讨论与短消息功能"},
+                    {"ID": "MoreSTD", "Type": "F", "Name": "查看到更多标程"},
                     {
                         "ID": "StudyMode", "Type": "A", "Name": "学术模式", "Children": [
-                            { "ID": "ApplyData", "Type": "A", "Name": "获取数据功能" },
-                            { "ID": "AutoCheat", "Type": "A", "Name": "自动提交当年代码" }
+                            {"ID": "ApplyData", "Type": "A", "Name": "获取数据功能"},
+                            {"ID": "AutoCheat", "Type": "A", "Name": "自动提交当年代码"}
                         ]
                     },
-                    { "ID": "Rating", "Type": "A", "Name": "添加用户评分和用户名颜色" },
-                    { "ID": "AutoRefresh", "Type": "A", "Name": "比赛列表、比赛排名界面自动刷新" },
-                    { "ID": "AutoCountdown", "Type": "A", "Name": "比赛列表等界面的时间自动倒计时" },
-                    { "ID": "DownloadPlayback", "Type": "A", "Name": "回放视频增加下载功能" },
-                    { "ID": "ImproveACRate", "Type": "A", "Name": "自动提交已AC题目以提高AC率" },
-                    { "ID": "AutoO2", "Type": "F", "Name": "代码提交界面自动选择O2优化" },
+                    {"ID": "Rating", "Type": "A", "Name": "添加用户评分和用户名颜色"},
+                    {"ID": "AutoRefresh", "Type": "A", "Name": "比赛列表、比赛排名界面自动刷新"},
+                    {"ID": "AutoCountdown", "Type": "A", "Name": "比赛列表等界面的时间自动倒计时"},
+                    {"ID": "DownloadPlayback", "Type": "A", "Name": "回放视频增加下载功能"},
+                    {"ID": "ImproveACRate", "Type": "A", "Name": "自动提交已AC题目以提高AC率"},
+                    {"ID": "AutoO2", "Type": "F", "Name": "代码提交界面自动选择O2优化"},
                     {
                         "ID": "Beautify", "Type": "F", "Name": "美化界面", "Children": [
-                            { "ID": "NewBootstrap", "Type": "F", "Name": "使用新版的Bootstrap样式库*" },
-                            { "ID": "ResetType", "Type": "F", "Name": "重新排版*" },
-                            { "ID": "AddColorText", "Type": "A", "Name": "增加彩色文字" },
-                            { "ID": "AddUnits", "Type": "A", "Name": "状态界面内存与耗时添加单位" },
-                            { "ID": "DarkMode", "Type": "A", "Name": "使用暗色模式" },
-                            { "ID": "AddAnimation", "Type": "A", "Name": "增加动画" },
-                            { "ID": "ReplaceYN", "Type": "F", "Name": "题目前对错的Y和N替换为勾和叉" },
-                            { "ID": "RemoveAlerts", "Type": "D", "Name": "去除多余反复的提示" },
-                            { "ID": "Translate", "Type": "F", "Name": "统一使用中文，翻译了部分英文*" },
-                            { "ID": "ReplaceLinks", "Type": "F", "Name": "将网站中所有以方括号包装的链接替换为按钮" },
-                            { "ID": "RemoveUseless", "Type": "D", "Name": "删去无法使用的功能*" },
-                            { "ID": "ReplaceXM", "Type": "F", "Name": "将网站中所有“小明”和“我”关键字替换为“高老师”，所有“小红”替换为“徐师娘”，所有“小粉”替换为“彩虹”，所有“下海”、“海上”替换为“上海”" }
+                            {"ID": "NewBootstrap", "Type": "F", "Name": "使用新版的Bootstrap样式库*"},
+                            {"ID": "ResetType", "Type": "F", "Name": "重新排版*"},
+                            {"ID": "AddColorText", "Type": "A", "Name": "增加彩色文字"},
+                            {"ID": "AddUnits", "Type": "A", "Name": "状态界面内存与耗时添加单位"},
+                            {"ID": "DarkMode", "Type": "A", "Name": "使用暗色模式"},
+                            {"ID": "AddAnimation", "Type": "A", "Name": "增加动画"},
+                            {"ID": "ReplaceYN", "Type": "F", "Name": "题目前对错的Y和N替换为勾和叉"},
+                            {"ID": "RemoveAlerts", "Type": "D", "Name": "去除多余反复的提示"},
+                            {"ID": "Translate", "Type": "F", "Name": "统一使用中文，翻译了部分英文*"},
+                            {"ID": "ReplaceLinks", "Type": "F", "Name": "将网站中所有以方括号包装的链接替换为按钮"},
+                            {"ID": "RemoveUseless", "Type": "D", "Name": "删去无法使用的功能*"},
+                            {
+                                "ID": "ReplaceXM",
+                                "Type": "F",
+                                "Name": "将网站中所有“小明”和“我”关键字替换为“高老师”，所有“小红”替换为“徐师娘”，所有“小粉”替换为“彩虹”，所有“下海”、“海上”替换为“上海”"
+                            }
                         ]
                     },
-                    { "ID": "AutoLogin", "Type": "A", "Name": "在需要登录的界面自动跳转到登陆界面" },
-                    { "ID": "SavePassword", "Type": "A", "Name": "自动保存用户名与密码，免去每次手动输入密码的繁琐" },
-                    { "ID": "CopySamples", "Type": "F", "Name": "题目界面测试样例有时复制无效" },
-                    { "ID": "RefreshSolution", "Type": "F", "Name": "状态页面结果自动刷新每次只能刷新一个" },
-                    { "ID": "CopyMD", "Type": "A", "Name": "复制题目或题解内容" },
-                    { "ID": "OpenAllProblem", "Type": "A", "Name": "比赛题目界面一键打开所有题目" },
+                    {"ID": "AutoLogin", "Type": "A", "Name": "在需要登录的界面自动跳转到登陆界面"},
+                    {"ID": "SavePassword", "Type": "A", "Name": "自动保存用户名与密码，免去每次手动输入密码的繁琐"},
+                    {"ID": "CopySamples", "Type": "F", "Name": "题目界面测试样例有时复制无效"},
+                    {"ID": "RefreshSolution", "Type": "F", "Name": "状态页面结果自动刷新每次只能刷新一个"},
+                    {"ID": "CopyMD", "Type": "A", "Name": "复制题目或题解内容"},
+                    {"ID": "OpenAllProblem", "Type": "A", "Name": "比赛题目界面一键打开所有题目"},
                     {
                         "ID": "CheckCode", "Type": "A", "Name": "提交代码前对代码进行检查", "Children": [
-                            { "ID": "IOFile", "Type": "A", "Name": "是否使用了文件输入输出（如果需要使用）" },
-                            { "ID": "CompileError", "Type": "A", "Name": "是否有编译错误" }
+                            {"ID": "IOFile", "Type": "A", "Name": "是否使用了文件输入输出（如果需要使用）"},
+                            {"ID": "CompileError", "Type": "A", "Name": "是否有编译错误"}
                         ]
                     },
-                    { "ID": "ExportACCode", "Type": "F", "Name": "导出AC代码每一道题目一个文件" },
-                    { "ID": "LoginFailed", "Type": "F", "Name": "修复登录后跳转失败*" },
-                    { "ID": "NewDownload", "Type": "A", "Name": "下载页面增加下载内容" },
-                    { "ID": "CompareSource", "Type": "A", "Name": "比较代码" },
-                    { "ID": "BBSPopup", "Type": "A", "Name": "讨论提醒" },
-                    { "ID": "MessagePopup", "Type": "A", "Name": "短消息提醒" },
-                    { "ID": "DebugMode", "Type": "A", "Name": "调试模式（仅供开发者使用）" }
+                    {"ID": "ExportACCode", "Type": "F", "Name": "导出AC代码每一道题目一个文件"},
+                    {"ID": "LoginFailed", "Type": "F", "Name": "修复登录后跳转失败*"},
+                    {"ID": "NewDownload", "Type": "A", "Name": "下载页面增加下载内容"},
+                    {"ID": "CompareSource", "Type": "A", "Name": "比较代码"},
+                    {"ID": "BBSPopup", "Type": "A", "Name": "讨论提醒"},
+                    {"ID": "MessagePopup", "Type": "A", "Name": "短消息提醒"},
+                    {"ID": "DebugMode", "Type": "A", "Name": "调试模式（仅供开发者使用）"}
                 ]));
                 let UtilitiesCardFooter = document.createElement("div");
                 UtilitiesCardFooter.className = "card-footer text-muted";
@@ -1116,8 +1160,7 @@ else {
                 FeedbackCardBody.appendChild(FeedbackCardLink);
                 FeedbackCard.appendChild(FeedbackCardBody);
                 Container.appendChild(FeedbackCard);
-            }
-            else {
+            } else {
                 let Temp = document.querySelector("body > div > div.mt-3 > div > div.col-md-8").children;
                 let NewsData = [];
                 for (let i = 0; i < Temp.length; i += 2) {
@@ -1127,7 +1170,7 @@ else {
                         Time = Temp[i].children[1].innerText;
                     }
                     let Body = Temp[i + 1].innerHTML;
-                    NewsData.push({ "Title": Title, "Time": new Date(Time), "Body": Body });
+                    NewsData.push({"Title": Title, "Time": new Date(Time), "Body": Body});
                 }
                 document.querySelector("body > div > div.mt-3 > div > div.col-md-8").innerHTML = "";
                 for (let i = 0; i < NewsData.length; i++) {
@@ -1203,8 +1246,7 @@ else {
                 setTimeout(() => {
                     location.href = "https://www.xmoj.tech/problemset.php";
                 }, 1000);
-            }
-            else {
+            } else {
                 let PID = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") +
                     "-Problem-" + SearchParams.get("pid") + "-PID");
 
@@ -1318,8 +1360,7 @@ else {
                     DiscussButton.addEventListener("click", () => {
                         if (SearchParams.get("cid") != null) {
                             open("https://www.xmoj.tech/discuss3/discuss.php?pid=" + PID, "_blank");
-                        }
-                        else {
+                        } else {
                             open("https://www.xmoj.tech/discuss3/discuss.php?pid=" + SearchParams.get("id"), "_blank");
                         }
                     });
@@ -1528,8 +1569,7 @@ else {
                     if (SearchParams.get("cid") === null) {
                         localStorage.setItem("UserScript-Solution-" + SID + "-Problem",
                             Temp[i].childNodes[1].innerText);
-                    }
-                    else {
+                    } else {
                         localStorage.setItem("UserScript-Solution-" + SID + "-Contest",
                             SearchParams.get("cid"));
                         localStorage.setItem("UserScript-Solution-" + SID + "-PID-Contest",
@@ -1600,8 +1640,7 @@ else {
                                         RefreshResult(SolutionID)
                                     }, 500);
                                     TempHTML += "<img style=\"margin-left: 5px\" height=\"18\" width=\"18\" src=\"image/loader.gif\">";
-                                }
-                                else if (ResponseData[0] == 4 && UtilityEnabled("UploadStd")) {
+                                } else if (ResponseData[0] == 4 && UtilityEnabled("UploadStd")) {
                                     if (SearchParams.get("cid") == null)
                                         CurrentRow.cells[1].innerText;
                                     let Std = StdList.find((Element) => {
@@ -1609,15 +1648,13 @@ else {
                                     });
                                     if (Std != undefined) {
                                         TempHTML += "✅";
-                                    }
-                                    else {
+                                    } else {
                                         RequestAPI("UploadStd", {
                                             "ProblemID": Number(PID),
                                         }, (Result) => {
                                             if (Result.Success) {
                                                 CurrentRow.cells[2].innerHTML += "🆗";
-                                            }
-                                            else {
+                                            } else {
                                                 CurrentRow.cells[2].innerHTML += "⚠️";
                                             }
                                         });
@@ -1630,7 +1667,8 @@ else {
             }
         } else if (location.pathname == "/contest.php") {
             if (UtilityEnabled("AutoCountdown")) {
-                clock = () => { }
+                clock = () => {
+                }
             }
             if (location.href.indexOf("?cid=") == -1) {
                 if (UtilityEnabled("ResetType")) {
@@ -1707,8 +1745,7 @@ else {
                 if (UtilityEnabled("RemoveAlerts") && document.querySelector("body > div > div.mt-3 > center").innerHTML.indexOf("尚未开始比赛") != -1) {
                     document.querySelector("body > div > div.mt-3 > center > a").setAttribute("href",
                         "start_contest.php?cid=" + SearchParams.get("cid"));
-                }
-                else if (UtilityEnabled("AutoRefresh")) {
+                } else if (UtilityEnabled("AutoRefresh")) {
                     addEventListener("focus", async () => {
                         await fetch(location.href)
                             .then((Response) => {
@@ -1723,8 +1760,7 @@ else {
                                         if (Status.indexOf("Y") != -1) {
                                             document.querySelector("#problemset > tbody").children[i].children[0].children[0].className = "status status_y";
                                             document.querySelector("#problemset > tbody").children[i].children[0].children[0].innerText = "✓";
-                                        }
-                                        else if (Status.indexOf("N") != -1) {
+                                        } else if (Status.indexOf("N") != -1) {
                                             document.querySelector("#problemset > tbody").children[i].children[0].children[0].className = "status status_n";
                                             document.querySelector("#problemset > tbody").children[i].children[0].children[0].innerText = "✗";
                                         }
@@ -1913,8 +1949,7 @@ else {
             if (SearchParams.get("ByUserScript") == null) {
                 if (document.querySelector("body > div > div.mt-3 > center > h3").innerText == "比赛排名") {
                     document.querySelector("#rank").innerText = "比赛暂时还没有排名";
-                }
-                else {
+                } else {
                     document.querySelector("body > div > div.mt-3 > center > h3").innerText =
                         document.querySelector("body > div > div.mt-3 > center > h3").innerText.substring(
                             document.querySelector("body > div > div.mt-3 > center > h3").innerText.indexOf(" -- ") + 4)
@@ -1955,23 +1990,19 @@ else {
                                         let ErrorCount = "";
                                         if (Solved) {
                                             ErrorCount = (Blue == 170 ? 5 : (Blue - 51) / 32);
-                                        }
-                                        else {
+                                        } else {
                                             ErrorCount = (Blue == 22 ? 15 : (170 - Blue) / 10);
                                         }
                                         if (NoData) {
                                             BackgroundColor = "";
-                                        }
-                                        else if (FirstBlood) {
+                                        } else if (FirstBlood) {
                                             BackgroundColor = "rgb(127, 127, 255)";
-                                        }
-                                        else if (Solved) {
+                                        } else if (Solved) {
                                             BackgroundColor = "rgb(0, 255, 0, " + Math.max(1 / 10 * (10 - ErrorCount), 0.2) + ")";
                                             if (ErrorCount != 0) {
                                                 InnerText += " (" + (ErrorCount == 5 ? "4+" : ErrorCount) + ")";
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             BackgroundColor = "rgba(255, 0, 0, " + Math.min(ErrorCount / 10 + 0.2, 1) + ")";
                                             if (ErrorCount != 0) {
                                                 InnerText += " (" + (ErrorCount == 15 ? "14+" : ErrorCount) + ")";
@@ -1990,8 +2021,7 @@ else {
                         addEventListener("focus", RefreshOIRank);
                     }
                 }
-            }
-            else if (UtilityEnabled("ACMRank")) {
+            } else if (UtilityEnabled("ACMRank")) {
                 if (document.querySelector("body > div > div.mt-3 > center > h3").innerText != "比赛排名") {
                     document.querySelector("body > div > div.mt-3 > center > h3").innerText =
                         document.querySelector("body > div > div.mt-3 > center > h3").innerText.substring(
@@ -2011,13 +2041,13 @@ else {
                         .then(async (Response) => {
                             RankData = [];
 
-                            let Table = document.querySelector("#rank"); Table.innerHTML = "";
+                            let Table = document.querySelector("#rank");
+                            Table.innerHTML = "";
                             let StartPosition = Response.indexOf("var solutions=") + 14;
                             let EndPosition = Response.indexOf("}];", StartPosition) + 2;
                             if (EndPosition == 1) {
                                 Table.innerHTML = "暂时还没有人提交呢";
-                            }
-                            else {
+                            } else {
                                 let SubmitRecord = JSON.parse(Response.substring(StartPosition, EndPosition));
 
                                 for (let i = 0; i < SubmitRecord.length; i++) {
@@ -2082,75 +2112,216 @@ else {
                                     return 0;
                                 });
 
-                                let Header = document.createElement("thead"); Table.appendChild(Header);
-                                let RowHeader = document.createElement("tr"); Header.appendChild(RowHeader);
-                                let MetalHeader = document.createElement("th"); RowHeader.appendChild(MetalHeader); MetalHeader.innerText = "排名"; MetalHeader.style.width = "5%";
-                                let UsernameHeader = document.createElement("th"); RowHeader.appendChild(UsernameHeader); UsernameHeader.innerText = "用户"; UsernameHeader.style.width = "10%";
-                                let NicknameHeader = document.createElement("th"); RowHeader.appendChild(NicknameHeader); NicknameHeader.innerText = "昵称"; NicknameHeader.style.width = "10%";
-                                let NameHeader = document.createElement("th"); RowHeader.appendChild(NameHeader); NameHeader.innerText = "姓名"; NameHeader.style.width = "5%";
-                                let SolvedHeader = document.createElement("th"); RowHeader.appendChild(SolvedHeader); SolvedHeader.innerText = "AC数"; SolvedHeader.style.width = "5%";
-                                let PenaltyHeader = document.createElement("th"); RowHeader.appendChild(PenaltyHeader); PenaltyHeader.innerText = "罚时"; PenaltyHeader.style.width = "10%";
+                                let Header = document.createElement("thead");
+                                Table.appendChild(Header);
+                                let RowHeader = document.createElement("tr");
+                                Header.appendChild(RowHeader);
+                                let MetalHeader = document.createElement("th");
+                                RowHeader.appendChild(MetalHeader);
+                                MetalHeader.innerText = "排名";
+                                MetalHeader.style.width = "5%";
+                                let UsernameHeader = document.createElement("th");
+                                RowHeader.appendChild(UsernameHeader);
+                                UsernameHeader.innerText = "用户";
+                                UsernameHeader.style.width = "10%";
+                                let NicknameHeader = document.createElement("th");
+                                RowHeader.appendChild(NicknameHeader);
+                                NicknameHeader.innerText = "昵称";
+                                NicknameHeader.style.width = "10%";
+                                let NameHeader = document.createElement("th");
+                                RowHeader.appendChild(NameHeader);
+                                NameHeader.innerText = "姓名";
+                                NameHeader.style.width = "5%";
+                                let SolvedHeader = document.createElement("th");
+                                RowHeader.appendChild(SolvedHeader);
+                                SolvedHeader.innerText = "AC数";
+                                SolvedHeader.style.width = "5%";
+                                let PenaltyHeader = document.createElement("th");
+                                RowHeader.appendChild(PenaltyHeader);
+                                PenaltyHeader.innerText = "罚时";
+                                PenaltyHeader.style.width = "10%";
 
                                 for (let i = 0; i < ProblemCount; i++) {
-                                    let ProblemHeader = document.createElement("th"); RowHeader.appendChild(ProblemHeader);
-                                    let ProblemLink = document.createElement("a"); ProblemHeader.appendChild(ProblemLink);
-                                    ProblemLink.href = "problem.php?cid=" + SearchParams.get("cid") + "&pid=" + i; ProblemLink.innerText = String.fromCharCode(65 + i);
-                                    ProblemHeader.classList.add("header"); ProblemHeader.style.width = (50 / ProblemCount) + "%";
+                                    let ProblemHeader = document.createElement("th");
+                                    RowHeader.appendChild(ProblemHeader);
+                                    let ProblemLink = document.createElement("a");
+                                    ProblemHeader.appendChild(ProblemLink);
+                                    ProblemLink.href = "problem.php?cid=" + SearchParams.get("cid") + "&pid=" + i;
+                                    ProblemLink.innerText = String.fromCharCode(65 + i);
+                                    ProblemHeader.classList.add("header");
+                                    ProblemHeader.style.width = (50 / ProblemCount) + "%";
                                 }
 
-                                let Body = document.createElement("tbody"); Table.appendChild(Body);
+                                let Body = document.createElement("tbody");
+                                Table.appendChild(Body);
                                 Body.className = "table-group-divider";
                                 for (let i = 0; i < RankData.length; i++) {
                                     let RowData = RankData[i];
-                                    let Row = document.createElement("tr"); Body.appendChild(Row);
-                                    let MetalCell = document.createElement("td"); Row.appendChild(MetalCell);
-                                    let UsernameCell = document.createElement("td"); Row.appendChild(UsernameCell);
-                                    let NicknameCell = document.createElement("td"); Row.appendChild(NicknameCell);
-                                    let NameCell = document.createElement("td"); Row.appendChild(NameCell);
-                                    let SolvedCell = document.createElement("td"); Row.appendChild(SolvedCell);
-                                    let PenaltyCell = document.createElement("td"); Row.appendChild(PenaltyCell);
+                                    let Row = document.createElement("tr");
+                                    Body.appendChild(Row);
+                                    let MetalCell = document.createElement("td");
+                                    Row.appendChild(MetalCell);
+                                    let UsernameCell = document.createElement("td");
+                                    Row.appendChild(UsernameCell);
+                                    let NicknameCell = document.createElement("td");
+                                    Row.appendChild(NicknameCell);
+                                    let NameCell = document.createElement("td");
+                                    Row.appendChild(NameCell);
+                                    let SolvedCell = document.createElement("td");
+                                    Row.appendChild(SolvedCell);
+                                    let PenaltyCell = document.createElement("td");
+                                    Row.appendChild(PenaltyCell);
 
-                                    let Medal = document.createElement("span"); MetalCell.appendChild(Medal);
+                                    let Medal = document.createElement("span");
+                                    MetalCell.appendChild(Medal);
                                     Medal.innerText = i + 1;
                                     Medal.classList.add("badge");
                                     if (i <= RankData.length * 0.05) {
                                         Medal.classList.add("text-bg-danger");
-                                    }
-                                    else if (i <= RankData.length * 0.15) {
+                                    } else if (i <= RankData.length * 0.15) {
                                         Medal.classList.add("text-bg-warning");
-                                    }
-                                    else if (i <= RankData.length * 0.4) {
+                                    } else if (i <= RankData.length * 0.4) {
                                         Medal.classList.add("text-bg-primary");
-                                    }
-                                    else {
+                                    } else {
                                         Medal.classList.add("text-bg-secondary");
                                     }
 
-                                    let UsernameSpan = document.createElement("span"); UsernameCell.appendChild(UsernameSpan);
+                                    let UsernameSpan = document.createElement("span");
+                                    UsernameCell.appendChild(UsernameSpan);
                                     GetUsernameHTML(UsernameSpan, RowData.Username);
                                     if (RowData.Username == CurrentUsername) {
                                         Row.classList.add("table-primary");
                                     }
                                     if (RowData.QuickSubmitCount >= 2) {
-                                        let QuickSubmitBadge = document.createElement("span"); UsernameCell.appendChild(QuickSubmitBadge);
-                                        QuickSubmitBadge.innerText = "作弊者";
+                                        let QuickSubmitBadge = document.createElement("span");
+                                        UsernameCell.appendChild(QuickSubmitBadge);
+                                        QuickSubmitBadge.innerText = "疑似提交当年代码";
                                         QuickSubmitBadge.className = "badge text-bg-warning ms-2";
                                     }
 
                                     NicknameCell.innerText = (RowData.Nickname.length < 16 ? RowData.Nickname : RowData.Nickname.substring(0, 15) + "...");
 
                                     let Names = {
-                                        "huangkai": "黄开", "chenlangning": "陈朗宁", "chensiru": "陈斯如", "chentianle": "陈天乐", "chenxuanhe": "陈宣合", "chenzecong": "陈泽聪", "chenzerui": "陈泽睿", "danwenxiao": "单文骁", "dongminghui": "董明辉", "gaochenming": "高晨茗", "guoqingtong": "郭庆桐", "guoruiqun": "郭睿群", "guyuchen": "顾毓辰",
-                                        "hanshujian": "韩书简", "heshuhan": "贺书瀚", "hexinyi": "何昕弈", "huangmingxuan": "黄铭宣", "huangruina": "黄睿纳", "huangwei": "黄唯", "huyiyang": "胡以杨", "jiangxingyu": "姜星宇", "jingtaiyu": "荆泰宇", "jinweizhe": "金炜喆", "leijiahan": "雷家涵",
-                                        "lianzhongzhe": "连中哲", "liaoyanxu": "廖彦旭", "lingzixiang": "凌梓翔", "linziyi": "林子懿", "liujianhao": "刘健豪", "liujiankun": "刘健坤", "liuxianyong": "刘先勇", "liuxixian": "刘希贤", "liyihan": "李亦涵", "luojinyang": "罗金阳", "lutianfeng": "陆天枫",
-                                        "meitianyi": "梅天一", "panyinliang": "潘胤良", "pengyixuan": "彭议萱", "putong": "蒲通", "qianqingyuan": "钱清源", "qidekai": "戚得凯", "shanwenxiao": "单文骁", "shenxichen": "沈熙晨", "shihongxi": "施泓熙", "shimufan": "施慕梵", "shiyichen": "施奕辰",
-                                        "shiyunhao": "施云浩", "shuxinmo": "舒馨墨", "suiruochen": "隋若宸", "sunyihan": "孙艺涵", "sunyimiao": "孙义淼", "tangchao": "唐潮", "tangyuhan": "唐钰涵", "tanhaoxuan": "谭皓轩", "taoxianyu": "陶羡榆", "wangkangming": "王康明", "wangminghao": "王明浩",
-                                        "wangmingshuo": "王茗铄", "wangpengyu": "王芃雨", "wangsiyuan3": "王思源", "wangtianqi": "王天琦", "wangzetong": "王泽通", "wanxinlian": "万馨联", "wensiyi": "闻思奕", "wujinhong": "吴锦鸿", "wurunze": "吴润泽", "wuyukai": "巫昱恺", "xiangjicheng": "项际诚",
-                                        "xiaoguanxun": "肖贯勋", "xiaojiasheng": "肖嘉盛", "xiaruicheng": "夏瑞成", "xiaweimin": "夏蔚民", "xiaxuran": "夏诩然", "xiebingxiu": "谢秉修", "xiebingxiu": "谢秉修", "xieliren": "谢立仁", "xinyihan": "辛轶涵", "xuconghan": "徐从瀚", "xukan": "徐衎",
-                                        "xuweiyi": "徐维易", "yanghaochen": "杨皓宸", "yezijiong": "叶梓炅", "youzhouhang": "尤周杭", "yuanruiqing": "袁瑞擎", "yutingjun": "于庭郡", "zhangchenming": "张宸铭", "zhangqiuze": "张秋泽", "zhangshuxuan": "张澍萱", "zhangwenda": "张闻达", "zhangyifu": "张亦夫",
-                                        "zhangyouheng": "张佑恒", "zhaochenshen": "赵晨神", "zhaochenwei": "赵晨伟", "zhengyinan": "郑逸楠", "zhonghongyi": "钟弘毅", "zhoujunyu": "周峻瑜", "zhouziyi": "周子逸", "zhouziyou": "周子游", "zhuchenrui2": "朱晨瑞", "zhuruichen": "朱睿宸", "zhuxule": "朱徐乐",
-                                        "zhuyikun": "朱奕坤", "leiwenda": "雷文达", "wangyuancheng": "王源成", "zhuyiyang": "朱奕阳", "hanjialin": "韩佳霖", "zhaozichen": "赵紫辰", "zhuaiwei": "朱艾薇", "linlitong": "林立桐", "xuyan": "徐衍", "fenghaochen": "冯皓宸", "lutianlang": "陆天朗", "tangyuhan": "唐钰涵",
-                                        "jiangbowen": "姜博文", "shangguanbocheng": "上官伯呈", "wangchengqi": "王呈齐", "yanpeitong": "颜培桐", "gongcheng": "龚橙", "weijiefu": "韦杰夫", "": ""
+                                        "huangkai": "黄开",
+                                        "chenlangning": "陈朗宁",
+                                        "chensiru": "陈斯如",
+                                        "chentianle": "陈天乐",
+                                        "chenxuanhe": "陈宣合",
+                                        "chenzecong": "陈泽聪",
+                                        "chenzerui": "陈泽睿",
+                                        "danwenxiao": "单文骁",
+                                        "dongminghui": "董明辉",
+                                        "gaochenming": "高晨茗",
+                                        "guoqingtong": "郭庆桐",
+                                        "guoruiqun": "郭睿群",
+                                        "guyuchen": "顾毓辰",
+                                        "hanshujian": "韩书简",
+                                        "heshuhan": "贺书瀚",
+                                        "hexinyi": "何昕弈",
+                                        "huangmingxuan": "黄铭宣",
+                                        "huangruina": "黄睿纳",
+                                        "huangwei": "黄唯",
+                                        "huyiyang": "胡以杨",
+                                        "jiangxingyu": "姜星宇",
+                                        "jingtaiyu": "荆泰宇",
+                                        "jinweizhe": "金炜喆",
+                                        "leijiahan": "雷家涵",
+                                        "lianzhongzhe": "连中哲",
+                                        "liaoyanxu": "廖彦旭",
+                                        "lingzixiang": "凌梓翔",
+                                        "linziyi": "林子懿",
+                                        "liujianhao": "刘健豪",
+                                        "liujiankun": "刘健坤",
+                                        "liuxianyong": "刘先勇",
+                                        "liuxixian": "刘希贤",
+                                        "liyihan": "李亦涵",
+                                        "luojinyang": "罗金阳",
+                                        "lutianfeng": "陆天枫",
+                                        "meitianyi": "梅天一",
+                                        "panyinliang": "潘胤良",
+                                        "pengyixuan": "彭议萱",
+                                        "putong": "蒲通",
+                                        "qianqingyuan": "钱清源",
+                                        "qidekai": "戚得凯",
+                                        "shanwenxiao": "单文骁",
+                                        "shenxichen": "沈熙晨",
+                                        "shihongxi": "施泓熙",
+                                        "shimufan": "施慕梵",
+                                        "shiyichen": "施奕辰",
+                                        "shiyunhao": "施云浩",
+                                        "shuxinmo": "舒馨墨",
+                                        "suiruochen": "隋若宸",
+                                        "sunyihan": "孙艺涵",
+                                        "sunyimiao": "孙义淼",
+                                        "tangchao": "唐潮",
+                                        "tangyuhan": "唐钰涵",
+                                        "tanhaoxuan": "谭皓轩",
+                                        "taoxianyu": "陶羡榆",
+                                        "wangkangming": "王康明",
+                                        "wangminghao": "王明浩",
+                                        "wangmingshuo": "王茗铄",
+                                        "wangpengyu": "王芃雨",
+                                        "wangsiyuan3": "王思源",
+                                        "wangtianqi": "王天琦",
+                                        "wangzetong": "王泽通",
+                                        "wanxinlian": "万馨联",
+                                        "wensiyi": "闻思奕",
+                                        "wujinhong": "吴锦鸿",
+                                        "wurunze": "吴润泽",
+                                        "wuyukai": "巫昱恺",
+                                        "xiangjicheng": "项际诚",
+                                        "xiaoguanxun": "肖贯勋",
+                                        "xiaojiasheng": "肖嘉盛",
+                                        "xiaruicheng": "夏瑞成",
+                                        "xiaweimin": "夏蔚民",
+                                        "xiaxuran": "夏诩然",
+                                        "xiebingxiu": "谢秉修",
+                                        "xiebingxiu": "谢秉修",
+                                        "xieliren": "谢立仁",
+                                        "xinyihan": "辛轶涵",
+                                        "xuconghan": "徐从瀚",
+                                        "xukan": "徐衎",
+                                        "xuweiyi": "徐维易",
+                                        "yanghaochen": "杨皓宸",
+                                        "yezijiong": "叶梓炅",
+                                        "youzhouhang": "尤周杭",
+                                        "yuanruiqing": "袁瑞擎",
+                                        "yutingjun": "于庭郡",
+                                        "zhangchenming": "张宸铭",
+                                        "zhangqiuze": "张秋泽",
+                                        "zhangshuxuan": "张澍萱",
+                                        "zhangwenda": "张闻达",
+                                        "zhangyifu": "张亦夫",
+                                        "zhangyouheng": "张佑恒",
+                                        "zhaochenshen": "赵晨神",
+                                        "zhaochenwei": "赵晨伟",
+                                        "zhengyinan": "郑逸楠",
+                                        "zhonghongyi": "钟弘毅",
+                                        "zhoujunyu": "周峻瑜",
+                                        "zhouziyi": "周子逸",
+                                        "zhouziyou": "周子游",
+                                        "zhuchenrui2": "朱晨瑞",
+                                        "zhuruichen": "朱睿宸",
+                                        "zhuxule": "朱徐乐",
+                                        "zhuyikun": "朱奕坤",
+                                        "leiwenda": "雷文达",
+                                        "wangyuancheng": "王源成",
+                                        "zhuyiyang": "朱奕阳",
+                                        "hanjialin": "韩佳霖",
+                                        "zhaozichen": "赵紫辰",
+                                        "zhuaiwei": "朱艾薇",
+                                        "linlitong": "林立桐",
+                                        "xuyan": "徐衍",
+                                        "fenghaochen": "冯皓宸",
+                                        "lutianlang": "陆天朗",
+                                        "tangyuhan": "唐钰涵",
+                                        "jiangbowen": "姜博文",
+                                        "shangguanbocheng": "上官伯呈",
+                                        "wangchengqi": "王呈齐",
+                                        "yanpeitong": "颜培桐",
+                                        "gongcheng": "龚橙",
+                                        "weijiefu": "韦杰夫",
+                                        "": ""
                                     };
                                     NameCell.innerText = (Names[RowData.Username] == undefined ? "" : Names[RowData.Username]);
 
@@ -2159,7 +2330,8 @@ else {
                                     PenaltyCell.innerText = SecondsToString(RowData.Penalty);
 
                                     for (let j = 0; j < ProblemCount; j++) {
-                                        let Problem = document.createElement("td"); Row.appendChild(Problem);
+                                        let Problem = document.createElement("td");
+                                        Row.appendChild(Problem);
                                         let ProblemData = RowData.Problem.find((CurrentRow) => {
                                             if (CurrentRow.Index == j) {
                                                 return true;
@@ -2167,13 +2339,11 @@ else {
                                         });
                                         if (ProblemData == undefined) {
                                             Problem.style.backgroundColor = "rgba(0, 0, 0, 0)";
-                                        }
-                                        else if (ProblemData.SolveTime != 0) {
+                                        } else if (ProblemData.SolveTime != 0) {
                                             Problem.innerText = SecondsToString(ProblemData.SolveTime) + "(" + ProblemData.Attempts.length + ")";
                                             let Color = Math.max(1 / 10 * (10 - ProblemData.Attempts.length), 0.2);
                                             Problem.style.backgroundColor = "rgba(0, 255, 0, " + Color + ")";
-                                        }
-                                        else {
+                                        } else {
                                             Problem.innerText = "(" + ProblemData.Attempts.length + ")";
                                             let Color = Math.min(ProblemData.Attempts.length / 10 + 0.2, 1);
                                             Problem.style.backgroundColor = "rgba(255, 0, 0, " + Color + ")";
@@ -2220,8 +2390,7 @@ else {
             }
             if (document.querySelector("body > div > div.mt-3 > center > h3").innerText == "比赛排名") {
                 document.querySelector("#rank").innerText = "比赛暂时还没有排名";
-            }
-            else {
+            } else {
                 if (UtilityEnabled("ResetType")) {
                     document.querySelector("body > div > div.mt-3 > center > h3").innerText =
                         document.querySelector("body > div > div.mt-3 > center > h3").innerText.substring(
@@ -2265,23 +2434,19 @@ else {
                                     let ErrorCount = "";
                                     if (Solved) {
                                         ErrorCount = (Blue == 170 ? "4+" : (Blue - 51) / 32);
-                                    }
-                                    else {
+                                    } else {
                                         ErrorCount = (Blue == 22 ? "14+" : (170 - Blue) / 10);
                                     }
                                     if (NoData) {
                                         BackgroundColor = "";
-                                    }
-                                    else if (FirstBlood) {
+                                    } else if (FirstBlood) {
                                         BackgroundColor = "rgba(127, 127, 255, 0.5)";
-                                    }
-                                    else if (Solved) {
+                                    } else if (Solved) {
                                         BackgroundColor = "rgba(0, 255, 0, 0.5)";
                                         if (ErrorCount != 0) {
                                             InnerText += " (" + ErrorCount + ")";
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         BackgroundColor = "rgba(255, 0, 0, 0.5)";
                                         if (ErrorCount != 0) {
                                             InnerText += " (" + ErrorCount + ")";
@@ -2371,8 +2536,10 @@ else {
                 }).then((Response) => {
                     if (Response.redirected) {
                         location.href = Response.url;
-                    }
-                    else {
+                    } else {
+                        if (UtilityEnabled("DebugMode")) {
+                            console.log("Submission failed! Response:", Response.text());
+                        }
                         ErrorElement.style.display = "block";
                         ErrorMessage.style.color = "red";
                         ErrorMessage.innerText = "提交失败！请关闭脚本后重试！";
@@ -2392,8 +2559,7 @@ else {
                 let IOFilename = "";
                 if (SearchParams.get("cid") != null && SearchParams.get("pid") != null) {
                     PID = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + SearchParams.get("pid") + "-PID")
-                }
-                else {
+                } else {
                     PID = SearchParams.get("id");
                 }
                 IOFilename = localStorage.getItem("UserScript-Problem-" + PID + "-IOFilename");
@@ -2406,8 +2572,7 @@ else {
                         document.querySelector("#Submit").disabled = false;
                         document.querySelector("#Submit").value = "提交";
                         return false;
-                    }
-                    else if (RegExp("//.*freopen").test(Source)) {
+                    } else if (RegExp("//.*freopen").test(Source)) {
                         PassCheck.style.display = "";
                         ErrorElement.style.display = "block";
                         ErrorMessage.style.color = "red";
@@ -2455,19 +2620,17 @@ else {
                         document.querySelector("#Submit").disabled = false;
                         document.querySelector("#Submit").value = "提交";
                         return false;
-                    }
-                    else {
+                    } else {
                         PassCheck.click();
                     }
-                }
-                else {
+                } else {
                     PassCheck.click();
                 }
             });
         } else if (location.pathname == "/modifypage.php") {
             if (SearchParams.get("ByUserScript") != null) {
                 document.querySelector("body > div > div.mt-3").innerHTML = "";
-                await fetch(ServerURL + "/Update.json", { cache: "no-cache" })
+                await fetch(ServerURL + "/Update.json", {cache: "no-cache"})
                     .then((Response) => {
                         return Response.json();
                     })
@@ -2475,46 +2638,53 @@ else {
                         for (let i = Object.keys(Response.UpdateHistory).length - 1; i >= 0; i--) {
                             let Version = Object.keys(Response.UpdateHistory)[i];
                             let Data = Response.UpdateHistory[Version];
-                            let UpdateDataCard = document.createElement("div"); document.querySelector("body > div > div.mt-3").appendChild(UpdateDataCard);
+                            let UpdateDataCard = document.createElement("div");
+                            document.querySelector("body > div > div.mt-3").appendChild(UpdateDataCard);
                             UpdateDataCard.className = "card mb-3";
                             if (Data.Prerelease)
                                 UpdateDataCard.classList.add("text-secondary");
-                            let UpdateDataCardBody = document.createElement("div"); UpdateDataCard.appendChild(UpdateDataCardBody);
+                            let UpdateDataCardBody = document.createElement("div");
+                            UpdateDataCard.appendChild(UpdateDataCardBody);
                             UpdateDataCardBody.className = "card-body";
-                            let UpdateDataCardTitle = document.createElement("h5"); UpdateDataCardBody.appendChild(UpdateDataCardTitle);
+                            let UpdateDataCardTitle = document.createElement("h5");
+                            UpdateDataCardBody.appendChild(UpdateDataCardTitle);
                             UpdateDataCardTitle.className = "card-title";
                             UpdateDataCardTitle.innerText = Version;
                             if (Data.Prerelease) {
                                 UpdateDataCardTitle.innerHTML += "（预览版）";
                             }
-                            let UpdateDataCardSubtitle = document.createElement("h6"); UpdateDataCardBody.appendChild(UpdateDataCardSubtitle);
+                            let UpdateDataCardSubtitle = document.createElement("h6");
+                            UpdateDataCardBody.appendChild(UpdateDataCardSubtitle);
                             UpdateDataCardSubtitle.className = "card-subtitle mb-2 text-muted";
                             UpdateDataCardSubtitle.innerHTML = GetRelativeTime(Data.UpdateDate);
-                            let UpdateDataCardText = document.createElement("p"); UpdateDataCardBody.appendChild(UpdateDataCardText);
+                            let UpdateDataCardText = document.createElement("p");
+                            UpdateDataCardBody.appendChild(UpdateDataCardText);
                             UpdateDataCardText.className = "card-text";
                             //release notes
                             if (Data.Notes != undefined) {
                                 UpdateDataCardText.innerHTML = Data.Notes;
                             }
-                            let UpdateDataCardList = document.createElement("ul"); UpdateDataCardText.appendChild(UpdateDataCardList);
+                            let UpdateDataCardList = document.createElement("ul");
+                            UpdateDataCardText.appendChild(UpdateDataCardList);
                             UpdateDataCardList.className = "list-group list-group-flush";
                             for (let j = 0; j < Data.UpdateContents.length; j++) {
-                                let UpdateDataCardListItem = document.createElement("li"); UpdateDataCardList.appendChild(UpdateDataCardListItem);
+                                let UpdateDataCardListItem = document.createElement("li");
+                                UpdateDataCardList.appendChild(UpdateDataCardListItem);
                                 UpdateDataCardListItem.className = "list-group-item";
                                 UpdateDataCardListItem.innerHTML =
                                     "(<a href=\"https://github.com/XMOJ-Script-dev/XMOJ-Script/pull/" + Data.UpdateContents[j].PR + "\" target=\"_blank\">" +
                                     "#" + Data.UpdateContents[j].PR + "</a>) " +
                                     Data.UpdateContents[j].Description;
                             }
-                            let UpdateDataCardLink = document.createElement("a"); UpdateDataCardBody.appendChild(UpdateDataCardLink);
+                            let UpdateDataCardLink = document.createElement("a");
+                            UpdateDataCardBody.appendChild(UpdateDataCardLink);
                             UpdateDataCardLink.className = "card-link";
                             UpdateDataCardLink.href = "https://github.com/XMOJ-Script-dev/XMOJ-Script/releases/tag/" + Version;
                             UpdateDataCardLink.target = "_blank";
                             UpdateDataCardLink.innerText = "查看该版本";
                         }
                     });
-            }
-            else {
+            } else {
                 let Nickname = document.getElementsByName("nick")[0].value;
                 let School = document.getElementsByName("school")[0].value;
                 let EmailAddress = document.getElementsByName("email")[0].value;
@@ -2632,8 +2802,7 @@ else {
                         }, (Response) => {
                             if (Response.Success) {
                                 Resolve();
-                            }
-                            else {
+                            } else {
                                 ModifyInfo.disabled = false;
                                 ModifyInfo.querySelector("span").style.display = "none";
                                 ErrorElement.style.display = "block";
@@ -2747,12 +2916,8 @@ else {
                     if (Temp[i].children[0] != undefined) {
                         if (Temp[i].children[0].innerText == "Statistics") {
                             Temp[i].children[0].innerText = "统计";
-                        }
-                        else if (Temp[i].children[0].innerText == "Email:") {
+                        } else if (Temp[i].children[0].innerText == "Email:") {
                             Temp[i].children[0].innerText = "电子邮箱";
-                        }
-                        else {
-                            Temp[i].children[1].innerText = Temp[i].children[1].innerText;
                         }
                         Temp[i].children[1].removeAttribute("align");
                     }
@@ -2771,18 +2936,22 @@ else {
                 [UserID, UserNick] = document.querySelector("#statics > caption").childNodes[0].data.trim().split("--");
                 document.querySelector("#statics > caption").remove();
 
-                let Row = document.createElement("div"); Row.className = "row";
-                let LeftDiv = document.createElement("div"); LeftDiv.className = "col-md-5"; Row.appendChild(LeftDiv);
+                let Row = document.createElement("div");
+                Row.className = "row";
+                let LeftDiv = document.createElement("div");
+                LeftDiv.className = "col-md-5";
+                Row.appendChild(LeftDiv);
 
-                let LeftTopDiv = document.createElement("div"); LeftTopDiv.className = "row mb-2"; LeftDiv.appendChild(LeftTopDiv);
+                let LeftTopDiv = document.createElement("div");
+                LeftTopDiv.className = "row mb-2";
+                LeftDiv.appendChild(LeftTopDiv);
                 let AvatarContainer = document.createElement("div");
                 AvatarContainer.classList.add("col-auto");
                 let AvatarElement = document.createElement("img");
                 let UserEmailHash = (await GetUserInfo(UserID)).EmailHash;
                 if (UserEmailHash == undefined) {
                     AvatarElement.src = `https://cravatar.cn/avatar/00000000000000000000000000000000?d=mp&f=y`;
-                }
-                else {
+                } else {
                     AvatarElement.src = `https://cravatar.cn/avatar/${UserEmailHash}?d=retro`;
                 }
                 AvatarElement.classList.add("rounded", "me-2");
@@ -2816,8 +2985,11 @@ else {
                 LeftTopDiv.appendChild(UserInfoElement);
                 LeftDiv.appendChild(LeftTopDiv);
 
-                let LeftTable = document.querySelector("body > div > div > center > table"); LeftDiv.appendChild(LeftTable);
-                let RightDiv = document.createElement("div"); RightDiv.className = "col-md-7"; Row.appendChild(RightDiv);
+                let LeftTable = document.querySelector("body > div > div > center > table");
+                LeftDiv.appendChild(LeftTable);
+                let RightDiv = document.createElement("div");
+                RightDiv.className = "col-md-7";
+                Row.appendChild(RightDiv);
                 RightDiv.innerHTML = "<h5>已解决题目</h5>";
                 for (let i = 0; i < ACProblems.length; i++) {
                     RightDiv.innerHTML += "<a href=\"https://www.xmoj.tech/problem.php?id=" + ACProblems[i] + "\" target=\"_blank\">" + ACProblems[i] + "</a> ";
@@ -2832,7 +3004,7 @@ else {
                 </div>
                 <p class="mt-2 text-muted">
                     您必须要上传标程以后才能使用“查看标程”功能。点击“上传标程”按钮以后，系统会自动上传标程，请您耐心等待。<br>
-                    首次上传标程可能会比较慢，请耐心等待。后续上传标程将会快很多。请不要直接抄袭或递交标程，否则会给予"作弊者"badge的惩罚！<br>
+                    首次上传标程可能会比较慢，请耐心等待。后续上传标程将会快很多。<br>
                     系统每过30天会自动提醒您上传标程，您必须要上传标程，否则将会被禁止使用“查看标程”功能。<br>
                 </p>`;
                 UploadStd.addEventListener("click", async () => {
@@ -2885,8 +3057,7 @@ else {
                             UploadProgress.style.width = "100%";
                             UploadStd.disabled = false;
                             localStorage.setItem("UserScript-LastUploadedStdTime", new Date().getTime());
-                        }
-                        else {
+                        } else {
                             ErrorElement.style.display = "block";
                             ErrorElement.innerText = Result.Message;
                             UploadStd.disabled = false;
@@ -2951,8 +3122,7 @@ else {
                     CompareButton.addEventListener("click", () => {
                         location.href = "https://www.xmoj.tech/comparesource.php?left=" + Number(LeftCode.value) + "&right=" + Number(RightCode.value);
                     });
-                }
-                else {
+                } else {
                     document.querySelector("body > div > div.mt-3").innerHTML = `
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" checked id="IgnoreWhitespace">
@@ -3066,13 +3236,11 @@ else {
                                     Response = Response.substring(0, Response.indexOf("');"));
                                     if (Response == "UserName or Password Wrong!") {
                                         ErrorText.innerText = "用户名或密码错误！";
-                                    }
-                                    else {
+                                    } else {
                                         ErrorText.innerText = Response;
                                     }
                                 }
-                            }
-                            else {
+                            } else {
                                 document.innerHTML = Response;
                             }
                         });
@@ -3148,8 +3316,7 @@ else {
         } else if (location.pathname == "/reinfo.php") {
             if (document.querySelector("#results > div") == undefined) {
                 document.querySelector("#results").parentElement.innerHTML = "没有测试点信息";
-            }
-            else {
+            } else {
                 for (let i = 0; i < document.querySelector("#results > div").children.length; i++) {
                     let CurrentElement = document.querySelector("#results > div").children[i].children[0].children[0].children[0];
                     let Temp = CurrentElement.innerText.substring(0, CurrentElement.innerText.length - 2).split("/");
@@ -3296,7 +3463,8 @@ int main()
             SoftwareList.remove();
             SoftwareList = document.createElement("ul");
             SoftwareList.className = "software_list";
-            let Container = document.createElement("div"); document.querySelector("body > div").appendChild(Container);
+            let Container = document.createElement("div");
+            document.querySelector("body > div").appendChild(Container);
             Container.className = "mt-3";
             Container.appendChild(SoftwareList);
             if (UtilityEnabled("NewDownload")) {
@@ -3375,9 +3543,6 @@ int main()
             let Temp = document.querySelector("#statics").rows;
             for (let i = 0; i < Temp.length; i++) {
                 Temp[i].removeAttribute("class");
-                if (Temp[i].children.length == 2) {
-                    Temp[i].children[1].innerText = Temp[i].children[1].innerText;
-                }
             }
 
             document.querySelector("#problemstatus > thead > tr").innerHTML =
@@ -3464,7 +3629,7 @@ int main()
                     Time = Temp[i].children[1].innerText;
                 }
                 let Body = Temp[i + 1].innerHTML;
-                NewsData.push({ "Title": Title, "Time": new Date(Time), "Body": Body });
+                NewsData.push({"Title": Title, "Time": new Date(Time), "Body": Body});
             }
             document.querySelector("body > div > div.mt-3 > div > div.col-md-8").innerHTML = "";
             for (let i = 0; i < NewsData.length; i++) {
@@ -3502,8 +3667,7 @@ int main()
                     }).then((Response) => {
                         Code = Response.substring(0, Response.indexOf("/**************************************************************")).trim();
                     });
-            }
-            else {
+            } else {
                 if (localStorage.getItem("UserScript-LastUploadedStdTime") === undefined ||
                     new Date().getTime() - localStorage.getItem("UserScript-LastUploadedStdTime") > 1000 * 60 * 60 * 24 * 30) {
                     location.href = "https://www.xmoj.tech/userinfo.php?ByUserScript=1";
@@ -3514,8 +3678,7 @@ int main()
                     }, (Response) => {
                         if (Response.Success) {
                             Code = Response.Data.StdCode;
-                        }
-                        else {
+                        } else {
                             Code = Response.Message;
                         }
                         Resolve();
@@ -3597,9 +3760,11 @@ int main()
                     if (!Silent) {
                         ReceiveTable.children[1].innerHTML = "";
                         for (let i = 0; i < 10; i++) {
-                            let Row = document.createElement("tr"); ReceiveTable.children[1].appendChild(Row);
+                            let Row = document.createElement("tr");
+                            ReceiveTable.children[1].appendChild(Row);
                             for (let j = 0; j < 3; j++) {
-                                let Cell = document.createElement("td"); Row.appendChild(Cell);
+                                let Cell = document.createElement("td");
+                                Row.appendChild(Cell);
                                 Cell.innerHTML = `<span class="placeholder col-${Math.ceil(Math.random() * 12)}"></span>`;
                             }
                         }
@@ -3610,22 +3775,27 @@ int main()
                             let Data = ResponseData.Data.MailList;
                             ReceiveTable.children[1].innerHTML = "";
                             for (let i = 0; i < Data.length; i++) {
-                                let Row = document.createElement("tr"); ReceiveTable.children[1].appendChild(Row);
-                                let UsernameCell = document.createElement("td"); Row.appendChild(UsernameCell);
-                                let UsernameSpan = document.createElement("span"); UsernameCell.appendChild(UsernameSpan);
+                                let Row = document.createElement("tr");
+                                ReceiveTable.children[1].appendChild(Row);
+                                let UsernameCell = document.createElement("td");
+                                Row.appendChild(UsernameCell);
+                                let UsernameSpan = document.createElement("span");
+                                UsernameCell.appendChild(UsernameSpan);
                                 GetUsernameHTML(UsernameSpan, Data[i].OtherUser, false, "https://www.xmoj.tech/mail.php?to_user=");
                                 if (Data[i].UnreadCount != 0) {
-                                    let UnreadCountSpan = document.createElement("span"); UsernameCell.appendChild(UnreadCountSpan);
+                                    let UnreadCountSpan = document.createElement("span");
+                                    UsernameCell.appendChild(UnreadCountSpan);
                                     UnreadCountSpan.className = "ms-1 badge text-bg-danger";
                                     UnreadCountSpan.innerText = Data[i].UnreadCount;
                                 }
-                                let LastsMessageCell = document.createElement("td"); Row.appendChild(LastsMessageCell);
+                                let LastsMessageCell = document.createElement("td");
+                                Row.appendChild(LastsMessageCell);
                                 LastsMessageCell.innerText = Data[i].LastsMessage;
-                                let SendTimeCell = document.createElement("td"); Row.appendChild(SendTimeCell);
+                                let SendTimeCell = document.createElement("td");
+                                Row.appendChild(SendTimeCell);
                                 SendTimeCell.innerHTML = GetRelativeTime(Data[i].SendTime);
                             }
-                        }
-                        else {
+                        } else {
                             ErrorElement.innerText = ResponseData.Message;
                             ErrorElement.style.display = "";
                         }
@@ -3651,8 +3821,7 @@ int main()
                         if (ResponseData.Success) {
                             ErrorElement.style.display = "none";
                             RefreshMessageList();
-                        }
-                        else {
+                        } else {
                             ErrorElement.innerText = ResponseData.Message;
                             ErrorElement.style.display = "";
                         }
@@ -3660,8 +3829,7 @@ int main()
                 });
                 RefreshMessageList(false);
                 addEventListener("focus", RefreshMessageList);
-            }
-            else {
+            } else {
                 document.querySelector("body > div > div.mt-3").innerHTML = `<div class="row g-2 mb-3">
                         <div class="col-md form-floating">
                             <div class="form-control" id="ToUser"></div>
@@ -3693,9 +3861,11 @@ int main()
                     if (!Silent) {
                         MessageTable.children[1].innerHTML = "";
                         for (let i = 0; i < 10; i++) {
-                            let Row = document.createElement("tr"); MessageTable.children[1].appendChild(Row);
+                            let Row = document.createElement("tr");
+                            MessageTable.children[1].appendChild(Row);
                             for (let j = 0; j < 4; j++) {
-                                let Cell = document.createElement("td"); Row.appendChild(Cell);
+                                let Cell = document.createElement("td");
+                                Row.appendChild(Cell);
                                 Cell.innerHTML = `<span class="placeholder col-${Math.ceil(Math.random() * 12)}"></span>`;
                             }
                         }
@@ -3708,21 +3878,25 @@ int main()
                             let Data = ResponseData.Data.Mail;
                             MessageTable.children[1].innerHTML = "";
                             for (let i = 0; i < Data.length; i++) {
-                                let Row = document.createElement("tr"); MessageTable.children[1].appendChild(Row);
+                                let Row = document.createElement("tr");
+                                MessageTable.children[1].appendChild(Row);
                                 if (!Data[i].IsRead && Data[i].FromUser != CurrentUsername) {
                                     Row.className = "table-info";
                                 }
-                                let UsernameCell = document.createElement("td"); Row.appendChild(UsernameCell);
+                                let UsernameCell = document.createElement("td");
+                                Row.appendChild(UsernameCell);
                                 GetUsernameHTML(UsernameCell, Data[i].FromUser);
-                                let ContentCell = document.createElement("td"); Row.appendChild(ContentCell);
+                                let ContentCell = document.createElement("td");
+                                Row.appendChild(ContentCell);
                                 ContentCell.innerHTML = PurifyHTML(Data[i].Content);
-                                let SendTimeCell = document.createElement("td"); Row.appendChild(SendTimeCell);
+                                let SendTimeCell = document.createElement("td");
+                                Row.appendChild(SendTimeCell);
                                 SendTimeCell.innerHTML = GetRelativeTime(Data[i].SendTime);
-                                let IsReadCell = document.createElement("td"); Row.appendChild(IsReadCell);
+                                let IsReadCell = document.createElement("td");
+                                Row.appendChild(IsReadCell);
                                 IsReadCell.innerHTML = (Data[i].IsRead ? "已读" : "未读");
                             }
-                        }
-                        else {
+                        } else {
                             ErrorElement.innerText = ResponseData.Message;
                             ErrorElement.style.display = "";
                         }
@@ -3754,8 +3928,7 @@ int main()
                             ErrorElement.style.display = "none";
                             Content.value = "";
                             RefreshMessage();
-                        }
-                        else {
+                        } else {
                             ErrorElement.innerText = ResponseData.Message;
                             ErrorElement.style.display = "";
                         }
@@ -3801,11 +3974,9 @@ int main()
                     NewPost.addEventListener("click", () => {
                         if (!isNaN(ProblemID)) {
                             location.href = "https://www.xmoj.tech/discuss3/newpost.php?pid=" + ProblemID;
-                        }
-                        else if (SearchParams.get("bid") != null) {
+                        } else if (SearchParams.get("bid") != null) {
                             location.href = "https://www.xmoj.tech/discuss3/newpost.php?bid=" + SearchParams.get("bid");
-                        }
-                        else {
+                        } else {
                             location.href = "https://www.xmoj.tech/discuss3/newpost.php";
                         }
                     });
@@ -3813,9 +3984,11 @@ int main()
                         if (!Silent) {
                             PostList.children[1].innerHTML = "";
                             for (let i = 0; i < 10; i++) {
-                                let Row = document.createElement("tr"); PostList.children[1].appendChild(Row);
+                                let Row = document.createElement("tr");
+                                PostList.children[1].appendChild(Row);
                                 for (let j = 0; j < 7; j++) {
-                                    let Cell = document.createElement("td"); Row.appendChild(Cell);
+                                    let Cell = document.createElement("td");
+                                    Row.appendChild(Cell);
                                     Cell.innerHTML = `<span class="placeholder col-${Math.ceil(Math.random() * 12)}"></span>`;
                                 }
                             }
@@ -3848,34 +4021,43 @@ int main()
                                     PostList.children[1].innerHTML = `<tr><td colspan="7">暂无数据</td></tr>`;
                                 }
                                 for (let i = 0; i < Posts.length; i++) {
-                                    let Row = document.createElement("tr"); PostList.children[1].appendChild(Row);
-                                    let IDCell = document.createElement("td"); Row.appendChild(IDCell);
+                                    let Row = document.createElement("tr");
+                                    PostList.children[1].appendChild(Row);
+                                    let IDCell = document.createElement("td");
+                                    Row.appendChild(IDCell);
                                     IDCell.innerText = Posts[i].PostID + " " + Posts[i].BoardName;
-                                    let TitleCell = document.createElement("td"); Row.appendChild(TitleCell);
-                                    let TitleLink = document.createElement("a"); TitleCell.appendChild(TitleLink);
+                                    let TitleCell = document.createElement("td");
+                                    Row.appendChild(TitleCell);
+                                    let TitleLink = document.createElement("a");
+                                    TitleCell.appendChild(TitleLink);
                                     TitleLink.href = "https://www.xmoj.tech/discuss3/thread.php?tid=" + Posts[i].PostID;
                                     if (Posts[i].Lock.Locked) {
                                         TitleLink.classList.add("link-secondary");
                                         TitleLink.innerHTML = "🔒 ";
                                     }
                                     TitleLink.innerHTML += Posts[i].Title;
-                                    let AuthorCell = document.createElement("td"); Row.appendChild(AuthorCell);
+                                    let AuthorCell = document.createElement("td");
+                                    Row.appendChild(AuthorCell);
                                     GetUsernameHTML(AuthorCell, Posts[i].UserID);
-                                    let ProblemIDCell = document.createElement("td"); Row.appendChild(ProblemIDCell);
+                                    let ProblemIDCell = document.createElement("td");
+                                    Row.appendChild(ProblemIDCell);
                                     if (Posts[i].ProblemID != 0) {
-                                        let ProblemIDLink = document.createElement("a"); ProblemIDCell.appendChild(ProblemIDLink);
+                                        let ProblemIDLink = document.createElement("a");
+                                        ProblemIDCell.appendChild(ProblemIDLink);
                                         ProblemIDLink.href = "https://www.xmoj.tech/problem.php?id=" + Posts[i].ProblemID;
                                         ProblemIDLink.innerText = Posts[i].ProblemID;
                                     }
-                                    let PostTimeCell = document.createElement("td"); Row.appendChild(PostTimeCell);
+                                    let PostTimeCell = document.createElement("td");
+                                    Row.appendChild(PostTimeCell);
                                     PostTimeCell.innerHTML = GetRelativeTime(Posts[i].PostTime);
-                                    let ReplyCountCell = document.createElement("td"); Row.appendChild(ReplyCountCell);
+                                    let ReplyCountCell = document.createElement("td");
+                                    Row.appendChild(ReplyCountCell);
                                     ReplyCountCell.innerText = Posts[i].ReplyCount;
-                                    let LastReplyTimeCell = document.createElement("td"); Row.appendChild(LastReplyTimeCell);
+                                    let LastReplyTimeCell = document.createElement("td");
+                                    Row.appendChild(LastReplyTimeCell);
                                     LastReplyTimeCell.innerHTML = GetRelativeTime(Posts[i].LastReplyTime);
                                 }
-                            }
-                            else {
+                            } else {
                                 ErrorElement.innerText = ResponseData.Message;
                                 ErrorElement.style.display = "block";
                             }
@@ -3969,8 +4151,7 @@ int main()
                                             if (ResponseData.Success) {
                                                 ContentElement.value = Before + `![](https://assets.xmoj-bbs.tech/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
                                                 ContentElement.dispatchEvent(new Event("input"));
-                                            }
-                                            else {
+                                            } else {
                                                 ContentElement.value = Before + `![上传失败！]()` + After;
                                                 ContentElement.dispatchEvent(new Event("input"));
                                             }
@@ -4011,8 +4192,7 @@ int main()
                             SubmitElement.children[0].style.display = "none";
                             if (ResponseData.Success == true) {
                                 location.href = "https://www.xmoj.tech/discuss3/thread.php?tid=" + ResponseData.Data.PostID;
-                            }
-                            else {
+                            } else {
                                 ErrorElement.innerText = ResponseData.Message;
                                 ErrorElement.style.display = "block";
                             }
@@ -4054,8 +4234,7 @@ int main()
                 } else if (location.pathname == "/discuss3/thread.php") {
                     if (SearchParams.get("tid") == null) {
                         location.href = "https://www.xmoj.tech/discuss3/discuss.php";
-                    }
-                    else {
+                    } else {
                         let ThreadID = SearchParams.get("tid");
                         let Page = Number(SearchParams.get("page")) || 1;
                         document.querySelector("body > div > div").innerHTML = `<h3 id="PostTitle"></h3>
@@ -4146,8 +4325,7 @@ int main()
                                                 if (ResponseData.Success) {
                                                     ContentElement.value = Before + `![](https://assets.xmoj-bbs.tech/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
                                                     ContentElement.dispatchEvent(new Event("input"));
-                                                }
-                                                else {
+                                                } else {
                                                     ContentElement.value = Before + `![上传失败！]()` + After;
                                                     ContentElement.dispatchEvent(new Event("input"));
                                                 }
@@ -4212,27 +4390,36 @@ int main()
                                     let Replies = ResponseData.Data.Reply;
                                     PostReplies.innerHTML = "";
                                     for (let i = 0; i < Replies.length; i++) {
-                                        let CardElement = document.createElement("div"); PostReplies.appendChild(CardElement);
+                                        let CardElement = document.createElement("div");
+                                        PostReplies.appendChild(CardElement);
                                         CardElement.className = "card mb-3";
-                                        let CardBodyElement = document.createElement("div"); CardElement.appendChild(CardBodyElement);
+                                        let CardBodyElement = document.createElement("div");
+                                        CardElement.appendChild(CardBodyElement);
                                         CardBodyElement.className = "card-body row";
-                                        let CardBodyRowElement = document.createElement("div"); CardBodyElement.appendChild(CardBodyRowElement);
+                                        let CardBodyRowElement = document.createElement("div");
+                                        CardBodyElement.appendChild(CardBodyRowElement);
                                         CardBodyRowElement.className = "row mb-3";
-                                        let AuthorElement = document.createElement("span"); CardBodyRowElement.appendChild(AuthorElement);
+                                        let AuthorElement = document.createElement("span");
+                                        CardBodyRowElement.appendChild(AuthorElement);
                                         AuthorElement.className = "col-4 text-muted";
-                                        let AuthorSpanElement = document.createElement("span"); AuthorElement.appendChild(AuthorSpanElement);
+                                        let AuthorSpanElement = document.createElement("span");
+                                        AuthorElement.appendChild(AuthorSpanElement);
                                         AuthorSpanElement.innerText = "作者：";
-                                        let AuthorUsernameElement = document.createElement("span"); AuthorElement.appendChild(AuthorUsernameElement);
+                                        let AuthorUsernameElement = document.createElement("span");
+                                        AuthorElement.appendChild(AuthorUsernameElement);
                                         GetUsernameHTML(AuthorUsernameElement, Replies[i].UserID);
-                                        let SendTimeElement = document.createElement("span"); CardBodyRowElement.appendChild(SendTimeElement);
+                                        let SendTimeElement = document.createElement("span");
+                                        CardBodyRowElement.appendChild(SendTimeElement);
                                         SendTimeElement.className = "col-4 text-muted";
                                         SendTimeElement.innerHTML = "发布时间：" + GetRelativeTime(Replies[i].ReplyTime);
 
                                         let OKButton;
                                         if (!LockButtons) {
-                                            let ButtonsElement = document.createElement("span"); CardBodyRowElement.appendChild(ButtonsElement);
+                                            let ButtonsElement = document.createElement("span");
+                                            CardBodyRowElement.appendChild(ButtonsElement);
                                             ButtonsElement.className = "col-4";
-                                            let ReplyButton = document.createElement("button"); ButtonsElement.appendChild(ReplyButton);
+                                            let ReplyButton = document.createElement("button");
+                                            ButtonsElement.appendChild(ReplyButton);
                                             ReplyButton.type = "button";
                                             ReplyButton.className = "btn btn-sm btn-info";
                                             ReplyButton.innerText = "回复";
@@ -4248,7 +4435,8 @@ int main()
                                                 ContentElement.value += Content + `\n\n@${Replies[i].UserID} `;
                                                 ContentElement.focus();
                                             });
-                                            let DeleteButton = document.createElement("button"); ButtonsElement.appendChild(DeleteButton);
+                                            let DeleteButton = document.createElement("button");
+                                            ButtonsElement.appendChild(DeleteButton);
                                             DeleteButton.type = "button";
                                             DeleteButton.className = "btn btn-sm btn-danger ms-1";
                                             DeleteButton.innerText = "删除";
@@ -4261,8 +4449,7 @@ int main()
                                                 }, (ResponseData) => {
                                                     if (ResponseData.Success == true) {
                                                         RefreshReply();
-                                                    }
-                                                    else {
+                                                    } else {
                                                         DeleteButton.disabled = false;
                                                         DeleteButton.lastChild.style.display = "none";
                                                         ErrorElement.innerText = ResponseData.Message;
@@ -4270,16 +4457,19 @@ int main()
                                                     }
                                                 });
                                             });
-                                            let DeleteSpin = document.createElement("div"); DeleteButton.appendChild(DeleteSpin);
+                                            let DeleteSpin = document.createElement("div");
+                                            DeleteButton.appendChild(DeleteSpin);
                                             DeleteSpin.className = "spinner-border spinner-border-sm";
                                             DeleteSpin.role = "status";
                                             DeleteSpin.style.display = "none";
-                                            OKButton = document.createElement("button"); ButtonsElement.appendChild(OKButton);
+                                            OKButton = document.createElement("button");
+                                            ButtonsElement.appendChild(OKButton);
                                             OKButton.type = "button";
                                             OKButton.style.display = "none";
                                             OKButton.className = "btn btn-sm btn-success ms-1";
                                             OKButton.innerText = "确认";
-                                            let OKSpin = document.createElement("div"); OKButton.appendChild(OKSpin);
+                                            let OKSpin = document.createElement("div");
+                                            OKButton.appendChild(OKSpin);
                                             OKSpin.className = "spinner-border spinner-border-sm";
                                             OKSpin.role = "status";
                                             OKSpin.style.display = "none";
@@ -4292,8 +4482,7 @@ int main()
                                                 }, (ResponseData) => {
                                                     if (ResponseData.Success == true) {
                                                         RefreshReply();
-                                                    }
-                                                    else {
+                                                    } else {
                                                         OKButton.disabled = false;
                                                         OKButton.lastChild.style.display = "none";
                                                         ErrorElement.innerText = ResponseData.Message;
@@ -4301,7 +4490,8 @@ int main()
                                                     }
                                                 });
                                             });
-                                            let CancelButton = document.createElement("button"); ButtonsElement.appendChild(CancelButton);
+                                            let CancelButton = document.createElement("button");
+                                            ButtonsElement.appendChild(CancelButton);
                                             CancelButton.type = "button";
                                             CancelButton.style.display = "none";
                                             CancelButton.className = "btn btn-sm btn-secondary ms-1";
@@ -4313,7 +4503,8 @@ int main()
                                                 OKButton.style.display = "none";
                                                 CancelButton.style.display = "none";
                                             });
-                                            let EditButton = document.createElement("button"); ButtonsElement.appendChild(EditButton);
+                                            let EditButton = document.createElement("button");
+                                            ButtonsElement.appendChild(EditButton);
                                             EditButton.type = "button";
                                             EditButton.className = "btn btn-sm btn-warning ms-1";
                                             EditButton.innerText = "编辑";
@@ -4327,22 +4518,25 @@ int main()
                                             });
                                         }
 
-                                        let CardBodyHRElement = document.createElement("hr"); CardBodyElement.appendChild(CardBodyHRElement);
+                                        let CardBodyHRElement = document.createElement("hr");
+                                        CardBodyElement.appendChild(CardBodyHRElement);
 
-                                        let ReplyContentElement = document.createElement("div"); CardBodyElement.appendChild(ReplyContentElement);
+                                        let ReplyContentElement = document.createElement("div");
+                                        CardBodyElement.appendChild(ReplyContentElement);
                                         ReplyContentElement.innerHTML = PurifyHTML(marked.parse(Replies[i].Content)).replaceAll(/@([a-zA-Z0-9]+)/g, `<b>@</b><span class="ms-1 Usernames">$1</span>`);
                                         if (Replies[i].EditTime != null) {
                                             if (Replies[i].EditPerson == Replies[i].UserID) {
                                                 ReplyContentElement.innerHTML += `<span class="text-muted" style="font-size: 12px">最后编辑于${GetRelativeTime(Replies[i].EditTime)}</span>`;
-                                            }
-                                            else {
+                                            } else {
                                                 ReplyContentElement.innerHTML += `<span class="text-muted" style="font-size: 12px">最后被<span class="Usernames">${Replies[i].EditPerson}</span>编辑于${GetRelativeTime(Replies[i].EditTime)}</span>`;
                                             }
                                         }
-                                        let ContentEditElement = document.createElement("div"); CardBodyElement.appendChild(ContentEditElement);
+                                        let ContentEditElement = document.createElement("div");
+                                        CardBodyElement.appendChild(ContentEditElement);
                                         ContentEditElement.classList.add("input-group");
                                         ContentEditElement.style.display = "none";
-                                        let ContentEditor = document.createElement("textarea"); ContentEditElement.appendChild(ContentEditor);
+                                        let ContentEditor = document.createElement("textarea");
+                                        ContentEditElement.appendChild(ContentEditor);
                                         ContentEditor.className = "form-control col-6";
                                         ContentEditor.rows = 3;
                                         ContentEditor.value = Replies[i].Content;
@@ -4354,7 +4548,8 @@ int main()
                                                 OKButton.click();
                                             }
                                         });
-                                        let PreviewTab = document.createElement("div"); ContentEditElement.appendChild(PreviewTab);
+                                        let PreviewTab = document.createElement("div");
+                                        ContentEditElement.appendChild(PreviewTab);
                                         PreviewTab.className = "form-control col-6";
                                         PreviewTab.innerHTML = PurifyHTML(marked.parse(ContentEditor.value));
                                         ContentEditor.addEventListener("input", () => {
@@ -4380,8 +4575,7 @@ int main()
                                                                 if (ResponseData.Success) {
                                                                     ContentEditor.value = Before + `![](https://assets.xmoj-bbs.tech/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
                                                                     ContentEditor.dispatchEvent(new Event("input"));
-                                                                }
-                                                                else {
+                                                                } else {
                                                                     ContentEditor.value = Before + `![上传失败！]()` + After;
                                                                     ContentEditor.dispatchEvent(new Event("input"));
                                                                 }
@@ -4403,8 +4597,7 @@ int main()
                                         let ModeName = "text/x-c++src";
                                         if (CodeElements[i].className == "language-c") {
                                             ModeName = "text/x-csrc";
-                                        }
-                                        else if (CodeElements[i].className == "language-cpp") {
+                                        } else if (CodeElements[i].className == "language-cpp") {
                                             ModeName = "text/x-c++src";
                                         }
                                         CodeMirror(CodeElements[i].parentElement, {
@@ -4420,7 +4613,8 @@ int main()
                                     if (LockButtons) {
                                         let LockElement = ContentElement.parentElement.parentElement;
                                         LockElement.innerHTML = "讨论已于 " + await GetRelativeTime(ResponseData.Data.Lock.LockTime) + " 被 ";
-                                        let LockUsernameSpan = document.createElement("span"); LockElement.appendChild(LockUsernameSpan);
+                                        let LockUsernameSpan = document.createElement("span");
+                                        LockElement.appendChild(LockUsernameSpan);
                                         GetUsernameHTML(LockUsernameSpan, ResponseData.Data.Lock.LockPerson);
                                         LockElement.innerHTML += " 锁定";
                                         LockElement.classList.add("mb-5");
@@ -4459,8 +4653,7 @@ int main()
                                             behavior: "instant"
                                         });
                                     }
-                                }
-                                else {
+                                } else {
                                     PostTitle.innerText = "错误：" + ResponseData.Message;
                                 }
                             });
@@ -4475,8 +4668,7 @@ int main()
                                 Delete.children[0].style.display = "none";
                                 if (ResponseData.Success == true) {
                                     location.href = "https://www.xmoj.tech/discuss3/discuss.php";
-                                }
-                                else {
+                                } else {
                                     ErrorElement.innerText = ResponseData.Message;
                                     ErrorElement.style.display = "block";
                                 }
@@ -4505,8 +4697,7 @@ int main()
                                     ContentElement.focus();
                                     ContentElement.scrollIntoView();
                                     turnstile.reset();
-                                }
-                                else {
+                                } else {
                                     ErrorElement.innerText = ResponseData.Message;
                                     ErrorElement.style.display = "block";
                                 }
