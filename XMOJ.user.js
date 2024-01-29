@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.1.28
+// @version      1.1.31
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -1136,7 +1136,7 @@ if (location.host != "www.xmoj.tech") {
                     {"ID": "BBSPopup", "Type": "A", "Name": "讨论提醒"},
                     {"ID": "MessagePopup", "Type": "A", "Name": "短消息提醒"},
                     {"ID": "DebugMode", "Type": "A", "Name": "调试模式（仅供开发者使用）"},
-                    {"ID": "UnpkgCdn", "Type": "A", "Name": "使用unpkg CDN(不建议使用)"},
+                    {"ID": "UnpkgCdn", "Type": "A", "Name": "使用unpkg CDN(不建议使用)"}
                 ]));
                 let UtilitiesCardFooter = document.createElement("div");
                 UtilitiesCardFooter.className = "card-footer text-muted";
