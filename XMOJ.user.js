@@ -328,7 +328,7 @@ let TidyTable = (Table) => {
 let UtilityEnabled = (Name) => {
     if (localStorage.getItem("UserScript-Setting-" + Name) == null) {
         //DebugMode is off by default
-        localStorage.setItem("UserScript-Setting-" + Name, (Name == "DebugMode" || Name == "UnpkgCdn" ? "false" : "true"));
+        localStorage.setItem("UserScript-Setting-" + Name, (Name == "DebugMode" || Name == "UnpkgCdn" || Name == "SuperDebug" ? "false" : "true"));
     }
     return localStorage.getItem("UserScript-Setting-" + Name) == "true";
 };
@@ -352,8 +352,7 @@ let RequestAPI = (Action, Data, CallBack) => {
     let DataString = JSON.stringify(PostData);
     GM_xmlhttpRequest({
         method: "POST",
-        url: "https://api.xmoj-bbs.tech/" + Action,
-        // url: "http://127.0.0.1:8787/" + Action,
+        url: (UtilityEnabled("SuperDebug") ? "http://127.0.0.1:8787/" : "https://api.xmoj-bbs.tech/") + Action,
         headers: {
             "Content-Type": "application/json"
         },
@@ -1136,7 +1135,12 @@ if (location.host != "www.xmoj.tech") {
                     {"ID": "BBSPopup", "Type": "A", "Name": "讨论提醒"},
                     {"ID": "MessagePopup", "Type": "A", "Name": "短消息提醒"},
                     {"ID": "DebugMode", "Type": "A", "Name": "调试模式（仅供开发者使用）"},
-                    {"ID": "UnpkgCdn", "Type": "A", "Name": "使用unpkg CDN(不建议使用)"},
+                    {
+                        "ID": "SuperDebug",
+                        "Type": "A",
+                        "Name": "本地调试模式（仅供开发者使用)(If you don't know what this does, don't enable it!)"
+                    },
+                    {"ID": "UnpkgCdn", "Type": "A", "Name": "使用 unpkg CDN (不建议使用)"},
                 ]));
                 let UtilitiesCardFooter = document.createElement("div");
                 UtilitiesCardFooter.className = "card-footer text-muted";

@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5e980562-396b-40f1-9d8f-058ee50050b2" name="Changes" comment="fix the mess swx created">
+    <list default="true" id="5e980562-396b-40f1-9d8f-058ee50050b2" name="Changes" comment="Because choice">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/XMOJ.user.js" beforeDir="false" afterPath="$PROJECT_DIR$/XMOJ.user.js" afterDir="false" />
     </list>
@@ -17,7 +17,7 @@
     <option name="PUSH_AUTO_UPDATE" value="true" />
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="boomzero/improve-submit-page" />
+        <entry key="$PROJECT_DIR$" value="boomzero/massive-improvement" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -50,7 +50,7 @@
   "keyToString": {
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "boomzero/massive-improvement",
+    "git-widget-placeholder": "boomzero/choices",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -76,7 +76,7 @@
       <workItem from="1706178503577" duration="12000" />
       <workItem from="1706244790380" duration="1136000" />
       <workItem from="1706249755388" duration="321000" />
-      <workItem from="1706489417047" duration="3359000" />
+      <workItem from="1706489417047" duration="4200000" />
     </task>
     <task id="LOCAL-00001" summary="fix #332">
       <option name="closed" value="true" />
@@ -190,7 +190,15 @@
       <option name="project" value="LOCAL" />
       <updated>1706507021921</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="Because choice">
+      <option name="closed" value="true" />
+      <created>1706508882660</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1706508882660</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -218,6 +226,7 @@
     <MESSAGE value="你说的对, 但是你没有implement" />
     <MESSAGE value="fix #364; fix #342; fmt; make the script faster" />
     <MESSAGE value="fix the mess swx created" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix the mess swx created" />
+    <MESSAGE value="Because choice" />
+    <option name="LAST_COMMIT_MESSAGE" value="Because choice" />
   </component>
 </project>
