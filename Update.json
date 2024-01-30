@@ -1161,6 +1161,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.34": {
+            "UpdateDate": 1706623811152,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 411,
+                    "Description": "修正部分用户姓名设置的错误"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
