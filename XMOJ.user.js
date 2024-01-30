@@ -2322,7 +2322,7 @@ if (location.host != "www.xmoj.tech") {
                                         "fenghaochen": "冯皓宸",
                                         "lutianlang": "陆天朗",
                                         "tangyuhan": "唐钰涵",
-                                        "jiangbowen": "姜博文",
+                                        "jiangbowen": "姜博闻",
                                         "shangguanbocheng": "上官伯呈",
                                         "wangchengqi": "王呈齐",
                                         "yanpeitong": "颜培桐",
