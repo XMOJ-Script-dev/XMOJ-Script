@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.1.34
+// @version      1.1.35
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -1138,7 +1138,7 @@ if (location.host != "www.xmoj.tech") {
                     {
                         "ID": "SuperDebug",
                         "Type": "A",
-                        "Name": "本地调试模式（仅供开发者使用) (If you don't know what this does, don't enable it!)"
+                        "Name": "本地调试模式（仅供开发者使用) (未经授权的擅自开启将导致大部分功能不可用！)"
                     },
                     {"ID": "UnpkgCdn", "Type": "A", "Name": "使用 unpkg CDN (不建议使用)"},
                 ]));
