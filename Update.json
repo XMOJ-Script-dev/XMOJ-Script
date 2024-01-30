@@ -1172,6 +1172,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.35": {
+            "UpdateDate": 1706625057380,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 412,
+                    "Description": "修改警告"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
