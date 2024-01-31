@@ -1223,12 +1223,12 @@
             "Notes": "No release notes were provided for this release."
         },
         "1.1.38": {
-            "UpdateDate": 1706681502487,
+            "UpdateDate": 1706681565820,
             "Prerelease": true,
             "UpdateContents": [
                 {
                     "PR": 416,
-                    "Description": "fix #364 forever by changing almost every line of code"
+                    "Description": "major restructuring(fixes #364)"
                 }
             ],
             "Notes": "No release notes were provided for this release."
