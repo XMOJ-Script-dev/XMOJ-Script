@@ -1183,6 +1183,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.36": {
+            "UpdateDate": 1706680652574,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 413,
+                    "Description": "fix #409"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
