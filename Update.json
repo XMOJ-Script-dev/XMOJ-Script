@@ -1221,6 +1221,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.38": {
+            "UpdateDate": 1706681483058,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 416,
+                    "Description": "fix #364 forever by changing almost every line of code"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
