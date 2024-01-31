@@ -1194,6 +1194,33 @@
                 }
             ],
             "Notes": "A very important fix!"
+        },
+        "1.1.37": {
+            "UpdateDate": 1706680926393,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 406,
+                    "Description": "more choices"
+                },
+                {
+                    "PR": 407,
+                    "Description": "superdebug mode"
+                },
+                {
+                    "PR": 411,
+                    "Description": "修正部分用户姓名设置的错误"
+                },
+                {
+                    "PR": 412,
+                    "Description": "修改警告"
+                },
+                {
+                    "PR": 413,
+                    "Description": "fix #409"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
