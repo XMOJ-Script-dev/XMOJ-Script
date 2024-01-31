@@ -546,8 +546,11 @@ if (location.host != "www.xmoj.tech") {
 
                 await Promise.all(promises);
             };
-
-            loadResources();
+            if (location.pathname == "/submitpage.php") {
+                await loadResources();
+            } else {
+                loadResources();
+            }
             document.querySelector("nav").className = "navbar navbar-expand-lg bg-body-tertiary";
             document.querySelector("#navbar > ul:nth-child(1)").classList = "navbar-nav me-auto mb-2 mb-lg-0";
             document.querySelector("body > div > nav > div > div.navbar-header").outerHTML = `<a class="navbar-brand" href="https://www.xmoj.tech/">${UtilityEnabled("ReplaceXM") ? "高老师" : "小明"}的OJ</a><button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"><span class="navbar-toggler-icon"></span></button>`;
