@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.1.31
+// @version      1.1.37
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -328,7 +328,7 @@ let TidyTable = (Table) => {
 let UtilityEnabled = (Name) => {
     if (localStorage.getItem("UserScript-Setting-" + Name) == null) {
         //DebugMode is off by default
-        localStorage.setItem("UserScript-Setting-" + Name, (Name == "DebugMode" ? "false" : "true"));
+        localStorage.setItem("UserScript-Setting-" + Name, (Name == "DebugMode" || Name == "UnpkgCdn" || Name == "SuperDebug" ? "false" : "true"));
     }
     return localStorage.getItem("UserScript-Setting-" + Name) == "true";
 };
@@ -352,8 +352,7 @@ let RequestAPI = (Action, Data, CallBack) => {
     let DataString = JSON.stringify(PostData);
     GM_xmlhttpRequest({
         method: "POST",
-        url: "https://api.xmoj-bbs.tech/" + Action,
-        // url: "http://127.0.0.1:8787/" + Action,
+        url: (UtilityEnabled("SuperDebug") ? "http://127.0.0.1:8787/" : "https://api.xmoj-bbs.tech/") + Action,
         headers: {
             "Content-Type": "application/json"
         },
@@ -487,8 +486,7 @@ if (location.host != "www.xmoj.tech") {
             } else {
                 document.querySelector("html").setAttribute("data-bs-theme", "light");
             }
-
-            let resources = [
+            var resources = [
                 {
                     type: 'script',
                     src: 'https://cdn.bootcdn.net/ajax/libs/popper.js/2.11.7/umd/popper.min.js',
@@ -520,7 +518,10 @@ if (location.host != "www.xmoj.tech") {
                     isModule: true
                 }
             ];
-
+            if (UtilityEnabled("UnpkgCdn")) {
+                resources[0].src = 'https://unpkg.com/@popperjs/core@2.11.8/dist/umd/popper.min.js';
+                resources[4].href = 'https://unpkg.com/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css';
+            }
             let loadResources = async () => {
                 let promises = resources.map(resource => {
                     return new Promise((resolve, reject) => {
@@ -545,8 +546,11 @@ if (location.host != "www.xmoj.tech") {
 
                 await Promise.all(promises);
             };
-
-            loadResources();
+            if (location.pathname == "/submitpage.php") {
+                await loadResources();
+            } else {
+                loadResources();
+            }
             document.querySelector("nav").className = "navbar navbar-expand-lg bg-body-tertiary";
             document.querySelector("#navbar > ul:nth-child(1)").classList = "navbar-nav me-auto mb-2 mb-lg-0";
             document.querySelector("body > div > nav > div > div.navbar-header").outerHTML = `<a class="navbar-brand" href="https://www.xmoj.tech/">${UtilityEnabled("ReplaceXM") ? "高老师" : "小明"}的OJ</a><button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"><span class="navbar-toggler-icon"></span></button>`;
@@ -1133,7 +1137,13 @@ if (location.host != "www.xmoj.tech") {
                     {"ID": "CompareSource", "Type": "A", "Name": "比较代码"},
                     {"ID": "BBSPopup", "Type": "A", "Name": "讨论提醒"},
                     {"ID": "MessagePopup", "Type": "A", "Name": "短消息提醒"},
-                    {"ID": "DebugMode", "Type": "A", "Name": "调试模式（仅供开发者使用）"}
+                    {"ID": "DebugMode", "Type": "A", "Name": "调试模式（仅供开发者使用）"},
+                    {
+                        "ID": "SuperDebug",
+                        "Type": "A",
+                        "Name": "本地调试模式（仅供开发者使用) (未经授权的擅自开启将导致大部分功能不可用！)"
+                    },
+                    {"ID": "UnpkgCdn", "Type": "A", "Name": "使用 unpkg CDN (不建议使用)"},
                 ]));
                 let UtilitiesCardFooter = document.createElement("div");
                 UtilitiesCardFooter.className = "card-footer text-muted";
@@ -2315,7 +2325,7 @@ if (location.host != "www.xmoj.tech") {
                                         "fenghaochen": "冯皓宸",
                                         "lutianlang": "陆天朗",
                                         "tangyuhan": "唐钰涵",
-                                        "jiangbowen": "姜博文",
+                                        "jiangbowen": "姜博闻",
                                         "shangguanbocheng": "上官伯呈",
                                         "wangchengqi": "王呈齐",
                                         "yanpeitong": "颜培桐",

@@ -1139,6 +1139,88 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.32": {
+            "UpdateDate": 1706509019854,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 406,
+                    "Description": "more choices"
+                }
+            ],
+            "Notes": "Because choices..."
+        },
+        "1.1.33": {
+            "UpdateDate": 1706509685600,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 407,
+                    "Description": "superdebug mode"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.34": {
+            "UpdateDate": 1706623811152,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 411,
+                    "Description": "修正部分用户姓名设置的错误"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.35": {
+            "UpdateDate": 1706625057380,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 412,
+                    "Description": "修改警告"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.36": {
+            "UpdateDate": 1706680652574,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 413,
+                    "Description": "fix #409"
+                }
+            ],
+            "Notes": "A very important fix!"
+        },
+        "1.1.37": {
+            "UpdateDate": 1706680926393,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 406,
+                    "Description": "more choices"
+                },
+                {
+                    "PR": 407,
+                    "Description": "superdebug mode"
+                },
+                {
+                    "PR": 411,
+                    "Description": "修正部分用户姓名设置的错误"
+                },
+                {
+                    "PR": 412,
+                    "Description": "修改警告"
+                },
+                {
+                    "PR": 413,
+                    "Description": "fix #409"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
