@@ -1232,6 +1232,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.39": {
+            "UpdateDate": 1706859231716,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 424,
+                    "Description": "增加更新链接，优化格式"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
