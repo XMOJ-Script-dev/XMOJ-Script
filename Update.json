@@ -1243,6 +1243,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.40": {
+            "UpdateDate": 1706867021708,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 428,
+                    "Description": "更新部分语言"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
