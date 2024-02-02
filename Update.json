@@ -1254,6 +1254,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.41": {
+            "UpdateDate": 1706867272746,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 429,
+                    "Description": "增加开发组成员，zhouyiqing"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
