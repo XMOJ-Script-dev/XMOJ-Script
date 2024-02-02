@@ -1643,7 +1643,7 @@ async function main() {
                                     if (Points[SolutionID] != undefined) {
                                         TempHTML += "<span style=\"margin-left: 5px\" class=\"badge text-bg-info\">" + Points[SolutionID] + "</span>";
                                         if (Points[SolutionID].substring(0, Points[SolutionID].length - 1) >= 50) {
-                                            TempHTML += `<a href="https://www.xmoj.tech/showsource.php?pid=${PID}&ByUserScript=1" class="ms-1 link-secondary">-查看标程-</a>`;
+                                            TempHTML += `<a href="https://www.xmoj.tech/showsource.php?pid=${PID}&ByUserScript=1" class="ms-1 link-secondary">查看标程</a>`;
                                         }
                                     }
                                     if (ResponseData[0] < 4) {
