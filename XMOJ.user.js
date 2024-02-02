@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.1.39
+// @version      1.1.40
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -3015,7 +3015,7 @@ async function main() {
                 </div>
                 <p class="mt-2 text-muted">
                     您必须要上传标程以后才能使用“查看标程”功能。点击“上传标程”按钮以后，系统会自动上传标程，请您耐心等待。<br>
-                    首次上传标程可能会比较慢，请耐心等待。后续上传标程将会快很多。<br>
+                    首次上传标程可能会比较慢，请耐心等待。后续将可以自动上传AC代码。<br>
                     系统每过30天会自动提醒您上传标程，您必须要上传标程，否则将会被禁止使用“查看标程”功能。<br>
                 </p>`;
                     UploadStd.addEventListener("click", async () => {
