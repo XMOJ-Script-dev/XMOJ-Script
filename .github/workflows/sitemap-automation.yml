@@ -1,18 +1,11 @@
 name: Generate xml sitemap
 
 on:
-  pull_request:
-    types:
-      - opened
-      - reopened
-      - synchronize
-      - edited
     branches:
       - dev
 jobs:
   UpdateVersion:
     permissions:
-      pull-requests: write
       contents: write
     runs-on: ubuntu-latest
     name: Generate a sitemap
@@ -30,7 +23,7 @@ jobs:
     - name: Push sitemap to repository
       run: |
         git config --global user.name "hendragon-bot[bot]"
-        git config --global user.email "seanoj_noreply@yeah.net"
+        git config --global user.email "hendragon-bot[bot]@users.github.com"
         git add sitemap.xml
         git commit -m "更新 sitemap [ 自动 ]"
         git push
