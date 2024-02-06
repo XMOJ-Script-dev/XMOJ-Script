@@ -18,13 +18,28 @@ jobs:
       id: sitemap
       uses: cicirello/generate-sitemap@v1.6.1
       with:
+        additional-extensions: user.js
+        sitemap-format: xml
+        drop-html-extension: true
         base-url-path: https://xmoj-bbs.tech/
-        exclude-paths: /404.html
-    - name: Push sitemap to repository
+        exclude-paths: /404.html    
+    - name: Create PR to dev branch
+      uses: peter-evans/create-pull-request@v6
+      with:
+        signoff: true
+        reviewers: PythonSmall-Q, zhouyiqing0304
+        assignees: PythonSmall-Q, zhouyiqing0304
+        title: "自动更新sitemap"
+        body: > 
+          Sitemap Updated! Please merge me!.
+
+    - name: Output stats
       run: |
-        git remote set-head origin dev
-        git config --global user.name "hendragon-bot[bot]"
-        git config --global user.email "hendragon-bot[bot]@users.github.com"
-        git add sitemap.xml
-        git commit -m "更新 sitemap [ 自动 ]"
-        git push
+        echo "sitemap-path = ${{ steps.sitemap.outputs.sitemap-path }}"
+        echo "url-count = ${{ steps.sitemap.outputs.url-count }}"
+        echo "excluded-count = ${{ steps.sitemap.outputs.excluded-count }}"
+    - name: Check outputs
+      if: ${{ steps.cpr.outputs.pull-request-number }}
+      run: |
+        echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+        echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"    
