@@ -1265,6 +1265,29 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.42": {
+            "UpdateDate": 1707218467457,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 416,
+                    "Description": "major restructuring(fixes #364)"
+                },
+                {
+                    "PR": 425,
+                    "Description": "Revert 增加更新链接，优化格式"
+                },
+                {
+                    "PR": 428,
+                    "Description": "更新部分语言"
+                },
+                {
+                    "PR": 429,
+                    "Description": "增加开发组成员，zhouyiqing"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
