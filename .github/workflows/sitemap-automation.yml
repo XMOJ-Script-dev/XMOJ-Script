@@ -1,8 +1,8 @@
 name: Generate xml sitemap
 
 on:
-    branches:
-      - dev
+  push:
+    branches: [ dev ]
 jobs:
   UpdateVersion:
     permissions:
@@ -22,6 +22,7 @@ jobs:
         exclude-paths: /404.html
     - name: Push sitemap to repository
       run: |
+        git remote set-head origin dev
         git config --global user.name "hendragon-bot[bot]"
         git config --global user.email "hendragon-bot[bot]@users.github.com"
         git add sitemap.xml
