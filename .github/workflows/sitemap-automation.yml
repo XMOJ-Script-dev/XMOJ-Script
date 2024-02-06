@@ -26,6 +26,7 @@ jobs:
       uses: cicirello/generate-sitemap@v1.6.1
       with:
         base-url-path: https://xmoj-bbs.tech/
+        exclude-paths: /404.html
     - name: Push sitemap to repository
       run: |
         git config --global user.name "hendragon-bot[bot]"
