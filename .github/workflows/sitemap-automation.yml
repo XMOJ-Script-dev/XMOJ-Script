@@ -1,40 +1,36 @@
-name: Generate sitemap 
+name: Generate xml sitemap
 
 on:
-  push:
-    branches: [ dev ]
-
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - edited
+    branches:
+      - dev
 jobs:
-  sitemap_job:
+  UpdateVersion:
+    permissions:
+      pull-requests: write
+      contents: write
     runs-on: ubuntu-latest
     name: Generate a sitemap
     steps:
     - name: Checkout the repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@v2
       with:
-        fetch-depth: 0 
-    
-    - name: Generate the sitemap
+        fetch-depth: 0
+    - name: Generate new sitemap
       id: sitemap
-      uses: cicirello/generate-sitemap@v1
+      uses: cicirello/generate-sitemap@v1.6.1
       with:
-        exclude-paths: /404.html
         base-url-path: https://xmoj-bbs.tech/
-    
-    - name: Output stats
+        exclude-paths: /404.html
+    - name: Push sitemap to repository
       run: |
-        echo "sitemap-path = ${{ steps.sitemap.outputs.sitemap-path }}"
-        echo "url-count = ${{ steps.sitemap.outputs.url-count }}"
-        echo "excluded-count = ${{ steps.sitemap.outputs.excluded-count }}"
-    
-    - name: Create Pull Request
-      uses: peter-evans/create-pull-request@v5.0.2
-      with:
-        title: "Automated sitemap update"
-        body: > 
-          Automated changes in sitemap.xml.
-        commit-message: "Automated sitemap update."
-        author: PythonSmall-Q <seanoj_noreply@yeah.net>
-        committer: PythonSmall-Q <seanoj_noreply@yeah.net>
-        branch: create-pull-request/sitemap
-        delete-branch: true
+        git config --global user.name "hendragon-bot[bot]"
+        git config --global user.email "seanoj_noreply@yeah.net"
+        git add sitemap.xml
+        git commit -m "更新 sitemap [ 自动 ]"
+        git push
