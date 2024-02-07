@@ -1257,7 +1257,7 @@
         },
         "1.1.41": {
             "UpdateDate": 1706867272746,
-            "Prerelease": true,
+            "Prerelease": false,
             "UpdateContents": [
                 {
                     "PR": 429,
