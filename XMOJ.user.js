@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.1.41
+// @version      1.1.42
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -489,11 +489,6 @@ async function main() {
                 }
                 var resources = [
                     {
-                        type: 'script',
-                        src: 'https://cdn.bootcdn.net/ajax/libs/popper.js/2.11.7/umd/popper.min.js',
-                        isModule: true
-                    },
-                    {
                         type: 'link',
                         href: 'https://cdn.bootcdn.net/ajax/libs/codemirror/6.65.7/codemirror.min.css',
                         rel: 'stylesheet'
@@ -515,7 +510,7 @@ async function main() {
                     },
                     {
                         type: 'script',
-                        src: 'https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0-alpha3/js/bootstrap.min.js',
+                        src: 'https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0-alpha3/js/bootstrap.bundle.min.js',
                         isModule: true
                     }
                 ];
