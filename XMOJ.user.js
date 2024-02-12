@@ -402,6 +402,7 @@ let ServerURL = (UtilityEnabled("DebugMode") ? "https://ghpages.xmoj-bbs.tech/" 
 let CurrentUsername = document.querySelector("#profile").innerText;
 CurrentUsername = CurrentUsername.replaceAll(/[^a-zA-Z0-9]/g, "");
 let IsAdmin = AdminUserList.indexOf(CurrentUsername) !== -1;
+
 async function main() {
     if (location.href.startsWith('http://')) {
         //use https
@@ -515,8 +516,8 @@ async function main() {
                     }
                 ];
                 if (UtilityEnabled("UnpkgCdn")) {
-                    resources[0].src = 'https://unpkg.com/@popperjs/core@2.11.8/dist/umd/popper.min.js';
-                    resources[4].href = 'https://unpkg.com/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css';
+                    resources[3].href = 'https://unpkg.com/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css';
+                    resources[4].src = 'https://unpkg.com/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js';
                 }
                 let loadResources = async () => {
                     let promises = resources.map(resource => {
