@@ -1265,6 +1265,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.42": {
+            "UpdateDate": 1707642572244,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 445,
+                    "Description": "fix  [Bug] 右上角用户名点击后无反应 "
+                }
+            ],
+            "Notes": "Popper.js is so stupid..."
         }
     }
 }
