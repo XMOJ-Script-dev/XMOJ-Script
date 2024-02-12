@@ -1276,6 +1276,17 @@
                 }
             ],
             "Notes": "Popper.js is so stupid..."
+        },
+        "1.1.43": {
+            "UpdateDate": 1707715028113,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 447,
+                    "Description": "fix the unpkg-cdn option"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
