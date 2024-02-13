@@ -1287,6 +1287,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.44": {
+            "UpdateDate": 1707803296933,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 449,
+                    "Description": "regression!"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
