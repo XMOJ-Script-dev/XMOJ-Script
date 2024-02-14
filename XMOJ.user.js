@@ -1,5 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
+// @langningchen 记得写注释哈
 // @version      1.1.44
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
@@ -672,7 +673,7 @@ async function main() {
                     <li class="dropdown-item">个人中心</li>
                     <li class="dropdown-item">短消息</li>
                     <li class="dropdown-item">插件设置</li>
-                    <li class="dropdown-item">注销</li>`
+                    <li class="dropdown-item">退出登录</li>`
                         PopupUL.children[0].addEventListener("click", () => {
                             location.href = "https://www.xmoj.tech/modifypage.php";
                         });
@@ -3421,13 +3422,17 @@ int main()
                         "Image": "https://www.geany.org/static/img/geany.svg",
                         "URL": "https://www.geany.org/download/releases/"
                     }, {
-                        "Name": "NOI Linux",
+                        "Name": "NOI Linux 2",
                         "Image": "https://www.noi.cn/upload/resources/image/2021/07/16/163780.jpg",
-                        "URL": "https://www.noi.cn/gynoi/jsgz/2021-07-16/732450.shtml"
+                        "URL": "https://noiresources.ccf.org.cn/ubuntu-noi-v2.0.iso"
                     }, {
                         "Name": "VirtualBox",
                         "Image": "https://www.virtualbox.org/graphics/vbox_logo2_gradient.png",
                         "URL": "https://www.virtualbox.org/wiki/Downloads"
+                    }, {
+                        "Name": "VMware Workstation",
+                        "Image": "https://www.vmware.com/content/dam/digitalmarketing/vmware/en/images/gallery/thumbnails/tn-vmware-workstation-pro.png",
+                        "URL": "https://www.vmware.com/go/getworkstation-win"
                     }, {
                         "Name": "MinGW",
                         "Image": "https://www.mingw-w64.org/logo.svg",
