@@ -1298,6 +1298,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.45": {
+            "UpdateDate": 1707896206553,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 450,
+                    "Description": "Update XMOJ.user.js"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
