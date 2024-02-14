@@ -6,7 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="5e980562-396b-40f1-9d8f-058ee50050b2" name="Changes" comment="Because choice">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/XMOJ.user.js" beforeDir="false" afterPath="$PROJECT_DIR$/XMOJ.user.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -21,6 +20,16 @@
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GithubProjectSettings">
+    <option name="branchProtectionPatterns">
+      <list>
+        <option value="master" />
+        <option value="dev" />
+        <option value="actions\/temp" />
+        <option value="extern-contrib" />
+      </list>
+    </option>
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
@@ -40,13 +49,13 @@
   "keyToString": {
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "boomzero/unpkg",
+    "git-widget-placeholder": "boomzero/editorconfig",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "http.proxy",
+    "settings.editor.selected.configurable": "preferences.sourceCode.TypeScript",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -67,7 +76,6 @@
       <workItem from="1706244790380" duration="1136000" />
       <workItem from="1706249755388" duration="321000" />
       <workItem from="1706489417047" duration="4200000" />
-      <workItem from="1707713885643" duration="901000" />
     </task>
     <task id="LOCAL-00001" summary="fix #332">
       <option name="closed" value="true" />
