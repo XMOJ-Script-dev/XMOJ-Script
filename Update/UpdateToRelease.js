@@ -1,5 +1,5 @@
-import { readFileSync, writeFileSync } from "fs";
-import { execSync } from "child_process";
+import {readFileSync, writeFileSync} from "fs";
+import {execSync} from "child_process";
 
 var GithubToken = process.argv[2];
 var PRNumber = process.argv[3];
@@ -24,11 +24,23 @@ console.log("Last JSON version  : " + LastJSONVersion);
 console.log("Last PR            : " + LastPR);
 console.log("Last type          : " + LastType);
 console.log("npm version        : " + NpmVersion);
+
+if (JSONFileContent.includes('//ci-no-touch')) {
+    var updatedContent = JSONFileContent.replace('//ci-no-touch', '');
+    writeFileSync(JSONFileName, updatedContent, "utf8");
+    console.log('I won\'t touch this. Exiting process.');
+    process.exit(0);
+}
 if (LastJSONVersion != LastJSVersion) {
     console.error("XMOJ.user.js and Update.json have different patch versions.");
     process.exit(1);
 }
-
+if (LastType == "Release") {
+    console.error("Last release is not a prerelease.");
+    execSync("gh pr comment " + PRNumber + " --body \"请重新提交PR, 谢谢");
+    execSync("gh pr close " + PRNumber);
+    process.exit(1);
+}
 execSync("git config --global user.email \"github-actions[bot]@users.noreply.github.com\"");
 execSync("git config --global user.name \"github-actions[bot]\"");
 
