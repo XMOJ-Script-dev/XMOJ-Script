@@ -1,5 +1,5 @@
-import { readFileSync, writeFileSync } from "fs";
-import { execSync } from "child_process";
+import {readFileSync, writeFileSync} from "fs";
+import {execSync} from "child_process";
 
 var GithubToken = process.argv[2];
 var PRNumber = process.argv[3];
@@ -26,6 +26,13 @@ console.log("Last PR            : " + LastPR);
 console.log("Last description   : " + LastDescription);
 console.log("Last release online: " + LastReleaseVersionOnline);
 console.log("npm version        : " + NpmVersion);
+
+if (JSONFileContent.includes('//ci-no-touch')) {
+    var updatedContent = JSONFileContent.replace('//ci-no-touch', '');
+    writeFileSync(JSONFileName, updatedContent, "utf8");
+    console.log('I won\'t touch this. Exiting process.');
+    process.exit(0);
+}
 if (LastJSONVersion != LastJSVersion) {
     console.error("XMOJ.user.js and Update.json have different patch versions.");
     process.exit(1);
@@ -37,7 +44,7 @@ var CurrentPR = Number(PRNumber);
 var CurrentDescription = String(process.argv[4]);
 if (LastJSVersion != NpmVersion) {
     console.warn("Assuming you manually ran npm version.");
-} else if(!(LastPR == CurrentPR && NpmVersion == LastJSVersion)) {
+} else if (!(LastPR == CurrentPR && NpmVersion == LastJSVersion)) {
     execSync("npm version patch");
 }
 
@@ -56,8 +63,7 @@ if (LastPR == CurrentPR && NpmVersion == LastJSVersion) {
     JSONObject.UpdateHistory[LastJSVersion].UpdateDate = Date.now();
     JSONObject.UpdateHistory[LastJSVersion].UpdateContents[0].Description = CurrentDescription;
     CommitMessage = "Update time and description of " + LastJSVersion;
-}
-else if (ChangedFileList.indexOf("XMOJ.user.js") == -1) {
+} else if (ChangedFileList.indexOf("XMOJ.user.js") == -1) {
     console.warn("XMOJ.user.js is not changed, so the version should not be updated.");
     process.exit(0);
 } else {

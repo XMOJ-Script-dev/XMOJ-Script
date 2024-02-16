@@ -318,8 +318,8 @@ let TidyTable = (Table) => {
 };
 let UtilityEnabled = (Name) => {
     if (localStorage.getItem("UserScript-Setting-" + Name) == null) {
-        //DebugMode is off by default
-        localStorage.setItem("UserScript-Setting-" + Name, (Name == "DebugMode" || Name == "UnpkgCdn" || Name == "SuperDebug" ? "false" : "true"));
+        const defaultOffItems = ["DebugMode", "UnpkgCdn", "SuperDebug", "ReplaceXM"];
+        localStorage.setItem("UserScript-Setting-" + Name, defaultOffItems.includes(Name) ? "false" : "true");
     }
     return localStorage.getItem("UserScript-Setting-" + Name) == "true";
 };
@@ -1097,7 +1097,7 @@ async function main() {
                         }, {"ID": "RemoveUseless", "Type": "D", "Name": "删去无法使用的功能*"}, {
                             "ID": "ReplaceXM",
                             "Type": "F",
-                            "Name": "将网站中所有“小明”和“我”关键字替换为“高老师”，所有“小红”替换为“徐师娘”，所有“小粉”替换为“彩虹”，所有“下海”、“海上”替换为“上海”"
+                            "Name": "将网站中所有“小明”和“我”关键字替换为“高老师”，所有“小红”替换为“徐师娘”，所有“小粉”替换为“彩虹”，所有“下海”、“海上”替换为“上海” (此功能默认关闭)"
                         }]
                     }, {
                         "ID": "AutoLogin",
