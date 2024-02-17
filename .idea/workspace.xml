@@ -4,10 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5e980562-396b-40f1-9d8f-058ee50050b2" name="Changes" comment="add .editorconfig">
+    <list default="true" id="5e980562-396b-40f1-9d8f-058ee50050b2" name="Changes" comment="Because choice">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Update/UpdateToRelease.js" beforeDir="false" afterPath="$PROJECT_DIR$/Update/UpdateToRelease.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/XMOJ.user.js" beforeDir="false" afterPath="$PROJECT_DIR$/XMOJ.user.js" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -17,20 +17,10 @@
     <option name="PUSH_AUTO_UPDATE" value="true" />
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="boomzero/editorconfig" />
+        <entry key="$PROJECT_DIR$" value="dev" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
-  </component>
-  <component name="GithubProjectSettings">
-    <option name="branchProtectionPatterns">
-      <list>
-        <option value="master" />
-        <option value="dev" />
-        <option value="actions\/temp" />
-        <option value="extern-contrib" />
-      </list>
-    </option>
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
@@ -41,7 +31,6 @@
   <component name="ProjectId" id="2bDel13UW5QC5DaJyPIfOCjNLw2" />
   <component name="ProjectLevelVcsManager">
     <OptionsSetting value="false" id="Update" />
-    <ConfirmationsSetting value="2" id="Add" />
   </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -49,16 +38,15 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-    "ASKED_ADD_EXTERNAL_FILES": "true",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "boomzero/refactor",
+    "git-widget-placeholder": "boomzero/unpkg",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.sourceCode",
+    "settings.editor.selected.configurable": "http.proxy",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -79,7 +67,7 @@
       <workItem from="1706244790380" duration="1136000" />
       <workItem from="1706249755388" duration="321000" />
       <workItem from="1706489417047" duration="4200000" />
-      <workItem from="1708069581627" duration="418000" />
+      <workItem from="1707713885643" duration="901000" />
     </task>
     <task id="LOCAL-00001" summary="fix #332">
       <option name="closed" value="true" />
@@ -201,15 +189,7 @@
       <option name="project" value="LOCAL" />
       <updated>1706508882660</updated>
     </task>
-    <task id="LOCAL-00016" summary="add .editorconfig">
-      <option name="closed" value="true" />
-      <created>1707897691766</created>
-      <option name="number" value="00016" />
-      <option name="presentableId" value="LOCAL-00016" />
-      <option name="project" value="LOCAL" />
-      <updated>1707897691766</updated>
-    </task>
-    <option name="localTasksCounter" value="17" />
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -227,7 +207,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <MESSAGE value="fix #332" />
     <MESSAGE value="feat: enable spell checking for bbs and short_msg" />
     <MESSAGE value="spellcheck that works" />
@@ -239,7 +218,6 @@
     <MESSAGE value="fix #364; fix #342; fmt; make the script faster" />
     <MESSAGE value="fix the mess swx created" />
     <MESSAGE value="Because choice" />
-    <MESSAGE value="add .editorconfig" />
-    <option name="LAST_COMMIT_MESSAGE" value="add .editorconfig" />
+    <option name="LAST_COMMIT_MESSAGE" value="Because choice" />
   </component>
 </project>
