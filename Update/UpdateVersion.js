@@ -1,5 +1,5 @@
-import { readFileSync, writeFileSync } from "fs";
-import { execSync } from "child_process";
+import {readFileSync, writeFileSync} from "fs";
+import {execSync} from "child_process";
 
 var GithubToken = process.argv[2];
 var PRNumber = process.argv[3];
@@ -11,6 +11,19 @@ const JSONFileName = "./Update.json";
 const JSFileName = "./XMOJ.user.js";
 var JSONFileContent = readFileSync(JSONFileName, "utf8");
 var JSFileContent = readFileSync(JSFileName, "utf8");
+execSync("git config --global user.email \"github-actions[bot]@users.noreply.github.com\"");
+execSync("git config --global user.name \"github-actions[bot]\"");
+if (JSONFileContent.includes('//!ci-no-touch')) {
+    var updatedContent = JSONFileContent.replace('//!ci-no-touch', '');
+    writeFileSync(JSONFileName, updatedContent, "utf8");
+    execSync("git config pull.rebase false");
+    execSync("git pull");
+    execSync("git commit -a -m \"" + "remove //!ci-no-touch" + "\"");
+    execSync("git push -f");
+    console.log("Pushed to GitHub.");
+    console.log('I won\'t touch this. Exiting process.');
+    process.exit(0);
+}
 var JSONObject = JSON.parse(JSONFileContent);
 
 var LastJSONVersion = Object.keys(JSONObject.UpdateHistory)[Object.keys(JSONObject.UpdateHistory).length - 1];
@@ -37,7 +50,7 @@ var CurrentPR = Number(PRNumber);
 var CurrentDescription = String(process.argv[4]);
 if (LastJSVersion != NpmVersion) {
     console.warn("Assuming you manually ran npm version.");
-} else if(!(LastPR == CurrentPR && NpmVersion == LastJSVersion)) {
+} else if (!(LastPR == CurrentPR && NpmVersion == LastJSVersion)) {
     execSync("npm version patch");
 }
 
@@ -56,8 +69,7 @@ if (LastPR == CurrentPR && NpmVersion == LastJSVersion) {
     JSONObject.UpdateHistory[LastJSVersion].UpdateDate = Date.now();
     JSONObject.UpdateHistory[LastJSVersion].UpdateContents[0].Description = CurrentDescription;
     CommitMessage = "Update time and description of " + LastJSVersion;
-}
-else if (ChangedFileList.indexOf("XMOJ.user.js") == -1) {
+} else if (ChangedFileList.indexOf("XMOJ.user.js") == -1) {
     console.warn("XMOJ.user.js is not changed, so the version should not be updated.");
     process.exit(0);
 } else {

@@ -1265,6 +1265,73 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.42": {
+            "UpdateDate": 1707642572244,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 445,
+                    "Description": "fix  [Bug] 右上角用户名点击后无反应 "
+                }
+            ],
+            "Notes": "Popper.js is so stupid..."
+        },
+        "1.1.43": {
+            "UpdateDate": 1707715028113,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 447,
+                    "Description": "fix the unpkg-cdn option"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.44": {
+            "UpdateDate": 1707803296933,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 449,
+                    "Description": "regression!"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.45": {
+            "UpdateDate": 1708070431275,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 454,
+                    "Description": "fix #400 + //ci-no-touch"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.46": {
+            "UpdateDate": 1708137046736,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 445,
+                    "Description": "fix  [Bug] 右上角用户名点击后无反应 "
+                },
+                {
+                    "PR": 447,
+                    "Description": "fix the unpkg-cdn option"
+                },
+                {
+                    "PR": 449,
+                    "Description": "regression!"
+                },
+                {
+                    "PR": 454,
+                    "Description": "fix #400 + //ci-no-touch"
+                }
+            ],
+            "Notes": "A lot of QoL improvements!"
         }
     }
 }
