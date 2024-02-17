@@ -30,6 +30,11 @@ console.log("npm version        : " + NpmVersion);
 if (JSONFileContent.includes('//ci-no-touch')) {
     var updatedContent = JSONFileContent.replace('//ci-no-touch', '');
     writeFileSync(JSONFileName, updatedContent, "utf8");
+    execSync("git config pull.rebase false");
+    execSync("git pull");
+    execSync("git commit -a -m \"" + "remove //ci-no-touch" + "\"");
+    execSync("git push -f");
+    console.log("Pushed to GitHub.");
     console.log('I won\'t touch this. Exiting process.');
     process.exit(0);
 }
