@@ -16,7 +16,7 @@ jobs:
         fetch-depth: 0
     - name: Generate new sitemap
       id: sitemap
-      uses: cicirello/generate-sitemap@v1.6.1
+      uses: cicirello/generate-sitemap@v1.10.0
       with:
         additional-extensions: user.js
         sitemap-format: xml
