@@ -979,6 +979,24 @@ async function main() {
                 <a class="alert-link" href="https://www.xmoj.tech/modifypage.php?ByUserScript=1" target="_blank">此处</a>
                 查看更新日志。`;
                     Container.appendChild(Alert);
+                    //开发人员可以直接安装开发版本
+                    if(AdminUserList.includes(CurrentUsername)){
+                    const welcomeCard = document.createElement("div");
+                    welcomeCard.classList.add("alert");
+                    welcomeCard.classList.add("alert-primary");
+                    welcomeCard.className = "alert alert-primary";
+                    welcomeCard.role = "alert";
+                    welcomeCard.innerHTML = `<a class="alert-link" href="https://github.com/XMOJ-Script-dev/XMOJ-Script/raw/dev/XMOJ.user.js" target="_blank">安装</a>开发版本`;
+                    Container.appendChild(welcomeCard);
+                    }
+                    //安装开发版本脚本
+                    //const welcomeCard = document.createElement("div");
+                    //welcomeCard.classList.add("alert");
+                    //welcomeCard.classList.add("alert-primary");
+                    //welcomeCard.className = "alert alert-primary";
+                    //welcomeCard.role = "alert";
+                    //welcomeCard.innerHTML = `如果您有意愿帮我们发现（或修改bug），请<a class="alert-link" href="https://github.com/XMOJ-Script-dev/XMOJ-Script/raw/dev/XMOJ.user.js" target="_blank">安装</a>开发版本的脚本（此脚本非稳定版本，可能并未验证）。`;
+                    //Container.appendChild(welcomeCard);
                     let UtilitiesCard = document.createElement("div");
                     UtilitiesCard.classList.add("card");
                     UtilitiesCard.classList.add("mb-3");
