@@ -1309,6 +1309,29 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.46": {
+            "UpdateDate": 1708137046736,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 445,
+                    "Description": "fix  [Bug] 右上角用户名点击后无反应 "
+                },
+                {
+                    "PR": 447,
+                    "Description": "fix the unpkg-cdn option"
+                },
+                {
+                    "PR": 449,
+                    "Description": "regression!"
+                },
+                {
+                    "PR": 454,
+                    "Description": "fix #400 + //ci-no-touch"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
