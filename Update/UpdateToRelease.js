@@ -11,19 +11,6 @@ const JSONFileName = "./Update.json";
 const JSFileName = "./XMOJ.user.js";
 var JSONFileContent = readFileSync(JSONFileName, "utf8");
 var JSFileContent = readFileSync(JSFileName, "utf8");
-var JSONObject = JSON.parse(JSONFileContent);
-
-var LastJSONVersion = Object.keys(JSONObject.UpdateHistory)[Object.keys(JSONObject.UpdateHistory).length - 1];
-var LastJSVersion = JSFileContent.match(/@version\s+(\d+\.\d+\.\d+)/)[1];
-var NpmVersion = execSync("jq -r '.version' package.json").toString().trim();
-var LastVersion = LastJSVersion.split(".");
-var LastPR = JSONObject.UpdateHistory[LastJSONVersion].UpdateContents[0].PR;
-var LastType = JSONObject.UpdateHistory[LastJSONVersion].Prerelease ? "Prerelease" : "Release";
-console.log("Last JS version    : " + LastJSVersion);
-console.log("Last JSON version  : " + LastJSONVersion);
-console.log("Last PR            : " + LastPR);
-console.log("Last type          : " + LastType);
-console.log("npm version        : " + NpmVersion);
 execSync("git config --global user.email \"github-actions[bot]@users.noreply.github.com\"");
 execSync("git config --global user.name \"github-actions[bot]\"");
 if (JSONFileContent.includes('//!ci-no-touch')) {
@@ -45,6 +32,20 @@ if (JSONFileContent.includes('//!ci-no-touch')) {
     console.log('I won\'t touch this. Exiting process.');
     process.exit(0);
 }
+var JSONObject = JSON.parse(JSONFileContent);
+
+var LastJSONVersion = Object.keys(JSONObject.UpdateHistory)[Object.keys(JSONObject.UpdateHistory).length - 1];
+var LastJSVersion = JSFileContent.match(/@version\s+(\d+\.\d+\.\d+)/)[1];
+var NpmVersion = execSync("jq -r '.version' package.json").toString().trim();
+var LastVersion = LastJSVersion.split(".");
+var LastPR = JSONObject.UpdateHistory[LastJSONVersion].UpdateContents[0].PR;
+var LastType = JSONObject.UpdateHistory[LastJSONVersion].Prerelease ? "Prerelease" : "Release";
+console.log("Last JS version    : " + LastJSVersion);
+console.log("Last JSON version  : " + LastJSONVersion);
+console.log("Last PR            : " + LastPR);
+console.log("Last type          : " + LastType);
+console.log("npm version        : " + NpmVersion);
+
 if (LastJSONVersion != LastJSVersion) {
     console.error("XMOJ.user.js and Update.json have different patch versions.");
     process.exit(1);

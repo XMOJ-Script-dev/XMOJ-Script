@@ -11,6 +11,19 @@ const JSONFileName = "./Update.json";
 const JSFileName = "./XMOJ.user.js";
 var JSONFileContent = readFileSync(JSONFileName, "utf8");
 var JSFileContent = readFileSync(JSFileName, "utf8");
+execSync("git config --global user.email \"github-actions[bot]@users.noreply.github.com\"");
+execSync("git config --global user.name \"github-actions[bot]\"");
+if (JSONFileContent.includes('//!ci-no-touch')) {
+    var updatedContent = JSONFileContent.replace('//!ci-no-touch', '');
+    writeFileSync(JSONFileName, updatedContent, "utf8");
+    execSync("git config pull.rebase false");
+    execSync("git pull");
+    execSync("git commit -a -m \"" + "remove //!ci-no-touch" + "\"");
+    execSync("git push -f");
+    console.log("Pushed to GitHub.");
+    console.log('I won\'t touch this. Exiting process.');
+    process.exit(0);
+}
 var JSONObject = JSON.parse(JSONFileContent);
 
 var LastJSONVersion = Object.keys(JSONObject.UpdateHistory)[Object.keys(JSONObject.UpdateHistory).length - 1];
@@ -26,19 +39,6 @@ console.log("Last PR            : " + LastPR);
 console.log("Last description   : " + LastDescription);
 console.log("Last release online: " + LastReleaseVersionOnline);
 console.log("npm version        : " + NpmVersion);
-execSync("git config --global user.email \"github-actions[bot]@users.noreply.github.com\"");
-execSync("git config --global user.name \"github-actions[bot]\"");
-if (JSONFileContent.includes('//!ci-no-touch')) {
-    var updatedContent = JSONFileContent.replace('//!ci-no-touch', '');
-    writeFileSync(JSONFileName, updatedContent, "utf8");
-    execSync("git config pull.rebase false");
-    execSync("git pull");
-    execSync("git commit -a -m \"" + "remove //!ci-no-touch" + "\"");
-    execSync("git push -f");
-    console.log("Pushed to GitHub.");
-    console.log('I won\'t touch this. Exiting process.');
-    process.exit(0);
-}
 if (LastJSONVersion != LastJSVersion) {
     console.error("XMOJ.user.js and Update.json have different patch versions.");
     process.exit(1);
