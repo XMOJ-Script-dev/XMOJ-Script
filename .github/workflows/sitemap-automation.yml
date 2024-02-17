@@ -26,7 +26,7 @@ jobs:
     - name: Create PR to dev branch
       uses: peter-evans/create-pull-request@v6
       with:
-        signoff: true
+        # signoff: true
         reviewers: PythonSmall-Q, zhouyiqing0304
         assignees: PythonSmall-Q, zhouyiqing0304
         title: "自动更新sitemap"
