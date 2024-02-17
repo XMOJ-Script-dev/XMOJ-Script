@@ -52,9 +52,7 @@ if (LastJSONVersion != LastJSVersion) {
 }
 if (LastType == "Release") {
     console.error("Last release is not a prerelease.");
-    execSync("gh pr comment " + PRNumber + " --body \"请重新提交PR, 谢谢");
-    execSync("gh pr close " + PRNumber);
-    process.exit(1);
+    process.exit(0);
 }
 
 if (LastJSVersion != NpmVersion) {
