@@ -24,10 +24,24 @@ console.log("Last JSON version  : " + LastJSONVersion);
 console.log("Last PR            : " + LastPR);
 console.log("Last type          : " + LastType);
 console.log("npm version        : " + NpmVersion);
-
-if (JSONFileContent.includes('//ci-no-touch')) {
-    var updatedContent = JSONFileContent.replace('//ci-no-touch', '');
+execSync("git config --global user.email \"github-actions[bot]@users.noreply.github.com\"");
+execSync("git config --global user.name \"github-actions[bot]\"");
+if (JSONFileContent.includes('//!ci-no-touch')) {
+    var updatedContent = JSONFileContent.replace('//!ci-no-touch', '');
     writeFileSync(JSONFileName, updatedContent, "utf8");
+    execSync("git config pull.rebase false");
+    execSync("git pull");
+    execSync("git push origin --delete actions/temp || true");
+    execSync("git checkout -b actions/temp");
+    execSync("git commit -a -m \"remove //!ci-no-touch\"");
+    execSync("git push -u origin actions/temp -f");
+    console.warn("Pushed to actions/temp.");
+
+    var PRNumber = execSync("gh pr create --title \"Update to release " + CurrentVersion + "\" --body \"Update to release " + CurrentVersion + "\" --base dev --head actions/temp").toString().split("/")[6].trim();
+    console.warn("PR #" + PRNumber + " has been created.");
+
+    execSync("gh pr merge " + PRNumber + " --merge --auto");
+    console.warn("PR #" + PRNumber + " has enabled auto merge.");
     console.log('I won\'t touch this. Exiting process.');
     process.exit(0);
 }
@@ -41,8 +55,6 @@ if (LastType == "Release") {
     execSync("gh pr close " + PRNumber);
     process.exit(1);
 }
-execSync("git config --global user.email \"github-actions[bot]@users.noreply.github.com\"");
-execSync("git config --global user.name \"github-actions[bot]\"");
 
 if (LastJSVersion != NpmVersion) {
     console.warn("Assuming you manually ran npm version.");
