@@ -1298,6 +1298,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.45": {
+            "UpdateDate": 1708070431275,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 454,
+                    "Description": "fix #400 + //ci-no-touch"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
