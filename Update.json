@@ -1331,7 +1331,7 @@
                     "Description": "fix #400 + //ci-no-touch"
                 }
             ],
-            "Notes": "A lot of QoL improvements!"//!ci-no-touch
+            "Notes": "A lot of QoL improvements!"
         }
     }
 }
