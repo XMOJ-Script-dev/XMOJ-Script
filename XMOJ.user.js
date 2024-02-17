@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.1.45
+// @version      1.1.46
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -3428,6 +3428,18 @@ int main()
                         "Name": "VirtualBox",
                         "Image": "https://www.virtualbox.org/graphics/vbox_logo2_gradient.png",
                         "URL": "https://www.virtualbox.org/wiki/Downloads"
+                    }, {
+                        "Name": "VMware Workstation Pro",
+                        "Image": "https://www.vmware.com/content/dam/digitalmarketing/vmware/en/images/gallery/thumbnails/tn-vmware-workstation-pro.png",
+                        "URL": "https://www.vmware.com/go/getworkstation-win"
+                    }, {
+                        "Name": "VMware Workstation Pro - Product Key",
+                        "Image": "https://www.vmware.com/content/dam/digitalmarketing/vmware/en/images/gallery/illustrations/illu-tech-laptop-whtbg.png",
+                        "URL": "https://raw.githubusercontent.com/zhouyiqing0304/VMware-Workstation-Pro-Action-Keys/main/README.md"
+                    }, {
+                        "Name": "Watt Toolkit (Steam++)",
+                        "Image": "https://steampp.net/svg/logo.png",
+                        "URL": "https://steampp.net/"
                     }, {
                         "Name": "MinGW",
                         "Image": "https://www.mingw-w64.org/logo.svg",
