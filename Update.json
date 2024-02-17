@@ -1332,6 +1332,17 @@
                 }
             ],
             "Notes": "A lot of QoL improvements!"
+        },
+        "1.1.47": {
+            "UpdateDate": 1708140753203,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 468,
+                    "Description": "Install Dev Channel"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
