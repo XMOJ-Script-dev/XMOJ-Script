@@ -1334,12 +1334,12 @@
             "Notes": "A lot of QoL improvements!"
         },
         "1.1.47": {
-            "UpdateDate": 1708774235039,
+            "UpdateDate": 1708775905981,
             "Prerelease": true,
             "UpdateContents": [
                 {
-                    "PR": 476,
-                    "Description": "新增下载项并且允许管理员用户直接获取标程"
+                    "PR": 480,
+                    "Description": "Revert 新增下载项并且允许管理员用户直接获取标程"
                 }
             ],
             "Notes": "No release notes were provided for this release."
