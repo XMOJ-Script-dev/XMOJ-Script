@@ -1,19 +1,14 @@
-name: Pull Request Action
+name: Sitemap merge
 on:
   push:
     branches:
       - create-pull-request/patch
-      
+  workflow_dispatch:
 jobs:
-  
-Adding to the answer of @Grabofus , the action will fail if there's already an existing and open PR for the same head and base. This can be solved by checking for an existing PR prior to creating a new one:
-
   create_pull_request:
     name: 'Create PR'
     if: github.ref == 'refs/heads/beta'
     runs-on: ubuntu-latest
-    needs:
-      - deploy
     permissions:
       pull-requests: write
     steps:
