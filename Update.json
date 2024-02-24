@@ -1343,6 +1343,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.48": {
+            "UpdateDate": 1708775847962,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 479,
+                    "Description": "Revert Update"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
