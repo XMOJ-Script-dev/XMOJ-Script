@@ -1631,7 +1631,7 @@ async function main() {
                                     TempHTML += "</a>";
                                     if (Points[SolutionID] != undefined) {
                                         TempHTML += "<span style=\"margin-left: 5px\" class=\"badge text-bg-info\">" + Points[SolutionID] + "</span>";
-                                        if (Points[SolutionID].substring(0, Points[SolutionID].length - 1) >= 50) {
+                                        if ((Points[SolutionID].substring(0, Points[SolutionID].length - 1) >= 50)||(IsAdmin)) {
                                             TempHTML += `<a href="https://www.xmoj.tech/showsource.php?pid=${PID}&ByUserScript=1" class="ms-1 link-secondary">查看标程</a>`;
                                         }
                                     }
@@ -3413,6 +3413,10 @@ int main()
                         "Image": "https://code.visualstudio.com/favicon.ico",
                         "URL": "https://code.visualstudio.com/Download"
                     }, {
+                        "Name": "Microsoft Visual Studio",
+                        "Image": "https://visualstudio.microsoft.com/wp-content/uploads/2021/10/Product-Icon.svg",
+                        "URL": "https://visualstudio.microsoft.com/zh-hans/"
+                    }, {
                         "Name": "Lazarus",
                         "Image": "https://a.fsdn.com/allura/p/lazarus/icon",
                         "URL": "https://sourceforge.net/projects/lazarus/"
@@ -3428,6 +3432,14 @@ int main()
                         "Name": "VirtualBox",
                         "Image": "https://www.virtualbox.org/graphics/vbox_logo2_gradient.png",
                         "URL": "https://www.virtualbox.org/wiki/Downloads"
+                    }, {
+                        "Name": "VMware Workstation Pro",
+                        "Image": "https://www.vmware.com/content/dam/digitalmarketing/vmware/en/images/gallery/thumbnails/tn-vmware-workstation-pro.png",
+                        "URL": "https://www.vmware.com/go/getworkstation-win"
+                    }, {
+                        "Name": "VMware Workstation Pro - Product Key",
+                        "Image": "https://www.vmware.com/content/dam/digitalmarketing/vmware/en/images/gallery/illustrations/illu-tech-laptop-whtbg.png",
+                        "URL": "https://raw.githubusercontent.com/zhouyiqing0304/VMware-Workstation-Pro-Action-Keys/main/README.md"
                     }, {
                         "Name": "MinGW",
                         "Image": "https://www.mingw-w64.org/logo.svg",
