@@ -1865,6 +1865,7 @@ async function main() {
                                             let ParsedDocument = new DOMParser().parseFromString(Result, "text/html");
                                             SID = ParsedDocument.querySelector("#result-tab > tbody > tr:nth-child(1) > td:nth-child(2)").innerText;
                                         });
+                                    await new Promise(r => setTimeout(r, 500));
                                     let Code = "";
                                     await fetch("https://www.xmoj.tech/getsource.php?id=" + SID)
                                         .then((Response) => {
@@ -1872,6 +1873,7 @@ async function main() {
                                         }).then((Response) => {
                                             Code = Response.substring(0, Response.indexOf("/**************************************************************")).trim();
                                         });
+                                    await new Promise(r => setTimeout(r, 500));
                                     await fetch("https://www.xmoj.tech/submit.php", {
                                         "headers": {
                                             "content-type": "application/x-www-form-urlencoded"
@@ -1880,7 +1882,6 @@ async function main() {
                                         "method": "POST",
                                         "body": "cid=" + CID + "&pid=" + i + "&" + "language=1&" + "source=" + encodeURIComponent(Code) + "&" + "enable_O2=on"
                                     });
-                                    //sleep for one second
                                     await new Promise(r => setTimeout(r, 500));
                                 }
                                 if (!Submitted) {
@@ -3565,8 +3566,6 @@ int main()
                     await fetch("https://www.xmoj.tech/getsource.php?id=" + SearchParams.get("id"))
                         .then((Response) => {
                             return Response.text();
-                        }).then((Response) => {
-                            Code = Response.substring(0, Response.indexOf("/**************************************************************")).trim();
                         });
                 } else {
                     if (localStorage.getItem("UserScript-LastUploadedStdTime") === undefined || new Date().getTime() - localStorage.getItem("UserScript-LastUploadedStdTime") > 1000 * 60 * 60 * 24 * 30) {
