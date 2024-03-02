@@ -1332,6 +1332,17 @@
                 }
             ],
             "Notes": "A lot of QoL improvements!"
+        },
+        "1.1.48": {
+            "UpdateDate": 1709370871510,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 485,
+                    "Description": "and I am so frustrated I actually make another code contribution"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
