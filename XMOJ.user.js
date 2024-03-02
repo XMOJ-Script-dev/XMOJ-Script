@@ -3566,7 +3566,9 @@ int main()
                     await fetch("https://www.xmoj.tech/getsource.php?id=" + SearchParams.get("id"))
                         .then((Response) => {
                             return Response.text();
-                        });
+                        }).then((Response) => {
+                            Code = Response;
+                        });;
                 } else {
                     if (localStorage.getItem("UserScript-LastUploadedStdTime") === undefined || new Date().getTime() - localStorage.getItem("UserScript-LastUploadedStdTime") > 1000 * 60 * 60 * 24 * 30) {
                         location.href = "https://www.xmoj.tech/userinfo.php?ByUserScript=1";
