@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.1.48
+// @version      1.1.49
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -3566,6 +3566,8 @@ int main()
                     await fetch("https://www.xmoj.tech/getsource.php?id=" + SearchParams.get("id"))
                         .then((Response) => {
                             return Response.text();
+                        }).then((Response) => {
+                            Code = Response;
                         });
                 } else {
                     if (localStorage.getItem("UserScript-LastUploadedStdTime") === undefined || new Date().getTime() - localStorage.getItem("UserScript-LastUploadedStdTime") > 1000 * 60 * 60 * 24 * 30) {
