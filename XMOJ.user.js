@@ -3567,7 +3567,7 @@ int main()
                         .then((Response) => {
                             return Response.text();
                         }).then((Response) => {
-                            Code = Response;
+                            Code = Response.replace("<!--not cached-->","");
                         });;
                 } else {
                     if (localStorage.getItem("UserScript-LastUploadedStdTime") === undefined || new Date().getTime() - localStorage.getItem("UserScript-LastUploadedStdTime") > 1000 * 60 * 60 * 24 * 30) {
