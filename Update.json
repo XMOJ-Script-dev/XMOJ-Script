@@ -1354,6 +1354,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.50": {
+            "UpdateDate": 1709431574244,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 487,
+                    "Description": "SWX is LAZY"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
