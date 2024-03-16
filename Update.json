@@ -1332,6 +1332,43 @@
                 }
             ],
             "Notes": "A lot of QoL improvements!"
+        },
+        "1.1.48": {
+            "UpdateDate": 1709370871510,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 485,
+                    "Description": "and I am so frustrated I actually make another code contribution"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.49": {
+            "UpdateDate": 1709371832051,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 486,
+                    "Description": "fix showsource"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.50": {
+            "UpdateDate": 1710576508444,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 485,
+                    "Description": "and I am so frustrated I actually make another code contribution"
+                },
+                {
+                    "PR": 486,
+                    "Description": "fix showsource"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
