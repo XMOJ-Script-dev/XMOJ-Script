@@ -21,7 +21,7 @@
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @homepage     https://www.xmoj-bbs.tech/
-// @supportURL   https://bugs.xmoj-bbs.tech
+// @supportURL   mailto:support@xmojscript.zohodesk.com
 // @connect      api.xmoj-bbs.tech
 // @connect      challenges.cloudflare.com
 // @connect      cppinsights.io
