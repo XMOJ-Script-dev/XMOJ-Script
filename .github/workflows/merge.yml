@@ -1,13 +1,13 @@
-name: Sitemap merge
+name: Merge changes to extern-contrib
 on:
   push:
     branches:
-      - create-pull-request/patch
+      - dev
   workflow_dispatch:
 jobs:
   create_pull_request:
     name: 'Create PR'
-    if: github.ref == 'refs/heads/beta'
+    if: github.ref == 'refs/heads/extern-contrib'
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
@@ -27,7 +27,7 @@ jobs:
             
             if (pulls.data.length < 1) {
               await github.rest.pulls.create({
-                title: '[Sitemap] Merge sitemap into dev',
+                title: 'Merge dev into extern-contrib',
                 owner: owner,
                 repo: repo,
                 head: context.ref,
