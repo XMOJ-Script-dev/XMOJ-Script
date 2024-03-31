@@ -934,6 +934,7 @@ async function main() {
                                 let ToastDismissButton = document.createElement("button");
                                 ToastDismissButton.type = "button";
                                 ToastDismissButton.classList.add("btn", "btn-secondary", "btn-sm", "me-2");
+                                ToastDismissButton.setAttribute("data-bs-dismiss", "toast");
                                 ToastDismissButton.innerText = "忽略";
                                 ToastDismissButton.addEventListener("click", () => {
                                     RequestAPI("ReadMailMention", {
