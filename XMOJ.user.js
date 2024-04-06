@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.1.50
+// @version      1.1.53
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -21,7 +21,7 @@
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @homepage     https://www.xmoj-bbs.tech/
-// @supportURL   https://bugs.xmoj-bbs.tech
+// @supportURL   https://xmojscript.zohodesk.com/portal/zh/newticket
 // @connect      api.xmoj-bbs.tech
 // @connect      challenges.cloudflare.com
 // @connect      cppinsights.io
@@ -934,6 +934,7 @@ async function main() {
                                 let ToastDismissButton = document.createElement("button");
                                 ToastDismissButton.type = "button";
                                 ToastDismissButton.classList.add("btn", "btn-secondary", "btn-sm", "me-2");
+                                ToastDismissButton.setAttribute("data-bs-dismiss", "toast");
                                 ToastDismissButton.innerText = "忽略";
                                 ToastDismissButton.addEventListener("click", () => {
                                     RequestAPI("ReadMailMention", {
@@ -3567,7 +3568,7 @@ int main()
                         .then((Response) => {
                             return Response.text();
                         }).then((Response) => {
-                            Code = Response;
+                            Code = Response.replace("\n<!--not cached-->\n", "");
                         });
                 } else {
                     if (localStorage.getItem("UserScript-LastUploadedStdTime") === undefined || new Date().getTime() - localStorage.getItem("UserScript-LastUploadedStdTime") > 1000 * 60 * 60 * 24 * 30) {
