@@ -3745,7 +3745,7 @@ int main()
                                     ContentDiv.style.maxHeight = "500px";
                                     ContentDiv.style.overflowX = "auto";
                                     ContentDiv.style.overflowY = "auto";
-                                    ContentDiv.innerHTML = PurifyHTML(Data[i].Content);
+                                    ContentDiv.innerHTML = PurifyHTML(marked.parse(Data[i].Content));
                                     let mediaElements = ContentDiv.querySelectorAll('img, video');
                                     for (let media of mediaElements) {
                                         media.style.objectFit = 'contain';
