@@ -1417,6 +1417,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.55": {
+            "UpdateDate": 1712411916005,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 499,
+                    "Description": "add markdown support to short messages "
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }

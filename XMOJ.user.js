@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.1.54
+// @version      1.1.55
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -3745,7 +3745,7 @@ int main()
                                     ContentDiv.style.maxHeight = "500px";
                                     ContentDiv.style.overflowX = "auto";
                                     ContentDiv.style.overflowY = "auto";
-                                    ContentDiv.innerHTML = PurifyHTML(Data[i].Content);
+                                    ContentDiv.innerHTML = PurifyHTML(marked.parse(Data[i].Content));
                                     let mediaElements = ContentDiv.querySelectorAll('img, video');
                                     for (let media of mediaElements) {
                                         media.style.objectFit = 'contain';
