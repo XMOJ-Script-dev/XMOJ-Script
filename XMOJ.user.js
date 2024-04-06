@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.1.53
+// @version      1.1.54
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -1039,112 +1039,62 @@ async function main() {
                         return List;
                     };
                     UtilitiesCardBody.appendChild(CreateList([{
-                        "ID": "ACMRank",
-                        "Type": "A",
-                        "Name": "比赛ACM排名，并且能下载ACM排名"
+                        "ID": "ACMRank", "Type": "A", "Name": "比赛ACM排名，并且能下载ACM排名"
                     }, {"ID": "Discussion", "Type": "F", "Name": "恢复讨论与短消息功能"}, {
-                        "ID": "MoreSTD",
-                        "Type": "F",
-                        "Name": "查看到更多标程"
+                        "ID": "MoreSTD", "Type": "F", "Name": "查看到更多标程"
                     }, {
                         "ID": "StudyMode",
                         "Type": "A",
                         "Name": "学术模式",
                         "Children": [{"ID": "ApplyData", "Type": "A", "Name": "获取数据功能"}, {
-                            "ID": "AutoCheat",
-                            "Type": "A",
-                            "Name": "自动提交当年代码"
+                            "ID": "AutoCheat", "Type": "A", "Name": "自动提交当年代码"
                         }]
                     }, {"ID": "Rating", "Type": "A", "Name": "添加用户评分和用户名颜色"}, {
-                        "ID": "AutoRefresh",
-                        "Type": "A",
-                        "Name": "比赛列表、比赛排名界面自动刷新"
+                        "ID": "AutoRefresh", "Type": "A", "Name": "比赛列表、比赛排名界面自动刷新"
                     }, {
-                        "ID": "AutoCountdown",
-                        "Type": "A",
-                        "Name": "比赛列表等界面的时间自动倒计时"
+                        "ID": "AutoCountdown", "Type": "A", "Name": "比赛列表等界面的时间自动倒计时"
                     }, {"ID": "DownloadPlayback", "Type": "A", "Name": "回放视频增加下载功能"}, {
-                        "ID": "ImproveACRate",
-                        "Type": "A",
-                        "Name": "自动提交已AC题目以提高AC率"
+                        "ID": "ImproveACRate", "Type": "A", "Name": "自动提交已AC题目以提高AC率"
                     }, {"ID": "AutoO2", "Type": "F", "Name": "代码提交界面自动选择O2优化"}, {
-                        "ID": "Beautify",
-                        "Type": "F",
-                        "Name": "美化界面",
-                        "Children": [{
-                            "ID": "NewBootstrap",
-                            "Type": "F",
-                            "Name": "使用新版的Bootstrap样式库*"
+                        "ID": "Beautify", "Type": "F", "Name": "美化界面", "Children": [{
+                            "ID": "NewBootstrap", "Type": "F", "Name": "使用新版的Bootstrap样式库*"
                         }, {"ID": "ResetType", "Type": "F", "Name": "重新排版*"}, {
-                            "ID": "AddColorText",
-                            "Type": "A",
-                            "Name": "增加彩色文字"
+                            "ID": "AddColorText", "Type": "A", "Name": "增加彩色文字"
                         }, {"ID": "AddUnits", "Type": "A", "Name": "状态界面内存与耗时添加单位"}, {
-                            "ID": "DarkMode",
-                            "Type": "A",
-                            "Name": "使用暗色模式"
+                            "ID": "DarkMode", "Type": "A", "Name": "使用暗色模式"
                         }, {"ID": "AddAnimation", "Type": "A", "Name": "增加动画"}, {
-                            "ID": "ReplaceYN",
-                            "Type": "F",
-                            "Name": "题目前对错的Y和N替换为勾和叉"
+                            "ID": "ReplaceYN", "Type": "F", "Name": "题目前对错的Y和N替换为勾和叉"
                         }, {"ID": "RemoveAlerts", "Type": "D", "Name": "去除多余反复的提示"}, {
-                            "ID": "Translate",
-                            "Type": "F",
-                            "Name": "统一使用中文，翻译了部分英文*"
+                            "ID": "Translate", "Type": "F", "Name": "统一使用中文，翻译了部分英文*"
                         }, {
-                            "ID": "ReplaceLinks",
-                            "Type": "F",
-                            "Name": "将网站中所有以方括号包装的链接替换为按钮"
+                            "ID": "ReplaceLinks", "Type": "F", "Name": "将网站中所有以方括号包装的链接替换为按钮"
                         }, {"ID": "RemoveUseless", "Type": "D", "Name": "删去无法使用的功能*"}, {
                             "ID": "ReplaceXM",
                             "Type": "F",
                             "Name": "将网站中所有“小明”和“我”关键字替换为“高老师”，所有“小红”替换为“徐师娘”，所有“小粉”替换为“彩虹”，所有“下海”、“海上”替换为“上海” (此功能默认关闭)"
                         }]
                     }, {
-                        "ID": "AutoLogin",
-                        "Type": "A",
-                        "Name": "在需要登录的界面自动跳转到登陆界面"
+                        "ID": "AutoLogin", "Type": "A", "Name": "在需要登录的界面自动跳转到登陆界面"
                     }, {
-                        "ID": "SavePassword",
-                        "Type": "A",
-                        "Name": "自动保存用户名与密码，免去每次手动输入密码的繁琐"
+                        "ID": "SavePassword", "Type": "A", "Name": "自动保存用户名与密码，免去每次手动输入密码的繁琐"
                     }, {
-                        "ID": "CopySamples",
-                        "Type": "F",
-                        "Name": "题目界面测试样例有时复制无效"
+                        "ID": "CopySamples", "Type": "F", "Name": "题目界面测试样例有时复制无效"
                     }, {
-                        "ID": "RefreshSolution",
-                        "Type": "F",
-                        "Name": "状态页面结果自动刷新每次只能刷新一个"
+                        "ID": "RefreshSolution", "Type": "F", "Name": "状态页面结果自动刷新每次只能刷新一个"
                     }, {"ID": "CopyMD", "Type": "A", "Name": "复制题目或题解内容"}, {
-                        "ID": "OpenAllProblem",
-                        "Type": "A",
-                        "Name": "比赛题目界面一键打开所有题目"
+                        "ID": "OpenAllProblem", "Type": "A", "Name": "比赛题目界面一键打开所有题目"
                     }, {
-                        "ID": "CheckCode",
-                        "Type": "A",
-                        "Name": "提交代码前对代码进行检查",
-                        "Children": [{
-                            "ID": "IOFile",
-                            "Type": "A",
-                            "Name": "是否使用了文件输入输出（如果需要使用）"
+                        "ID": "CheckCode", "Type": "A", "Name": "提交代码前对代码进行检查", "Children": [{
+                            "ID": "IOFile", "Type": "A", "Name": "是否使用了文件输入输出（如果需要使用）"
                         }, {"ID": "CompileError", "Type": "A", "Name": "是否有编译错误"}]
                     }, {
-                        "ID": "ExportACCode",
-                        "Type": "F",
-                        "Name": "导出AC代码每一道题目一个文件"
+                        "ID": "ExportACCode", "Type": "F", "Name": "导出AC代码每一道题目一个文件"
                     }, {"ID": "LoginFailed", "Type": "F", "Name": "修复登录后跳转失败*"}, {
-                        "ID": "NewDownload",
-                        "Type": "A",
-                        "Name": "下载页面增加下载内容"
+                        "ID": "NewDownload", "Type": "A", "Name": "下载页面增加下载内容"
                     }, {"ID": "CompareSource", "Type": "A", "Name": "比较代码"}, {
-                        "ID": "BBSPopup",
-                        "Type": "A",
-                        "Name": "讨论提醒"
+                        "ID": "BBSPopup", "Type": "A", "Name": "讨论提醒"
                     }, {"ID": "MessagePopup", "Type": "A", "Name": "短消息提醒"}, {
-                        "ID": "DebugMode",
-                        "Type": "A",
-                        "Name": "调试模式（仅供开发者使用）"
+                        "ID": "DebugMode", "Type": "A", "Name": "调试模式（仅供开发者使用）"
                     }, {
                         "ID": "SuperDebug", "Type": "A", "Name": "本地调试模式（仅供开发者使用) (未经授权的擅自开启将导致大部分功能不可用！)"
                     }, {"ID": "UnpkgCdn", "Type": "A", "Name": "使用 unpkg CDN (不建议使用)"},]));
@@ -3789,8 +3739,21 @@ int main()
                                     Row.appendChild(UsernameCell);
                                     GetUsernameHTML(UsernameCell, Data[i].FromUser);
                                     let ContentCell = document.createElement("td");
+                                    let ContentDiv = document.createElement("div");
+                                    ContentDiv.style.display = "flex";
+                                    ContentDiv.style.maxWidth = window.innerWidth - 300 + "px";
+                                    ContentDiv.style.maxHeight = "500px";
+                                    ContentDiv.style.overflowX = "auto";
+                                    ContentDiv.style.overflowY = "auto";
+                                    ContentDiv.innerHTML = PurifyHTML(Data[i].Content);
+                                    let mediaElements = ContentDiv.querySelectorAll('img, video');
+                                    for (let media of mediaElements) {
+                                        media.style.objectFit = 'contain';
+                                        media.style.maxWidth = '100%';
+                                        media.style.maxHeight = '100%';
+                                    }
+                                    ContentCell.appendChild(ContentDiv);
                                     Row.appendChild(ContentCell);
-                                    ContentCell.innerHTML = PurifyHTML(Data[i].Content);
                                     let SendTimeCell = document.createElement("td");
                                     Row.appendChild(SendTimeCell);
                                     SendTimeCell.innerHTML = GetRelativeTime(Data[i].SendTime);
