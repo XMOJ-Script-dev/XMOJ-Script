@@ -1391,6 +1391,21 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.53": {
+            "UpdateDate": 1712374147729,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 491,
+                    "Description": "Update ticket email"
+                },
+                {
+                    "PR": 493,
+                    "Description": "Make the dismiss button work + improve showsource"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
