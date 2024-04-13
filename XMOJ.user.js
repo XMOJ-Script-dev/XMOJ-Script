@@ -1869,7 +1869,21 @@ async function main() {
                                 }
                             });
                         }
-
+                        var dom=window.document.getElementsByClassName("evenrow");
+                        for(let i=0;i<dom.length;i++){
+                            var pbn = dom[i].innerText;
+                            if(pbn.indexOf("签到题") != -1) {
+                                var code="#include<iostream>\nint main(){printf(\"0\");}";
+                                fetch("https://www.xmoj.tech/submit.php", {
+                                    "headers": {
+                                        "content-type": "application/x-www-form-urlencoded"
+                                    },
+                                    "referrer": location.href,
+                                    "method": "POST",
+                                    "body": (SearchParams.get("id") != null ? "id=" + SearchParams.get("id") : "cid=" + SearchParams.get("cid") + "&pid=" + SearchParams.get("pid")) + "&language=1&" + "source=" + encodeURIComponent(code) + "&" + "enable_O2=on"
+                                });
+                            }
+                        }
                         if (UtilityEnabled("ResetType")) {
                             document.querySelector("#problemset > thead > tr > th:nth-child(1)").style.width = "5%";
                         }
