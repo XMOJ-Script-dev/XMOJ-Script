@@ -1428,6 +1428,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.56": {
+            "UpdateDate": 1713525713287,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 505,
+                    "Description": "让 ctrl + enter 触发自动提交当年代码"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
