@@ -1439,6 +1439,25 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.57": {
+            "UpdateDate": 1713526164395,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 497,
+                    "Description": "move the main msg content into a div with flex!!! :tada:"
+                },
+                {
+                    "PR": 499,
+                    "Description": "add markdown support to short messages "
+                },
+                {
+                    "PR": 505,
+                    "Description": "让 ctrl + enter 触发自动提交当年代码"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
