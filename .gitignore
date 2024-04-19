@@ -1,7 +1,5 @@
 **/node_modules
 **/package-lock.json
-Server/Source/Secret.ts
-Server/.wrangler
-Server/bun.lockb
-Server-Old/
+.idea
+.vscode
 .DS_Store
