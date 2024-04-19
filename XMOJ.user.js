@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.1.55
+// @version      1.1.56
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -1842,8 +1842,12 @@ async function main() {
                                 AutoCheatButton.disabled = false;
                                 if (Submitted) location.reload(); else AutoCheatButton.innerHTML = "自动提交当年代码";
                             });
+                            document.addEventListener("keydown", (Event) => {
+                                if (Event.code === 'Enter' && Event.ctrlKey) {
+                                    AutoCheatButton.click();
+                                }
+                            });
                         }
-
                         if (UtilityEnabled("OpenAllProblem")) {
                             let OpenAllButton = document.createElement("button");
                             OpenAllButton.className = "btn btn-outline-secondary";
