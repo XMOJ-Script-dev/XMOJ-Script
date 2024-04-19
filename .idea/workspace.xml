@@ -4,9 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5e980562-396b-40f1-9d8f-058ee50050b2" name="Changes" comment="make dismissing actually work">
-      <change beforePath="$PROJECT_DIR$/XMOJ.user.js" beforeDir="false" afterPath="$PROJECT_DIR$/XMOJ.user.js" afterDir="false" />
-    </list>
+    <list default="true" id="5e980562-396b-40f1-9d8f-058ee50050b2" name="Changes" comment="move the main msg content into a div with flex!!! :tada:" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -16,11 +14,17 @@
     <option name="PUSH_AUTO_UPDATE" value="true" />
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="dev" />
+        <entry key="$PROJECT_DIR$" value="boomzero/superfix" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;boomzero&quot;
+  }
+}</component>
   <component name="GithubProjectSettings">
     <option name="branchProtectionPatterns">
       <list>
@@ -31,6 +35,12 @@
       </list>
     </option>
   </component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/XMOJ-Script-dev/XMOJ-Script.git&quot;,
+    &quot;accountId&quot;: &quot;0e7c6638-22f7-46c5-9102-5abcfc35741b&quot;
+  }
+}</component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
@@ -46,21 +56,28 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "boomzero/superfix",
-    "last_opened_file_path": "/Users/chenqi/Desktop/OSS/XMOJ-Script",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "http.proxy",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;dev&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/chenqi/Desktop/OSS/XMOJ-Script&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;http.proxy&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-1d06a55b98c1-74d2a5396914-JavaScript-WS-241.14494.235" />
+      </set>
+    </attachedChunks>
+  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -234,39 +251,19 @@
       <option name="project" value="LOCAL" />
       <updated>1711847817456</updated>
     </task>
-    <option name="localTasksCounter" value="20" />
+    <task id="LOCAL-00020" summary="move the main msg content into a div with flex!!! :tada:">
+      <option name="closed" value="true" />
+      <created>1712395909977</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1712395909977</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
-  <component name="TypeScriptGeneratedFilesManager">
-    <option name="version" value="3" />
-  </component>
-  <component name="Vcs.Log.Tabs.Properties">
-    <option name="TAB_STATES">
-      <map>
-        <entry key="MAIN">
-          <value>
-            <State />
-          </value>
-        </entry>
-      </map>
-    </option>
-  </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="fix #332" />
-    <MESSAGE value="feat: enable spell checking for bbs and short_msg" />
-    <MESSAGE value="spellcheck that works" />
-    <MESSAGE value="rel notes" />
-    <MESSAGE value="make the std interface better" />
-    <MESSAGE value="don't lie" />
-    <MESSAGE value="write rel notes" />
-    <MESSAGE value="你说的对, 但是你没有implement" />
-    <MESSAGE value="fix #364; fix #342; fmt; make the script faster" />
-    <MESSAGE value="fix the mess swx created" />
-    <MESSAGE value="Because choice" />
-    <MESSAGE value="rel notes!" />
-    <MESSAGE value="eek!" />
-    <MESSAGE value="check!" />
-    <MESSAGE value="make dismissing actually work" />
-    <option name="LAST_COMMIT_MESSAGE" value="make dismissing actually work" />
+    <MESSAGE value="feat: make ctrl+enter trigger AutoCheatButton" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: make ctrl+enter trigger AutoCheatButton" />
   </component>
 </project>
