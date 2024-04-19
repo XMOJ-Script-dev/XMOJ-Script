@@ -1842,8 +1842,12 @@ async function main() {
                                 AutoCheatButton.disabled = false;
                                 if (Submitted) location.reload(); else AutoCheatButton.innerHTML = "自动提交当年代码";
                             });
+                            document.addEventListener("keydown", (Event) => {
+                                if (Event.code === 'Enter' && Event.ctrlKey) {
+                                    AutoCheatButton.click();
+                                }
+                            });
                         }
-
                         if (UtilityEnabled("OpenAllProblem")) {
                             let OpenAllButton = document.createElement("button");
                             OpenAllButton.className = "btn btn-outline-secondary";
