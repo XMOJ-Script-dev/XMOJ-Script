@@ -1,0 +1,24 @@
+name: Check PR CI
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+
+jobs:
+  check-pr-ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions-cool/check-pr-ci@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # filter-label: 'check-ci'
+          # filter-creator-authority: 'write'
+          filter-head-ref: 'master, dev'
+          filter-support-fork: true
+          success-review: true
+          success-review-body: 'PR passes all checks'
+          success-merge: false
+          conflict-review-body: 'PR has conflicts, please fix them first!'
+          failure-review: 'REQUEST_CHANGES'
+          failure-review-body: 'PR fails some checks'
+          failure-close: false
