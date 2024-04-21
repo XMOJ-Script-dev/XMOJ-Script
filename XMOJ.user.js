@@ -2681,7 +2681,15 @@ async function main() {
                             BadgeContent.value = Response.Data.Content;
                             BadgeBackgroundColor.value = Response.Data.BackgroundColor;
                             BadgeColor.value = Response.Data.Color;
-                            localStorage.removeItem("UserScript-User-" + CurrentUsername + "-Badge-Content");
+                            let Temp = [];
+                            for (let i = 0; i < localStorage.length; i++) {
+                                if (localStorage.key(i).startsWith("UserScript-User-" + CurrentUsername + "-Badge-")) {
+                                    Temp.push(localStorage.key(i));
+                                }
+                            }
+                            for (let i = 0; i < Temp.length; i++) {
+                                localStorage.removeItem(Temp[i]);
+                            }
                         }
                     });
                     ModifyInfo.addEventListener("click", async () => {
@@ -2868,7 +2876,15 @@ async function main() {
                                     }, (Response) => {
                                         if (UtilityEnabled("DebugMode")) console.log(Response);
                                         if (Response.Success) {
-                                            localStorage.removeItem("UserScript-User-" + UserID + "-Badge-Content");
+                                            let Temp = [];
+                                            for (let i = 0; i < localStorage.length; i++) {
+                                                if (localStorage.key(i).startsWith("UserScript-User-" + UserID + "-Badge-")) {
+                                                    Temp.push(localStorage.key(i));
+                                                }
+                                            }
+                                            for (let i = 0; i < Temp.length; i++) {
+                                                localStorage.removeItem(Temp[i]);
+                                            }
                                             window.location.reload();
                                         } else {
                                             alert(Response.Message);
@@ -2886,7 +2902,15 @@ async function main() {
                                     "UserID": UserID
                                 }, (Response) => {
                                     if (Response.Success) {
-                                        localStorage.removeItem("UserScript-User-" + UserID + "-Badge-Content");
+                                        let Temp = [];
+                                        for (let i = 0; i < localStorage.length; i++) {
+                                            if (localStorage.key(i).startsWith("UserScript-User-" + UserID + "-Badge-")) {
+                                                Temp.push(localStorage.key(i));
+                                            }
+                                        }
+                                        for (let i = 0; i < Temp.length; i++) {
+                                            localStorage.removeItem(Temp[i]);
+                                        }
                                         window.location.reload();
                                     } else {
                                         alert(Response.Message);
