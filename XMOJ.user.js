@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.1.57
+// @version      1.1.58
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -3811,8 +3811,23 @@ int main()
                     if (location.pathname == "/discuss3/discuss.php") {
                         let ProblemID = parseInt(SearchParams.get("pid"));
                         let Page = Number(SearchParams.get("page")) || 1;
-                        document.querySelector("body > div > div").innerHTML = `<h3>讨论列表${(isNaN(ProblemID) ? "" : ` - 题目` + ProblemID)}</h3>
-                    <button id="NewPost" type="button" class="btn btn-primary">发布新讨论</button>
+                        document.querySelector("body > div > div").innerHTML = ` <div style="text-align:center"><h1>讨论列表${(isNaN(ProblemID) ? "" : ` - 题目` + ProblemID)}</h1></div>
+            <div class="row">
+                <div class="col-md-5">
+                    <form action="discuss.php" >
+                    <div style="text-align:right">
+                        <button id="NewPost" type="button" class="btn btn-primary">发布新讨论</button>
+                    </div>
+                    </form>
+                </div>
+                <div class="col-md-3" style="display: inline">
+                    <form action="thread.php" class="input-group">
+                        <input class="form-control" type="number" name="tid" placeholder="讨论编号" min="1">
+                        <button class="btn btn-outline-secondary" type="submit">跳转</button>
+                    </form>
+                </div style="display: inline">
+            </div>
+            <h><br></h>
                     <nav>
                     <ul class="pagination justify-content-center" id="DiscussPagination">
                     <li class="page-item"><a class="page-link" href="#"><span>&laquo;</span></a></li>
@@ -3868,7 +3883,7 @@ int main()
                             }, async (ResponseData) => {
                                 if (ResponseData.Success == true) {
                                     ErrorElement.style.display = "none";
-                                    if (!Silent) {
+                                    if(!Silent) {
                                         DiscussPagination.children[0].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + "page=1";
                                         DiscussPagination.children[1].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + "page=" + (Page - 1);
                                         DiscussPagination.children[2].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + "page=" + Page;
@@ -3887,6 +3902,7 @@ int main()
                                     PostList.children[1].innerHTML = "";
                                     if (Posts.length == 0) {
                                         PostList.children[1].innerHTML = `<tr><td colspan="7">暂无数据</td></tr>`;
+                                        location.href = "https://www.xmoj.tech/discuss3/discuss.php";
                                     }
                                     for (let i = 0; i < Posts.length; i++) {
                                         let Row = document.createElement("tr");
@@ -3924,6 +3940,11 @@ int main()
                                         let LastReplyTimeCell = document.createElement("td");
                                         Row.appendChild(LastReplyTimeCell);
                                         LastReplyTimeCell.innerHTML = GetRelativeTime(Posts[i].LastReplyTime);
+                                        if (Posts[i].PostID == 1) {
+                                            DiscussPagination.children[DiscussPagination.children.length - 1].classList.add("disabled");
+                                            DiscussPagination.children[DiscussPagination.children.length - 2].remove();
+                                            break;
+                                        }
                                     }
                                 } else {
                                     ErrorElement.innerText = ResponseData.Message;
