@@ -1469,6 +1469,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.59": {
+            "UpdateDate": 1713674111799,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 515,
+                    "Description": "允许管理在用户页管理badge并在修改badge后清除缓存"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
