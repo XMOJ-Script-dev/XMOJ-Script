@@ -1458,6 +1458,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.58": {
+            "UpdateDate": 1713668755393,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 514,
+                    "Description": "zhouyiqqing collab"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
