@@ -2681,15 +2681,7 @@ async function main() {
                             BadgeContent.value = Response.Data.Content;
                             BadgeBackgroundColor.value = Response.Data.BackgroundColor;
                             BadgeColor.value = Response.Data.Color;
-                            let Temp = [];
-                            for (let i = 0; i < localStorage.length; i++) {
-                                if (localStorage.key(i).startsWith("UserScript-User-")) {
-                                    Temp.push(localStorage.key(i));
-                                }
-                            }
-                            for (let i = 0; i < Temp.length; i++) {
-                                localStorage.removeItem(Temp[i]);
-                            }
+                            localStorage.removeItem("UserScript-User-" + CurrentUsername + "-Badge-Content");
                         }
                     });
                     ModifyInfo.addEventListener("click", async () => {
@@ -2876,16 +2868,7 @@ async function main() {
                                     }, (Response) => {
                                         if (UtilityEnabled("DebugMode")) console.log(Response);
                                         if (Response.Success) {
-                                            //remove cache
-                                            let Temp = [];
-                                            for (let i = 0; i < localStorage.length; i++) {
-                                                if (localStorage.key(i).startsWith("UserScript-User-")) {
-                                                    Temp.push(localStorage.key(i));
-                                                }
-                                            }
-                                            for (let i = 0; i < Temp.length; i++) {
-                                                localStorage.removeItem(Temp[i]);
-                                            }
+                                            localStorage.removeItem("UserScript-User-" + UserID + "-Badge-Content");
                                             window.location.reload();
                                         } else {
                                             alert(Response.Message);
@@ -2903,15 +2886,7 @@ async function main() {
                                     "UserID": UserID
                                 }, (Response) => {
                                     if (Response.Success) {
-                                        let Temp = [];
-                                        for (let i = 0; i < localStorage.length; i++) {
-                                            if (localStorage.key(i).startsWith("UserScript-User-")) {
-                                                Temp.push(localStorage.key(i));
-                                            }
-                                        }
-                                        for (let i = 0; i < Temp.length; i++) {
-                                            localStorage.removeItem(Temp[i]);
-                                        }
+                                        localStorage.removeItem("UserScript-User-" + UserID + "-Badge-Content");
                                         window.location.reload();
                                     } else {
                                         alert(Response.Message);
