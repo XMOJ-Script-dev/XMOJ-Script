@@ -1460,12 +1460,12 @@
             "Notes": "No release notes were provided for this release."
         },
         "1.1.58": {
-            "UpdateDate": 1713668755393,
+            "UpdateDate": 1713668825681,
             "Prerelease": true,
             "UpdateContents": [
                 {
                     "PR": 514,
-                    "Description": "zhouyiqqing collab"
+                    "Description": "支持跳转到讨论编号 修改讨论区用户界面 在讨论区Page过大时自动跳转 在讨论区最后一页自动删除"
                 }
             ],
             "Notes": "No release notes were provided for this release."
