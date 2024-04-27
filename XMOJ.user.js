@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.1.61
+// @version      1.1.62
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -3871,6 +3871,7 @@ int main()
                     });
                     RefreshMessage(false);
                     addEventListener("focus", RefreshMessage);
+                    setInterval(RefreshMessage, 500);
                 }
             } else if (location.pathname.indexOf("/discuss3") != -1) {
                 if (UtilityEnabled("Discussion")) {

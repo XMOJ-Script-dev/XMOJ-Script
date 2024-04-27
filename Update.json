@@ -1502,6 +1502,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.62": {
+            "UpdateDate": 1714208364065,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 519,
+                    "Description": "Refresh Short Messages at fixed intervals (experimental)"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
