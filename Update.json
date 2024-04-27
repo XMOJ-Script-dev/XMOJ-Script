@@ -1491,6 +1491,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.61": {
+            "UpdateDate": 1714207526058,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 517,
+                    "Description": "Auto Read Short message mentions"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
