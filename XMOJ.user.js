@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.1.60
+// @version      1.1.61
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -3790,6 +3790,9 @@ int main()
                                 }
                             }
                         }
+                        RequestAPI("ReadUserMailMention",{
+                            "UserID": String(SearchParams.get("to_user"))
+                        });
                         RequestAPI("GetMail", {
                             "OtherUser": String(SearchParams.get("to_user"))
                         }, async (ResponseData) => {
