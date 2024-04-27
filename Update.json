@@ -1482,12 +1482,12 @@
             "Notes": "No release notes were provided for this release."
         },
         "1.1.60": {
-            "UpdateDate": 1714207423462,
+            "UpdateDate": 1713682768316,
             "Prerelease": true,
             "UpdateContents": [
                 {
-                    "PR": 517,
-                    "Description": "Auto Read Short message mentions"
+                    "PR": 516,
+                    "Description": "revert #514"
                 }
             ],
             "Notes": "No release notes were provided for this release."
