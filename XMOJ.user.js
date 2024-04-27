@@ -3790,6 +3790,9 @@ int main()
                                 }
                             }
                         }
+                        RequestAPI("ReadUserMailMention",{
+                            "UserID": String(SearchParams.get("to_user"))
+                        });
                         RequestAPI("GetMail", {
                             "OtherUser": String(SearchParams.get("to_user"))
                         }, async (ResponseData) => {
