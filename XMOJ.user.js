@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.1.57
+// @version      1.1.62
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -2681,7 +2681,15 @@ async function main() {
                             BadgeContent.value = Response.Data.Content;
                             BadgeBackgroundColor.value = Response.Data.BackgroundColor;
                             BadgeColor.value = Response.Data.Color;
-                            SuccessElement.innerText += "，用户标签会在一天内生效";
+                            let Temp = [];
+                            for (let i = 0; i < localStorage.length; i++) {
+                                if (localStorage.key(i).startsWith("UserScript-User-" + CurrentUsername + "-Badge-")) {
+                                    Temp.push(localStorage.key(i));
+                                }
+                            }
+                            for (let i = 0; i < Temp.length; i++) {
+                                localStorage.removeItem(Temp[i]);
+                            }
                         }
                     });
                     ModifyInfo.addEventListener("click", async () => {
@@ -2855,7 +2863,63 @@ async function main() {
                     let lastOnlineElement = document.createElement('div');
                     lastOnlineElement.innerHTML = "最后在线：加载中...<br>";
                     UserInfoElement.appendChild(lastOnlineElement);
-
+                    let BadgeInfo = await GetUserBadge(UserID);
+                    if (IsAdmin) {
+                        if (BadgeInfo.Content !== "") {
+                            let DeleteBadgeButton = document.createElement("button");
+                            DeleteBadgeButton.className = "btn btn-outline-danger btn-sm";
+                            DeleteBadgeButton.innerText = "删除标签";
+                            DeleteBadgeButton.addEventListener("click", async () => {
+                                if (confirm("您确定要删除此标签吗？")) {
+                                    RequestAPI("DeleteBadge", {
+                                        "UserID": UserID
+                                    }, (Response) => {
+                                        if (UtilityEnabled("DebugMode")) console.log(Response);
+                                        if (Response.Success) {
+                                            let Temp = [];
+                                            for (let i = 0; i < localStorage.length; i++) {
+                                                if (localStorage.key(i).startsWith("UserScript-User-" + UserID + "-Badge-")) {
+                                                    Temp.push(localStorage.key(i));
+                                                }
+                                            }
+                                            for (let i = 0; i < Temp.length; i++) {
+                                                localStorage.removeItem(Temp[i]);
+                                            }
+                                            window.location.reload();
+                                        } else {
+                                            alert(Response.Message);
+                                        }
+                                    });
+                                }
+                            });
+                            UserInfoElement.appendChild(DeleteBadgeButton);
+                        } else {
+                            let AddBadgeButton = document.createElement("button");
+                            AddBadgeButton.className = "btn btn-outline-primary btn-sm";
+                            AddBadgeButton.innerText = "添加标签";
+                            AddBadgeButton.addEventListener("click", async () => {
+                                RequestAPI("NewBadge", {
+                                    "UserID": UserID
+                                }, (Response) => {
+                                    if (Response.Success) {
+                                        let Temp = [];
+                                        for (let i = 0; i < localStorage.length; i++) {
+                                            if (localStorage.key(i).startsWith("UserScript-User-" + UserID + "-Badge-")) {
+                                                Temp.push(localStorage.key(i));
+                                            }
+                                        }
+                                        for (let i = 0; i < Temp.length; i++) {
+                                            localStorage.removeItem(Temp[i]);
+                                        }
+                                        window.location.reload();
+                                    } else {
+                                        alert(Response.Message);
+                                    }
+                                });
+                            });
+                            UserInfoElement.appendChild(AddBadgeButton);
+                        }
+                    }
                     RequestAPI("LastOnline", {"Username": UserID}, (result) => {
                         if (result.Success) {
                             if (UtilityEnabled("DebugMode")) {
@@ -3726,6 +3790,9 @@ int main()
                                 }
                             }
                         }
+                        RequestAPI("ReadUserMailMention",{
+                            "UserID": String(SearchParams.get("to_user"))
+                        });
                         RequestAPI("GetMail", {
                             "OtherUser": String(SearchParams.get("to_user"))
                         }, async (ResponseData) => {

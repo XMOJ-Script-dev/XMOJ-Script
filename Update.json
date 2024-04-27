@@ -1458,6 +1458,61 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.58": {
+            "UpdateDate": 1713668825681,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 514,
+                    "Description": "支持跳转到讨论编号 修改讨论区用户界面 在讨论区Page过大时自动跳转 在讨论区最后一页自动删除"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.59": {
+            "UpdateDate": 1713676517652,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 515,
+                    "Description": "允许管理在用户页管理badge并在修改badge后清除缓存"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.60": {
+            "UpdateDate": 1713682768316,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 516,
+                    "Description": "revert #514"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.61": {
+            "UpdateDate": 1714207526058,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 517,
+                    "Description": "Auto Read Short message mentions"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.62": {
+            "UpdateDate": 1714208364065,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 519,
+                    "Description": "Refresh Short Messages at fixed intervals (experimental)"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
