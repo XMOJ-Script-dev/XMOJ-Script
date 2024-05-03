@@ -1513,6 +1513,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.63": {
+            "UpdateDate": 1714740837007,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 522,
+                    "Description": "chore: 删除被 @boomzero 除名的开发组成员"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
