@@ -1535,6 +1535,41 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.65": {
+            "UpdateDate": 1714819512051,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 514,
+                    "Description": "支持跳转到讨论编号 修改讨论区用户界面 在讨论区Page过大时自动跳转 在讨论区最后一页自动删除"
+                },
+                {
+                    "PR": 515,
+                    "Description": "允许管理在用户页管理badge并在修改badge后清除缓存"
+                },
+                {
+                    "PR": 516,
+                    "Description": "revert #514"
+                },
+                {
+                    "PR": 517,
+                    "Description": "Auto Read Short message mentions"
+                },
+                {
+                    "PR": 519,
+                    "Description": "Refresh Short Messages at fixed intervals (experimental)"
+                },
+                {
+                    "PR": 522,
+                    "Description": "chore: 删除被 @boomzero 除名的开发组成员"
+                },
+                {
+                    "PR": 523,
+                    "Description": "Revert Refresh Short Messages at fixed intervals (experimental)"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
