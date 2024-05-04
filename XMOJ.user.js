@@ -3790,7 +3790,7 @@ int main()
                                 }
                             }
                         }
-                        RequestAPI("ReadUserMailMention",{
+                        RequestAPI("ReadUserMailMention", {
                             "UserID": String(SearchParams.get("to_user"))
                         });
                         RequestAPI("GetMail", {
@@ -3871,7 +3871,6 @@ int main()
                     });
                     RefreshMessage(false);
                     addEventListener("focus", RefreshMessage);
-                    setInterval(RefreshMessage, 500);
                 }
             } else if (location.pathname.indexOf("/discuss3") != -1) {
                 if (UtilityEnabled("Discussion")) {
