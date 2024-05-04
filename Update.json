@@ -1524,6 +1524,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.64": {
+            "UpdateDate": 1714819418530,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 523,
+                    "Description": "Revert Refresh Short Messages at fixed intervals (experimental)"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
