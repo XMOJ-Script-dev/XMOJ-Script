@@ -1570,6 +1570,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.66": {
+            "UpdateDate": 1714820902399,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 526,
+                    "Description": "[ImgBot] Optimize images"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
