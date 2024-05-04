@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.1.63
+// @version      1.1.64
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -3790,7 +3790,7 @@ int main()
                                 }
                             }
                         }
-                        RequestAPI("ReadUserMailMention",{
+                        RequestAPI("ReadUserMailMention", {
                             "UserID": String(SearchParams.get("to_user"))
                         });
                         RequestAPI("GetMail", {
@@ -3871,7 +3871,6 @@ int main()
                     });
                     RefreshMessage(false);
                     addEventListener("focus", RefreshMessage);
-                    setInterval(RefreshMessage, 500);
                 }
             } else if (location.pathname.indexOf("/discuss3") != -1) {
                 if (UtilityEnabled("Discussion")) {
