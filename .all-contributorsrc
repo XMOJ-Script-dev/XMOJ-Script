@@ -1,4 +1,24 @@
 {
   "projectName": "XMOJ-Script",
-  "projectOwner": "XMOJ-Script-dev"
+  "projectOwner": "XMOJ-Script-dev",
+  "files": [
+    "README.md"
+  ],
+  "commitType": "docs",
+  "commitConvention": "angular",
+  "contributorsPerLine": 7,
+  "contributors": [
+    {
+      "login": "boomzero",
+      "name": "Zhu Chenrui",
+      "avatar_url": "https://avatars.githubusercontent.com/u/85378277?v=4",
+      "profile": "https://github.com/boomzero",
+      "contributions": [
+        "bug",
+        "design",
+        "maintenance",
+        "code"
+      ]
+    }
+  ]
 }
