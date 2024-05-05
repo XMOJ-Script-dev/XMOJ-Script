@@ -15,7 +15,9 @@
       "profile": "https://github.com/PythonSmall-Q",
       "contributions": [
         "bug",
-        "design"
+        "design",
+        "maintenance",
+        "code"
       ]
     }
   ]
