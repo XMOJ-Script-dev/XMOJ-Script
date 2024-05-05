@@ -102,7 +102,7 @@ npx wrangler dev
 <table>
   <tbody>
     <tr>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/boomzero"><img src="https://avatars.githubusercontent.com/u/85378277?v=4?s=100" width="100px;" alt="Zhu Chenrui"/><br /><sub><b>Zhu Chenrui</b></sub></a><br /><a href="#bug-boomzero" title="Bug reports">🐛</a> <a href="#design-boomzero" title="Design">🎨</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/boomzero"><img src="https://avatars.githubusercontent.com/u/85378277?v=4?s=100" width="100px;" alt="Zhu Chenrui"/><br /><sub><b>Zhu Chenrui</b></sub></a><br /><a href="#bug-boomzero" title="Bug reports">🐛</a> <a href="#design-boomzero" title="Design">🎨</a> <a href="#maintenance-boomzero" title="Maintenance">🚧</a> <a href="#code-boomzero" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
