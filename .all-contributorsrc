@@ -15,7 +15,9 @@
       "profile": "https://github.com/boomzero",
       "contributions": [
         "bug",
-        "design"
+        "design",
+        "maintenance",
+        "code"
       ]
     }
   ]
