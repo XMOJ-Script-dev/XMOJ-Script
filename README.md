@@ -104,6 +104,26 @@ npx wrangler dev
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
+## Contributors
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/boomzero"><img src="https://avatars.githubusercontent.com/u/85378277?v=4?s=100" width="100px;" alt="Zhu Chenrui"/><br /><sub><b>Zhu Chenrui</b></sub></a><br /><a href="#bug-boomzero" title="Bug reports">🐛</a> <a href="#design-boomzero" title="Design">🎨</a> <a href="#maintenance-boomzero" title="Maintenance">🚧</a> <a href="#code-boomzero" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/PythonSmall-Q"><img src="https://avatars.githubusercontent.com/u/106425289?v=4?s=100" width="100px;" alt="Shan Wenxiao"/><br /><sub><b>Shan Wenxiao</b></sub></a><br /><a href="#maintenance-PythonSmall-Q" title="Maintenance">🚧</a> <a href="#design-PythonSmall-Q" title="Design">🎨</a> <a href="#bug-PythonSmall-Q" title="Bug reports">🐛</a> <a href="#code-PythonSmall-Q" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/langningchen"><img src="https://avatars.githubusercontent.com/u/81672884?v=4?s=100" width="100px;" alt="Langning Chen"/><br /><sub><b>Langning Chen</b></sub></a><br /><a href="#design-langningchen" title="Design">🎨</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
 
 ## License
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FXMOJ-Script-dev%2FXMOJ-Script.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FXMOJ-Script-dev%2FXMOJ-Script?ref=badge_large)
