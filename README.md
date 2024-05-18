@@ -10,6 +10,8 @@
 
 原项目: https://github.com/langningchen/XMOJ-Script
 
+<a href="https://www.producthunt.com/posts/oj?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-oj" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=458051&theme=light" alt="小明的OJ增强脚本 - 小明的OJ增强脚本 | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+
 ### 帮助文档
 地址：https://docs.xmoj-bbs.tech
 仓库：https://github.com/XMOJ-Script-dev/docs
@@ -127,3 +129,5 @@ npx wrangler dev
 
 ## License
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FXMOJ-Script-dev%2FXMOJ-Script.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FXMOJ-Script-dev%2FXMOJ-Script?ref=badge_large)
+
+
