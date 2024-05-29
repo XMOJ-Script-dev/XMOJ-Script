@@ -1616,6 +1616,10 @@ async function main() {
                     }
                 }
             } else if (location.pathname == "/contest.php") {
+                if (document.body.innerText.includes("比赛尚未开始或私有，不能查看题目。")) {
+                    document.body.innerHTML = String(document.body.innerHTML).replaceAll("比赛尚未开始或私有，不能查看题目。",`比赛尚未开始或私有，暂时不能查看题目。</br></br>正在跳转至“竞赛&作业”页面 . . . . . .`);
+                    location.href = "https://www.xmoj.tech/contest.php";
+                }
                 if (UtilityEnabled("AutoCountdown")) {
                     clock = () => {
                     }
