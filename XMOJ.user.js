@@ -396,6 +396,9 @@ async function main() {
     if (location.host != "www.xmoj.tech") {
         location.host = "www.xmoj.tech";
     } else {
+        if (location.href === 'https://www.xmoj.tech/open_contest_sign_up.php') {
+            return;
+        }
         document.body.classList.add("placeholder-glow");
         if (document.querySelector("#navbar") != null) {
             if (document.querySelector("body > div > div.jumbotron") != null) {
@@ -540,9 +543,6 @@ async function main() {
             if (UtilityEnabled("RemoveUseless") && document.getElementsByTagName("marquee")[0] != undefined) {
                 document.getElementsByTagName("marquee")[0].remove();
             }
-            document.querySelectorAll('.hidden').forEach(element => {
-                element.remove();
-            });
             let Style = document.createElement("style");
             document.body.appendChild(Style);
             Style.innerHTML = `
