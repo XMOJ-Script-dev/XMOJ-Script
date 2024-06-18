@@ -540,7 +540,9 @@ async function main() {
             if (UtilityEnabled("RemoveUseless") && document.getElementsByTagName("marquee")[0] != undefined) {
                 document.getElementsByTagName("marquee")[0].remove();
             }
-
+            document.querySelectorAll('.hidden').forEach(element => {
+                element.remove();
+            });
             let Style = document.createElement("style");
             document.body.appendChild(Style);
             Style.innerHTML = `
