@@ -338,7 +338,7 @@ let RequestAPI = (Action, Data, CallBack) => {
     };
     let DataString = JSON.stringify(PostData);
     if (UtilityEnabled("DebugMode")) {
-        console.log("Sent: ", DataString);
+        console.log("Sent for", Action + ":", DataString);
     }
     GM_xmlhttpRequest({
         method: "POST",
@@ -349,7 +349,7 @@ let RequestAPI = (Action, Data, CallBack) => {
         data: DataString,
         onload: (Response) => {
             if (UtilityEnabled("DebugMode")) {
-                console.log("Received: ", Response.responseText);
+                console.log("Received for", Action + ":", Response.responseText);
             }
             try {
                 CallBack(JSON.parse(Response.responseText));
