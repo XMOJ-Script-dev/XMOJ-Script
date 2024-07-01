@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.1.67
+// @version      1.1.70
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -254,13 +254,13 @@ let StringToSeconds = (InputString) => {
 let SizeToStringSize = (Memory) => {
     if (UtilityEnabled("AddUnits")) {
         if (Memory < 1024) {
-            return Memory + "B";
+            return Memory + "KB";
         } else if (Memory < 1024 * 1024) {
-            return (Memory / 1024).toFixed(2) + "KB";
+            return (Memory / 1024).toFixed(2) + "MB";
         } else if (Memory < 1024 * 1024 * 1024) {
-            return (Memory / 1024 / 1024).toFixed(2) + "MB";
+            return (Memory / 1024 / 1024).toFixed(2) + "GB";
         } else {
-            return (Memory / 1024 / 1024 / 1024).toFixed(2) + "GB";
+            return (Memory / 1024 / 1024 / 1024).toFixed(2) + "TB";
         }
     } else {
         return Memory;
@@ -396,6 +396,9 @@ async function main() {
     if (location.host != "www.xmoj.tech") {
         location.host = "www.xmoj.tech";
     } else {
+        if (location.href === 'https://www.xmoj.tech/open_contest_sign_up.php') {
+            return;
+        }
         document.body.classList.add("placeholder-glow");
         if (document.querySelector("#navbar") != null) {
             if (document.querySelector("body > div > div.jumbotron") != null) {
@@ -540,7 +543,6 @@ async function main() {
             if (UtilityEnabled("RemoveUseless") && document.getElementsByTagName("marquee")[0] != undefined) {
                 document.getElementsByTagName("marquee")[0].remove();
             }
-
             let Style = document.createElement("style");
             document.body.appendChild(Style);
             Style.innerHTML = `

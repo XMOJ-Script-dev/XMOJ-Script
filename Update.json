@@ -1592,6 +1592,43 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.68": {
+            "UpdateDate": 1718670038883,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 544,
+                    "Description": "fix https://www.xmoj.tech/open_contest_sign_up.php"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.69": {
+            "UpdateDate": 1719815069812,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 546,
+                    "Description": "fix memory displays"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.70": {
+            "UpdateDate": 1719815850792,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 544,
+                    "Description": "fix https://www.xmoj.tech/open_contest_sign_up.php"
+                },
+                {
+                    "PR": 546,
+                    "Description": "fix memory displays"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
