@@ -1603,6 +1603,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.69": {
+            "UpdateDate": 1719815069812,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 546,
+                    "Description": "fix memory displays"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
