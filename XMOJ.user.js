@@ -254,13 +254,13 @@ let StringToSeconds = (InputString) => {
 let SizeToStringSize = (Memory) => {
     if (UtilityEnabled("AddUnits")) {
         if (Memory < 1024) {
-            return Memory + "B";
+            return Memory + "KB";
         } else if (Memory < 1024 * 1024) {
-            return (Memory / 1024).toFixed(2) + "KB";
+            return (Memory / 1024).toFixed(2) + "MB";
         } else if (Memory < 1024 * 1024 * 1024) {
-            return (Memory / 1024 / 1024).toFixed(2) + "MB";
+            return (Memory / 1024 / 1024).toFixed(2) + "GB";
         } else {
-            return (Memory / 1024 / 1024 / 1024).toFixed(2) + "GB";
+            return (Memory / 1024 / 1024 / 1024).toFixed(2) + "TB";
         }
     } else {
         return Memory;
