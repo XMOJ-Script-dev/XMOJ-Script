@@ -1614,6 +1614,21 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.70": {
+            "UpdateDate": 1719815850792,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 544,
+                    "Description": "fix https://www.xmoj.tech/open_contest_sign_up.php"
+                },
+                {
+                    "PR": 546,
+                    "Description": "fix memory displays"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
