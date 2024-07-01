@@ -337,6 +337,9 @@ let RequestAPI = (Action, Data, CallBack) => {
         }, "Data": Data, "Version": GM_info.script.version, "DebugMode": UtilityEnabled("DebugMode")
     };
     let DataString = JSON.stringify(PostData);
+    if (UtilityEnabled("DebugMode")) {
+        console.log("Sent: ", DataString);
+    }
     GM_xmlhttpRequest({
         method: "POST",
         url: (UtilityEnabled("SuperDebug") ? "http://127.0.0.1:8787/" : "https://api.xmoj-bbs.tech/") + Action,
@@ -345,6 +348,9 @@ let RequestAPI = (Action, Data, CallBack) => {
         },
         data: DataString,
         onload: (Response) => {
+            if (UtilityEnabled("DebugMode")) {
+                console.log("Received: ", Response.responseText);
+            }
             try {
                 CallBack(JSON.parse(Response.responseText));
             } catch (Error) {
