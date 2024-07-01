@@ -433,11 +433,7 @@ async function main() {
                 document.querySelector("#navbar > ul:nth-child(1) > li:nth-child(2) > a").innerText = "题库";
             }
             //send analytics
-            RequestAPI("SendData", {}, (result) => {
-                if (UtilityEnabled("DebugMode")) {
-                    console.log(result);
-                }
-            });
+            RequestAPI("SendData", {});
             if (UtilityEnabled("ReplaceLinks")) {
                 document.body.innerHTML = String(document.body.innerHTML).replaceAll(/\[<a href="([^"]*)">([^<]*)<\/a>\]/g, "<button onclick=\"location.href='$1'\" class=\"btn btn-outline-secondary\">$2</button>");
             }
