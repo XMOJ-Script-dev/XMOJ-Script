@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.1.70
+// @version      1.1.71
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -337,6 +337,9 @@ let RequestAPI = (Action, Data, CallBack) => {
         }, "Data": Data, "Version": GM_info.script.version, "DebugMode": UtilityEnabled("DebugMode")
     };
     let DataString = JSON.stringify(PostData);
+    if (UtilityEnabled("DebugMode")) {
+        console.log("Sent for", Action + ":", DataString);
+    }
     GM_xmlhttpRequest({
         method: "POST",
         url: (UtilityEnabled("SuperDebug") ? "http://127.0.0.1:8787/" : "https://api.xmoj-bbs.tech/") + Action,
@@ -345,6 +348,9 @@ let RequestAPI = (Action, Data, CallBack) => {
         },
         data: DataString,
         onload: (Response) => {
+            if (UtilityEnabled("DebugMode")) {
+                console.log("Received for", Action + ":", Response.responseText);
+            }
             try {
                 CallBack(JSON.parse(Response.responseText));
             } catch (Error) {
@@ -427,11 +433,7 @@ async function main() {
                 document.querySelector("#navbar > ul:nth-child(1) > li:nth-child(2) > a").innerText = "题库";
             }
             //send analytics
-            RequestAPI("SendData", {}, (result) => {
-                if (UtilityEnabled("DebugMode")) {
-                    console.log(result);
-                }
-            });
+            RequestAPI("SendData", {});
             if (UtilityEnabled("ReplaceLinks")) {
                 document.body.innerHTML = String(document.body.innerHTML).replaceAll(/\[<a href="([^"]*)">([^<]*)<\/a>\]/g, "<button onclick=\"location.href='$1'\" class=\"btn btn-outline-secondary\">$2</button>");
             }
