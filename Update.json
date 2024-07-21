@@ -1640,6 +1640,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.72": {
+            "UpdateDate": 1721535691366,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 552,
+                    "Description": "Update the api domain"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
