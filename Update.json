@@ -1640,6 +1640,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.72": {
+            "UpdateDate": 1721535836758,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 552,
+                    "Description": "Update the api domain"
+                }
+            ],
+            "Notes": "Please note that users using DebugMode should update immediately. <br> The domain ghpages.xmoj-bbs.tech will be updated at a later date."
         }
     }
 }
