@@ -20,9 +20,10 @@
 // @grant        unsafeWindow
 // @grant        GM_setValue
 // @grant        GM_getValue
-// @homepage     https://www.xmoj-bbs.tech/
+// @homepage     https://www.xmoj-bbs.me/
 // @supportURL   https://xmojscript.zohodesk.com/portal/zh/newticket
 // @connect      api.xmoj-bbs.tech
+// @connect      api.xmoj-bbs.me
 // @connect      challenges.cloudflare.com
 // @connect      cppinsights.io
 // @connect      cdn.bootcdn.net
@@ -342,7 +343,7 @@ let RequestAPI = (Action, Data, CallBack) => {
     }
     GM_xmlhttpRequest({
         method: "POST",
-        url: (UtilityEnabled("SuperDebug") ? "http://127.0.0.1:8787/" : "https://api.xmoj-bbs.tech/") + Action,
+        url: (UtilityEnabled("SuperDebug") ? "http://127.0.0.1:8787/" : "https://api.xmoj-bbs.me/") + Action,
         headers: {
             "Content-Type": "application/json"
         },
@@ -389,7 +390,7 @@ if (UtilityEnabled("AutoLogin") && document.querySelector("body > a:nth-child(1)
 }
 
 let SearchParams = new URLSearchParams(location.search);
-let ServerURL = (UtilityEnabled("DebugMode") ? "https://ghpages.xmoj-bbs.tech/" : "https://web.xmoj-bbs.tech")
+let ServerURL = (UtilityEnabled("DebugMode") ? "https://ghpages.xmoj-bbs.tech/" : "https://www.xmoj-bbs.me")
 let CurrentUsername = document.querySelector("#profile").innerText;
 CurrentUsername = CurrentUsername.replaceAll(/[^a-zA-Z0-9]/g, "");
 let IsAdmin = AdminUserList.indexOf(CurrentUsername) !== -1;
@@ -4087,7 +4088,7 @@ int main()
                                                 "Image": Reader.result
                                             }, (ResponseData) => {
                                                 if (ResponseData.Success) {
-                                                    ContentElement.value = Before + `![](https://assets.xmoj-bbs.tech/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
+                                                    ContentElement.value = Before + `![](https://assets.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
                                                     ContentElement.dispatchEvent(new Event("input"));
                                                 } else {
                                                     ContentElement.value = Before + `![上传失败！]()` + After;
@@ -4259,7 +4260,7 @@ int main()
                                                     "Image": Reader.result
                                                 }, (ResponseData) => {
                                                     if (ResponseData.Success) {
-                                                        ContentElement.value = Before + `![](https://assets.xmoj-bbs.tech/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
+                                                        ContentElement.value = Before + `![](https://assets.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
                                                         ContentElement.dispatchEvent(new Event("input"));
                                                     } else {
                                                         ContentElement.value = Before + `![上传失败！]()` + After;
@@ -4508,7 +4509,7 @@ int main()
                                                                     "Image": Reader.result
                                                                 }, (ResponseData) => {
                                                                     if (ResponseData.Success) {
-                                                                        ContentEditor.value = Before + `![](https://assets.xmoj-bbs.tech/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
+                                                                        ContentEditor.value = Before + `![](https://assets.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
                                                                         ContentEditor.dispatchEvent(new Event("input"));
                                                                     } else {
                                                                         ContentEditor.value = Before + `![上传失败！]()` + After;
