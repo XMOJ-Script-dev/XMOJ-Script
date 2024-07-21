@@ -1650,7 +1650,7 @@
                     "Description": "Update the api domain"
                 }
             ],
-            "Notes": "No release notes were provided for this release."
+            "Notes": "Please note that users using DebugMode should update immediately. <br> The domain ghpages.xmoj-bbs.tech will be updated at a later date."
         }
     }
 }
