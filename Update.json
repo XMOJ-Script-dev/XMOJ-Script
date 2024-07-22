@@ -1666,7 +1666,7 @@
         }
       ],
       "Notes": "Please update immediately, thank you. <br>This release changes the api domain from xmoj-bbs.tech to xmoj-bbs.me"
-      //!ci-no-touch
+      
     }
   }
 }
