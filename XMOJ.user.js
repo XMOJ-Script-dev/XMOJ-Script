@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.1.70
+// @version      1.2.0
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -20,9 +20,10 @@
 // @grant        unsafeWindow
 // @grant        GM_setValue
 // @grant        GM_getValue
-// @homepage     https://www.xmoj-bbs.tech/
+// @homepage     https://www.xmoj-bbs.me/
 // @supportURL   https://xmojscript.zohodesk.com/portal/zh/newticket
 // @connect      api.xmoj-bbs.tech
+// @connect      api.xmoj-bbs.me
 // @connect      challenges.cloudflare.com
 // @connect      cppinsights.io
 // @connect      cdn.bootcdn.net
@@ -337,14 +338,20 @@ let RequestAPI = (Action, Data, CallBack) => {
         }, "Data": Data, "Version": GM_info.script.version, "DebugMode": UtilityEnabled("DebugMode")
     };
     let DataString = JSON.stringify(PostData);
+    if (UtilityEnabled("DebugMode")) {
+        console.log("Sent for", Action + ":", DataString);
+    }
     GM_xmlhttpRequest({
         method: "POST",
-        url: (UtilityEnabled("SuperDebug") ? "http://127.0.0.1:8787/" : "https://api.xmoj-bbs.tech/") + Action,
+        url: (UtilityEnabled("SuperDebug") ? "http://127.0.0.1:8787/" : "https://api.xmoj-bbs.me/") + Action,
         headers: {
             "Content-Type": "application/json"
         },
         data: DataString,
         onload: (Response) => {
+            if (UtilityEnabled("DebugMode")) {
+                console.log("Received for", Action + ":", Response.responseText);
+            }
             try {
                 CallBack(JSON.parse(Response.responseText));
             } catch (Error) {
@@ -383,7 +390,7 @@ if (UtilityEnabled("AutoLogin") && document.querySelector("body > a:nth-child(1)
 }
 
 let SearchParams = new URLSearchParams(location.search);
-let ServerURL = (UtilityEnabled("DebugMode") ? "https://ghpages.xmoj-bbs.tech/" : "https://web.xmoj-bbs.tech")
+let ServerURL = (UtilityEnabled("DebugMode") ? "https://ghpages.xmoj-bbs.tech/" : "https://www.xmoj-bbs.me")
 let CurrentUsername = document.querySelector("#profile").innerText;
 CurrentUsername = CurrentUsername.replaceAll(/[^a-zA-Z0-9]/g, "");
 let IsAdmin = AdminUserList.indexOf(CurrentUsername) !== -1;
@@ -427,11 +434,7 @@ async function main() {
                 document.querySelector("#navbar > ul:nth-child(1) > li:nth-child(2) > a").innerText = "题库";
             }
             //send analytics
-            RequestAPI("SendData", {}, (result) => {
-                if (UtilityEnabled("DebugMode")) {
-                    console.log(result);
-                }
-            });
+            RequestAPI("SendData", {});
             if (UtilityEnabled("ReplaceLinks")) {
                 document.body.innerHTML = String(document.body.innerHTML).replaceAll(/\[<a href="([^"]*)">([^<]*)<\/a>\]/g, "<button onclick=\"location.href='$1'\" class=\"btn btn-outline-secondary\">$2</button>");
             }
@@ -4085,7 +4088,7 @@ int main()
                                                 "Image": Reader.result
                                             }, (ResponseData) => {
                                                 if (ResponseData.Success) {
-                                                    ContentElement.value = Before + `![](https://assets.xmoj-bbs.tech/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
+                                                    ContentElement.value = Before + `![](https://assets.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
                                                     ContentElement.dispatchEvent(new Event("input"));
                                                 } else {
                                                     ContentElement.value = Before + `![上传失败！]()` + After;
@@ -4257,7 +4260,7 @@ int main()
                                                     "Image": Reader.result
                                                 }, (ResponseData) => {
                                                     if (ResponseData.Success) {
-                                                        ContentElement.value = Before + `![](https://assets.xmoj-bbs.tech/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
+                                                        ContentElement.value = Before + `![](https://assets.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
                                                         ContentElement.dispatchEvent(new Event("input"));
                                                     } else {
                                                         ContentElement.value = Before + `![上传失败！]()` + After;
@@ -4506,7 +4509,7 @@ int main()
                                                                     "Image": Reader.result
                                                                 }, (ResponseData) => {
                                                                     if (ResponseData.Success) {
-                                                                        ContentEditor.value = Before + `![](https://assets.xmoj-bbs.tech/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
+                                                                        ContentEditor.value = Before + `![](https://assets.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
                                                                         ContentEditor.dispatchEvent(new Event("input"));
                                                                     } else {
                                                                         ContentEditor.value = Before + `![上传失败！]()` + After;
