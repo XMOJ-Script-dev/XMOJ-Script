@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.0
+// @version      1.2.1
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -3277,6 +3277,15 @@ async function main() {
                                 GetDataButton.disabled = true;
                                 GetDataButton.innerText = "正在获取数据...";
                                 let PID = localStorage.getItem("UserScript-Solution-" + SearchParams.get("sid") + "-Problem");
+                                if (PID == null) {
+                                    GetDataButton.innerText = "失败! 无法获取PID";
+                                    GetDataButton.disabled = false;
+                                    await new Promise((resolve) => {
+                                        setTimeout(resolve, 800);
+                                    });
+                                    GetDataButton.innerText = "获取数据";
+                                    return;
+                                }
                                 let Code = "";
                                 if (localStorage.getItem(`UserScript-Problem-${PID}-IOFilename`) !== null) {
                                     Code = `#define IOFile "${localStorage.getItem(`UserScript-Problem-${PID}-IOFilename`)}"\n`;
