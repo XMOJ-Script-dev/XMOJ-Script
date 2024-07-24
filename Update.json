@@ -1677,6 +1677,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.2": {
+            "UpdateDate": 1721836257201,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 558,
+                    "Description": "更新issue反馈"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
