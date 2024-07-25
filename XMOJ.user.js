@@ -21,7 +21,7 @@
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @homepage     https://www.xmoj-bbs.me/
-// @supportURL   https://xmojscript.zohodesk.com/portal/zh/newticket
+// @supportURL   https://github.com/XMOJ-Script-dev/XMOJ-Script/issues
 // @connect      api.xmoj-bbs.tech
 // @connect      api.xmoj-bbs.me
 // @connect      challenges.cloudflare.com
