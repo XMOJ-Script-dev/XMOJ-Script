@@ -1677,6 +1677,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.2": {
+            "UpdateDate": 1721887214365,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 559,
+                    "Description": "Add CLion"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }

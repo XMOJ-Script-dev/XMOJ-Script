@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.1
+// @version      1.2.2
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -21,7 +21,7 @@
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @homepage     https://www.xmoj-bbs.me/
-// @supportURL   https://xmojscript.zohodesk.com/portal/zh/newticket
+// @supportURL   https://github.com/XMOJ-Script-dev/XMOJ-Script/issues
 // @connect      api.xmoj-bbs.tech
 // @connect      api.xmoj-bbs.me
 // @connect      challenges.cloudflare.com
@@ -3434,6 +3434,10 @@ int main()
                         "Name": "RedPanda C++",
                         "Image": "https://a.fsdn.com/allura/p/redpanda-cpp/icon",
                         "URL": "https://sourceforge.net/projects/redpanda-cpp/"
+                    }, {
+                        "Name": "CLion",
+                        "Image": "https://resources.jetbrains.com/storage/products/company/brand/logos/CLion_icon.png",
+                        "URL": "https://www.jetbrains.com/clion/download"
                     }, {
                         "Name": "CP Editor",
                         "Image": "https://a.fsdn.com/allura/mirror/cp-editor/icon",
