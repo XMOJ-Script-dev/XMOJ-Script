@@ -3895,6 +3895,7 @@ int main()
                     Discussion.classList.add("active");
                     if (location.pathname == "/discuss3/discuss.php") {
                         let ProblemID = parseInt(SearchParams.get("pid"));
+                        let BoardID = parseInt(SearchParams.get("bid"));
                         let Page = Number(SearchParams.get("page")) || 1;
                         document.querySelector("body > div > div").innerHTML = `<h3>讨论列表${(isNaN(ProblemID) ? "" : ` - 题目` + ProblemID)}</h3>
                     <button id="NewPost" type="button" class="btn btn-primary">发布新讨论</button>
@@ -3954,11 +3955,11 @@ int main()
                                 if (ResponseData.Success == true) {
                                     ErrorElement.style.display = "none";
                                     if (!Silent) {
-                                        DiscussPagination.children[0].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + "page=1";
-                                        DiscussPagination.children[1].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + "page=" + (Page - 1);
-                                        DiscussPagination.children[2].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + "page=" + Page;
-                                        DiscussPagination.children[3].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + "page=" + (Page + 1);
-                                        DiscussPagination.children[4].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + "page=" + ResponseData.Data.PageCount;
+                                        DiscussPagination.children[0].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + (isNaN(BoardID) ? "" : "bid=" + BoardID + "&") + "page=1";
+                                        DiscussPagination.children[1].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + (isNaN(BoardID) ? "" : "bid=" + BoardID + "&") + "page=" + (Page - 1);
+                                        DiscussPagination.children[2].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + (isNaN(BoardID) ? "" : "bid=" + BoardID + "&") + "page=" + Page;
+                                        DiscussPagination.children[3].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + (isNaN(BoardID) ? "" : "bid=" + BoardID + "&") + "page=" + (Page + 1);
+                                        DiscussPagination.children[4].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + (isNaN(BoardID) ? "" : "bid=" + BoardID + "&") + "page=" + ResponseData.Data.PageCount;
                                         if (Page <= 1) {
                                             DiscussPagination.children[0].classList.add("disabled");
                                             DiscussPagination.children[1].remove();
