@@ -1759,6 +1759,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.8": {
+            "UpdateDate": 1722070813624,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 570,
+                    "Description": "增加公告栏"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
