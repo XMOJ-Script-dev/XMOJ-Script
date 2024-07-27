@@ -1162,6 +1162,16 @@ async function main() {
                         <div class="cnt-row-head title">倒计时</div>
                         <div class="cnt-row-body">${CountDownData}</div>
                     </div>`;
+                    document.querySelector("body > div > div.mt-3 > div > div.col-md-4").innerHTML += `<div class="cnt-row">
+                        <div class="cnt-row-head title">公告</div>
+                        <div class="cnt-row-body">加载中...</div>  
+                    </div>`;
+                    RequestAPI("GetNotice", {}, (Response) => {
+                        if (Response.Success) {
+                            document.querySelector("body > div.container > div > div > div.col-md-4 > div:nth-child(2) > div.cnt-row-body").innerHTML = marked.parse(Response.Data["Notice"]);
+                            RenderMathJax();
+                        }
+                    });
                 }
             } else if (location.pathname == "/problemset.php") {
                 if (UtilityEnabled("Translate")) {
