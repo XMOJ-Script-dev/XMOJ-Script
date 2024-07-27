@@ -5,14 +5,14 @@
 ![GitHub release](https://img.shields.io/github/v/release/XMOJ-Script-dev/XMOJ-Script)
 ![GitHub issues](https://img.shields.io/github/issues/XMOJ-Script-dev/XMOJ-Script)
 
-[点击此处访问官网查看更多内容](https://web.xmoj-bbs.tech)
+[点击此处访问官网查看更多内容](https://xmoj-bbs.me)
 
 原项目: https://github.com/langningchen/XMOJ-Script
 
 <a href="https://www.producthunt.com/posts/oj?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-oj" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=458051&theme=light" alt="小明的OJ增强脚本 - 小明的OJ增强脚本 | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 
 ### 帮助文档
-地址：https://docs.xmoj-bbs.tech
+地址：https://docs.xmoj-bbs.me
 仓库：https://github.com/XMOJ-Script-dev/docs
 
 ### 介绍
@@ -59,7 +59,7 @@
 
 ![](Images/1.png)
 ![](Images/2.png)
-更多图片可在[官网](https://www.xmoj-bbs.tech)上查看
+更多图片可在[官网](https://www.xmoj-bbs.me)上查看
 
 通过小明的OJ增强脚本，您将能够更便捷地参与竞赛，提高AC率，管理代码，优化学习体验，同时享受美化界面带来的愉悦感受。
 无论是竞技还是学习，这个脚本都将成为您在小明的OJ平台上的得力助手。
@@ -68,7 +68,7 @@
 
 
 ### 安装
-请参考 [官网介绍](https://www.xmoj-bbs.tech) 。
+请参考 [官网介绍](https://www.xmoj-bbs.me) 。
 如果您无法打开该网站，请前往[这里](https://scriptcat.org/zh-CN/script-show-page/1500/)安装。
 
 ### 贡献
