@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.0
+// @version      1.2.6
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -21,7 +21,7 @@
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @homepage     https://www.xmoj-bbs.me/
-// @supportURL   https://xmojscript.zohodesk.com/portal/zh/newticket
+// @supportURL   https://github.com/XMOJ-Script-dev/XMOJ-Script/issues
 // @connect      api.xmoj-bbs.tech
 // @connect      api.xmoj-bbs.me
 // @connect      challenges.cloudflare.com
@@ -390,7 +390,7 @@ if (UtilityEnabled("AutoLogin") && document.querySelector("body > a:nth-child(1)
 }
 
 let SearchParams = new URLSearchParams(location.search);
-let ServerURL = (UtilityEnabled("DebugMode") ? "https://ghpages.xmoj-bbs.tech/" : "https://www.xmoj-bbs.me")
+let ServerURL = (UtilityEnabled("DebugMode") ? "https://ghpages.xmoj-bbs.me/" : "https://www.xmoj-bbs.me")
 let CurrentUsername = document.querySelector("#profile").innerText;
 CurrentUsername = CurrentUsername.replaceAll(/[^a-zA-Z0-9]/g, "");
 let IsAdmin = AdminUserList.indexOf(CurrentUsername) !== -1;
@@ -3277,6 +3277,15 @@ async function main() {
                                 GetDataButton.disabled = true;
                                 GetDataButton.innerText = "正在获取数据...";
                                 let PID = localStorage.getItem("UserScript-Solution-" + SearchParams.get("sid") + "-Problem");
+                                if (PID == null) {
+                                    GetDataButton.innerText = "失败! 无法获取PID";
+                                    GetDataButton.disabled = false;
+                                    await new Promise((resolve) => {
+                                        setTimeout(resolve, 800);
+                                    });
+                                    GetDataButton.innerText = "获取数据";
+                                    return;
+                                }
                                 let Code = "";
                                 if (localStorage.getItem(`UserScript-Problem-${PID}-IOFilename`) !== null) {
                                     Code = `#define IOFile "${localStorage.getItem(`UserScript-Problem-${PID}-IOFilename`)}"\n`;
@@ -3425,6 +3434,10 @@ int main()
                         "Name": "RedPanda C++",
                         "Image": "https://a.fsdn.com/allura/p/redpanda-cpp/icon",
                         "URL": "https://sourceforge.net/projects/redpanda-cpp/"
+                    }, {
+                        "Name": "CLion",
+                        "Image": "https://resources.jetbrains.com/storage/products/company/brand/logos/CLion_icon.png",
+                        "URL": "https://www.jetbrains.com/clion/download"
                     }, {
                         "Name": "CP Editor",
                         "Image": "https://a.fsdn.com/allura/mirror/cp-editor/icon",
@@ -3846,6 +3859,35 @@ int main()
                     Content.addEventListener("input", () => {
                         Content.classList.remove("is-invalid");
                     });
+                    Content.addEventListener("paste", (EventData) => {
+                        let Items = EventData.clipboardData.items;
+                        if (Items.length !== 0) {
+                            for (let i = 0; i < Items.length; i++) {
+                                if (Items[i].type.indexOf("image") != -1) {
+                                    let Reader = new FileReader();
+                                    Reader.readAsDataURL(Items[i].getAsFile());
+                                    Reader.onload = () => {
+                                        let Before = Content.value.substring(0, Content.selectionStart);
+                                        let After = Content.value.substring(Content.selectionEnd, Content.value.length);
+                                        const UploadMessage = "![正在上传图片...]()";
+                                        Content.value = Before + UploadMessage + After;
+                                        Content.dispatchEvent(new Event("input"));
+                                        RequestAPI("UploadImage", {
+                                            "Image": Reader.result
+                                        }, (ResponseData) => {
+                                            if (ResponseData.Success) {
+                                                Content.value = Before + `![](https://assets.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
+                                                Content.dispatchEvent(new Event("input"));
+                                            } else {
+                                                Content.value = Before + `![上传失败！]()` + After;
+                                                Content.dispatchEvent(new Event("input"));
+                                            }
+                                        });
+                                    };
+                                }
+                            }
+                        }
+                    });
                     Content.addEventListener("keydown", (Event) => {
                         if (Event.keyCode == 13) {
                             Send.click();
@@ -3882,6 +3924,7 @@ int main()
                     Discussion.classList.add("active");
                     if (location.pathname == "/discuss3/discuss.php") {
                         let ProblemID = parseInt(SearchParams.get("pid"));
+                        let BoardID = parseInt(SearchParams.get("bid"));
                         let Page = Number(SearchParams.get("page")) || 1;
                         document.querySelector("body > div > div").innerHTML = `<h3>讨论列表${(isNaN(ProblemID) ? "" : ` - 题目` + ProblemID)}</h3>
                     <button id="NewPost" type="button" class="btn btn-primary">发布新讨论</button>
@@ -3941,11 +3984,11 @@ int main()
                                 if (ResponseData.Success == true) {
                                     ErrorElement.style.display = "none";
                                     if (!Silent) {
-                                        DiscussPagination.children[0].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + "page=1";
-                                        DiscussPagination.children[1].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + "page=" + (Page - 1);
-                                        DiscussPagination.children[2].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + "page=" + Page;
-                                        DiscussPagination.children[3].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + "page=" + (Page + 1);
-                                        DiscussPagination.children[4].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + "page=" + ResponseData.Data.PageCount;
+                                        DiscussPagination.children[0].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + (isNaN(BoardID) ? "" : "bid=" + BoardID + "&") + "page=1";
+                                        DiscussPagination.children[1].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + (isNaN(BoardID) ? "" : "bid=" + BoardID + "&") + "page=" + (Page - 1);
+                                        DiscussPagination.children[2].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + (isNaN(BoardID) ? "" : "bid=" + BoardID + "&") + "page=" + Page;
+                                        DiscussPagination.children[3].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + (isNaN(BoardID) ? "" : "bid=" + BoardID + "&") + "page=" + (Page + 1);
+                                        DiscussPagination.children[4].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + (isNaN(BoardID) ? "" : "bid=" + BoardID + "&") + "page=" + ResponseData.Data.PageCount;
                                         if (Page <= 1) {
                                             DiscussPagination.children[0].classList.add("disabled");
                                             DiscussPagination.children[1].remove();
