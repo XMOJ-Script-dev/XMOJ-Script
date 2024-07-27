@@ -1699,6 +1699,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.4": {
+            "UpdateDate": 1722040221117,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 565,
+                    "Description": "短消息增加图床支持"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }

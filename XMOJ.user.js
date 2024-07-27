@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.3
+// @version      1.2.4
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -3858,6 +3858,35 @@ int main()
                     };
                     Content.addEventListener("input", () => {
                         Content.classList.remove("is-invalid");
+                    });
+                    Content.addEventListener("paste", (EventData) => {
+                        let Items = EventData.clipboardData.items;
+                        if (Items.length !== 0) {
+                            for (let i = 0; i < Items.length; i++) {
+                                if (Items[i].type.indexOf("image") != -1) {
+                                    let Reader = new FileReader();
+                                    Reader.readAsDataURL(Items[i].getAsFile());
+                                    Reader.onload = () => {
+                                        let Before = Content.value.substring(0, Content.selectionStart);
+                                        let After = Content.value.substring(Content.selectionEnd, Content.value.length);
+                                        const UploadMessage = "![正在上传图片...]()";
+                                        Content.value = Before + UploadMessage + After;
+                                        Content.dispatchEvent(new Event("input"));
+                                        RequestAPI("UploadImage", {
+                                            "Image": Reader.result
+                                        }, (ResponseData) => {
+                                            if (ResponseData.Success) {
+                                                Content.value = Before + `![](https://assets.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
+                                                Content.dispatchEvent(new Event("input"));
+                                            } else {
+                                                Content.value = Before + `![上传失败！]()` + After;
+                                                Content.dispatchEvent(new Event("input"));
+                                            }
+                                        });
+                                    };
+                                }
+                            }
+                        }
                     });
                     Content.addEventListener("keydown", (Event) => {
                         if (Event.keyCode == 13) {
