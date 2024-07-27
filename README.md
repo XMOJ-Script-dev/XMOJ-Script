@@ -85,27 +85,6 @@
 > [!IMPORTANT]
 > 请注意, 外部开发者应向`extern-contrib`提交 pull requests。
 
-### Project Status
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FXMOJ-Script-dev%2FXMOJ-Script.svg?type=shield&issueType=license)](https://app.fossa.com/projects/git%2Bgithub.com%2FXMOJ-Script-dev%2FXMOJ-Script?ref=badge_shield&issueType=license)
-
-### How to set up a development server
-```bash
-cd backend
-npm install 
-npx wrangler d1 execute DB --file ./Source/Initial.sql --local
-npx wrangler dev
-```
-## Contributors
-
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
-
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
-
-<!-- ALL-CONTRIBUTORS-LIST:END -->
-
 ## Contributors
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
@@ -126,8 +105,5 @@ npx wrangler dev
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
-
-## License
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FXMOJ-Script-dev%2FXMOJ-Script.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FXMOJ-Script-dev%2FXMOJ-Script?ref=badge_large)
 
 
