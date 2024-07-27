@@ -1710,6 +1710,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.5": {
+            "UpdateDate": 1722044501316,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 566,
+                    "Description": "预览版域名切换"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
