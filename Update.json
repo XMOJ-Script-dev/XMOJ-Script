@@ -1748,6 +1748,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.7": {
+            "UpdateDate": 1722063024309,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 570,
+                    "Description": "增加公告栏"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
