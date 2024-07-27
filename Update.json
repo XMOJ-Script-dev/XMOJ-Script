@@ -1688,6 +1688,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.3": {
+            "UpdateDate": 1722003346568,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 563,
+                    "Description": "fix #562"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
