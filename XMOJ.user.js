@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.11
+// @version      1.2.12
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -292,33 +292,9 @@ let TimeToStringTime = (Time) => {
  * @param {HTMLElement} Table - The table element to be tidied up.
  */
 let TidyTable = (Table) => {
-    // if (UtilityEnabled("NewBootstrap") && Table != null) {
-    //     Table.className = "table table-hover";
-    //     Table.querySelector("thead > tr").removeAttribute("class");
-    //     Table.querySelector("thead > tr").removeAttribute("align");
-    //     Table.querySelector("thead > tr").innerHTML = Table.querySelector("thead > tr").innerHTML.replaceAll("td", "th");
-    //     let Temp = Table.querySelector("thead > tr").children;
-    //     for (let j = 0; j < Temp.length; j++) {
-    //         let Width = Temp[j].style.width;
-    //         Temp[j].removeAttribute("style");
-    //         Temp[j].style.width = Width;
-    //         Temp[j].removeAttribute("onclick");
-    //         Temp[j].removeAttribute("align");
-    //     }
-    //     Table.querySelector("tbody").className = "table-group-divider";
-    //     Temp = Table.querySelector("tbody").children;
-    //     for (let j = 0; j < Temp.length; j++) {
-    //         Temp[j].removeAttribute("align");
-    //         let Temp2 = Temp[j].querySelectorAll("*");
-    //         for (let k = 0; k < Temp2.length; k++) {
-    //             Temp2[k].classList.remove("left");
-    //             Temp2[k].classList.remove("center");
-    //             if (Temp2[k].className == "") {
-    //                 Temp2[k].removeAttribute("class");
-    //             }
-    //         }
-    //     }
-    // }
+    if (UtilityEnabled("NewBootstrap") && Table != null) {
+        Table.className = "table table-hover";
+    }
 };
 let UtilityEnabled = (Name) => {
     if (localStorage.getItem("UserScript-Setting-" + Name) == null) {
@@ -1168,6 +1144,10 @@ async function main() {
                         <div class="cnt-row-head title">倒计时</div>
                         <div class="cnt-row-body">${CountDownData}</div>
                     </div>`;
+                    let Tables = document.getElementsByTagName("table");
+                    for (let i = 0; i < Tables.length; i++) {
+                        TidyTable(Tables[i]);
+                    }
                     document.querySelector("body > div > div.mt-3 > div > div.col-md-4").innerHTML += `<div class="cnt-row">
                         <div class="cnt-row-head title">公告</div>
                         <div class="cnt-row-body">加载中...</div>  
@@ -1999,8 +1979,8 @@ async function main() {
                             })
                             .then(async (Response) => {
                                 RankData = [];
-
                                 let Table = document.querySelector("#rank");
+                                Table.classList.add("table");
                                 Table.innerHTML = "";
                                 let StartPosition = Response.indexOf("var solutions=") + 14;
                                 let EndPosition = Response.indexOf("}];", StartPosition) + 2;

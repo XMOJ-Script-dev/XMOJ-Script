@@ -1803,6 +1803,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.12": {
+            "UpdateDate": 1722433643071,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 576,
+                    "Description": "fix tidytable"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
