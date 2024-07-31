@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.13
+// @version      1.2.14
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -468,7 +468,7 @@ async function main() {
                     rel: 'stylesheet'
                 }, {
                     type: 'script',
-                    src: 'https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js',
+                    src: 'https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.js',
                     isModule: true
                 }];
                 if (UtilityEnabled("cdnjs")) {
@@ -476,7 +476,7 @@ async function main() {
                     resources[1].href = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.min.css';
                     resources[2].href = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/addon/merge/merge.min.css';
                     resources[3].href = 'https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css';
-                    resources[4].src = 'https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js';
+                    resources[4].src = 'https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.js';
                 }
                 let loadResources = async () => {
                     let promises = resources.map(resource => {
