@@ -289,33 +289,33 @@ let TimeToStringTime = (Time) => {
  * @param {HTMLElement} Table - The table element to be tidied up.
  */
 let TidyTable = (Table) => {
-    if (UtilityEnabled("NewBootstrap") && Table != null) {
-        Table.className = "table table-hover";
-        Table.querySelector("thead > tr").removeAttribute("class");
-        Table.querySelector("thead > tr").removeAttribute("align");
-        Table.querySelector("thead > tr").innerHTML = Table.querySelector("thead > tr").innerHTML.replaceAll("td", "th");
-        let Temp = Table.querySelector("thead > tr").children;
-        for (let j = 0; j < Temp.length; j++) {
-            let Width = Temp[j].style.width;
-            Temp[j].removeAttribute("style");
-            Temp[j].style.width = Width;
-            Temp[j].removeAttribute("onclick");
-            Temp[j].removeAttribute("align");
-        }
-        Table.querySelector("tbody").className = "table-group-divider";
-        Temp = Table.querySelector("tbody").children;
-        for (let j = 0; j < Temp.length; j++) {
-            Temp[j].removeAttribute("align");
-            let Temp2 = Temp[j].querySelectorAll("*");
-            for (let k = 0; k < Temp2.length; k++) {
-                Temp2[k].classList.remove("left");
-                Temp2[k].classList.remove("center");
-                if (Temp2[k].className == "") {
-                    Temp2[k].removeAttribute("class");
-                }
-            }
-        }
-    }
+    // if (UtilityEnabled("NewBootstrap") && Table != null) {
+    //     Table.className = "table table-hover";
+    //     Table.querySelector("thead > tr").removeAttribute("class");
+    //     Table.querySelector("thead > tr").removeAttribute("align");
+    //     Table.querySelector("thead > tr").innerHTML = Table.querySelector("thead > tr").innerHTML.replaceAll("td", "th");
+    //     let Temp = Table.querySelector("thead > tr").children;
+    //     for (let j = 0; j < Temp.length; j++) {
+    //         let Width = Temp[j].style.width;
+    //         Temp[j].removeAttribute("style");
+    //         Temp[j].style.width = Width;
+    //         Temp[j].removeAttribute("onclick");
+    //         Temp[j].removeAttribute("align");
+    //     }
+    //     Table.querySelector("tbody").className = "table-group-divider";
+    //     Temp = Table.querySelector("tbody").children;
+    //     for (let j = 0; j < Temp.length; j++) {
+    //         Temp[j].removeAttribute("align");
+    //         let Temp2 = Temp[j].querySelectorAll("*");
+    //         for (let k = 0; k < Temp2.length; k++) {
+    //             Temp2[k].classList.remove("left");
+    //             Temp2[k].classList.remove("center");
+    //             if (Temp2[k].className == "") {
+    //                 Temp2[k].removeAttribute("class");
+    //             }
+    //         }
+    //     }
+    // }
 };
 let UtilityEnabled = (Name) => {
     if (localStorage.getItem("UserScript-Setting-" + Name) == null) {
