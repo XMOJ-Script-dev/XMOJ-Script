@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.8
+// @version      1.2.13
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -80,6 +80,9 @@ let RenderMathJax = async () => {
         ScriptElement.id = "MathJax-script";
         ScriptElement.type = "text/javascript";
         ScriptElement.src = "https://cdn.bootcdn.net/ajax/libs/mathjax/3.0.5/es5/tex-chtml.js";
+        if (UtilityEnabled("cdnjs")) {
+            ScriptElement.src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.0.5/es5/tex-chtml.js";
+        }
         document.body.appendChild(ScriptElement);
         await new Promise((Resolve) => {
             ScriptElement.onload = () => {
@@ -291,35 +294,11 @@ let TimeToStringTime = (Time) => {
 let TidyTable = (Table) => {
     if (UtilityEnabled("NewBootstrap") && Table != null) {
         Table.className = "table table-hover";
-        Table.querySelector("thead > tr").removeAttribute("class");
-        Table.querySelector("thead > tr").removeAttribute("align");
-        Table.querySelector("thead > tr").innerHTML = Table.querySelector("thead > tr").innerHTML.replaceAll("td", "th");
-        let Temp = Table.querySelector("thead > tr").children;
-        for (let j = 0; j < Temp.length; j++) {
-            let Width = Temp[j].style.width;
-            Temp[j].removeAttribute("style");
-            Temp[j].style.width = Width;
-            Temp[j].removeAttribute("onclick");
-            Temp[j].removeAttribute("align");
-        }
-        Table.querySelector("tbody").className = "table-group-divider";
-        Temp = Table.querySelector("tbody").children;
-        for (let j = 0; j < Temp.length; j++) {
-            Temp[j].removeAttribute("align");
-            let Temp2 = Temp[j].querySelectorAll("*");
-            for (let k = 0; k < Temp2.length; k++) {
-                Temp2[k].classList.remove("left");
-                Temp2[k].classList.remove("center");
-                if (Temp2[k].className == "") {
-                    Temp2[k].removeAttribute("class");
-                }
-            }
-        }
     }
 };
 let UtilityEnabled = (Name) => {
     if (localStorage.getItem("UserScript-Setting-" + Name) == null) {
-        const defaultOffItems = ["DebugMode", "UnpkgCdn", "SuperDebug", "ReplaceXM"];
+        const defaultOffItems = ["DebugMode", "cdnjs", "SuperDebug", "ReplaceXM"];
         localStorage.setItem("UserScript-Setting-" + Name, defaultOffItems.includes(Name) ? "false" : "true");
     }
     return localStorage.getItem("UserScript-Setting-" + Name) == "true";
@@ -485,16 +464,19 @@ async function main() {
                     rel: 'stylesheet'
                 }, {
                     type: 'link',
-                    href: 'https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0-alpha3/css/bootstrap.min.css',
+                    href: 'https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.3/css/bootstrap.min.css',
                     rel: 'stylesheet'
                 }, {
                     type: 'script',
-                    src: 'https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0-alpha3/js/bootstrap.bundle.min.js',
+                    src: 'https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js',
                     isModule: true
                 }];
-                if (UtilityEnabled("UnpkgCdn")) {
-                    resources[3].href = 'https://unpkg.com/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css';
-                    resources[4].src = 'https://unpkg.com/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js';
+                if (UtilityEnabled("cdnjs")) {
+                    resources[0].href = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css';
+                    resources[1].href = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.min.css';
+                    resources[2].href = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/addon/merge/merge.min.css';
+                    resources[3].href = 'https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css';
+                    resources[4].src = 'https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js';
                 }
                 let loadResources = async () => {
                     let promises = resources.map(resource => {
@@ -1102,7 +1084,7 @@ async function main() {
                         "ID": "DebugMode", "Type": "A", "Name": "调试模式（仅供开发者使用）"
                     }, {
                         "ID": "SuperDebug", "Type": "A", "Name": "本地调试模式（仅供开发者使用) (未经授权的擅自开启将导致大部分功能不可用！)"
-                    }, {"ID": "UnpkgCdn", "Type": "A", "Name": "使用 unpkg CDN (不建议使用)"},]));
+                    }, {"ID": "cdnjs", "Type": "A", "Name": "使用 cdnjs (如果延迟不大, 建议使用)"},]));
                     let UtilitiesCardFooter = document.createElement("div");
                     UtilitiesCardFooter.className = "card-footer text-muted";
                     UtilitiesCardFooter.innerText = "* 不建议关闭，可能会导致系统不稳定、界面错乱、功能缺失等问题\n绿色：增加功能　黄色：修改功能　红色：删除功能";
@@ -1162,14 +1144,24 @@ async function main() {
                         <div class="cnt-row-head title">倒计时</div>
                         <div class="cnt-row-body">${CountDownData}</div>
                     </div>`;
+                    let Tables = document.getElementsByTagName("table");
+                    for (let i = 0; i < Tables.length; i++) {
+                        TidyTable(Tables[i]);
+                    }
                     document.querySelector("body > div > div.mt-3 > div > div.col-md-4").innerHTML += `<div class="cnt-row">
                         <div class="cnt-row-head title">公告</div>
                         <div class="cnt-row-body">加载中...</div>  
                     </div>`;
                     RequestAPI("GetNotice", {}, (Response) => {
                         if (Response.Success) {
-                            document.querySelector("body > div.container > div > div > div.col-md-4 > div:nth-child(2) > div.cnt-row-body").innerHTML = marked.parse(Response.Data["Notice"]);
+                            document.querySelector("body > div.container > div > div > div.col-md-4 > div:nth-child(2) > div.cnt-row-body").innerHTML = marked.parse(Response.Data["Notice"]).replaceAll(/@([a-zA-Z0-9]+)/g, `<b>@</b><span class="ms-1 Usernames">$1</span>`);
                             RenderMathJax();
+                            let UsernameElements = document.getElementsByClassName("Usernames");
+                            for (let i = 0; i < UsernameElements.length; i++) {
+                                GetUsernameHTML(UsernameElements[i], UsernameElements[i].innerText, true);
+                            }
+                        } else {
+                            document.querySelector("body > div.container > div > div > div.col-md-4 > div:nth-child(2) > div.cnt-row-body").innerHTML = "加载失败: " + Response.Message;
                         }
                     });
                 }
@@ -1987,8 +1979,8 @@ async function main() {
                             })
                             .then(async (Response) => {
                                 RankData = [];
-
                                 let Table = document.querySelector("#rank");
+                                Table.classList.add("table");
                                 Table.innerHTML = "";
                                 let StartPosition = Response.indexOf("var solutions=") + 14;
                                 let EndPosition = Response.indexOf("}];", StartPosition) + 2;
@@ -2770,6 +2762,9 @@ async function main() {
                                         let ACCode = Response.split("------------------------------------------------------\r\n");
                                         let ScriptElement = document.createElement("script");
                                         ScriptElement.src = "https://cdn.bootcdn.net/ajax/libs/jszip/3.10.1/jszip.min.js";
+                                        if (UtilityEnabled("cdnjs")) {
+                                            ScriptElement.src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
+                                        }
                                         document.head.appendChild(ScriptElement);
                                         ScriptElement.onload = () => {
                                             var Zip = new JSZip();

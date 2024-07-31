@@ -1770,6 +1770,73 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.9": {
+            "UpdateDate": 1722088781344,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 573,
+                    "Description": "add username rendering for noticeboard"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.10": {
+            "UpdateDate": 1722425862935,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 574,
+                    "Description": "disable tidytable"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.11": {
+            "UpdateDate": 1722432013017,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 575,
+                    "Description": "Upgrade bootstrap + cdnjs"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.12": {
+            "UpdateDate": 1722433643071,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 576,
+                    "Description": "fix tidytable"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.13": {
+            "UpdateDate": 1722435875725,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 573,
+                    "Description": "add username rendering for noticeboard"
+                },
+                {
+                    "PR": 574,
+                    "Description": "disable tidytable"
+                },
+                {
+                    "PR": 575,
+                    "Description": "Upgrade bootstrap + cdnjs"
+                },
+                {
+                    "PR": 576,
+                    "Description": "fix tidytable"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
