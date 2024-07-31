@@ -1814,6 +1814,29 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.13": {
+            "UpdateDate": 1722435875725,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 573,
+                    "Description": "add username rendering for noticeboard"
+                },
+                {
+                    "PR": 574,
+                    "Description": "disable tidytable"
+                },
+                {
+                    "PR": 575,
+                    "Description": "Upgrade bootstrap + cdnjs"
+                },
+                {
+                    "PR": 576,
+                    "Description": "fix tidytable"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
