@@ -1837,6 +1837,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.14": {
+            "UpdateDate": 1722470253103,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 580,
+                    "Description": "Improve popover usability"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
