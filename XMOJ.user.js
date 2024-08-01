@@ -656,10 +656,10 @@ async function main() {
                     } else if (document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul > li:nth-child(3) > a > span") != undefined && document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul > li:nth-child(3) > a > span").innerText != "个人中心") {
                         let PopupUL = document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul");
                         PopupUL.innerHTML = `<li class="dropdown-item">修改帐号</li>
-                    <li class="dropdown-item">个人中心</li>
-                    <li class="dropdown-item">短消息</li>
-                    <li class="dropdown-item">插件设置</li>
-                    <li class="dropdown-item">注销</li>`
+                                             <li class="dropdown-item">个人中心</li>
+                                             <li class="dropdown-item">短消息</li>
+                                             <li class="dropdown-item">插件设置</li>
+                                             <li class="dropdown-item">注销</li>`;
                         PopupUL.children[0].addEventListener("click", () => {
                             location.href = "https://www.xmoj.tech/modifypage.php";
                         });
@@ -677,9 +677,43 @@ async function main() {
                             localStorage.removeItem("UserScript-Password");
                             location.href = "https://www.xmoj.tech/logout.php";
                         });
-                        Style.innerHTML += ".dropdown-item {";
-                        Style.innerHTML += "    cursor: pointer;";
-                        Style.innerHTML += "}";
+                        Array.from(PopupUL.children).forEach(item => {
+                            item.style.opacity = 0;
+                            item.style.transform = 'translateY(-10px)';
+                            item.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+                        });
+                        let showDropdownItems = () => {
+                            PopupUL.style.display = 'block';
+                            Array.from(PopupUL.children).forEach((item, index) => {
+                                setTimeout(() => {
+                                    item.style.opacity = 1;
+                                    item.style.transform = 'translateY(0)';
+                                }, index * 36);
+                            });
+                        };
+                        let hideDropdownItems = () => {
+                            Array.from(PopupUL.children).forEach((item) => {
+                                item.style.opacity = 0;
+                                item.style.transform = 'translateY(-4px)';
+                            });
+                            setTimeout(() => {
+                                PopupUL.style.display = 'none';
+                            }, 50);
+                        };
+                        let toggleDropdownItems = () => {
+                            if (PopupUL.style.display === 'block') {
+                                hideDropdownItems();
+                            } else {
+                                showDropdownItems();
+                            }
+                        };
+                        let parentLi = document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li");
+                        parentLi.addEventListener("click", toggleDropdownItems);
+                        document.addEventListener("click", (event) => {
+                            if (!parentLi.contains(event.target) && PopupUL.style.display === 'block') {
+                                hideDropdownItems();
+                            }
+                        });
                     }
                 }
                 if (UtilityEnabled("AutoCountdown")) {
