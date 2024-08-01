@@ -1870,17 +1870,6 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
-        },
-        "1.2.17": {
-            "UpdateDate": 1722512680484,
-            "Prerelease": true,
-            "UpdateContents": [
-                {
-                    "PR": 593,
-                    "Description": "Extern contrib from @zhouyiqing"
-                }
-            ],
-            "Notes": "No release notes were provided for this release."
         }
     }
 }
