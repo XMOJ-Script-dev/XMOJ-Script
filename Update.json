@@ -1870,6 +1870,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.17": {
+            "UpdateDate": 1722513002990,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 594,
+                    "Description": "Revert Extern"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
