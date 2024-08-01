@@ -3543,7 +3543,7 @@ int main()
                         CopyMDButton.type = "button";
                         document.querySelector("body > div > div.mt-3 > center > h2").appendChild(CopyMDButton);
                         CopyMDButton.addEventListener("click", () => {
-                            GM_setClipboard(ParsedDocument.querySelector("body > div > div > div").innerText.trim().replaceAll("\n\t", "\n").replaceAll("\n\n", "\n");
+                            GM_setClipboard(ParsedDocument.querySelector("body > div > div > div").innerText.trim().replaceAll("\n\t", "\n").replaceAll("\n\n", "\n"));
                             CopyMDButton.innerText = "复制成功";
                             setTimeout(() => {
                                 CopyMDButton.innerText = "复制";
