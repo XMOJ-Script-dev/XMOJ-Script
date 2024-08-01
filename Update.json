@@ -1848,6 +1848,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.15": {
+            "UpdateDate": 1722472465539,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 581,
+                    "Description": "fix copymd"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }

@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.14
+// @version      1.2.15
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -1295,17 +1295,19 @@ async function main() {
                             return Response.text();
                         }).then((Response) => {
                             let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
-                            let Temp = ParsedDocument.querySelectorAll(".cnt-row");
+                            let Temp = ParsedDocument.querySelectorAll(".cnt-row-body");
+                            if (UtilityEnabled("DebugMode"))
+                                console.log(Temp);
                             for (let i = 0; i < Temp.length; i++) {
-                                if (Temp[i].children[1].children[0].className == "content") {
+                                if (Temp[i].children[0].className === "content lang_cn") {
                                     let CopyMDButton = document.createElement("button");
                                     CopyMDButton.className = "btn btn-sm btn-outline-secondary copy-btn";
                                     CopyMDButton.innerText = "复制";
                                     CopyMDButton.style.marginLeft = "10px";
                                     CopyMDButton.type = "button";
-                                    document.querySelectorAll(".cnt-row")[i].children[0].appendChild(CopyMDButton);
+                                    document.querySelectorAll(".cnt-row-head.title")[i].appendChild(CopyMDButton);
                                     CopyMDButton.addEventListener("click", () => {
-                                        GM_setClipboard(Temp[i].children[1].children[0].innerText.trim().replaceAll("\n\t", "\n").replaceAll("\n\n", "\n").replaceAll("\n\n", "\n"));
+                                        GM_setClipboard(Temp[i].children[0].innerText.trim().replaceAll("\n\t", "\n").replaceAll("\n\n", "\n"));
                                         CopyMDButton.innerText = "复制成功";
                                         setTimeout(() => {
                                             CopyMDButton.innerText = "复制";
@@ -3541,7 +3543,7 @@ int main()
                         CopyMDButton.type = "button";
                         document.querySelector("body > div > div.mt-3 > center > h2").appendChild(CopyMDButton);
                         CopyMDButton.addEventListener("click", () => {
-                            GM_setClipboard(ParsedDocument.querySelector("body > div > div > div").innerText.trim().replaceAll("\n\t", "\n").replaceAll("\n\n", "\n").replaceAll("\n\n", "\n"));
+                            GM_setClipboard(ParsedDocument.querySelector("body > div > div > div").innerText.trim().replaceAll("\n\t", "\n").replaceAll("\n\n", "\n"));
                             CopyMDButton.innerText = "复制成功";
                             setTimeout(() => {
                                 CopyMDButton.innerText = "复制";
