@@ -1872,12 +1872,34 @@
             "Notes": "No release notes were provided for this release."
         },
         "1.2.17": {
-            "UpdateDate": 1722512680484,
+            "UpdateDate": 1722513002990,
             "Prerelease": true,
             "UpdateContents": [
                 {
-                    "PR": 593,
-                    "Description": "Extern contrib from @zhouyiqing"
+                    "PR": 594,
+                    "Description": "Revert Extern"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.18": {
+            "UpdateDate": 1722513340833,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 595,
+                    "Description": "update pic"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.19": {
+            "UpdateDate": 1722513622681,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 596,
+                    "Description": "ahhhhhh typos"
                 }
             ],
             "Notes": "No release notes were provided for this release."
