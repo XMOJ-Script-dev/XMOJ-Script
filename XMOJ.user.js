@@ -816,12 +816,16 @@ async function main() {
                             </div>`;
                         if (UtilityEnabled("NewTopBar")) {
                             UpdateDiv.style.position = 'fixed';
-                            UpdateDiv.style.top = '50px';
+                            UpdateDiv.style.top = '64px';
                             UpdateDiv.style.left = '50%';
                             UpdateDiv.style.transform = 'translateX(-50%)';
                             UpdateDiv.style.zIndex = '1001';
+                            let spacer = document.createElement("div");
+                            spacer.style.height = '60px';
+                            document.body.insertBefore(spacer, document.body.firstChild);
                         }
                         document.body.appendChild(UpdateDiv);
+                        document.querySelector("body > div").insertBefore(UpdateDiv, document.querySelector("body > div > div.mt-3"));
                     }
                     if (localStorage.getItem("UserScript-Update-LastVersion") != GM_info.script.version) {
                         localStorage.setItem("UserScript-Update-LastVersion", GM_info.script.version);
