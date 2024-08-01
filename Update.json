@@ -1881,6 +1881,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.18": {
+            "UpdateDate": 1722513340833,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 595,
+                    "Description": "update pic"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
