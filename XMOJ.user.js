@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.16
+// @version      1.2.17
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -647,7 +647,63 @@ async function main() {
                     document.getElementById("nowdate").innerHTML = Year + "-" + (Month < 10 ? "0" : "") + Month + "-" + (_Date < 10 ? "0" : "") + _Date + " " + (Hours < 10 ? "0" : "") + Hours + ":" + (Minutes < 10 ? "0" : "") + Minutes + ":" + (Seconds < 10 ? "0" : "") + Seconds;
                 } catch (Error) {
                 }
+				if (UtilityEnabled("NewTopBar")) {
+				    let navbar = document.querySelector('.navbar.navbar-expand-lg.bg-body-tertiary');
+				    if (navbar) {
+				        navbar.style.position = 'fixed';
+				        navbar.style.top = '0';
+				        navbar.style.left = '20%';
+				        navbar.style.width = '60%';
+				        navbar.style.borderRadius = '28px';
+				        navbar.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
+				        navbar.style.margin = '8px auto';
+				        navbar.style.backgroundColor = 'rgba(255, 255, 255, 0)';
+				        navbar.style.opacity = '0.8';
+				        navbar.style.zIndex = '1000';
 
+				        let existingOverlay = document.getElementById('blur-overlay');
+				        let style = document.createElement('style');
+				        style.textContent = `
+				            #blur-overlay {
+				                position: fixed;
+				                top: ${navbar.offsetTop}px;
+				                left: ${navbar.offsetLeft}px;
+				                width: ${navbar.offsetWidth}px;
+				                height: ${navbar.offsetHeight}px;
+				                background: rgba(255, 255, 255, 0);
+				                backdrop-filter: blur(4px);
+				                z-index: 999;
+				                pointer-events: none;
+				                border-radius: 28px;
+				            }
+				        `;
+				        document.head.appendChild(style);
+
+				        if (!existingOverlay) {
+				            let blurOverlay = document.createElement('div');
+				            blurOverlay.id = 'blur-overlay';
+				            document.body.appendChild(blurOverlay);
+				        }
+
+				        function updateBlurOverlay() {
+				            blurOverlay.style.top = `${navbar.offsetTop}px`;
+				            blurOverlay.style.left = `${navbar.offsetLeft}px`;
+				            blurOverlay.style.width = `${navbar.offsetWidth}px`;
+				            blurOverlay.style.height = `${navbar.offsetHeight}px`;
+				        }
+				        setTimeout(updateBlurOverlay, 0);
+				        window.addEventListener('resize', updateBlurOverlay);
+
+				        let existingSpacer = document.getElementById('navbar-spacer');
+				        if (!existingSpacer) {
+				            let spacer = document.createElement('div');
+				            spacer.id = 'navbar-spacer';
+				            spacer.style.height = `${navbar.offsetHeight + 8}px`;
+				            spacer.style.width = '100%';
+				            document.body.insertBefore(spacer, document.body.firstChild);
+				        }
+				    }
+				}
                 if (UtilityEnabled("ResetType")) {
                     if (document.querySelector("#profile") != undefined && document.querySelector("#profile").innerHTML == "登录") {
                         if (document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul").childNodes.length == 3) {
@@ -656,10 +712,10 @@ async function main() {
                     } else if (document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul > li:nth-child(3) > a > span") != undefined && document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul > li:nth-child(3) > a > span").innerText != "个人中心") {
                         let PopupUL = document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul");
                         PopupUL.innerHTML = `<li class="dropdown-item">修改帐号</li>
-                    <li class="dropdown-item">个人中心</li>
-                    <li class="dropdown-item">短消息</li>
-                    <li class="dropdown-item">插件设置</li>
-                    <li class="dropdown-item">注销</li>`
+                                             <li class="dropdown-item">个人中心</li>
+                                             <li class="dropdown-item">短消息</li>
+                                             <li class="dropdown-item">插件设置</li>
+                                             <li class="dropdown-item">注销</li>`;
                         PopupUL.children[0].addEventListener("click", () => {
                             location.href = "https://www.xmoj.tech/modifypage.php";
                         });
@@ -677,9 +733,43 @@ async function main() {
                             localStorage.removeItem("UserScript-Password");
                             location.href = "https://www.xmoj.tech/logout.php";
                         });
-                        Style.innerHTML += ".dropdown-item {";
-                        Style.innerHTML += "    cursor: pointer;";
-                        Style.innerHTML += "}";
+                        Array.from(PopupUL.children).forEach(item => {
+                            item.style.opacity = 0;
+                            item.style.transform = 'translateY(-10px)';
+                            item.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+                        });
+                        let showDropdownItems = () => {
+                            PopupUL.style.display = 'block';
+                            Array.from(PopupUL.children).forEach((item, index) => {
+                                setTimeout(() => {
+                                    item.style.opacity = 1;
+                                    item.style.transform = 'translateY(0)';
+                                }, index * 36);
+                            });
+                        };
+                        let hideDropdownItems = () => {
+                            Array.from(PopupUL.children).forEach((item) => {
+                                item.style.opacity = 0;
+                                item.style.transform = 'translateY(-4px)';
+                            });
+                            setTimeout(() => {
+                                PopupUL.style.display = 'none';
+                            }, 50);
+                        };
+                        let toggleDropdownItems = () => {
+                            if (PopupUL.style.display === 'block') {
+                                hideDropdownItems();
+                            } else {
+                                showDropdownItems();
+                            }
+                        };
+                        let parentLi = document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li");
+                        parentLi.addEventListener("click", toggleDropdownItems);
+                        document.addEventListener("click", (event) => {
+                            if (!parentLi.contains(event.target) && PopupUL.style.display === 'block') {
+                                hideDropdownItems();
+                            }
+                        });
                     }
                 }
                 if (UtilityEnabled("AutoCountdown")) {
@@ -883,6 +973,8 @@ async function main() {
                         }
                     });
                 }
+
+
                 if (UtilityEnabled("MessagePopup")) {
                     RequestAPI("GetMailMentionList", {}, async (Response) => {
                         if (Response.Success) {
@@ -1044,7 +1136,8 @@ async function main() {
                         "ID": "ImproveACRate", "Type": "A", "Name": "自动提交已AC题目以提高AC率"
                     }, {"ID": "AutoO2", "Type": "F", "Name": "代码提交界面自动选择O2优化"}, {
                         "ID": "Beautify", "Type": "F", "Name": "美化界面", "Children": [{
-                            "ID": "NewBootstrap", "Type": "F", "Name": "使用新版的Bootstrap样式库*"
+                            "ID": "NewTopBar", "Type": "F", "Name": "使用新的顶部导航栏"
+                        }, {"ID": "NewBootstrap", "Type": "F", "Name": "使用新版的Bootstrap样式库*"
                         }, {"ID": "ResetType", "Type": "F", "Name": "重新排版*"}, {
                             "ID": "AddColorText", "Type": "A", "Name": "增加彩色文字"
                         }, {"ID": "AddUnits", "Type": "A", "Name": "状态界面内存与耗时添加单位"}, {
