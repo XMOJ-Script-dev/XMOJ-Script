@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.1.67
+// @version      1.2.16
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -20,9 +20,10 @@
 // @grant        unsafeWindow
 // @grant        GM_setValue
 // @grant        GM_getValue
-// @homepage     https://www.xmoj-bbs.tech/
-// @supportURL   https://xmojscript.zohodesk.com/portal/zh/newticket
+// @homepage     https://www.xmoj-bbs.me/
+// @supportURL   https://github.com/XMOJ-Script-dev/XMOJ-Script/issues
 // @connect      api.xmoj-bbs.tech
+// @connect      api.xmoj-bbs.me
 // @connect      challenges.cloudflare.com
 // @connect      cppinsights.io
 // @connect      cdn.bootcdn.net
@@ -79,6 +80,9 @@ let RenderMathJax = async () => {
         ScriptElement.id = "MathJax-script";
         ScriptElement.type = "text/javascript";
         ScriptElement.src = "https://cdn.bootcdn.net/ajax/libs/mathjax/3.0.5/es5/tex-chtml.js";
+        if (UtilityEnabled("cdnjs")) {
+            ScriptElement.src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.0.5/es5/tex-chtml.js";
+        }
         document.body.appendChild(ScriptElement);
         await new Promise((Resolve) => {
             ScriptElement.onload = () => {
@@ -254,13 +258,13 @@ let StringToSeconds = (InputString) => {
 let SizeToStringSize = (Memory) => {
     if (UtilityEnabled("AddUnits")) {
         if (Memory < 1024) {
-            return Memory + "B";
+            return Memory + "KB";
         } else if (Memory < 1024 * 1024) {
-            return (Memory / 1024).toFixed(2) + "KB";
+            return (Memory / 1024).toFixed(2) + "MB";
         } else if (Memory < 1024 * 1024 * 1024) {
-            return (Memory / 1024 / 1024).toFixed(2) + "MB";
+            return (Memory / 1024 / 1024).toFixed(2) + "GB";
         } else {
-            return (Memory / 1024 / 1024 / 1024).toFixed(2) + "GB";
+            return (Memory / 1024 / 1024 / 1024).toFixed(2) + "TB";
         }
     } else {
         return Memory;
@@ -290,35 +294,11 @@ let TimeToStringTime = (Time) => {
 let TidyTable = (Table) => {
     if (UtilityEnabled("NewBootstrap") && Table != null) {
         Table.className = "table table-hover";
-        Table.querySelector("thead > tr").removeAttribute("class");
-        Table.querySelector("thead > tr").removeAttribute("align");
-        Table.querySelector("thead > tr").innerHTML = Table.querySelector("thead > tr").innerHTML.replaceAll("td", "th");
-        let Temp = Table.querySelector("thead > tr").children;
-        for (let j = 0; j < Temp.length; j++) {
-            let Width = Temp[j].style.width;
-            Temp[j].removeAttribute("style");
-            Temp[j].style.width = Width;
-            Temp[j].removeAttribute("onclick");
-            Temp[j].removeAttribute("align");
-        }
-        Table.querySelector("tbody").className = "table-group-divider";
-        Temp = Table.querySelector("tbody").children;
-        for (let j = 0; j < Temp.length; j++) {
-            Temp[j].removeAttribute("align");
-            let Temp2 = Temp[j].querySelectorAll("*");
-            for (let k = 0; k < Temp2.length; k++) {
-                Temp2[k].classList.remove("left");
-                Temp2[k].classList.remove("center");
-                if (Temp2[k].className == "") {
-                    Temp2[k].removeAttribute("class");
-                }
-            }
-        }
     }
 };
 let UtilityEnabled = (Name) => {
     if (localStorage.getItem("UserScript-Setting-" + Name) == null) {
-        const defaultOffItems = ["DebugMode", "UnpkgCdn", "SuperDebug", "ReplaceXM"];
+        const defaultOffItems = ["DebugMode", "cdnjs", "SuperDebug", "ReplaceXM"];
         localStorage.setItem("UserScript-Setting-" + Name, defaultOffItems.includes(Name) ? "false" : "true");
     }
     return localStorage.getItem("UserScript-Setting-" + Name) == "true";
@@ -337,14 +317,20 @@ let RequestAPI = (Action, Data, CallBack) => {
         }, "Data": Data, "Version": GM_info.script.version, "DebugMode": UtilityEnabled("DebugMode")
     };
     let DataString = JSON.stringify(PostData);
+    if (UtilityEnabled("DebugMode")) {
+        console.log("Sent for", Action + ":", DataString);
+    }
     GM_xmlhttpRequest({
         method: "POST",
-        url: (UtilityEnabled("SuperDebug") ? "http://127.0.0.1:8787/" : "https://api.xmoj-bbs.tech/") + Action,
+        url: (UtilityEnabled("SuperDebug") ? "http://127.0.0.1:8787/" : "https://api.xmoj-bbs.me/") + Action,
         headers: {
             "Content-Type": "application/json"
         },
         data: DataString,
         onload: (Response) => {
+            if (UtilityEnabled("DebugMode")) {
+                console.log("Received for", Action + ":", Response.responseText);
+            }
             try {
                 CallBack(JSON.parse(Response.responseText));
             } catch (Error) {
@@ -383,7 +369,7 @@ if (UtilityEnabled("AutoLogin") && document.querySelector("body > a:nth-child(1)
 }
 
 let SearchParams = new URLSearchParams(location.search);
-let ServerURL = (UtilityEnabled("DebugMode") ? "https://ghpages.xmoj-bbs.tech/" : "https://web.xmoj-bbs.tech")
+let ServerURL = (UtilityEnabled("DebugMode") ? "https://ghpages.xmoj-bbs.me/" : "https://www.xmoj-bbs.me")
 let CurrentUsername = document.querySelector("#profile").innerText;
 CurrentUsername = CurrentUsername.replaceAll(/[^a-zA-Z0-9]/g, "");
 let IsAdmin = AdminUserList.indexOf(CurrentUsername) !== -1;
@@ -396,6 +382,9 @@ async function main() {
     if (location.host != "www.xmoj.tech") {
         location.host = "www.xmoj.tech";
     } else {
+        if (location.href === 'https://www.xmoj.tech/open_contest_sign_up.php') {
+            return;
+        }
         document.body.classList.add("placeholder-glow");
         if (document.querySelector("#navbar") != null) {
             if (document.querySelector("body > div > div.jumbotron") != null) {
@@ -424,11 +413,7 @@ async function main() {
                 document.querySelector("#navbar > ul:nth-child(1) > li:nth-child(2) > a").innerText = "题库";
             }
             //send analytics
-            RequestAPI("SendData", {}, (result) => {
-                if (UtilityEnabled("DebugMode")) {
-                    console.log(result);
-                }
-            });
+            RequestAPI("SendData", {});
             if (UtilityEnabled("ReplaceLinks")) {
                 document.body.innerHTML = String(document.body.innerHTML).replaceAll(/\[<a href="([^"]*)">([^<]*)<\/a>\]/g, "<button onclick=\"location.href='$1'\" class=\"btn btn-outline-secondary\">$2</button>");
             }
@@ -479,16 +464,19 @@ async function main() {
                     rel: 'stylesheet'
                 }, {
                     type: 'link',
-                    href: 'https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0-alpha3/css/bootstrap.min.css',
+                    href: 'https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.3/css/bootstrap.min.css',
                     rel: 'stylesheet'
                 }, {
                     type: 'script',
-                    src: 'https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0-alpha3/js/bootstrap.bundle.min.js',
+                    src: 'https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.js',
                     isModule: true
                 }];
-                if (UtilityEnabled("UnpkgCdn")) {
-                    resources[3].href = 'https://unpkg.com/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css';
-                    resources[4].src = 'https://unpkg.com/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js';
+                if (UtilityEnabled("cdnjs")) {
+                    resources[0].href = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css';
+                    resources[1].href = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.min.css';
+                    resources[2].href = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/addon/merge/merge.min.css';
+                    resources[3].href = 'https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css';
+                    resources[4].src = 'https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.js';
                 }
                 let loadResources = async () => {
                     let promises = resources.map(resource => {
@@ -540,7 +528,6 @@ async function main() {
             if (UtilityEnabled("RemoveUseless") && document.getElementsByTagName("marquee")[0] != undefined) {
                 document.getElementsByTagName("marquee")[0].remove();
             }
-
             let Style = document.createElement("style");
             document.body.appendChild(Style);
             Style.innerHTML = `
@@ -1097,7 +1084,7 @@ async function main() {
                         "ID": "DebugMode", "Type": "A", "Name": "调试模式（仅供开发者使用）"
                     }, {
                         "ID": "SuperDebug", "Type": "A", "Name": "本地调试模式（仅供开发者使用) (未经授权的擅自开启将导致大部分功能不可用！)"
-                    }, {"ID": "UnpkgCdn", "Type": "A", "Name": "使用 unpkg CDN (不建议使用)"},]));
+                    }, {"ID": "cdnjs", "Type": "A", "Name": "使用 cdnjs (如果延迟不大, 建议使用)"},]));
                     let UtilitiesCardFooter = document.createElement("div");
                     UtilitiesCardFooter.className = "card-footer text-muted";
                     UtilitiesCardFooter.innerText = "* 不建议关闭，可能会导致系统不稳定、界面错乱、功能缺失等问题\n绿色：增加功能　黄色：修改功能　红色：删除功能";
@@ -1157,6 +1144,26 @@ async function main() {
                         <div class="cnt-row-head title">倒计时</div>
                         <div class="cnt-row-body">${CountDownData}</div>
                     </div>`;
+                    let Tables = document.getElementsByTagName("table");
+                    for (let i = 0; i < Tables.length; i++) {
+                        TidyTable(Tables[i]);
+                    }
+                    document.querySelector("body > div > div.mt-3 > div > div.col-md-4").innerHTML += `<div class="cnt-row">
+                        <div class="cnt-row-head title">公告</div>
+                        <div class="cnt-row-body">加载中...</div>  
+                    </div>`;
+                    RequestAPI("GetNotice", {}, (Response) => {
+                        if (Response.Success) {
+                            document.querySelector("body > div.container > div > div > div.col-md-4 > div:nth-child(2) > div.cnt-row-body").innerHTML = marked.parse(Response.Data["Notice"]).replaceAll(/@([a-zA-Z0-9]+)/g, `<b>@</b><span class="ms-1 Usernames">$1</span>`);
+                            RenderMathJax();
+                            let UsernameElements = document.getElementsByClassName("Usernames");
+                            for (let i = 0; i < UsernameElements.length; i++) {
+                                GetUsernameHTML(UsernameElements[i], UsernameElements[i].innerText, true);
+                            }
+                        } else {
+                            document.querySelector("body > div.container > div > div > div.col-md-4 > div:nth-child(2) > div.cnt-row-body").innerHTML = "加载失败: " + Response.Message;
+                        }
+                    });
                 }
             } else if (location.pathname == "/problemset.php") {
                 if (UtilityEnabled("Translate")) {
@@ -1288,17 +1295,19 @@ async function main() {
                             return Response.text();
                         }).then((Response) => {
                             let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
-                            let Temp = ParsedDocument.querySelectorAll(".cnt-row");
+                            let Temp = ParsedDocument.querySelectorAll(".cnt-row-body");
+                            if (UtilityEnabled("DebugMode"))
+                                console.log(Temp);
                             for (let i = 0; i < Temp.length; i++) {
-                                if (Temp[i].children[1].children[0].className == "content") {
+                                if (Temp[i].children[0].className === "content lang_cn") {
                                     let CopyMDButton = document.createElement("button");
                                     CopyMDButton.className = "btn btn-sm btn-outline-secondary copy-btn";
                                     CopyMDButton.innerText = "复制";
                                     CopyMDButton.style.marginLeft = "10px";
                                     CopyMDButton.type = "button";
-                                    document.querySelectorAll(".cnt-row")[i].children[0].appendChild(CopyMDButton);
+                                    document.querySelectorAll(".cnt-row-head.title")[i].appendChild(CopyMDButton);
                                     CopyMDButton.addEventListener("click", () => {
-                                        GM_setClipboard(Temp[i].children[1].children[0].innerText.trim().replaceAll("\n\t", "\n").replaceAll("\n\n", "\n").replaceAll("\n\n", "\n"));
+                                        GM_setClipboard(Temp[i].children[0].innerText.trim().replaceAll("\n\t", "\n").replaceAll("\n\n", "\n"));
                                         CopyMDButton.innerText = "复制成功";
                                         setTimeout(() => {
                                             CopyMDButton.innerText = "复制";
@@ -1873,10 +1882,6 @@ async function main() {
                                 }
                             });
                         }
-
-                        if (UtilityEnabled("ResetType")) {
-                            document.querySelector("#problemset > thead > tr > th:nth-child(1)").style.width = "5%";
-                        }
                         localStorage.setItem("UserScript-Contest-" + SearchParams.get("cid") + "-ProblemCount", document.querySelector("#problemset > tbody").rows.length);
                     }
                 }
@@ -1972,8 +1977,8 @@ async function main() {
                             })
                             .then(async (Response) => {
                                 RankData = [];
-
                                 let Table = document.querySelector("#rank");
+                                Table.classList.add("table");
                                 Table.innerHTML = "";
                                 let StartPosition = Response.indexOf("var solutions=") + 14;
                                 let EndPosition = Response.indexOf("}];", StartPosition) + 2;
@@ -2755,6 +2760,9 @@ async function main() {
                                         let ACCode = Response.split("------------------------------------------------------\r\n");
                                         let ScriptElement = document.createElement("script");
                                         ScriptElement.src = "https://cdn.bootcdn.net/ajax/libs/jszip/3.10.1/jszip.min.js";
+                                        if (UtilityEnabled("cdnjs")) {
+                                            ScriptElement.src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
+                                        }
                                         document.head.appendChild(ScriptElement);
                                         ScriptElement.onload = () => {
                                             var Zip = new JSZip();
@@ -3272,6 +3280,15 @@ async function main() {
                                 GetDataButton.disabled = true;
                                 GetDataButton.innerText = "正在获取数据...";
                                 let PID = localStorage.getItem("UserScript-Solution-" + SearchParams.get("sid") + "-Problem");
+                                if (PID == null) {
+                                    GetDataButton.innerText = "失败! 无法获取PID";
+                                    GetDataButton.disabled = false;
+                                    await new Promise((resolve) => {
+                                        setTimeout(resolve, 800);
+                                    });
+                                    GetDataButton.innerText = "获取数据";
+                                    return;
+                                }
                                 let Code = "";
                                 if (localStorage.getItem(`UserScript-Problem-${PID}-IOFilename`) !== null) {
                                     Code = `#define IOFile "${localStorage.getItem(`UserScript-Problem-${PID}-IOFilename`)}"\n`;
@@ -3421,6 +3438,10 @@ int main()
                         "Image": "https://a.fsdn.com/allura/p/redpanda-cpp/icon",
                         "URL": "https://sourceforge.net/projects/redpanda-cpp/"
                     }, {
+                        "Name": "CLion",
+                        "Image": "https://resources.jetbrains.com/storage/products/company/brand/logos/CLion_icon.png",
+                        "URL": "https://www.jetbrains.com/clion/download"
+                    }, {
                         "Name": "CP Editor",
                         "Image": "https://a.fsdn.com/allura/mirror/cp-editor/icon",
                         "URL": "https://sourceforge.net/projects/cp-editor.mirror/"
@@ -3518,7 +3539,7 @@ int main()
                         CopyMDButton.type = "button";
                         document.querySelector("body > div > div.mt-3 > center > h2").appendChild(CopyMDButton);
                         CopyMDButton.addEventListener("click", () => {
-                            GM_setClipboard(ParsedDocument.querySelector("body > div > div > div").innerText.trim().replaceAll("\n\t", "\n").replaceAll("\n\n", "\n").replaceAll("\n\n", "\n"));
+                            GM_setClipboard(ParsedDocument.querySelector("body > div > div > div").innerText.trim().replaceAll("\n\t", "\n").replaceAll("\n\n", "\n"));
                             CopyMDButton.innerText = "复制成功";
                             setTimeout(() => {
                                 CopyMDButton.innerText = "复制";
@@ -3841,6 +3862,35 @@ int main()
                     Content.addEventListener("input", () => {
                         Content.classList.remove("is-invalid");
                     });
+                    Content.addEventListener("paste", (EventData) => {
+                        let Items = EventData.clipboardData.items;
+                        if (Items.length !== 0) {
+                            for (let i = 0; i < Items.length; i++) {
+                                if (Items[i].type.indexOf("image") != -1) {
+                                    let Reader = new FileReader();
+                                    Reader.readAsDataURL(Items[i].getAsFile());
+                                    Reader.onload = () => {
+                                        let Before = Content.value.substring(0, Content.selectionStart);
+                                        let After = Content.value.substring(Content.selectionEnd, Content.value.length);
+                                        const UploadMessage = "![正在上传图片...]()";
+                                        Content.value = Before + UploadMessage + After;
+                                        Content.dispatchEvent(new Event("input"));
+                                        RequestAPI("UploadImage", {
+                                            "Image": Reader.result
+                                        }, (ResponseData) => {
+                                            if (ResponseData.Success) {
+                                                Content.value = Before + `![](https://assets.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
+                                                Content.dispatchEvent(new Event("input"));
+                                            } else {
+                                                Content.value = Before + `![上传失败！]()` + After;
+                                                Content.dispatchEvent(new Event("input"));
+                                            }
+                                        });
+                                    };
+                                }
+                            }
+                        }
+                    });
                     Content.addEventListener("keydown", (Event) => {
                         if (Event.keyCode == 13) {
                             Send.click();
@@ -3877,6 +3927,7 @@ int main()
                     Discussion.classList.add("active");
                     if (location.pathname == "/discuss3/discuss.php") {
                         let ProblemID = parseInt(SearchParams.get("pid"));
+                        let BoardID = parseInt(SearchParams.get("bid"));
                         let Page = Number(SearchParams.get("page")) || 1;
                         document.querySelector("body > div > div").innerHTML = `<h3>讨论列表${(isNaN(ProblemID) ? "" : ` - 题目` + ProblemID)}</h3>
                     <button id="NewPost" type="button" class="btn btn-primary">发布新讨论</button>
@@ -3936,11 +3987,11 @@ int main()
                                 if (ResponseData.Success == true) {
                                     ErrorElement.style.display = "none";
                                     if (!Silent) {
-                                        DiscussPagination.children[0].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + "page=1";
-                                        DiscussPagination.children[1].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + "page=" + (Page - 1);
-                                        DiscussPagination.children[2].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + "page=" + Page;
-                                        DiscussPagination.children[3].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + "page=" + (Page + 1);
-                                        DiscussPagination.children[4].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + "page=" + ResponseData.Data.PageCount;
+                                        DiscussPagination.children[0].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + (isNaN(BoardID) ? "" : "bid=" + BoardID + "&") + "page=1";
+                                        DiscussPagination.children[1].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + (isNaN(BoardID) ? "" : "bid=" + BoardID + "&") + "page=" + (Page - 1);
+                                        DiscussPagination.children[2].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + (isNaN(BoardID) ? "" : "bid=" + BoardID + "&") + "page=" + Page;
+                                        DiscussPagination.children[3].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + (isNaN(BoardID) ? "" : "bid=" + BoardID + "&") + "page=" + (Page + 1);
+                                        DiscussPagination.children[4].children[0].href = "https://www.xmoj.tech/discuss3/discuss.php?" + (isNaN(ProblemID) ? "" : "pid=" + ProblemID + "&") + (isNaN(BoardID) ? "" : "bid=" + BoardID + "&") + "page=" + ResponseData.Data.PageCount;
                                         if (Page <= 1) {
                                             DiscussPagination.children[0].classList.add("disabled");
                                             DiscussPagination.children[1].remove();
@@ -4083,7 +4134,7 @@ int main()
                                                 "Image": Reader.result
                                             }, (ResponseData) => {
                                                 if (ResponseData.Success) {
-                                                    ContentElement.value = Before + `![](https://assets.xmoj-bbs.tech/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
+                                                    ContentElement.value = Before + `![](https://assets.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
                                                     ContentElement.dispatchEvent(new Event("input"));
                                                 } else {
                                                     ContentElement.value = Before + `![上传失败！]()` + After;
@@ -4255,7 +4306,7 @@ int main()
                                                     "Image": Reader.result
                                                 }, (ResponseData) => {
                                                     if (ResponseData.Success) {
-                                                        ContentElement.value = Before + `![](https://assets.xmoj-bbs.tech/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
+                                                        ContentElement.value = Before + `![](https://assets.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
                                                         ContentElement.dispatchEvent(new Event("input"));
                                                     } else {
                                                         ContentElement.value = Before + `![上传失败！]()` + After;
@@ -4504,7 +4555,7 @@ int main()
                                                                     "Image": Reader.result
                                                                 }, (ResponseData) => {
                                                                     if (ResponseData.Success) {
-                                                                        ContentEditor.value = Before + `![](https://assets.xmoj-bbs.tech/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
+                                                                        ContentEditor.value = Before + `![](https://assets.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
                                                                         ContentEditor.dispatchEvent(new Event("input"));
                                                                     } else {
                                                                         ContentEditor.value = Before + `![上传失败！]()` + After;

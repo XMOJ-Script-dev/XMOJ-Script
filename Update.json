@@ -1592,6 +1592,284 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.1.68": {
+            "UpdateDate": 1718670038883,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 544,
+                    "Description": "fix https://www.xmoj.tech/open_contest_sign_up.php"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.69": {
+            "UpdateDate": 1719815069812,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 546,
+                    "Description": "fix memory displays"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.70": {
+            "UpdateDate": 1719815850792,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 544,
+                    "Description": "fix https://www.xmoj.tech/open_contest_sign_up.php"
+                },
+                {
+                    "PR": 546,
+                    "Description": "fix memory displays"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.71": {
+            "UpdateDate": 1719843873067,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 550,
+                    "Description": "Improve debug mode"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.72": {
+            "UpdateDate": 1721535836758,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 552,
+                    "Description": "Update the api domain"
+                }
+            ],
+            "Notes": "Please note that users using DebugMode should update immediately. <br> The domain ghpages.xmoj-bbs.tech will be updated at a later date."
+        },
+        "1.2.0": {
+            "UpdateDate": 1721638608232,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 550,
+                    "Description": "Improve debug mode"
+                },
+                {
+                    "PR": 552,
+                    "Description": "Update the api domain"
+                }
+            ],
+            "Notes": "Please update immediately, thank you. <br>This release changes the api domain from xmoj-bbs.tech to xmoj-bbs.me"
+        },
+        "1.2.1": {
+            "UpdateDate": 1721656184134,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 557,
+                    "Description": "更改获取数据体验(增加报错)"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.2": {
+            "UpdateDate": 1721887214365,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 559,
+                    "Description": "Add CLion"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.3": {
+            "UpdateDate": 1722003346568,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 563,
+                    "Description": "fix #562"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.4": {
+            "UpdateDate": 1722040221117,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 565,
+                    "Description": "短消息增加图床支持"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.5": {
+            "UpdateDate": 1722044501316,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 566,
+                    "Description": "预览版域名切换"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.6": {
+            "UpdateDate": 1722048484899,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 557,
+                    "Description": "更改获取数据体验(增加报错)"
+                },
+                {
+                    "PR": 559,
+                    "Description": "Add CLion"
+                },
+                {
+                    "PR": 563,
+                    "Description": "fix #562"
+                },
+                {
+                    "PR": 565,
+                    "Description": "短消息增加图床支持"
+                },
+                {
+                    "PR": 566,
+                    "Description": "预览版域名切换"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.7": {
+            "UpdateDate": 1722063024309,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 570,
+                    "Description": "增加公告栏"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.8": {
+            "UpdateDate": 1722070813624,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 570,
+                    "Description": "增加公告栏"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.9": {
+            "UpdateDate": 1722088781344,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 573,
+                    "Description": "add username rendering for noticeboard"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.10": {
+            "UpdateDate": 1722425862935,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 574,
+                    "Description": "disable tidytable"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.11": {
+            "UpdateDate": 1722432013017,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 575,
+                    "Description": "Upgrade bootstrap + cdnjs"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.12": {
+            "UpdateDate": 1722433643071,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 576,
+                    "Description": "fix tidytable"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.13": {
+            "UpdateDate": 1722435875725,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 573,
+                    "Description": "add username rendering for noticeboard"
+                },
+                {
+                    "PR": 574,
+                    "Description": "disable tidytable"
+                },
+                {
+                    "PR": 575,
+                    "Description": "Upgrade bootstrap + cdnjs"
+                },
+                {
+                    "PR": 576,
+                    "Description": "fix tidytable"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.14": {
+            "UpdateDate": 1722470253103,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 580,
+                    "Description": "Improve popover usability"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.15": {
+            "UpdateDate": 1722472465539,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 581,
+                    "Description": "fix copymd"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.16": {
+            "UpdateDate": 1722478374388,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 583,
+                    "Description": "fix ACM rank"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
