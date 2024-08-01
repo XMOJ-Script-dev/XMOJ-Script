@@ -1305,7 +1305,6 @@ async function main() {
                                     CopyMDButton.style.marginLeft = "10px";
                                     CopyMDButton.type = "button";
                                     document.querySelectorAll(".cnt-row-head.title")[i].appendChild(CopyMDButton);
-                                    console.log("hi?");
                                     CopyMDButton.addEventListener("click", () => {
                                         GM_setClipboard(Temp[i].children[0].innerText.trim().replaceAll("\n\t", "\n").replaceAll("\n\n", "\n"));
                                         CopyMDButton.innerText = "复制成功";
