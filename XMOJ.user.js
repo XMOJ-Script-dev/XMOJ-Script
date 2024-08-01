@@ -814,11 +814,13 @@ async function main() {
                                 </div>
                                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                             </div>`;
-                        UpdateDiv.style.position = 'fixed';
-                        UpdateDiv.style.top = '50px';
-                        UpdateDiv.style.left = '50%';
-                        UpdateDiv.style.transform = 'translateX(-50%)';
-                        UpdateDiv.style.zIndex = '1001';
+                        if (UtilityEnabled("NewTopBar")) {
+                            UpdateDiv.style.position = 'fixed';
+                            UpdateDiv.style.top = '50px';
+                            UpdateDiv.style.left = '50%';
+                            UpdateDiv.style.transform = 'translateX(-50%)';
+                            UpdateDiv.style.zIndex = '1001';
+                        }
                         document.body.appendChild(UpdateDiv);
                     }
                     if (localStorage.getItem("UserScript-Update-LastVersion") != GM_info.script.version) {
