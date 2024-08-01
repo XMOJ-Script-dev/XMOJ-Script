@@ -1882,10 +1882,6 @@ async function main() {
                                 }
                             });
                         }
-
-                        if (UtilityEnabled("ResetType")) {
-                            document.querySelector("#problemset > thead > tr > th:nth-child(1)").style.width = "5%";
-                        }
                         localStorage.setItem("UserScript-Contest-" + SearchParams.get("cid") + "-ProblemCount", document.querySelector("#problemset > tbody").rows.length);
                     }
                 }
