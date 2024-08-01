@@ -1136,7 +1136,7 @@ async function main() {
                         "ID": "ImproveACRate", "Type": "A", "Name": "自动提交已AC题目以提高AC率"
                     }, {"ID": "AutoO2", "Type": "F", "Name": "代码提交界面自动选择O2优化"}, {
                         "ID": "Beautify", "Type": "F", "Name": "美化界面", "Children": [{
-                            "ID": "NewTopBar", "Type": "F", "Name": "使用重写的顶栏"
+                            "ID": "NewTopBar", "Type": "F", "Name": "使用新的顶部导航栏"
                         }, {"ID": "NewBootstrap", "Type": "F", "Name": "使用新版的Bootstrap样式库*"
                         }, {"ID": "ResetType", "Type": "F", "Name": "重新排版*"}, {
                             "ID": "AddColorText", "Type": "A", "Name": "增加彩色文字"
