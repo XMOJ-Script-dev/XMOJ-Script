@@ -1,1 +1,0 @@
-- [ ] 我已认真阅读贡献指南 (contributing guidelines) 和社区公约 (code of conduct)，并遵循了如何参与页及格式手册页的相应规范。
