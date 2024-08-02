@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.20
+// @version      1.2.21
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -1952,6 +1952,7 @@ async function main() {
                                 });
                         };
                         RefreshOIRank();
+                        document.title = document.querySelector("body > div.container > div > center > h3").innerText;
                         if (UtilityEnabled("AutoRefresh")) {
                             addEventListener("focus", RefreshOIRank);
                         }
@@ -2310,6 +2311,7 @@ async function main() {
                 Style.innerHTML += "}";
                 document.querySelector("body > div.container > div > center").style.paddingBottom = "10px";
                 document.querySelector("body > div.container > div > center > a").style.display = "none";
+                document.title = document.querySelector("body > div.container > div > center > h3").innerText;
             } else if (location.pathname == "/contestrank-correct.php") {
                 if (document.querySelector("#rank") == null) {
                     document.querySelector("body > div > div.mt-3").innerHTML = "<center><h3>比赛排名</h3><a></a><table id=\"rank\"></table>";
@@ -2383,6 +2385,7 @@ async function main() {
                             });
                     };
                     RefreshCorrectRank();
+                    document.title = document.querySelector("body > div.container > div > center > h3").innerText;
                     if (UtilityEnabled("AutoRefresh")) {
                         addEventListener("focus", RefreshCorrectRank);
                     }
@@ -3512,6 +3515,7 @@ int main()
 
                 let CurrentPage = parseInt(SearchParams.get("page") || 0);
                 let PID = Number(SearchParams.get("id"));
+                document.title = "问题 " + PID + " 状态";
                 let Pagination = `<nav class="center"><ul class="pagination justify-content-center">`;
                 if (CurrentPage !== 0) {
                     Pagination += `<li class="page-item"><a href="https://www.xmoj.tech/problemstatus.php?id=${PID + `&page=0" class="page-link">&laquo;</a></li><li class="page-item"><a href="https://www.xmoj.tech/problemstatus.php?id=` + PID + `&page=` + (CurrentPage - 1) + `" class="page-link">` + (CurrentPage)}</a></li>`;
