@@ -1952,6 +1952,7 @@ async function main() {
                                 });
                         };
                         RefreshOIRank();
+                        document.title = document.querySelector("body > div.container > div > center > h3").innerText;
                         if (UtilityEnabled("AutoRefresh")) {
                             addEventListener("focus", RefreshOIRank);
                         }
@@ -2310,6 +2311,7 @@ async function main() {
                 Style.innerHTML += "}";
                 document.querySelector("body > div.container > div > center").style.paddingBottom = "10px";
                 document.querySelector("body > div.container > div > center > a").style.display = "none";
+                document.title = document.querySelector("body > div.container > div > center > h3").innerText;
             } else if (location.pathname == "/contestrank-correct.php") {
                 if (document.querySelector("#rank") == null) {
                     document.querySelector("body > div > div.mt-3").innerHTML = "<center><h3>比赛排名</h3><a></a><table id=\"rank\"></table>";
@@ -2383,6 +2385,7 @@ async function main() {
                             });
                     };
                     RefreshCorrectRank();
+                    document.title = document.querySelector("body > div.container > div > center > h3").innerText;
                     if (UtilityEnabled("AutoRefresh")) {
                         addEventListener("focus", RefreshCorrectRank);
                     }
