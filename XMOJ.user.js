@@ -1392,6 +1392,7 @@ async function main() {
                 Style.innerHTML += "}";
             } else if (location.pathname == "/status.php") {
                 if (SearchParams.get("ByUserScript") == null) {
+                    document.title = "提交状态";
                     document.querySelector("body > script:nth-child(5)").remove();
                     if (UtilityEnabled("NewBootstrap")) {
                         document.querySelector("#simform").outerHTML = `<form id="simform" class="justify-content-center form-inline row g-2" action="status.php" method="get" style="padding-bottom: 7px;">
@@ -2828,7 +2829,7 @@ async function main() {
                     let UserID, UserNick;
                     [UserID, UserNick] = document.querySelector("#statics > caption").childNodes[0].data.trim().split("--");
                     document.querySelector("#statics > caption").remove();
-
+                    document.title = "用户 " + UserID;
                     let Row = document.createElement("div");
                     Row.className = "row";
                     let LeftDiv = document.createElement("div");
@@ -3252,6 +3253,7 @@ async function main() {
                         });
                 }
             } else if (location.pathname == "/reinfo.php") {
+                document.title = "测试点信息: " + SearchParams.get("sid");
                 if (document.querySelector("#results > div") == undefined) {
                     document.querySelector("#results").parentElement.innerHTML = "没有测试点信息";
                 } else {
@@ -3596,6 +3598,7 @@ int main()
             } else if (location.pathname == "/showsource.php") {
                 let Code = "";
                 if (SearchParams.get("ByUserScript") == null) {
+                    document.title = "查看代码: " + SearchParams.get("id");
                     await fetch("https://www.xmoj.tech/getsource.php?id=" + SearchParams.get("id"))
                         .then((Response) => {
                             return Response.text();
@@ -3603,6 +3606,7 @@ int main()
                             Code = Response.replace("\n<!--not cached-->\n", "");
                         });
                 } else {
+                    document.title = "查看标程: " + SearchParams.get("pid");
                     if (localStorage.getItem("UserScript-LastUploadedStdTime") === undefined || new Date().getTime() - localStorage.getItem("UserScript-LastUploadedStdTime") > 1000 * 60 * 60 * 24 * 30) {
                         location.href = "https://www.xmoj.tech/userinfo.php?ByUserScript=1";
                     }
@@ -3919,6 +3923,7 @@ int main()
                 if (UtilityEnabled("Discussion")) {
                     Discussion.classList.add("active");
                     if (location.pathname == "/discuss3/discuss.php") {
+                        document.title = "讨论列表";
                         let ProblemID = parseInt(SearchParams.get("pid"));
                         let BoardID = parseInt(SearchParams.get("bid"));
                         let Page = Number(SearchParams.get("page")) || 1;
@@ -4358,6 +4363,7 @@ int main()
                                             }
                                         }
                                         PostTitle.innerText = ResponseData.Data.Title + (ResponseData.Data.ProblemID == 0 ? "" : ` - 题目` + ResponseData.Data.ProblemID);
+                                        document.title = "讨论" + ThreadID + ": " + ResponseData.Data.Title;
                                         PostAuthor.innerHTML = "<span></span>";
                                         GetUsernameHTML(PostAuthor.children[0], ResponseData.Data.UserID);
                                         PostTime.innerHTML = GetRelativeTime(ResponseData.Data.PostTime);
