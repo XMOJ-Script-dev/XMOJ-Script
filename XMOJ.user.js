@@ -380,9 +380,9 @@ class NavbarStyler {
     init() {
         this.applyStyles();
         this.createOverlay();
-        this.createSpacer();
         this.updateBlurOverlay();
         window.addEventListener('resize', () => this.updateBlurOverlay());
+        this.createSpacer();
     }
 
     applyStyles() {
