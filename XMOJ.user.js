@@ -950,6 +950,7 @@ async function main() {
 
             if (location.pathname == "/index.php" || location.pathname == "/") {
                 if (new URL(location.href).searchParams.get("ByUserScript") != null) {
+                    document.title = "脚本设置";
                     localStorage.setItem("UserScript-Opened", "true");
                     let Container = document.getElementsByClassName("mt-3")[0];
                     Container.innerHTML = "";
