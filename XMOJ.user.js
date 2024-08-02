@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.22
+// @version      1.2.23
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -759,26 +759,30 @@ async function main() {
                         });
                         Array.from(PopupUL.children).forEach(item => {
                             item.style.opacity = 0;
-                            item.style.transform = 'translateY(-10px)';
-                            item.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+                            item.style.transform = 'translateY(-16px)';
+                            item.style.transition = 'transform 0.3s ease, opacity 0.5s ease';
                         });
                         let showDropdownItems = () => {
                             PopupUL.style.display = 'block';
                             Array.from(PopupUL.children).forEach((item, index) => {
-                                setTimeout(() => {
+                                clearTimeout(item._timeout);
+                                item.style.opacity = 0;
+                                item.style.transform = 'translateY(-4px)';
+                                item._timeout = setTimeout(() => {
                                     item.style.opacity = 1;
-                                    item.style.transform = 'translateY(0)';
+                                    item.style.transform = 'translateY(2px)';
                                 }, index * 36);
                             });
                         };
                         let hideDropdownItems = () => {
                             Array.from(PopupUL.children).forEach((item) => {
+                                clearTimeout(item._timeout);
                                 item.style.opacity = 0;
-                                item.style.transform = 'translateY(-4px)';
+                                item.style.transform = 'translateY(-16px)';
                             });
                             setTimeout(() => {
                                 PopupUL.style.display = 'none';
-                            }, 50);
+                            }, 100);
                         };
                         let toggleDropdownItems = () => {
                             if (PopupUL.style.display === 'block') {
