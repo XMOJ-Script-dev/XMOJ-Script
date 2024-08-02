@@ -2532,6 +2532,7 @@ async function main() {
                 });
             } else if (location.pathname == "/modifypage.php") {
                 if (SearchParams.get("ByUserScript") != null) {
+                    document.title = "XMOJ-Script 更新日志";
                     document.querySelector("body > div > div.mt-3").innerHTML = "";
                     await fetch(ServerURL + "/Update.json", {cache: "no-cache"})
                         .then((Response) => {
@@ -2584,6 +2585,7 @@ async function main() {
                             }
                         });
                 } else {
+                    document.title = "修改账号";
                     let Nickname = document.getElementsByName("nick")[0].value;
                     let School = document.getElementsByName("school")[0].value;
                     let EmailAddress = document.getElementsByName("email")[0].value;
@@ -2830,7 +2832,7 @@ async function main() {
                     let UserID, UserNick;
                     [UserID, UserNick] = document.querySelector("#statics > caption").childNodes[0].data.trim().split("--");
                     document.querySelector("#statics > caption").remove();
-                    document.title = "用户 " + UserID;
+                    document.title = "用户 " + UserID + " 的个人中心";
                     let Row = document.createElement("div");
                     Row.className = "row";
                     let LeftDiv = document.createElement("div");
@@ -2948,6 +2950,7 @@ async function main() {
                     document.querySelector("body > div > div").innerHTML = "";
                     document.querySelector("body > div > div").appendChild(Row);
                 } else {
+                    document.title = "上传标程";
                     document.querySelector("body > div > div.mt-3").innerHTML = `<button id="UploadStd" class="btn btn-primary mb-2">上传标程</button>
                 <div class="alert alert-danger mb-3" role="alert" id="ErrorElement" style="display: none;"></div>
                 <div class="progress" role="progressbar">
