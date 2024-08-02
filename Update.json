@@ -1936,6 +1936,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.23": {
+            "UpdateDate": 1722601433746,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 615,
+                    "Description": "解决动画打断问题"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
