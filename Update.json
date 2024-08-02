@@ -1903,6 +1903,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.20": {
+            "UpdateDate": 1722558316642,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 600,
+                    "Description": "add some document.titles"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }

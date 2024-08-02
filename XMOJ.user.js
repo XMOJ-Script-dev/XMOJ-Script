@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.19
+// @version      1.2.20
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -950,6 +950,7 @@ async function main() {
 
             if (location.pathname == "/index.php" || location.pathname == "/") {
                 if (new URL(location.href).searchParams.get("ByUserScript") != null) {
+                    document.title = "脚本设置";
                     localStorage.setItem("UserScript-Opened", "true");
                     let Container = document.getElementsByClassName("mt-3")[0];
                     Container.innerHTML = "";
@@ -1290,8 +1291,7 @@ async function main() {
                         }).then((Response) => {
                             let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
                             let Temp = ParsedDocument.querySelectorAll(".cnt-row-body");
-                            if (UtilityEnabled("DebugMode"))
-                                console.log(Temp);
+                            if (UtilityEnabled("DebugMode")) console.log(Temp);
                             for (let i = 0; i < Temp.length; i++) {
                                 if (Temp[i].children[0].className === "content lang_cn") {
                                     let CopyMDButton = document.createElement("button");
@@ -1393,6 +1393,7 @@ async function main() {
                 Style.innerHTML += "}";
             } else if (location.pathname == "/status.php") {
                 if (SearchParams.get("ByUserScript") == null) {
+                    document.title = "提交状态";
                     document.querySelector("body > script:nth-child(5)").remove();
                     if (UtilityEnabled("NewBootstrap")) {
                         document.querySelector("#simform").outerHTML = `<form id="simform" class="justify-content-center form-inline row g-2" action="status.php" method="get" style="padding-bottom: 7px;">
@@ -2531,6 +2532,7 @@ async function main() {
                 });
             } else if (location.pathname == "/modifypage.php") {
                 if (SearchParams.get("ByUserScript") != null) {
+                    document.title = "XMOJ-Script 更新日志";
                     document.querySelector("body > div > div.mt-3").innerHTML = "";
                     await fetch(ServerURL + "/Update.json", {cache: "no-cache"})
                         .then((Response) => {
@@ -2583,6 +2585,7 @@ async function main() {
                             }
                         });
                 } else {
+                    document.title = "修改账号";
                     let Nickname = document.getElementsByName("nick")[0].value;
                     let School = document.getElementsByName("school")[0].value;
                     let EmailAddress = document.getElementsByName("email")[0].value;
@@ -2829,7 +2832,7 @@ async function main() {
                     let UserID, UserNick;
                     [UserID, UserNick] = document.querySelector("#statics > caption").childNodes[0].data.trim().split("--");
                     document.querySelector("#statics > caption").remove();
-
+                    document.title = "用户 " + UserID + " 的个人中心";
                     let Row = document.createElement("div");
                     Row.className = "row";
                     let LeftDiv = document.createElement("div");
@@ -2947,6 +2950,7 @@ async function main() {
                     document.querySelector("body > div > div").innerHTML = "";
                     document.querySelector("body > div > div").appendChild(Row);
                 } else {
+                    document.title = "上传标程";
                     document.querySelector("body > div > div.mt-3").innerHTML = `<button id="UploadStd" class="btn btn-primary mb-2">上传标程</button>
                 <div class="alert alert-danger mb-3" role="alert" id="ErrorElement" style="display: none;"></div>
                 <div class="progress" role="progressbar">
@@ -3253,6 +3257,7 @@ async function main() {
                         });
                 }
             } else if (location.pathname == "/reinfo.php") {
+                document.title = "测试点信息: " + SearchParams.get("sid");
                 if (document.querySelector("#results > div") == undefined) {
                     document.querySelector("#results").parentElement.innerHTML = "没有测试点信息";
                 } else {
@@ -3597,6 +3602,7 @@ int main()
             } else if (location.pathname == "/showsource.php") {
                 let Code = "";
                 if (SearchParams.get("ByUserScript") == null) {
+                    document.title = "查看代码: " + SearchParams.get("id");
                     await fetch("https://www.xmoj.tech/getsource.php?id=" + SearchParams.get("id"))
                         .then((Response) => {
                             return Response.text();
@@ -3604,6 +3610,7 @@ int main()
                             Code = Response.replace("\n<!--not cached-->\n", "");
                         });
                 } else {
+                    document.title = "查看标程: " + SearchParams.get("pid");
                     if (localStorage.getItem("UserScript-LastUploadedStdTime") === undefined || new Date().getTime() - localStorage.getItem("UserScript-LastUploadedStdTime") > 1000 * 60 * 60 * 24 * 30) {
                         location.href = "https://www.xmoj.tech/userinfo.php?ByUserScript=1";
                     }
@@ -3920,6 +3927,7 @@ int main()
                 if (UtilityEnabled("Discussion")) {
                     Discussion.classList.add("active");
                     if (location.pathname == "/discuss3/discuss.php") {
+                        document.title = "讨论列表";
                         let ProblemID = parseInt(SearchParams.get("pid"));
                         let BoardID = parseInt(SearchParams.get("bid"));
                         let Page = Number(SearchParams.get("page")) || 1;
@@ -4359,6 +4367,7 @@ int main()
                                             }
                                         }
                                         PostTitle.innerText = ResponseData.Data.Title + (ResponseData.Data.ProblemID == 0 ? "" : ` - 题目` + ResponseData.Data.ProblemID);
+                                        document.title = "讨论" + ThreadID + ": " + ResponseData.Data.Title;
                                         PostAuthor.innerHTML = "<span></span>";
                                         GetUsernameHTML(PostAuthor.children[0], ResponseData.Data.UserID);
                                         PostTime.innerHTML = GetRelativeTime(ResponseData.Data.PostTime);
