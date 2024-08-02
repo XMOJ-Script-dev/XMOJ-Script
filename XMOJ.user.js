@@ -3512,6 +3512,7 @@ int main()
 
                 let CurrentPage = parseInt(SearchParams.get("page") || 0);
                 let PID = Number(SearchParams.get("id"));
+                document.title = "问题 " + PID + " 状态";
                 let Pagination = `<nav class="center"><ul class="pagination justify-content-center">`;
                 if (CurrentPage !== 0) {
                     Pagination += `<li class="page-item"><a href="https://www.xmoj.tech/problemstatus.php?id=${PID + `&page=0" class="page-link">&laquo;</a></li><li class="page-item"><a href="https://www.xmoj.tech/problemstatus.php?id=` + PID + `&page=` + (CurrentPage - 1) + `" class="page-link">` + (CurrentPage)}</a></li>`;
