@@ -1925,6 +1925,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.22": {
+            "UpdateDate": 1722596284141,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 608,
+                    "Description": "美化导航栏（by zhouyiqing）"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
