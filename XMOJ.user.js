@@ -367,6 +367,8 @@ let ServerURL = (UtilityEnabled("DebugMode") ? "https://ghpages.xmoj-bbs.me/" : 
 let CurrentUsername = document.querySelector("#profile").innerText;
 CurrentUsername = CurrentUsername.replaceAll(/[^a-zA-Z0-9]/g, "");
 let IsAdmin = AdminUserList.indexOf(CurrentUsername) !== -1;
+
+
 class NavbarStyler {
     constructor() {
         this.navbar = document.querySelector('.navbar.navbar-expand-lg.bg-body-tertiary');
@@ -390,7 +392,7 @@ class NavbarStyler {
             position: 'fixed',
             borderRadius: '28px',
             boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
-            margin: '8px auto',
+            margin: '16px auto',
             backgroundColor: 'rgba(255, 255, 255, 0)',
             opacity: '0.75',
             zIndex: '1000'
@@ -432,7 +434,7 @@ class NavbarStyler {
         if (!document.getElementById('navbar-spacer')) {
             let spacer = document.createElement('div');
             spacer.id = 'navbar-spacer';
-            spacer.style.height = `${this.navbar.offsetHeight + 8}px`;
+            spacer.style.height = `${this.navbar.offsetHeight + 24}px`;
             spacer.style.width = '100%';
             document.body.insertBefore(spacer, document.body.firstChild);
         }
@@ -832,13 +834,16 @@ async function main() {
                             </div>`;
                         if (UtilityEnabled("NewTopBar")) {
                             UpdateDiv.style.position = 'fixed';
-                            UpdateDiv.style.top = '64px';
+                            UpdateDiv.style.top = '72px';
                             UpdateDiv.style.left = '50%';
                             UpdateDiv.style.transform = 'translateX(-50%)';
                             UpdateDiv.style.zIndex = '1001';
                             let spacer = document.createElement("div");
-                            spacer.style.height = '60px';
+                            spacer.style.height = '48px';
                             document.body.insertBefore(spacer, document.body.firstChild);
+                            UpdateDiv.querySelector(".btn-close").addEventListener("click", function() {
+                                document.body.removeChild(spacer);
+                            });
                         }
                         document.body.appendChild(UpdateDiv);
                         document.querySelector("body > div").insertBefore(UpdateDiv, document.querySelector("body > div > div.mt-3"));
