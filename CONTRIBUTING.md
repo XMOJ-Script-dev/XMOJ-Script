@@ -7,7 +7,6 @@ We believe that you must be excited to contribute to our repo, but first, please
 > [!IMPORTANT]
 > 请注意, 外部开发者应向`extern-contrib`提交 pull requests。
 
-## Code Style Guide
 - We use Bootstrap in our project. Please use Bootstrap classes instead of writing your own CSS whenever possible.
 - Do not run a code formatter.
 - Do not use any external libraries without prior permission
