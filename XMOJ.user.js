@@ -380,9 +380,9 @@ class NavbarStyler {
     init() {
         this.applyStyles();
         this.createOverlay();
-        this.updateBlurOverlay();
-        window.addEventListener('resize', () => this.updateBlurOverlay());
         this.createSpacer();
+        window.addEventListener('resize', () => this.updateBlurOverlay());
+        this.updateBlurOverlay();
     }
 
     applyStyles() {
@@ -431,12 +431,24 @@ class NavbarStyler {
     }
 
     createSpacer() {
-        if (!document.getElementById('navbar-spacer')) {
-            let spacer = document.createElement('div');
+        let spacer = document.getElementById('navbar-spacer');
+        let newHeight = this.navbar.offsetHeight + 24;
+        if (!spacer) {
+            spacer = document.createElement('div');
             spacer.id = 'navbar-spacer';
-            spacer.style.height = `${this.navbar.offsetHeight + 24}px`;
+            spacer.style.height = `${newHeight}px`;
             spacer.style.width = '100%';
             document.body.insertBefore(spacer, document.body.firstChild);
+        } else {
+            let currentHeight = parseInt(spacer.style.height, 10);
+            if (currentHeight !== newHeight) {
+                document.body.removeChild(spacer);
+                spacer = document.createElement('div');
+                spacer.id = 'navbar-spacer';
+                spacer.style.height = `${newHeight}px`;
+                spacer.style.width = '100%';
+                document.body.insertBefore(spacer, document.body.firstChild);
+            }
         }
     }
 }
