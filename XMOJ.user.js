@@ -821,14 +821,26 @@ async function main() {
                     }
                     if (CurrentVersion < LatestVersion) {
                         let UpdateDiv = document.createElement("div");
-                        UpdateDiv.innerHTML = `<div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
-                        <div>
-                            XMOJ用户脚本发现新版本${LatestVersion}，当前版本${CurrentVersion}，点击
-                            <a href="${ServerURL}/XMOJ.user.js" target="_blank" class="alert-link">此处</a>
-                            更新
-                        </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>`;
+                        UpdateDiv.innerHTML = `
+                            <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
+                                <div>
+                                    XMOJ用户脚本发现新版本${LatestVersion}，当前版本${CurrentVersion}，点击
+                                    <a href="${ServerURL}/XMOJ.user.js" target="_blank" class="alert-link">此处</a>
+                                    更新
+                                </div>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>`;
+                        if (UtilityEnabled("NewTopBar")) {
+                            UpdateDiv.style.position = 'fixed';
+                            UpdateDiv.style.top = '64px';
+                            UpdateDiv.style.left = '50%';
+                            UpdateDiv.style.transform = 'translateX(-50%)';
+                            UpdateDiv.style.zIndex = '1001';
+                            let spacer = document.createElement("div");
+                            spacer.style.height = '60px';
+                            document.body.insertBefore(spacer, document.body.firstChild);
+                        }
+                        document.body.appendChild(UpdateDiv);
                         document.querySelector("body > div").insertBefore(UpdateDiv, document.querySelector("body > div > div.mt-3"));
                     }
                     if (localStorage.getItem("UserScript-Update-LastVersion") != GM_info.script.version) {
@@ -1145,7 +1157,7 @@ async function main() {
                         "ID": "ImproveACRate", "Type": "A", "Name": "自动提交已AC题目以提高AC率"
                     }, {"ID": "AutoO2", "Type": "F", "Name": "代码提交界面自动选择O2优化"}, {
                         "ID": "Beautify", "Type": "F", "Name": "美化界面", "Children": [{
-                        }, {"ID": "NewTopBar", "Type": "F", "Name": "使用新的顶部导航栏"}, {
+                        "ID": "NewTopBar", "Type": "F", "Name": "使用新的顶部导航栏"}, {
                             "ID": "NewBootstrap", "Type": "F", "Name": "使用新版的Bootstrap样式库*"
                         }, {"ID": "ResetType", "Type": "F", "Name": "重新排版*"}, {
                             "ID": "AddColorText", "Type": "A", "Name": "增加彩色文字"
