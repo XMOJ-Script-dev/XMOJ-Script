@@ -1290,8 +1290,7 @@ async function main() {
                         }).then((Response) => {
                             let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
                             let Temp = ParsedDocument.querySelectorAll(".cnt-row-body");
-                            if (UtilityEnabled("DebugMode"))
-                                console.log(Temp);
+                            if (UtilityEnabled("DebugMode")) console.log(Temp);
                             for (let i = 0; i < Temp.length; i++) {
                                 if (Temp[i].children[0].className === "content lang_cn") {
                                     let CopyMDButton = document.createElement("button");
