@@ -1914,6 +1914,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.21": {
+            "UpdateDate": 1722558913797,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 601,
+                    "Description": "more document titles"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
