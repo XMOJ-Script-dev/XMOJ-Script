@@ -1209,7 +1209,7 @@ async function main() {
                             "ID": "AddColorText", "Type": "A", "Name": "增加彩色文字"
                         }, {"ID": "AddUnits", "Type": "A", "Name": "状态界面内存与耗时添加单位"}, {
                             "ID": "DarkMode", "Type": "A", "Name": "使用暗色模式"}, {
-                            "ID": "DarkPicture", "Type": "A", "Name": "使用反色的题目图片（开发中，可能不稳定；需要启用暗色模式）"
+                            "ID": "DarkPicture", "Type": "A", "Name": "使用反色的题目图片（需要启用暗色模式）"
                         }, {"ID": "AddAnimation", "Type": "A", "Name": "增加动画"}, {
                             "ID": "ReplaceYN", "Type": "F", "Name": "题目前对错的Y和N替换为勾和叉"
                         }, {"ID": "RemoveAlerts", "Type": "D", "Name": "去除多余反复的提示"}, {
