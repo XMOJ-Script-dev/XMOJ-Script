@@ -1183,7 +1183,8 @@ async function main() {
                         }, {"ID": "ResetType", "Type": "F", "Name": "重新排版*"}, {
                             "ID": "AddColorText", "Type": "A", "Name": "增加彩色文字"
                         }, {"ID": "AddUnits", "Type": "A", "Name": "状态界面内存与耗时添加单位"}, {
-                            "ID": "DarkMode", "Type": "A", "Name": "使用暗色模式"
+                            "ID": "DarkMode", "Type": "A", "Name": "使用暗色模式"}, {
+                            "ID": "DarkPicture", "Type": "A", "Name": "使用反色的题目图片（开发中，可能不稳定；需要启用暗色模式）"
                         }, {"ID": "AddAnimation", "Type": "A", "Name": "增加动画"}, {
                             "ID": "ReplaceYN", "Type": "F", "Name": "题目前对错的Y和N替换为勾和叉"
                         }, {"ID": "RemoveAlerts", "Type": "D", "Name": "去除多余反复的提示"}, {
@@ -1339,6 +1340,15 @@ async function main() {
                     localStorage.setItem("UserScript-Problem-" + Temp[i].children[1].innerText + "-Name", Temp[i].children[2].innerText);
                 }
             } else if (location.pathname == "/problem.php") {
+                if(UtilityEnabled("DarkPicture")&&UtilityEnabled("DarkMode")){
+                   const imgs = document.getElementsByTagName('img');
+                   for (let i = 0; i < imgs.length; i++) {
+                       const img = imgs[i];
+                       if (img.naturalWidth > 32 && img.naturalHeight > 32) {
+                           img.style.filter = 'invert(1)';
+                       }
+                   }
+                }
                 if (SearchParams.get("cid") != null) {
                     document.getElementsByTagName("h2")[0].innerHTML += " (" + localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + SearchParams.get("pid") + "-PID") + ")";
                 }
