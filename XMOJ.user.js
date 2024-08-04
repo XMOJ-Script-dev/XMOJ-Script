@@ -728,6 +728,31 @@ async function main() {
                 if(UtilityEnabled("NewTopBar")) {
                    new NavbarStyler();
                 }
+                if(UtilityEnabled("DarkPicture")&&UtilityEnabled("DarkMode")){
+                    function isDarkImage(img) {
+                        const canvas = document.createElement('canvas');
+                        const context = canvas.getContext('2d');
+                        canvas.width = img.naturalWidth;
+                        canvas.height = img.naturalHeight;
+                        context.drawImage(img, 0, 0);
+                        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                        let totalBrightness = 0;
+                        for (let i = 0; i < imageData.data.length; i += 4) {
+                            const r = imageData.data[i];
+                            const g = imageData.data[i + 1];
+                            const b = imageData.data[i + 2];
+                            const brightness = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+                            totalBrightness += brightness;
+                        }
+                        const avgBrightness = totalBrightness / (imageData.data.length / 4);
+                        return avgBrightness < 128; // threshold for dark image
+                    }
+                   const imgs = document.getElementsByTagName('img');
+                   for (let i = 0; i < imgs.length; i++) {
+                       const img = imgs[i];
+                       if (img.naturalWidth > 32 && img.naturalHeight > 32){if (!isDarkImage(img)) {img.style.filter = 'invert(1)';}}
+                   }
+                }
                 if (UtilityEnabled("ResetType")) {
                     if (document.querySelector("#profile") != undefined && document.querySelector("#profile").innerHTML == "登录") {
                         if (document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul").childNodes.length == 3) {
@@ -1183,7 +1208,8 @@ async function main() {
                         }, {"ID": "ResetType", "Type": "F", "Name": "重新排版*"}, {
                             "ID": "AddColorText", "Type": "A", "Name": "增加彩色文字"
                         }, {"ID": "AddUnits", "Type": "A", "Name": "状态界面内存与耗时添加单位"}, {
-                            "ID": "DarkMode", "Type": "A", "Name": "使用暗色模式"
+                            "ID": "DarkMode", "Type": "A", "Name": "使用暗色模式"}, {
+                            "ID": "DarkPicture", "Type": "A", "Name": "使用反色的题目图片（需要启用暗色模式）"
                         }, {"ID": "AddAnimation", "Type": "A", "Name": "增加动画"}, {
                             "ID": "ReplaceYN", "Type": "F", "Name": "题目前对错的Y和N替换为勾和叉"
                         }, {"ID": "RemoveAlerts", "Type": "D", "Name": "去除多余反复的提示"}, {
