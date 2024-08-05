@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.23
+// @version      1.2.24
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -452,6 +452,7 @@ class NavbarStyler {
         }
     }
 }
+
 async function main() {
     if (location.href.startsWith('http://')) {
         //use https
@@ -725,8 +726,40 @@ async function main() {
                     document.getElementById("nowdate").innerHTML = Year + "-" + (Month < 10 ? "0" : "") + Month + "-" + (_Date < 10 ? "0" : "") + _Date + " " + (Hours < 10 ? "0" : "") + Hours + ":" + (Minutes < 10 ? "0" : "") + Minutes + ":" + (Seconds < 10 ? "0" : "") + Seconds;
                 } catch (Error) {
                 }
-                if(UtilityEnabled("NewTopBar")) {
-                   new NavbarStyler();
+                if (UtilityEnabled("NewTopBar")) {
+                    new NavbarStyler();
+                }
+                if (UtilityEnabled("DarkPicture") && UtilityEnabled("DarkMode")) {
+                    function isDarkImage(img) {
+                        const canvas = document.createElement('canvas');
+                        const context = canvas.getContext('2d');
+                        canvas.width = img.naturalWidth;
+                        canvas.height = img.naturalHeight;
+                        context.drawImage(img, 0, 0);
+                        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                        let totalBrightness = 0;
+                        for (let i = 0; i < imageData.data.length; i += 4) {
+                            const r = imageData.data[i];
+                            const g = imageData.data[i + 1];
+                            const b = imageData.data[i + 2];
+                            const brightness = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+                            totalBrightness += brightness;
+                        }
+                        const avgBrightness = totalBrightness / (imageData.data.length / 4);
+                        return avgBrightness < 128; // threshold for dark image
+                    }
+
+                    const imgs = document.getElementsByTagName('img');
+                    for (let i = 0; i < imgs.length; i++) {
+                        const img = imgs[i];
+                        if (img.naturalWidth > 32 && img.naturalHeight > 32) {
+                            if (!isDarkImage(img)) {
+                                img.style.filter = 'invert(1)';
+                            }
+                        }
+                    }
+                } else if (UtilityEnabled("DarkPicture")) {
+                    localStorage.setItem("UserScript-Setting-DarkPicture", "false");
                 }
                 if (UtilityEnabled("ResetType")) {
                     if (document.querySelector("#profile") != undefined && document.querySelector("#profile").innerHTML == "登录") {
@@ -857,7 +890,7 @@ async function main() {
                             let spacer = document.createElement("div");
                             spacer.style.height = '48px';
                             document.body.insertBefore(spacer, document.body.firstChild);
-                            UpdateDiv.querySelector(".btn-close").addEventListener("click", function() {
+                            UpdateDiv.querySelector(".btn-close").addEventListener("click", function () {
                                 document.body.removeChild(spacer);
                             });
                         }
@@ -1178,12 +1211,15 @@ async function main() {
                         "ID": "ImproveACRate", "Type": "A", "Name": "自动提交已AC题目以提高AC率"
                     }, {"ID": "AutoO2", "Type": "F", "Name": "代码提交界面自动选择O2优化"}, {
                         "ID": "Beautify", "Type": "F", "Name": "美化界面", "Children": [{
-                        "ID": "NewTopBar", "Type": "F", "Name": "使用新的顶部导航栏"}, {
+                            "ID": "NewTopBar", "Type": "F", "Name": "使用新的顶部导航栏"
+                        }, {
                             "ID": "NewBootstrap", "Type": "F", "Name": "使用新版的Bootstrap样式库*"
                         }, {"ID": "ResetType", "Type": "F", "Name": "重新排版*"}, {
                             "ID": "AddColorText", "Type": "A", "Name": "增加彩色文字"
                         }, {"ID": "AddUnits", "Type": "A", "Name": "状态界面内存与耗时添加单位"}, {
                             "ID": "DarkMode", "Type": "A", "Name": "使用暗色模式"
+                        }, {
+                            "ID": "DarkPicture", "Type": "A", "Name": "使用反色的题目图片（需要启用暗色模式）"
                         }, {"ID": "AddAnimation", "Type": "A", "Name": "增加动画"}, {
                             "ID": "ReplaceYN", "Type": "F", "Name": "题目前对错的Y和N替换为勾和叉"
                         }, {"ID": "RemoveAlerts", "Type": "D", "Name": "去除多余反复的提示"}, {

@@ -1938,12 +1938,23 @@
             "Notes": "No release notes were provided for this release."
         },
         "1.2.23": {
-            "UpdateDate": 1722601433746,
+            "UpdateDate": 1722601450156,
             "Prerelease": true,
             "UpdateContents": [
                 {
                     "PR": 615,
                     "Description": "解决动画打断问题"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.24": {
+            "UpdateDate": 1722821084232,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 622,
+                    "Description": "Extern contrib from @zhouyiqing0304"
                 }
             ],
             "Notes": "No release notes were provided for this release."
