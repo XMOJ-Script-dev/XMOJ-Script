@@ -462,7 +462,8 @@ async function main() {
         location.host = "www.xmoj.tech";
     } else {
         if (location.href === 'https://www.xmoj.tech/open_contest_sign_up.php') {
-            return;
+            await new Promise(r => setTimeout(r, 200));
+            if(document.body.innerText.includes("当前没有可报名的月赛。")) { document.querySelector('#step2.hidden')?.remove(); }
         }
         document.body.classList.add("placeholder-glow");
         if (document.querySelector("#navbar") != null) {
