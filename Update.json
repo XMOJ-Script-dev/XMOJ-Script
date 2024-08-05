@@ -1949,12 +1949,12 @@
             "Notes": "No release notes were provided for this release."
         },
         "1.2.24": {
-            "UpdateDate": 1722820234130,
+            "UpdateDate": 1722820311657,
             "Prerelease": true,
             "UpdateContents": [
                 {
                     "PR": 622,
-                    "Description": "暗色模式图片反转（by zhouyiqing）"
+                    "Description": "Extern contrib from @zhouyiqing0304"
                 }
             ],
             "Notes": "No release notes were provided for this release."
