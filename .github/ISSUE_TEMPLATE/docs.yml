@@ -1,7 +1,7 @@
 name: 帮助文档反馈
 description: 帮助文档有问题
 labels: docs, needs-triage
-assignees: PythonSmall-Q, ptsq-bot
+assignees: PythonSmall-Q,ptsq-bot
 title: "[Docs]"
 body:
 - type: checkboxes
