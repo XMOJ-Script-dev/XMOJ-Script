@@ -4847,4 +4847,11 @@ int main()
     }
 }
 
-main();
+try {
+    main();
+} catch (e) {
+    console.error(e);
+    if (UtilityEnabled("DebugMode")) {
+        alert("Internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugModes.");
+    }
+}
