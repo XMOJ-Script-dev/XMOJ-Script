@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.24
+// @version      1.2.25
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -728,38 +728,6 @@ async function main() {
                 }
                 if (UtilityEnabled("NewTopBar")) {
                     new NavbarStyler();
-                }
-                if (UtilityEnabled("DarkPicture") && UtilityEnabled("DarkMode")) {
-                    function isDarkImage(img) {
-                        const canvas = document.createElement('canvas');
-                        const context = canvas.getContext('2d');
-                        canvas.width = img.naturalWidth;
-                        canvas.height = img.naturalHeight;
-                        context.drawImage(img, 0, 0);
-                        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-                        let totalBrightness = 0;
-                        for (let i = 0; i < imageData.data.length; i += 4) {
-                            const r = imageData.data[i];
-                            const g = imageData.data[i + 1];
-                            const b = imageData.data[i + 2];
-                            const brightness = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-                            totalBrightness += brightness;
-                        }
-                        const avgBrightness = totalBrightness / (imageData.data.length / 4);
-                        return avgBrightness < 128; // threshold for dark image
-                    }
-
-                    const imgs = document.getElementsByTagName('img');
-                    for (let i = 0; i < imgs.length; i++) {
-                        const img = imgs[i];
-                        if (img.naturalWidth > 32 && img.naturalHeight > 32) {
-                            if (!isDarkImage(img)) {
-                                img.style.filter = 'invert(1)';
-                            }
-                        }
-                    }
-                } else if (UtilityEnabled("DarkPicture")) {
-                    localStorage.setItem("UserScript-Setting-DarkPicture", "false");
                 }
                 if (UtilityEnabled("ResetType")) {
                     if (document.querySelector("#profile") != undefined && document.querySelector("#profile").innerHTML == "登录") {
