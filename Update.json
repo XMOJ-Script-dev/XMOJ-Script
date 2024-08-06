@@ -1958,6 +1958,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.25": {
+            "UpdateDate": 1722923225185,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 629,
+                    "Description": "Emergency fix"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
