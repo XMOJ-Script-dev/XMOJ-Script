@@ -758,6 +758,47 @@ async function main() {
                             localStorage.removeItem("UserScript-Password");
                             location.href = "https://www.xmoj.tech/logout.php";
                         });
+                        Array.from(PopupUL.children).forEach(item => {
+                            item.style.opacity = 0;
+                            item.style.transform = 'translateY(-16px)';
+                            item.style.transition = 'transform 0.3s ease, opacity 0.5s ease';
+                        });
+                        let showDropdownItems = () => {
+                            PopupUL.style.display = 'block';
+                            Array.from(PopupUL.children).forEach((item, index) => {
+                                clearTimeout(item._timeout);
+                                item.style.opacity = 0;
+                                item.style.transform = 'translateY(-4px)';
+                                item._timeout = setTimeout(() => {
+                                    item.style.opacity = 1;
+                                    item.style.transform = 'translateY(2px)';
+                                }, index * 36);
+                            });
+                        };
+                        let hideDropdownItems = () => {
+                            Array.from(PopupUL.children).forEach((item) => {
+                                clearTimeout(item._timeout);
+                                item.style.opacity = 0;
+                                item.style.transform = 'translateY(-16px)';
+                            });
+                            setTimeout(() => {
+                                PopupUL.style.display = 'none';
+                            }, 100);
+                        };
+                        let toggleDropdownItems = () => {
+                            if (PopupUL.style.display === 'block') {
+                                hideDropdownItems();
+                            } else {
+                                showDropdownItems();
+                            }
+                        };
+                        let parentLi = document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li");
+                        parentLi.addEventListener("click", toggleDropdownItems);
+                        document.addEventListener("click", (event) => {
+                            if (!parentLi.contains(event.target) && PopupUL.style.display === 'block') {
+                                hideDropdownItems();
+                            }
+                        });
                     }
                 }
                 if (UtilityEnabled("AutoCountdown")) {
