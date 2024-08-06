@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.25
+// @version      1.2.26
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -2307,9 +2307,11 @@ async function main() {
                                             "liujiankun": "刘健坤",
                                             "liuxianyong": "刘先勇",
                                             "liuxixian": "刘希贤",
+                                            "liuyuxi": "刘雨夕",
                                             "liyihan": "李亦涵",
-                                            "luojinyang": "罗金阳",
+                                            "luhanlin": "陆涵琳",
                                             "lutianfeng": "陆天枫",
+                                            "luojinyang": "罗金阳",
                                             "meitianyi": "梅天一",
                                             "panyinliang": "潘胤良",
                                             "pengyixuan": "彭议萱",

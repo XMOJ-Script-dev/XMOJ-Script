@@ -1969,6 +1969,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.26": {
+            "UpdateDate": 1722934373375,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 631,
+                    "Description": "Update More Names"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
