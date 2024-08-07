@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.26
+// @version      1.2.27
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -4847,4 +4847,11 @@ int main()
     }
 }
 
-main();
+try {
+    main();
+} catch (e) {
+    console.error(e);
+    if (UtilityEnabled("DebugMode")) {
+        alert("Internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+    }
+}
