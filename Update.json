@@ -2091,6 +2091,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.32": {
+            "UpdateDate": 1723006469038,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 644,
+                    "Description": "Better error Reporting"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
