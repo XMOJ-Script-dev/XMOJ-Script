@@ -2002,6 +2002,73 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.29": {
+            "UpdateDate": 1722993130679,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 580,
+                    "Description": "Improve popover usability"
+                },
+                {
+                    "PR": 581,
+                    "Description": "fix copymd"
+                },
+                {
+                    "PR": 583,
+                    "Description": "fix ACM rank"
+                },
+                {
+                    "PR": 594,
+                    "Description": "Revert Extern"
+                },
+                {
+                    "PR": 595,
+                    "Description": "update pic"
+                },
+                {
+                    "PR": 596,
+                    "Description": "ahhhhhh typos"
+                },
+                {
+                    "PR": 600,
+                    "Description": "add some document.titles"
+                },
+                {
+                    "PR": 601,
+                    "Description": "more document titles"
+                },
+                {
+                    "PR": 608,
+                    "Description": "美化导航栏（by zhouyiqing）"
+                },
+                {
+                    "PR": 615,
+                    "Description": "解决动画打断问题"
+                },
+                {
+                    "PR": 622,
+                    "Description": "Extern contrib from @zhouyiqing0304"
+                },
+                {
+                    "PR": 629,
+                    "Description": "Emergency fix"
+                },
+                {
+                    "PR": 631,
+                    "Description": "Update More Names"
+                },
+                {
+                    "PR": 633,
+                    "Description": "Add error Reporting"
+                },
+                {
+                    "PR": 634,
+                    "Description": "减少歧义"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
