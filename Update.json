@@ -2135,6 +2135,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.36": {
+            "UpdateDate": 1723018816861,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 653,
+                    "Description": "Update a number of names"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
