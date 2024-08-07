@@ -1,6 +1,6 @@
 {
   "name": "xmoj-script",
-  "version": "1.2.32",
+  "version": "1.2.33",
   "description": "an improvement script for xmoj.tech",
   "main": "AddonScript.js",
   "scripts": {
