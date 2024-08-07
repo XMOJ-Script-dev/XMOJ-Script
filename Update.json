@@ -1837,6 +1837,238 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.14": {
+            "UpdateDate": 1722470253103,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 580,
+                    "Description": "Improve popover usability"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.15": {
+            "UpdateDate": 1722472465539,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 581,
+                    "Description": "fix copymd"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.16": {
+            "UpdateDate": 1722478374388,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 583,
+                    "Description": "fix ACM rank"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.17": {
+            "UpdateDate": 1722513002990,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 594,
+                    "Description": "Revert Extern"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.18": {
+            "UpdateDate": 1722513340833,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 595,
+                    "Description": "update pic"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.19": {
+            "UpdateDate": 1722513622681,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 596,
+                    "Description": "ahhhhhh typos"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.20": {
+            "UpdateDate": 1722558316642,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 600,
+                    "Description": "add some document.titles"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.21": {
+            "UpdateDate": 1722558913797,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 601,
+                    "Description": "more document titles"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.22": {
+            "UpdateDate": 1722596300758,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 608,
+                    "Description": "美化导航栏（by zhouyiqing）"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.23": {
+            "UpdateDate": 1722601450156,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 615,
+                    "Description": "解决动画打断问题"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.24": {
+            "UpdateDate": 1722821084232,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 622,
+                    "Description": "Extern contrib from @zhouyiqing0304"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.25": {
+            "UpdateDate": 1722923378941,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 629,
+                    "Description": "Emergency fix"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.26": {
+            "UpdateDate": 1722934373375,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 631,
+                    "Description": "Update More Names"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.27": {
+            "UpdateDate": 1722953708717,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 633,
+                    "Description": "Add error Reporting"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.28": {
+            "UpdateDate": 1722992901032,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 634,
+                    "Description": "减少歧义"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.29": {
+            "UpdateDate": 1722993130679,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 580,
+                    "Description": "Improve popover usability"
+                },
+                {
+                    "PR": 581,
+                    "Description": "fix copymd"
+                },
+                {
+                    "PR": 583,
+                    "Description": "fix ACM rank"
+                },
+                {
+                    "PR": 594,
+                    "Description": "Revert Extern"
+                },
+                {
+                    "PR": 595,
+                    "Description": "update pic"
+                },
+                {
+                    "PR": 596,
+                    "Description": "ahhhhhh typos"
+                },
+                {
+                    "PR": 600,
+                    "Description": "add some document.titles"
+                },
+                {
+                    "PR": 601,
+                    "Description": "more document titles"
+                },
+                {
+                    "PR": 608,
+                    "Description": "美化导航栏（by zhouyiqing）"
+                },
+                {
+                    "PR": 615,
+                    "Description": "解决动画打断问题"
+                },
+                {
+                    "PR": 622,
+                    "Description": "Extern contrib from @zhouyiqing0304"
+                },
+                {
+                    "PR": 629,
+                    "Description": "Emergency fix"
+                },
+                {
+                    "PR": 631,
+                    "Description": "Update More Names"
+                },
+                {
+                    "PR": 633,
+                    "Description": "Add error Reporting"
+                },
+                {
+                    "PR": 634,
+                    "Description": "减少歧义"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
