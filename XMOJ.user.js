@@ -2640,7 +2640,7 @@ async function main() {
                             let freopenText = document.createElement('small');
                             if(UtilityEnabled("DarkMode"))freopenText.style.color = "white";
                             else freopenText.style.color = "black";
-                            freopenText.textContent = '\n您也可以复制Freopen语句。\n	freopen(\"'+IOFilename+'.in\",\"r\",stdin);\n	freopen(\"'+IOFilename+'.out\",\"w\",stdout);\n';
+                            freopenText.textContent = '\n您也可以复制freopen语句。\n	freopen(\"'+IOFilename+'.in\",\"r\",stdin);\n	freopen(\"'+IOFilename+'.out\",\"w\",stdout);\n';
                             document.getElementById('ErrorMessage').appendChild(freopenText);
                             let copyFreopenButton = document.createElement("button");
                             copyFreopenButton.className = "btn btn-sm btn-outline-secondary copy-btn";
