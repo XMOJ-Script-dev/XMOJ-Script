@@ -2661,6 +2661,7 @@ async function main() {
                             ErrorElement.style.display = "block";
                             if(UtilityEnabled("DarkMode"))ErrorMessage.style.color = "yellow";
                             else ErrorMessage.style.color = "red";
+                            ErrorMessage.innerText = "请不要注释freopen语句";
                             document.querySelector("#Submit").disabled = false;
                             document.querySelector("#Submit").value = "提交";
                             return false;
