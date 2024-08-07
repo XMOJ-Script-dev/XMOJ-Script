@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.30
+// @version      1.2.31
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -2633,15 +2633,34 @@ async function main() {
                         if (Source.indexOf(IOFilename) == -1) {
                             PassCheck.style.display = "";
                             ErrorElement.style.display = "block";
-                            ErrorMessage.style.color = "red";
+                            if(UtilityEnabled("DarkMode"))ErrorMessage.style.color = "yellow";
+                            else ErrorMessage.style.color = "red";
                             ErrorMessage.innerText = "此题输入输出文件名为" + IOFilename + "，请检查是否填错";
+
+                            let freopenText = document.createElement('small');
+                            if(UtilityEnabled("DarkMode"))freopenText.style.color = "white";
+                            else freopenText.style.color = "black";
+                            freopenText.textContent = '\n您也可以复制freopen语句。\n	freopen(\"'+IOFilename+'.in\",\"r\",stdin);\n	freopen(\"'+IOFilename+'.out\",\"w\",stdout);\n';
+                            document.getElementById('ErrorMessage').appendChild(freopenText);
+                            let copyFreopenButton = document.createElement("button");
+                            copyFreopenButton.className = "btn btn-sm btn-outline-secondary copy-btn";
+                            copyFreopenButton.innerText = "复制代码";
+                            copyFreopenButton.style.marginLeft = "10px";
+                            copyFreopenButton.type = "button";
+                            copyFreopenButton.addEventListener("click", () => {
+                                navigator.clipboard.writeText('\n	freopen("' + IOFilename + '.in","r",stdin);\n	freopen("' + IOFilename + '.out","w",stdout);');
+                                copyFreopenButton.innerText = "复制成功";
+                                setTimeout(() => { copyFreopenButton.innerText = "复制代码"; }, 1500);
+                            });
+                            document.getElementById('ErrorMessage').appendChild(copyFreopenButton);
                             document.querySelector("#Submit").disabled = false;
                             document.querySelector("#Submit").value = "提交";
                             return false;
                         } else if (RegExp("//.*freopen").test(Source)) {
                             PassCheck.style.display = "";
                             ErrorElement.style.display = "block";
-                            ErrorMessage.style.color = "red";
+                            if(UtilityEnabled("DarkMode"))ErrorMessage.style.color = "yellow";
+                            else ErrorMessage.style.color = "red";
                             ErrorMessage.innerText = "请不要注释freopen语句";
                             document.querySelector("#Submit").disabled = false;
                             document.querySelector("#Submit").value = "提交";
@@ -2651,7 +2670,8 @@ async function main() {
                     if (Source == "") {
                         PassCheck.style.display = "";
                         ErrorElement.style.display = "block";
-                        ErrorMessage.style.color = "red";
+                        if(UtilityEnabled("DarkMode"))ErrorMessage.style.color = "yellow";
+                        else ErrorMessage.style.color = "red";
                         ErrorMessage.innerText = "源代码为空";
                         document.querySelector("#Submit").disabled = false;
                         document.querySelector("#Submit").value = "提交";
@@ -2673,7 +2693,8 @@ async function main() {
                         if (Response.returncode) {
                             PassCheck.style.display = "";
                             ErrorElement.style.display = "block";
-                            ErrorMessage.style.color = "red";
+                            if(UtilityEnabled("DarkMode"))ErrorMessage.style.color = "yellow";
+                            else ErrorMessage.style.color = "red";
                             ErrorMessage.innerText = "编译错误：\n" + Response.stderr.trim();
                             document.querySelector("#Submit").disabled = false;
                             document.querySelector("#Submit").value = "提交";
