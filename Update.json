@@ -1991,6 +1991,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.28": {
+            "UpdateDate": 1722992901032,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 634,
+                    "Description": "减少歧义"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
