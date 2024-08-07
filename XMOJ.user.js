@@ -2772,12 +2772,14 @@ async function main() {
 
                                 let freopenText = document.createElement('small');
                                 if (UtilityEnabled("DarkMode")) freopenText.style.color = "white"; else freopenText.style.color = "black";
-                                freopenText.textContent = '\n您也可以复制freopen语句。\n	freopen(\"' + IOFilename + '.in\",\"r\",stdin);\n	freopen(\"' + IOFilename + '.out\",\"w\",stdout);\n';
+                                freopenText.textContent = '\n您也可以复制freopen语句。\n';
                                 document.getElementById('ErrorMessage').appendChild(freopenText);
                                 let copyFreopenButton = document.createElement("button");
                                 copyFreopenButton.className = "btn btn-sm btn-outline-secondary copy-btn";
                                 copyFreopenButton.innerText = "复制代码";
                                 copyFreopenButton.style.marginLeft = "10px";
+                                copyFreopenButton.style.marginTop = "10px";
+                                copyFreopenButton.style.marginBottom = "10px";
                                 copyFreopenButton.type = "button";
                                 copyFreopenButton.addEventListener("click", () => {
                                     navigator.clipboard.writeText('\n	freopen("' + IOFilename + '.in","r",stdin);\n	freopen("' + IOFilename + '.out","w",stdout);');
@@ -2787,6 +2789,14 @@ async function main() {
                                     }, 1500);
                                 });
                                 document.getElementById('ErrorMessage').appendChild(copyFreopenButton);
+                                let freopenCodeField = CodeMirror(document.getElementById('ErrorMessage'), {
+                                    value: 'freopen("' + IOFilename + '.in","r",stdin);\nfreopen("' + IOFilename + '.out","w",stdout);',
+                                    mode: 'text/x-c++src',
+                                    theme: (UtilityEnabled("DarkMode") ? "darcula" : "default"),
+                                    readOnly: true,
+                                    lineNumbers: true
+                                });
+                                freopenCodeField.setSize("100%", "auto");
                                 document.querySelector("#Submit").disabled = false;
                                 document.querySelector("#Submit").value = "提交";
                                 return false;
