@@ -2637,22 +2637,22 @@ async function main() {
                             else ErrorMessage.style.color = "red";
                             ErrorMessage.innerText = "此题输入输出文件名为" + IOFilename + "，请检查是否填错";
 
-                            let FreopenText = document.createElement('small');
-                            if(UtilityEnabled("DarkMode"))FreopenText.style.color = "white";
-                            else FreopenText.style.color = "black";
-                            FreopenText.textContent = '\n您也可以复制Freopen语句。\n	freopen(\"'+IOFilename+'.in\",\"r\",stdin);\n	freopen(\"'+IOFilename+'.out\",\"w\",stdout);\n';
-                            document.getElementById('ErrorMessage').appendChild(FreopenText);
-                            let CopyFreopenButton = document.createElement("button");
-                            CopyFreopenButton.className = "btn btn-sm btn-outline-secondary copy-btn";
-                            CopyFreopenButton.innerText = "复制代码";
-                            CopyFreopenButton.style.marginLeft = "10px";
-                            CopyFreopenButton.type = "button";
-                            CopyFreopenButton.addEventListener("click", () => {
+                            let freopenText = document.createElement('small');
+                            if(UtilityEnabled("DarkMode"))freopenText.style.color = "white";
+                            else freopenText.style.color = "black";
+                            freopenText.textContent = '\n您也可以复制Freopen语句。\n	freopen(\"'+IOFilename+'.in\",\"r\",stdin);\n	freopen(\"'+IOFilename+'.out\",\"w\",stdout);\n';
+                            document.getElementById('ErrorMessage').appendChild(freopenText);
+                            let copyFreopenButton = document.createElement("button");
+                            copyFreopenButton.className = "btn btn-sm btn-outline-secondary copy-btn";
+                            copyFreopenButton.innerText = "复制代码";
+                            copyFreopenButton.style.marginLeft = "10px";
+                            copyFreopenButton.type = "button";
+                            copyFreopenButton.addEventListener("click", () => {
                                 navigator.clipboard.writeText('\n	freopen("' + IOFilename + '.in","r",stdin);\n	freopen("' + IOFilename + '.out","w",stdout);');
-                                CopyFreopenButton.innerText = "复制成功";
-                                setTimeout(() => { CopyFreopenButton.innerText = "复制代码"; }, 1500);
+                                copyFreopenButton.innerText = "复制成功";
+                                setTimeout(() => { copyFreopenButton.innerText = "复制代码"; }, 1500);
                             });
-                            document.getElementById('ErrorMessage').appendChild(CopyFreopenButton);
+                            document.getElementById('ErrorMessage').appendChild(copyFreopenButton);
                             document.querySelector("#Submit").disabled = false;
                             document.querySelector("#Submit").value = "提交";
                             return false;
