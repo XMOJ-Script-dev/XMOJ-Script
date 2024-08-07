@@ -2080,6 +2080,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.31": {
+            "UpdateDate": 1723000320765,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 642,
+                    "Description": "freopen检测优化 （by zhouyiqing）"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
