@@ -2633,16 +2633,34 @@ async function main() {
                         if (Source.indexOf(IOFilename) == -1) {
                             PassCheck.style.display = "";
                             ErrorElement.style.display = "block";
-                            ErrorMessage.style.color = "red";
+                            if(UtilityEnabled("DarkMode"))ErrorMessage.style.color = "yellow";
+                            else ErrorMessage.style.color = "red";
                             ErrorMessage.innerText = "此题输入输出文件名为" + IOFilename + "，请检查是否填错";
+
+                            let FreopenText = document.createElement('small');
+                            if(UtilityEnabled("DarkMode"))FreopenText.style.color = "white";
+                            else FreopenText.style.color = "black";
+                            FreopenText.textContent = '\n您也可以复制Freopen语句。\n	freopen(\"'+IOFilename+'.in\",\"r\",stdin);\n	freopen(\"'+IOFilename+'.out\",\"w\",stdout);\n';
+                            document.getElementById('ErrorMessage').appendChild(FreopenText);
+                            let CopyFreopenButton = document.createElement("button");
+                            CopyFreopenButton.className = "btn btn-sm btn-outline-secondary copy-btn";
+                            CopyFreopenButton.innerText = "复制代码";
+                            CopyFreopenButton.style.marginLeft = "10px";
+                            CopyFreopenButton.type = "button";
+                            CopyFreopenButton.addEventListener("click", () => {
+                                navigator.clipboard.writeText('\n	freopen("' + IOFilename + '.in","r",stdin);\n	freopen("' + IOFilename + '.out","w",stdout);');
+                                CopyFreopenButton.innerText = "复制成功";
+                                setTimeout(() => { CopyFreopenButton.innerText = "复制代码"; }, 1500);
+                            });
+                            document.getElementById('ErrorMessage').appendChild(CopyFreopenButton);
                             document.querySelector("#Submit").disabled = false;
                             document.querySelector("#Submit").value = "提交";
                             return false;
                         } else if (RegExp("//.*freopen").test(Source)) {
                             PassCheck.style.display = "";
                             ErrorElement.style.display = "block";
-                            ErrorMessage.style.color = "red";
-                            ErrorMessage.innerText = "请不要注释freopen语句";
+                            if(UtilityEnabled("DarkMode"))ErrorMessage.style.color = "yellow";
+                            else ErrorMessage.style.color = "red";
                             document.querySelector("#Submit").disabled = false;
                             document.querySelector("#Submit").value = "提交";
                             return false;
@@ -2651,7 +2669,8 @@ async function main() {
                     if (Source == "") {
                         PassCheck.style.display = "";
                         ErrorElement.style.display = "block";
-                        ErrorMessage.style.color = "red";
+                        if(UtilityEnabled("DarkMode"))ErrorMessage.style.color = "yellow";
+                        else ErrorMessage.style.color = "red";
                         ErrorMessage.innerText = "源代码为空";
                         document.querySelector("#Submit").disabled = false;
                         document.querySelector("#Submit").value = "提交";
@@ -2673,7 +2692,8 @@ async function main() {
                         if (Response.returncode) {
                             PassCheck.style.display = "";
                             ErrorElement.style.display = "block";
-                            ErrorMessage.style.color = "red";
+                            if(UtilityEnabled("DarkMode"))ErrorMessage.style.color = "yellow";
+                            else ErrorMessage.style.color = "red";
                             ErrorMessage.innerText = "编译错误：\n" + Response.stderr.trim();
                             document.querySelector("#Submit").disabled = false;
                             document.querySelector("#Submit").value = "提交";
