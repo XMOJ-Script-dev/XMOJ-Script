@@ -2113,6 +2113,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.34": {
+            "UpdateDate": 1723008021982,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 648,
+                    "Description": "format freopen statement"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
