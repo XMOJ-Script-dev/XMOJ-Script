@@ -2782,7 +2782,7 @@ async function main() {
                                 copyFreopenButton.style.marginBottom = "10px";
                                 copyFreopenButton.type = "button";
                                 copyFreopenButton.addEventListener("click", () => {
-                                    navigator.clipboard.writeText('\n	freopen("' + IOFilename + '.in","r",stdin);\n	freopen("' + IOFilename + '.out","w",stdout);');
+                                    navigator.clipboard.writeText('\n	freopen("' + IOFilename + '.in", "r", stdin);\n	freopen("' + IOFilename + '.out", "w", stdout);');
                                     copyFreopenButton.innerText = "复制成功";
                                     setTimeout(() => {
                                         copyFreopenButton.innerText = "复制代码";
@@ -2790,7 +2790,7 @@ async function main() {
                                 });
                                 document.getElementById('ErrorMessage').appendChild(copyFreopenButton);
                                 let freopenCodeField = CodeMirror(document.getElementById('ErrorMessage'), {
-                                    value: 'freopen("' + IOFilename + '.in","r",stdin);\nfreopen("' + IOFilename + '.out","w",stdout);',
+                                    value: 'freopen("' + IOFilename + '.in", "r", stdin);\nfreopen("' + IOFilename + '.out", "w", stdout);',
                                     mode: 'text/x-c++src',
                                     theme: (UtilityEnabled("DarkMode") ? "darcula" : "default"),
                                     readOnly: true,
