@@ -2102,6 +2102,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.33": {
+            "UpdateDate": 1723007791910,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 645,
+                    "Description": "Codemirror for freopen"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
