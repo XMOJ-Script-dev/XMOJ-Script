@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.25
+// @version      1.2.27
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -2307,9 +2307,11 @@ async function main() {
                                             "liujiankun": "刘健坤",
                                             "liuxianyong": "刘先勇",
                                             "liuxixian": "刘希贤",
+                                            "liuyuxi": "刘雨夕",
                                             "liyihan": "李亦涵",
-                                            "luojinyang": "罗金阳",
+                                            "luhanlin": "陆涵琳",
                                             "lutianfeng": "陆天枫",
+                                            "luojinyang": "罗金阳",
                                             "meitianyi": "梅天一",
                                             "panyinliang": "潘胤良",
                                             "pengyixuan": "彭议萱",
@@ -4845,4 +4847,11 @@ int main()
     }
 }
 
-main();
+try {
+    main();
+} catch (e) {
+    console.error(e);
+    if (UtilityEnabled("DebugMode")) {
+        alert("Internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+    }
+}
