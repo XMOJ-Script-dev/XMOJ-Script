@@ -2124,6 +2124,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.35": {
+            "UpdateDate": 1723008839982,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 651,
+                    "Description": "prevent RE"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
