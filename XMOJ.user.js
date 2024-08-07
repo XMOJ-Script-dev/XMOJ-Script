@@ -263,8 +263,10 @@ let GetUsernameHTML = async (Element, Username, Simple = false, Href = "https://
                 HTMLData += `<span class="badge ms-2" style="background-color: ${BadgeInfo.BackgroundColor}; color: ${BadgeInfo.Color}">${BadgeInfo.Content}</span>`;
             }
         }
-        document.getElementById(ID).innerHTML = HTMLData;
-        document.getElementById(ID).getElementsByTagName("a")[0].appendChild(document.createTextNode(Username));
+        if (document.getElementById(ID) !== null) {
+            document.getElementById(ID).innerHTML = HTMLData;
+            document.getElementById(ID).getElementsByTagName("a")[0].appendChild(document.createTextNode(Username));
+        }
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
