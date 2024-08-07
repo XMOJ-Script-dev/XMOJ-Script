@@ -2069,6 +2069,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.30": {
+            "UpdateDate": 1722995904167,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 639,
+                    "Description": "Restore License"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
