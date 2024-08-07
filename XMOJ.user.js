@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.27
+// @version      1.2.28
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -211,7 +211,7 @@ let GetUsernameHTML = async (Element, Username, Simple = false, Href = "https://
     HTMLData += `\";"></a>`;
     if (!Simple) {
         if (AdminUserList.includes(Username)) {
-            HTMLData += `<span class="badge text-bg-danger ms-2">管理员</span>`;
+            HTMLData += `<span class="badge text-bg-danger ms-2">脚本管理员</span>`;
         }
         if (Username == "chenlangning") {
             HTMLData += `<span class="badge ms-2" style="background-color: #6633cc; color: #ffffff">吉祥物</span>`;
