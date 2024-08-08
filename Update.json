@@ -2190,6 +2190,57 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.41": {
+            "UpdateDate": 1723095901881,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 639,
+                    "Description": "Restore License"
+                },
+                {
+                    "PR": 642,
+                    "Description": "freopen检测优化 （by zhouyiqing）"
+                },
+                {
+                    "PR": 644,
+                    "Description": "Better error Reporting"
+                },
+                {
+                    "PR": 645,
+                    "Description": "Codemirror for freopen"
+                },
+                {
+                    "PR": 648,
+                    "Description": "format freopen statement"
+                },
+                {
+                    "PR": 651,
+                    "Description": "prevent RE"
+                },
+                {
+                    "PR": 653,
+                    "Description": "Update a number of names"
+                },
+                {
+                    "PR": 655,
+                    "Description": "Prevent RE"
+                },
+                {
+                    "PR": 657,
+                    "Description": "log Success"
+                },
+                {
+                    "PR": 658,
+                    "Description": "error reporting for image upload"
+                },
+                {
+                    "PR": 659,
+                    "Description": "new toolbar item"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
