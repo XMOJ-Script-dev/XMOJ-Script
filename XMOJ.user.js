@@ -3342,7 +3342,9 @@ async function main() {
                         });
                     }
                 } else if (location.pathname == "/conteststatistics.php") {
-                    document.title = "比赛统计";
+                    if (new URL(location.href).searchParams.get("cid") != null) {
+                        document.title = "比赛 " + new URL(location.href).searchParams.get("cid") + " 统计";
+                    }
                     document.querySelector("body > div > div.mt-3 > center > h3").innerText = "比赛统计";
                     if (UtilityEnabled("ResetType")) {
                         let Temp = document.getElementById("submission").childNodes;
