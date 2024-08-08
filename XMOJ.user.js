@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.37
+// @version      1.2.38
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -5050,4 +5050,6 @@ int main()
     }
 }
 
-main();
+main().then(r => {
+    console.log("XMOJ-Script loaded successfully!");
+});
