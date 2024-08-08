@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.42
+// @version      1.2.43
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -4756,11 +4756,9 @@ int main()
                                                     ReplyButton.innerText = "回复";
                                                     ReplyButton.addEventListener("click", () => {
                                                         let Content = Replies[i].Content;
-                                                        while (Content.startsWith(">")) {
-                                                            Content = Content.substring(Content.indexOf("\n") + 1);
-                                                        }
-                                                        Content = Content.trim();
                                                         Content = Content.split("\n").map((Line) => {
+                                                            return Line.startsWith(">") ? Line.substring(1).trim() : Line.trim();
+                                                        }).join("\n").split("\n").map((Line) => {
                                                             return "> " + Line;
                                                         }).join("\n");
                                                         ContentElement.value += Content + `\n\n@${Replies[i].UserID} `;
