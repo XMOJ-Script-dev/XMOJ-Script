@@ -1308,13 +1308,8 @@ async function main() {
                             "ID": "ACMRank", "Type": "A", "Name": "比赛ACM排名，并且能下载ACM排名"
                         }, {"ID": "Discussion", "Type": "F", "Name": "恢复讨论与短消息功能"}, {
                             "ID": "MoreSTD", "Type": "F", "Name": "查看到更多标程"
-                        }, {
-                            "ID": "StudyMode",
-                            "Type": "A",
-                            "Name": "学术模式",
-                            "Children": [{"ID": "ApplyData", "Type": "A", "Name": "获取数据功能"}, {
-                                "ID": "AutoCheat", "Type": "A", "Name": "自动提交当年代码"
-                            }]
+                        }, {"ID": "ApplyData", "Type": "A", "Name": "获取数据功能"}, {
+                            "ID": "AutoCheat", "Type": "A", "Name": "自动提交当年代码"
                         }, {"ID": "Rating", "Type": "A", "Name": "添加用户评分和用户名颜色"}, {
                             "ID": "AutoRefresh", "Type": "A", "Name": "比赛列表、比赛排名界面自动刷新"
                         }, {
