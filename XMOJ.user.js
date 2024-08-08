@@ -4756,11 +4756,9 @@ int main()
                                                     ReplyButton.innerText = "回复";
                                                     ReplyButton.addEventListener("click", () => {
                                                         let Content = Replies[i].Content;
-                                                        while (Content.startsWith(">")) {
-                                                            Content = Content.substring(Content.indexOf("\n") + 1);
-                                                        }
-                                                        Content = Content.trim();
                                                         Content = Content.split("\n").map((Line) => {
+                                                            return Line.startsWith(">") ? Line.substring(1).trim() : Line.trim();
+                                                        }).join("\n").split("\n").map((Line) => {
                                                             return "> " + Line;
                                                         }).join("\n");
                                                         ContentElement.value += Content + `\n\n@${Replies[i].UserID} `;
