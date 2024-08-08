@@ -2241,6 +2241,17 @@
                 }
             ],
             "Notes": "minor release.<br>Enjoy!😀"
+        },
+        "1.2.42": {
+            "UpdateDate": 1723096626205,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 663,
+                    "Description": "Do we really need this?"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
