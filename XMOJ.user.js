@@ -4757,7 +4757,7 @@ int main()
                                                     ReplyButton.addEventListener("click", () => {
                                                         let Content = Replies[i].Content;
                                                         Content = Content.split("\n").map((Line) => {
-                                                            return Line.startsWith(">") ? Line.substring(1).trim() : Line.trim();
+                                                            return Line.startsWith(">>") ? Line.substring(1).trim() : Line.trim();
                                                         }).join("\n").split("\n").map((Line) => {
                                                             return "> " + Line;
                                                         }).join("\n");
