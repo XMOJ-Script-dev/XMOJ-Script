@@ -2168,6 +2168,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.39": {
+            "UpdateDate": 1723095200260,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 658,
+                    "Description": "error reporting for image upload"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
