@@ -4230,7 +4230,7 @@ int main()
                                                     Content.value = Before + `![](https://assets.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
                                                     Content.dispatchEvent(new Event("input"));
                                                 } else {
-                                                    Content.value = Before + `![上传失败！]()` + After;
+                                                    Content.value = Before + `![上传失败！` + ResponseData.Message + `]()` + After;
                                                     Content.dispatchEvent(new Event("input"));
                                                 }
                                             });
