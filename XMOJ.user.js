@@ -2439,7 +2439,7 @@ async function main() {
                                                 "hanshujian": "韩书简",
                                                 "heshuhan": "贺书瀚",
                                                 "hexinyi": "何昕弈",
-                                                "huheng":"胡恒",
+                                                "huheng": "胡恒",
                                                 "huangmingxuan": "黄铭宣",
                                                 "huangruina": "黄睿纳",
                                                 "huangwei": "黄唯",
@@ -2702,7 +2702,7 @@ async function main() {
                         }
                     }
                 } else if (location.pathname == "/submitpage.php") {
-                    document.title = "提交代码";
+                    document.title = "提交代码: " + (SearchParams.get("id") != null ? "题目" + Number(SearchParams.get("id")) : "比赛" + Number(SearchParams.get("cid")));
                     document.querySelector("body > div > div.mt-3").innerHTML = `<center class="mb-3">` + `<h3>提交代码</h3>` + (SearchParams.get("id") != null ? `题目<span class="blue">${Number(SearchParams.get("id"))}</span>` : `比赛<span class="blue">${Number(SearchParams.get("cid")) + `</span>&emsp;题目<span class="blue">` + String.fromCharCode(65 + parseInt(SearchParams.get("pid")))}</span>`) + `</center>
     <textarea id="CodeInput"></textarea>
     <center class="mt-3">
