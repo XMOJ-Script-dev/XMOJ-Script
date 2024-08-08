@@ -105,9 +105,11 @@ let RenderMathJax = async () => {
                 };
             });
         }
-        MathJax.startup.input[0].findTeX.options.inlineMath.push(["$", "$"]);
-        MathJax.startup.input[0].findTeX.getPatterns();
-        MathJax.typeset();
+        if (MathJax !== undefined) { //If there is a Math expression
+            MathJax.startup.input[0].findTeX.options.inlineMath.push(["$", "$"]);
+            MathJax.startup.input[0].findTeX.getPatterns();
+            MathJax.typeset();
+        }
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
@@ -3340,6 +3342,7 @@ async function main() {
                         });
                     }
                 } else if (location.pathname == "/conteststatistics.php") {
+                    document.title = "比赛统计";
                     document.querySelector("body > div > div.mt-3 > center > h3").innerText = "比赛统计";
                     if (UtilityEnabled("ResetType")) {
                         let Temp = document.getElementById("submission").childNodes;
