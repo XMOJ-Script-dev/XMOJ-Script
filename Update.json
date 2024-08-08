@@ -2069,6 +2069,178 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.30": {
+            "UpdateDate": 1722995904167,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 639,
+                    "Description": "Restore License"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.31": {
+            "UpdateDate": 1723001178967,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 642,
+                    "Description": "freopen检测优化 （by zhouyiqing）"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.32": {
+            "UpdateDate": 1723006469038,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 644,
+                    "Description": "Better error Reporting"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.33": {
+            "UpdateDate": 1723007791910,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 645,
+                    "Description": "Codemirror for freopen"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.34": {
+            "UpdateDate": 1723008021982,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 648,
+                    "Description": "format freopen statement"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.35": {
+            "UpdateDate": 1723008839982,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 651,
+                    "Description": "prevent RE"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.36": {
+            "UpdateDate": 1723018816861,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 653,
+                    "Description": "Update a number of names"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.37": {
+            "UpdateDate": 1723094016287,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 655,
+                    "Description": "Prevent RE"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.38": {
+            "UpdateDate": 1723094571329,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 657,
+                    "Description": "log Success"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.39": {
+            "UpdateDate": 1723095200260,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 658,
+                    "Description": "error reporting for image upload"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.40": {
+            "UpdateDate": 1723095733498,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 659,
+                    "Description": "new toolbar item"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.41": {
+            "UpdateDate": 1723095901881,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 639,
+                    "Description": "Restore License"
+                },
+                {
+                    "PR": 642,
+                    "Description": "freopen检测优化 （by zhouyiqing）"
+                },
+                {
+                    "PR": 644,
+                    "Description": "Better error Reporting"
+                },
+                {
+                    "PR": 645,
+                    "Description": "Codemirror for freopen"
+                },
+                {
+                    "PR": 648,
+                    "Description": "format freopen statement"
+                },
+                {
+                    "PR": 651,
+                    "Description": "prevent RE"
+                },
+                {
+                    "PR": 653,
+                    "Description": "Update a number of names"
+                },
+                {
+                    "PR": 655,
+                    "Description": "Prevent RE"
+                },
+                {
+                    "PR": 657,
+                    "Description": "log Success"
+                },
+                {
+                    "PR": 658,
+                    "Description": "error reporting for image upload"
+                },
+                {
+                    "PR": 659,
+                    "Description": "new toolbar item"
+                }
+            ],
+            "Notes": "minor release.<br>Enjoy!😀"
         }
     }
 }
