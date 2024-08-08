@@ -2263,6 +2263,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.44": {
+            "UpdateDate": 1723098260973,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 665,
+                    "Description": "fix replying"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
