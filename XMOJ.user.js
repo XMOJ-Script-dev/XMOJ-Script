@@ -5050,4 +5050,6 @@ int main()
     }
 }
 
-main();
+main().then(r => {
+    console.log("XMOJ-Script loaded successfully!");
+});
