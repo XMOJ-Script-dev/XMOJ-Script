@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.38
+// @version      1.2.39
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -4230,7 +4230,7 @@ int main()
                                                     Content.value = Before + `![](https://assets.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
                                                     Content.dispatchEvent(new Event("input"));
                                                 } else {
-                                                    Content.value = Before + `![上传失败！]()` + After;
+                                                    Content.value = Before + `![上传失败！` + ResponseData.Message + `]()` + After;
                                                     Content.dispatchEvent(new Event("input"));
                                                 }
                                             });
