@@ -2157,6 +2157,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.38": {
+            "UpdateDate": 1723094564792,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 657,
+                    "Description": "log Success"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
