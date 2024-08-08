@@ -884,6 +884,7 @@ async function main() {
                                              <li class="dropdown-item">个人中心</li>
                                              <li class="dropdown-item">短消息</li>
                                              <li class="dropdown-item">插件设置</li>
+                                             <li class="dropdown-item">插件更新日志</li>
                                              <li class="dropdown-item">注销</li>`;
                             PopupUL.children[0].addEventListener("click", () => {
                                 location.href = "https://www.xmoj.tech/modifypage.php";
@@ -898,6 +899,9 @@ async function main() {
                                 location.href = "https://www.xmoj.tech/index.php?ByUserScript=1";
                             });
                             PopupUL.children[4].addEventListener("click", () => {
+                                location.href = "https://www.xmoj.tech/modifypage.php?ByUserScript=1";
+                            });
+                            PopupUL.children[5].addEventListener("click", () => {
                                 localStorage.removeItem("UserScript-Username");
                                 localStorage.removeItem("UserScript-Password");
                                 location.href = "https://www.xmoj.tech/logout.php";
