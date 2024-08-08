@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.36
+// @version      1.2.37
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -105,9 +105,11 @@ let RenderMathJax = async () => {
                 };
             });
         }
-        MathJax.startup.input[0].findTeX.options.inlineMath.push(["$", "$"]);
-        MathJax.startup.input[0].findTeX.getPatterns();
-        MathJax.typeset();
+        if (MathJax !== undefined) { //If there is a Math expression
+            MathJax.startup.input[0].findTeX.options.inlineMath.push(["$", "$"]);
+            MathJax.startup.input[0].findTeX.getPatterns();
+            MathJax.typeset();
+        }
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
@@ -2437,7 +2439,7 @@ async function main() {
                                                 "hanshujian": "韩书简",
                                                 "heshuhan": "贺书瀚",
                                                 "hexinyi": "何昕弈",
-                                                "huheng":"胡恒",
+                                                "huheng": "胡恒",
                                                 "huangmingxuan": "黄铭宣",
                                                 "huangruina": "黄睿纳",
                                                 "huangwei": "黄唯",
@@ -2700,6 +2702,7 @@ async function main() {
                         }
                     }
                 } else if (location.pathname == "/submitpage.php") {
+                    document.title = "提交代码: " + (SearchParams.get("id") != null ? "题目" + Number(SearchParams.get("id")) : "比赛" + Number(SearchParams.get("cid")));
                     document.querySelector("body > div > div.mt-3").innerHTML = `<center class="mb-3">` + `<h3>提交代码</h3>` + (SearchParams.get("id") != null ? `题目<span class="blue">${Number(SearchParams.get("id"))}</span>` : `比赛<span class="blue">${Number(SearchParams.get("cid")) + `</span>&emsp;题目<span class="blue">` + String.fromCharCode(65 + parseInt(SearchParams.get("pid")))}</span>`) + `</center>
     <textarea id="CodeInput"></textarea>
     <center class="mt-3">
@@ -3360,6 +3363,9 @@ async function main() {
                         });
                     }
                 } else if (location.pathname == "/conteststatistics.php") {
+                    if (new URL(location.href).searchParams.get("cid") != null) {
+                        document.title = "比赛 " + new URL(location.href).searchParams.get("cid") + " 统计";
+                    }
                     document.querySelector("body > div > div.mt-3 > center > h3").innerText = "比赛统计";
                     if (UtilityEnabled("ResetType")) {
                         let Temp = document.getElementById("submission").childNodes;
