@@ -55,8 +55,9 @@ let PurifyHTML = (Input) => {
     }
 }
 let SmartAlert = (Message) => {
-    if (localStorage.getItem("UserScript-Alert") !== Message)
+    if (localStorage.getItem("UserScript-Alert") !== Message) {
         alert(Message);
+    }
     localStorage.setItem("UserScript-Alert", Message);
 }
 /**
