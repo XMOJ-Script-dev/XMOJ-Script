@@ -2296,6 +2296,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.47": {
+            "UpdateDate": 1723181393030,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 670,
+                    "Description": "Fix RE"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
