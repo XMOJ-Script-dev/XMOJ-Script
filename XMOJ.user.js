@@ -1591,7 +1591,15 @@ async function main() {
                                         CopyMDButton.type = "button";
                                         document.querySelectorAll(".cnt-row-head.title")[i].appendChild(CopyMDButton);
                                         CopyMDButton.addEventListener("click", () => {
-                                            GM_setClipboard(Temp[i].children[0].innerText.trim().replaceAll("\n\t", "\n").replaceAll("\n\n", "\n"));
+                                            let copyText = Temp[i].children[0].innerText.trim();
+                                            function replaceBracket(input) {
+                                                return input.replace(/_\{([^}]+)\}/g, function(match, p1) {
+                                                    return p1.split(',').map(x => `[${x}]`).join('');
+                                                });
+                                            }
+                                            copyText=copyText.replaceAll("\n\t", "\n").replaceAll("\n\n\n", "\n\n").replaceAll("$", "").replaceAll("\\leq", "≤").replaceAll("\\le", "≤").replaceAll("\\%", "%");
+                                            copyText=replaceBracket(copyText);
+                                            GM_setClipboard(copyText);
                                             CopyMDButton.innerText = "复制成功";
                                             setTimeout(() => {
                                                 CopyMDButton.innerText = "复制";
