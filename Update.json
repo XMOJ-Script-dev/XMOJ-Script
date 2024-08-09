@@ -2340,6 +2340,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.51": {
+            "UpdateDate": 1723190703489,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 680,
+                    "Description": " 解决强制O2的问题"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
