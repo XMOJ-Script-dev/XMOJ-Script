@@ -2329,6 +2329,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.50": {
+            "UpdateDate": 1723184583632,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 674,
+                    "Description": "Stop!"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }

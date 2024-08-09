@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.49
+// @version      1.2.50
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -118,9 +118,6 @@ let RenderMathJax = async () => {
         }
     } catch (e) {
         console.error(e);
-        if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
-        }
     }
 };
 let GetUserInfo = async (Username) => {
