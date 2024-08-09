@@ -118,9 +118,6 @@ let RenderMathJax = async () => {
         }
     } catch (e) {
         console.error(e);
-        if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
-        }
     }
 };
 let GetUserInfo = async (Username) => {
