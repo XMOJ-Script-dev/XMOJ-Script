@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.46
+// @version      1.2.47
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -3712,6 +3712,11 @@ int main()
                                         let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
                                         let ErrorData = ParsedDocument.getElementById("errtxt").innerText;
                                         let MatchResult = ErrorData.match(/\what\(\):  \[([A-Za-z0-9+\/=]+)\]/g);
+                                        if (MatchResult === null) {
+                                            GetDataButton.innerText = "获取数据失败";
+                                            GetDataButton.disabled = false;
+                                            return;
+                                        }
                                         for (let i = 0; i < MatchResult.length; i++) {
                                             let Data = CryptoJS.enc.Base64.parse(MatchResult[i].substring(10, MatchResult[i].length - 1)).toString(CryptoJS.enc.Utf8);
                                             ApplyDiv.appendChild(document.createElement("hr"));
