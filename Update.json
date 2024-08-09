@@ -2307,6 +2307,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.48": {
+            "UpdateDate": 1723183783191,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 671,
+                    "Description": "允许在已结束的比赛下提交 #287"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
