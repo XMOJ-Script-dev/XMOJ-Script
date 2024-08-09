@@ -2274,6 +2274,72 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.45": {
+            "UpdateDate": 1723180072602,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 667,
+                    "Description": "fix replying(again)"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.46": {
+            "UpdateDate": 1723181112001,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 669,
+                    "Description": "smartAlert!"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.47": {
+            "UpdateDate": 1723181393030,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 670,
+                    "Description": "Fix RE"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.48": {
+            "UpdateDate": 1723183783191,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 671,
+                    "Description": "允许在已结束的比赛下提交 #287"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.49": {
+            "UpdateDate": 1723184271477,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 673,
+                    "Description": "Remove headers"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.50": {
+            "UpdateDate": 1723184583632,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 674,
+                    "Description": "Stop!"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
