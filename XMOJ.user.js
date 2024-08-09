@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.44
+// @version      1.2.45
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -4757,10 +4757,20 @@ int main()
                                                     ReplyButton.addEventListener("click", () => {
                                                         let Content = Replies[i].Content;
                                                         Content = Content.split("\n").map((Line) => {
-                                                            return Line.startsWith(">>") ? Line.substring(1).trim() : Line.trim();
-                                                        }).join("\n").split("\n").map((Line) => {
-                                                            return "> " + Line;
-                                                        }).join("\n");
+                                                            // Count the number of '>' characters at the beginning of the line
+                                                            let nestingLevel = 0;
+                                                            while (Line.startsWith(">")) {
+                                                                nestingLevel++;
+                                                                Line = Line.substring(1).trim();
+                                                            }
+                                                            // If the line is nested more than 2 levels deep, skip it
+                                                            if (nestingLevel > 2) {
+                                                                return null;
+                                                            }
+                                                            // Reconstruct the line with the appropriate number of '>' characters
+                                                            return "> ".repeat(nestingLevel + 1) + Line;
+                                                        }).filter(Line => Line !== null)  // Remove null entries
+                                                            .join("\n");
                                                         ContentElement.value += Content + `\n\n@${Replies[i].UserID} `;
                                                         ContentElement.focus();
                                                     });
