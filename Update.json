@@ -2285,6 +2285,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.46": {
+            "UpdateDate": 1723180820098,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 669,
+                    "Description": "smartAlert!"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
