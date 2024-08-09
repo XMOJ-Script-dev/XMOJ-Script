@@ -2764,12 +2764,82 @@ async function main() {
                             "referrer": location.href,
                             "method": "POST",
                             "body": (SearchParams.get("id") != null ? "id=" + SearchParams.get("id") : "cid=" + SearchParams.get("cid") + "&pid=" + SearchParams.get("pid")) + "&language=1&" + "source=" + encodeURIComponent(CodeMirrorElement.getValue()) + "&" + "enable_O2=on"
-                        }).then((Response) => {
+                        }).then(async (Response) => {
                             if (Response.redirected) {
                                 location.href = Response.url;
                             } else {
+                                const text = await Response.text();
+                                if (text.indexOf("没有这个比赛！") !== -1 && new URL(location.href).searchParams.get("pid") !== null) {
+                                    // Credit: https://github.com/boomzero/quicksubmit/blob/main/index.ts
+                                    // Also licensed under GPL-3.0
+                                    const contestReq = await fetch(
+                                        "https://www.xmoj.tech/contest.php?cid=" + new URL(location.href).searchParams.get("cid"),
+                                        {
+                                            "credentials": "include",
+                                            "headers": {
+                                                "User-Agent":
+                                                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0",
+                                                "Accept":
+                                                    "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                                                "Accept-Language": "en-US,en;q=0.5",
+                                                "Upgrade-Insecure-Requests": "1",
+                                                "Sec-Fetch-Dest": "document",
+                                                "Sec-Fetch-Mode": "navigate",
+                                                "Sec-Fetch-Site": "same-origin"
+                                            },
+                                            "referrer": "https://www.xmoj.tech/contest.php",
+                                            "method": "GET",
+                                            "mode": "cors",
+                                        },
+                                    );
+                                    const res = await contestReq.text();
+                                    if (
+                                        contestReq.status !== 200 ||
+                                        res.indexOf("比赛尚未开始或私有，不能查看题目。") !== -1
+                                    ) {
+                                        console.error(`Failed to get contest page!`);
+                                        return;
+                                    }
+                                    const parser = new DOMParser();
+                                    const dom = parser.parseFromString(res, "text/html");
+                                    const contestProblems = [];
+                                    const rows = (dom.querySelector(
+                                        "#problemset > tbody",
+                                    )).rows;
+                                    for (let i = 0; i < rows.length; i++) {
+                                        contestProblems.push(
+                                            rows[i].children[1].textContent.substring(2, 6).replaceAll(
+                                                "\t",
+                                                "",
+                                            ),
+                                        );
+                                    }
+                                    rPID = contestProblems[new URL(location.href).searchParams.get("pid")];
+                                    if (UtilityEnabled("DebugMode")) {
+                                        console.log("Contest Problems:", contestProblems);
+                                        console.log("Real PID:", rPID);
+                                    }
+                                    ErrorElement.style.display = "block";
+                                    ErrorMessage.style.color = "red";
+                                    ErrorMessage.innerText = "比赛已结束, 正在尝试像题目 " + rPID + " 提交";
+                                    console.log("比赛已结束, 正在尝试像题目 " + rPID + " 提交");
+                                    await fetch("https://www.xmoj.tech/submit.php", {
+                                        "headers": {
+                                            "content-type": "application/x-www-form-urlencoded"
+                                        },
+                                        "referrer": location.href,
+                                        "method": "POST",
+                                        "body": "id=" + rPID + "&language=1&" + "source=" + encodeURIComponent(CodeMirrorElement.getValue()) + "&" + "enable_O2=on"
+                                    }).then(async (Response) => {
+                                        if (Response.redirected) {
+                                            location.href = Response.url;
+                                        }
+                                        console.log(await Response.text());
+                                    });
+
+                                }
                                 if (UtilityEnabled("DebugMode")) {
-                                    console.log("Submission failed! Response:", Response.text());
+                                    console.log("Submission failed! Response:", text);
                                 }
                                 ErrorElement.style.display = "block";
                                 ErrorMessage.style.color = "red";
