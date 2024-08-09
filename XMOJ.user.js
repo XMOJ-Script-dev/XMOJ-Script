@@ -2772,26 +2772,7 @@ async function main() {
                                 if (text.indexOf("没有这个比赛！") !== -1 && new URL(location.href).searchParams.get("pid") !== null) {
                                     // Credit: https://github.com/boomzero/quicksubmit/blob/main/index.ts
                                     // Also licensed under GPL-3.0
-                                    const contestReq = await fetch(
-                                        "https://www.xmoj.tech/contest.php?cid=" + new URL(location.href).searchParams.get("cid"),
-                                        {
-                                            "credentials": "include",
-                                            "headers": {
-                                                "User-Agent":
-                                                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0",
-                                                "Accept":
-                                                    "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-                                                "Accept-Language": "en-US,en;q=0.5",
-                                                "Upgrade-Insecure-Requests": "1",
-                                                "Sec-Fetch-Dest": "document",
-                                                "Sec-Fetch-Mode": "navigate",
-                                                "Sec-Fetch-Site": "same-origin"
-                                            },
-                                            "referrer": "https://www.xmoj.tech/contest.php",
-                                            "method": "GET",
-                                            "mode": "cors",
-                                        },
-                                    );
+                                    const contestReq = await fetch("https://www.xmoj.tech/contest.php?cid=" + new URL(location.href).searchParams.get("cid"));
                                     const res = await contestReq.text();
                                     if (
                                         contestReq.status !== 200 ||
