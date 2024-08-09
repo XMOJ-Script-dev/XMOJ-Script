@@ -2754,13 +2754,15 @@ async function main() {
                         ErrorElement.style.display = "none";
                         document.querySelector("#Submit").disabled = true;
                         document.querySelector("#Submit").value = "正在提交...";
+                        let o2Switch="&enable_O2=on";
+                        if(!document.querySelector("#enable_O2").checked)o2Switch="";
                         await fetch("https://www.xmoj.tech/submit.php", {
                             "headers": {
                                 "content-type": "application/x-www-form-urlencoded"
                             },
                             "referrer": location.href,
                             "method": "POST",
-                            "body": (SearchParams.get("id") != null ? "id=" + SearchParams.get("id") : "cid=" + SearchParams.get("cid") + "&pid=" + SearchParams.get("pid")) + "&language=1&" + "source=" + encodeURIComponent(CodeMirrorElement.getValue()) + "&" + "enable_O2=on"
+                            "body": (SearchParams.get("id") != null ? "id=" + SearchParams.get("id") : "cid=" + SearchParams.get("cid") + "&pid=" + SearchParams.get("pid")) + "&language=1&" + "source=" + encodeURIComponent(CodeMirrorElement.getValue()) + o2Switch
                         }).then(async (Response) => {
                             if (Response.redirected) {
                                 location.href = Response.url;
@@ -2801,13 +2803,15 @@ async function main() {
                                     ErrorMessage.style.color = "red";
                                     ErrorMessage.innerText = "比赛已结束, 正在尝试像题目 " + rPID + " 提交";
                                     console.log("比赛已结束, 正在尝试像题目 " + rPID + " 提交");
+                                    let o2Switch="&enable_O2=on";
+                                    if(!document.querySelector("#enable_O2").checked)o2Switch="";
                                     await fetch("https://www.xmoj.tech/submit.php", {
                                         "headers": {
                                             "content-type": "application/x-www-form-urlencoded"
                                         },
                                         "referrer": location.href,
                                         "method": "POST",
-                                        "body": "id=" + rPID + "&language=1&" + "source=" + encodeURIComponent(CodeMirrorElement.getValue()) + "&" + "enable_O2=on"
+                                        "body": "id=" + rPID + "&language=1&" + "source=" + encodeURIComponent(CodeMirrorElement.getValue()) + o2Switch
                                     }).then(async (Response) => {
                                         if (Response.redirected) {
                                             location.href = Response.url;
