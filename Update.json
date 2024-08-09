@@ -2340,6 +2340,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.51": {
+            "UpdateDate": 1723187815182,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 678,
+                    "Description": "set darkmode as default off"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
