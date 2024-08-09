@@ -50,7 +50,7 @@ let PurifyHTML = (Input) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
         }
     }
 }
@@ -90,7 +90,7 @@ let GetRelativeTime = (Input) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
         }
     }
 };
@@ -119,7 +119,7 @@ let RenderMathJax = async () => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
         }
     }
 };
@@ -156,7 +156,7 @@ let GetUserInfo = async (Username) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
         }
     }
 };
@@ -204,7 +204,7 @@ let GetUserBadge = async (Username) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
         }
     }
 };
@@ -278,7 +278,7 @@ let GetUsernameHTML = async (Element, Username, Simple = false, Href = "https://
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
         }
     }
 };
@@ -296,7 +296,7 @@ let SecondsToString = (InputSeconds) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
         }
     }
 }
@@ -312,7 +312,7 @@ let StringToSeconds = (InputString) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
         }
     }
 }
@@ -339,7 +339,7 @@ let SizeToStringSize = (Memory) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
         }
     }
 };
@@ -362,7 +362,7 @@ let TimeToStringTime = (Time) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
         }
     }
 };
@@ -379,7 +379,7 @@ let TidyTable = (Table) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
         }
     }
 };
@@ -393,7 +393,7 @@ let UtilityEnabled = (Name) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
         }
     }
 };
@@ -439,7 +439,7 @@ let RequestAPI = (Action, Data, CallBack) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
         }
     }
 };
@@ -486,7 +486,7 @@ class NavbarStyler {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
+                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
             }
         }
     }
@@ -501,7 +501,7 @@ class NavbarStyler {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
+                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
             }
         }
     }
@@ -522,7 +522,7 @@ class NavbarStyler {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
+                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
             }
         }
     }
@@ -549,7 +549,7 @@ class NavbarStyler {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
+                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
             }
         }
     }
@@ -567,7 +567,7 @@ class NavbarStyler {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
+                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
             }
         }
     }
@@ -596,7 +596,7 @@ class NavbarStyler {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
+                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
             }
         }
     }
@@ -5058,7 +5058,7 @@ int main()
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
         }
     }
 }
