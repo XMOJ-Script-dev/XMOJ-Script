@@ -383,7 +383,7 @@ let TidyTable = (Table) => {
 let UtilityEnabled = (Name) => {
     try {
         if (localStorage.getItem("UserScript-Setting-" + Name) == null) {
-            const defaultOffItems = ["DebugMode", "cdnjs", "SuperDebug", "ReplaceXM"];
+            const defaultOffItems = ["DebugMode", "cdnjs", "SuperDebug", "ReplaceXM","DarkMode","DarkPicture"];
             localStorage.setItem("UserScript-Setting-" + Name, defaultOffItems.includes(Name) ? "false" : "true");
         }
         return localStorage.getItem("UserScript-Setting-" + Name) == "true";
