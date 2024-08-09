@@ -2146,6 +2146,134 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.37": {
+            "UpdateDate": 1723094016287,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 655,
+                    "Description": "Prevent RE"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.38": {
+            "UpdateDate": 1723094571329,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 657,
+                    "Description": "log Success"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.39": {
+            "UpdateDate": 1723095200260,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 658,
+                    "Description": "error reporting for image upload"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.40": {
+            "UpdateDate": 1723095733498,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 659,
+                    "Description": "new toolbar item"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.41": {
+            "UpdateDate": 1723095901881,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 639,
+                    "Description": "Restore License"
+                },
+                {
+                    "PR": 642,
+                    "Description": "freopen检测优化 （by zhouyiqing）"
+                },
+                {
+                    "PR": 644,
+                    "Description": "Better error Reporting"
+                },
+                {
+                    "PR": 645,
+                    "Description": "Codemirror for freopen"
+                },
+                {
+                    "PR": 648,
+                    "Description": "format freopen statement"
+                },
+                {
+                    "PR": 651,
+                    "Description": "prevent RE"
+                },
+                {
+                    "PR": 653,
+                    "Description": "Update a number of names"
+                },
+                {
+                    "PR": 655,
+                    "Description": "Prevent RE"
+                },
+                {
+                    "PR": 657,
+                    "Description": "log Success"
+                },
+                {
+                    "PR": 658,
+                    "Description": "error reporting for image upload"
+                },
+                {
+                    "PR": 659,
+                    "Description": "new toolbar item"
+                }
+            ],
+            "Notes": "minor release.<br>Enjoy!😀"
+        },
+        "1.2.42": {
+            "UpdateDate": 1723096626205,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 663,
+                    "Description": "Do we really need this?"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.43": {
+            "UpdateDate": 1723097609941,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 664,
+                    "Description": "fix reply infinite looping"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.44": {
+            "UpdateDate": 1723098260973,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 665,
+                    "Description": "fix replying"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }

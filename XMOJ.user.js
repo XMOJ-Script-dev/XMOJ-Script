@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.36
+// @version      1.2.44
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -50,7 +50,7 @@ let PurifyHTML = (Input) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
         }
     }
 }
@@ -84,7 +84,7 @@ let GetRelativeTime = (Input) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
         }
     }
 };
@@ -105,13 +105,15 @@ let RenderMathJax = async () => {
                 };
             });
         }
-        MathJax.startup.input[0].findTeX.options.inlineMath.push(["$", "$"]);
-        MathJax.startup.input[0].findTeX.getPatterns();
-        MathJax.typeset();
+        if (MathJax !== undefined) { //If there is a Math expression
+            MathJax.startup.input[0].findTeX.options.inlineMath.push(["$", "$"]);
+            MathJax.startup.input[0].findTeX.getPatterns();
+            MathJax.typeset();
+        }
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
         }
     }
 };
@@ -148,7 +150,7 @@ let GetUserInfo = async (Username) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
         }
     }
 };
@@ -196,7 +198,7 @@ let GetUserBadge = async (Username) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
         }
     }
 };
@@ -270,7 +272,7 @@ let GetUsernameHTML = async (Element, Username, Simple = false, Href = "https://
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
         }
     }
 };
@@ -288,7 +290,7 @@ let SecondsToString = (InputSeconds) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
         }
     }
 }
@@ -304,7 +306,7 @@ let StringToSeconds = (InputString) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
         }
     }
 }
@@ -331,7 +333,7 @@ let SizeToStringSize = (Memory) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
         }
     }
 };
@@ -354,7 +356,7 @@ let TimeToStringTime = (Time) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
         }
     }
 };
@@ -371,7 +373,7 @@ let TidyTable = (Table) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
         }
     }
 };
@@ -385,7 +387,7 @@ let UtilityEnabled = (Name) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
         }
     }
 };
@@ -431,7 +433,7 @@ let RequestAPI = (Action, Data, CallBack) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
         }
     }
 };
@@ -478,7 +480,7 @@ class NavbarStyler {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+                alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
             }
         }
     }
@@ -493,7 +495,7 @@ class NavbarStyler {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+                alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
             }
         }
     }
@@ -514,7 +516,7 @@ class NavbarStyler {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+                alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
             }
         }
     }
@@ -541,7 +543,7 @@ class NavbarStyler {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+                alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
             }
         }
     }
@@ -559,7 +561,7 @@ class NavbarStyler {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+                alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
             }
         }
     }
@@ -588,7 +590,7 @@ class NavbarStyler {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+                alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
             }
         }
     }
@@ -882,6 +884,7 @@ async function main() {
                                              <li class="dropdown-item">个人中心</li>
                                              <li class="dropdown-item">短消息</li>
                                              <li class="dropdown-item">插件设置</li>
+                                             <li class="dropdown-item">插件更新日志</li>
                                              <li class="dropdown-item">注销</li>`;
                             PopupUL.children[0].addEventListener("click", () => {
                                 location.href = "https://www.xmoj.tech/modifypage.php";
@@ -896,6 +899,9 @@ async function main() {
                                 location.href = "https://www.xmoj.tech/index.php?ByUserScript=1";
                             });
                             PopupUL.children[4].addEventListener("click", () => {
+                                location.href = "https://www.xmoj.tech/modifypage.php?ByUserScript=1";
+                            });
+                            PopupUL.children[5].addEventListener("click", () => {
                                 localStorage.removeItem("UserScript-Username");
                                 localStorage.removeItem("UserScript-Password");
                                 location.href = "https://www.xmoj.tech/logout.php";
@@ -1306,13 +1312,8 @@ async function main() {
                             "ID": "ACMRank", "Type": "A", "Name": "比赛ACM排名，并且能下载ACM排名"
                         }, {"ID": "Discussion", "Type": "F", "Name": "恢复讨论与短消息功能"}, {
                             "ID": "MoreSTD", "Type": "F", "Name": "查看到更多标程"
-                        }, {
-                            "ID": "StudyMode",
-                            "Type": "A",
-                            "Name": "学术模式",
-                            "Children": [{"ID": "ApplyData", "Type": "A", "Name": "获取数据功能"}, {
-                                "ID": "AutoCheat", "Type": "A", "Name": "自动提交当年代码"
-                            }]
+                        }, {"ID": "ApplyData", "Type": "A", "Name": "获取数据功能"}, {
+                            "ID": "AutoCheat", "Type": "A", "Name": "自动提交当年代码"
                         }, {"ID": "Rating", "Type": "A", "Name": "添加用户评分和用户名颜色"}, {
                             "ID": "AutoRefresh", "Type": "A", "Name": "比赛列表、比赛排名界面自动刷新"
                         }, {
@@ -2437,7 +2438,7 @@ async function main() {
                                                 "hanshujian": "韩书简",
                                                 "heshuhan": "贺书瀚",
                                                 "hexinyi": "何昕弈",
-                                                "huheng":"胡恒",
+                                                "huheng": "胡恒",
                                                 "huangmingxuan": "黄铭宣",
                                                 "huangruina": "黄睿纳",
                                                 "huangwei": "黄唯",
@@ -2700,6 +2701,7 @@ async function main() {
                         }
                     }
                 } else if (location.pathname == "/submitpage.php") {
+                    document.title = "提交代码: " + (SearchParams.get("id") != null ? "题目" + Number(SearchParams.get("id")) : "比赛" + Number(SearchParams.get("cid")));
                     document.querySelector("body > div > div.mt-3").innerHTML = `<center class="mb-3">` + `<h3>提交代码</h3>` + (SearchParams.get("id") != null ? `题目<span class="blue">${Number(SearchParams.get("id"))}</span>` : `比赛<span class="blue">${Number(SearchParams.get("cid")) + `</span>&emsp;题目<span class="blue">` + String.fromCharCode(65 + parseInt(SearchParams.get("pid")))}</span>`) + `</center>
     <textarea id="CodeInput"></textarea>
     <center class="mt-3">
@@ -3360,6 +3362,9 @@ async function main() {
                         });
                     }
                 } else if (location.pathname == "/conteststatistics.php") {
+                    if (new URL(location.href).searchParams.get("cid") != null) {
+                        document.title = "比赛 " + new URL(location.href).searchParams.get("cid") + " 统计";
+                    }
                     document.querySelector("body > div > div.mt-3 > center > h3").innerText = "比赛统计";
                     if (UtilityEnabled("ResetType")) {
                         let Temp = document.getElementById("submission").childNodes;
@@ -4224,7 +4229,7 @@ int main()
                                                     Content.value = Before + `![](https://assets.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
                                                     Content.dispatchEvent(new Event("input"));
                                                 } else {
-                                                    Content.value = Before + `![上传失败！]()` + After;
+                                                    Content.value = Before + `![上传失败！` + ResponseData.Message + `]()` + After;
                                                     Content.dispatchEvent(new Event("input"));
                                                 }
                                             });
@@ -4751,11 +4756,9 @@ int main()
                                                     ReplyButton.innerText = "回复";
                                                     ReplyButton.addEventListener("click", () => {
                                                         let Content = Replies[i].Content;
-                                                        while (Content.startsWith(">")) {
-                                                            Content = Content.substring(Content.indexOf("\n") + 1);
-                                                        }
-                                                        Content = Content.trim();
                                                         Content = Content.split("\n").map((Line) => {
+                                                            return Line.startsWith(">>") ? Line.substring(1).trim() : Line.trim();
+                                                        }).join("\n").split("\n").map((Line) => {
                                                             return "> " + Line;
                                                         }).join("\n");
                                                         ContentElement.value += Content + `\n\n@${Replies[i].UserID} `;
@@ -5039,9 +5042,11 @@ int main()
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\n Don't want to see this message? Disable DebugMode.");
         }
     }
 }
 
-main();
+main().then(r => {
+    console.log("XMOJ-Script loaded successfully!");
+});
