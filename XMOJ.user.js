@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.41
+// @version      1.2.52
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -50,9 +50,15 @@ let PurifyHTML = (Input) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
         }
     }
+}
+let SmartAlert = (Message) => {
+    if (localStorage.getItem("UserScript-Alert") !== Message) {
+        alert(Message);
+    }
+    localStorage.setItem("UserScript-Alert", Message);
 }
 /**
  * Calculates the relative time based on the input date.
@@ -84,7 +90,7 @@ let GetRelativeTime = (Input) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
         }
     }
 };
@@ -112,9 +118,6 @@ let RenderMathJax = async () => {
         }
     } catch (e) {
         console.error(e);
-        if (UtilityEnabled("DebugMode")) {
-            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
-        }
     }
 };
 let GetUserInfo = async (Username) => {
@@ -150,7 +153,7 @@ let GetUserInfo = async (Username) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
         }
     }
 };
@@ -198,7 +201,7 @@ let GetUserBadge = async (Username) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
         }
     }
 };
@@ -272,7 +275,7 @@ let GetUsernameHTML = async (Element, Username, Simple = false, Href = "https://
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
         }
     }
 };
@@ -290,7 +293,7 @@ let SecondsToString = (InputSeconds) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
         }
     }
 }
@@ -306,7 +309,7 @@ let StringToSeconds = (InputString) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
         }
     }
 }
@@ -333,7 +336,7 @@ let SizeToStringSize = (Memory) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
         }
     }
 };
@@ -356,7 +359,7 @@ let TimeToStringTime = (Time) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
         }
     }
 };
@@ -373,7 +376,7 @@ let TidyTable = (Table) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
         }
     }
 };
@@ -387,7 +390,7 @@ let UtilityEnabled = (Name) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
         }
     }
 };
@@ -433,7 +436,7 @@ let RequestAPI = (Action, Data, CallBack) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
         }
     }
 };
@@ -480,7 +483,7 @@ class NavbarStyler {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
             }
         }
     }
@@ -495,7 +498,7 @@ class NavbarStyler {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
             }
         }
     }
@@ -516,7 +519,7 @@ class NavbarStyler {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
             }
         }
     }
@@ -543,7 +546,7 @@ class NavbarStyler {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
             }
         }
     }
@@ -561,7 +564,7 @@ class NavbarStyler {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
             }
         }
     }
@@ -590,7 +593,7 @@ class NavbarStyler {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
             }
         }
     }
@@ -2751,19 +2754,74 @@ async function main() {
                         ErrorElement.style.display = "none";
                         document.querySelector("#Submit").disabled = true;
                         document.querySelector("#Submit").value = "正在提交...";
+                        let o2Switch="&enable_O2=on";
+                        if(!document.querySelector("#enable_O2").checked)o2Switch="";
                         await fetch("https://www.xmoj.tech/submit.php", {
                             "headers": {
                                 "content-type": "application/x-www-form-urlencoded"
                             },
                             "referrer": location.href,
                             "method": "POST",
-                            "body": (SearchParams.get("id") != null ? "id=" + SearchParams.get("id") : "cid=" + SearchParams.get("cid") + "&pid=" + SearchParams.get("pid")) + "&language=1&" + "source=" + encodeURIComponent(CodeMirrorElement.getValue()) + "&" + "enable_O2=on"
-                        }).then((Response) => {
+                            "body": (SearchParams.get("id") != null ? "id=" + SearchParams.get("id") : "cid=" + SearchParams.get("cid") + "&pid=" + SearchParams.get("pid")) + "&language=1&" + "source=" + encodeURIComponent(CodeMirrorElement.getValue()) + o2Switch
+                        }).then(async (Response) => {
                             if (Response.redirected) {
                                 location.href = Response.url;
                             } else {
+                                const text = await Response.text();
+                                if (text.indexOf("没有这个比赛！") !== -1 && new URL(location.href).searchParams.get("pid") !== null) {
+                                    // Credit: https://github.com/boomzero/quicksubmit/blob/main/index.ts
+                                    // Also licensed under GPL-3.0
+                                    const contestReq = await fetch("https://www.xmoj.tech/contest.php?cid=" + new URL(location.href).searchParams.get("cid"));
+                                    const res = await contestReq.text();
+                                    if (
+                                        contestReq.status !== 200 ||
+                                        res.indexOf("比赛尚未开始或私有，不能查看题目。") !== -1
+                                    ) {
+                                        console.error(`Failed to get contest page!`);
+                                        return;
+                                    }
+                                    const parser = new DOMParser();
+                                    const dom = parser.parseFromString(res, "text/html");
+                                    const contestProblems = [];
+                                    const rows = (dom.querySelector(
+                                        "#problemset > tbody",
+                                    )).rows;
+                                    for (let i = 0; i < rows.length; i++) {
+                                        contestProblems.push(
+                                            rows[i].children[1].textContent.substring(2, 6).replaceAll(
+                                                "\t",
+                                                "",
+                                            ),
+                                        );
+                                    }
+                                    rPID = contestProblems[new URL(location.href).searchParams.get("pid")];
+                                    if (UtilityEnabled("DebugMode")) {
+                                        console.log("Contest Problems:", contestProblems);
+                                        console.log("Real PID:", rPID);
+                                    }
+                                    ErrorElement.style.display = "block";
+                                    ErrorMessage.style.color = "red";
+                                    ErrorMessage.innerText = "比赛已结束, 正在尝试像题目 " + rPID + " 提交";
+                                    console.log("比赛已结束, 正在尝试像题目 " + rPID + " 提交");
+                                    let o2Switch="&enable_O2=on";
+                                    if(!document.querySelector("#enable_O2").checked)o2Switch="";
+                                    await fetch("https://www.xmoj.tech/submit.php", {
+                                        "headers": {
+                                            "content-type": "application/x-www-form-urlencoded"
+                                        },
+                                        "referrer": location.href,
+                                        "method": "POST",
+                                        "body": "id=" + rPID + "&language=1&" + "source=" + encodeURIComponent(CodeMirrorElement.getValue()) + o2Switch
+                                    }).then(async (Response) => {
+                                        if (Response.redirected) {
+                                            location.href = Response.url;
+                                        }
+                                        console.log(await Response.text());
+                                    });
+
+                                }
                                 if (UtilityEnabled("DebugMode")) {
-                                    console.log("Submission failed! Response:", Response.text());
+                                    console.log("Submission failed! Response:", text);
                                 }
                                 ErrorElement.style.display = "block";
                                 ErrorMessage.style.color = "red";
@@ -3234,7 +3292,7 @@ async function main() {
                                                 }
                                                 window.location.reload();
                                             } else {
-                                                alert(Response.Message);
+                                                SmartAlert(Response.Message);
                                             }
                                         });
                                     }
@@ -3260,7 +3318,7 @@ async function main() {
                                             }
                                             window.location.reload();
                                         } else {
-                                            alert(Response.Message);
+                                            SmartAlert(Response.Message);
                                         }
                                     });
                                 });
@@ -3706,6 +3764,11 @@ int main()
                                         let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
                                         let ErrorData = ParsedDocument.getElementById("errtxt").innerText;
                                         let MatchResult = ErrorData.match(/\what\(\):  \[([A-Za-z0-9+\/=]+)\]/g);
+                                        if (MatchResult === null) {
+                                            GetDataButton.innerText = "获取数据失败";
+                                            GetDataButton.disabled = false;
+                                            return;
+                                        }
                                         for (let i = 0; i < MatchResult.length; i++) {
                                             let Data = CryptoJS.enc.Base64.parse(MatchResult[i].substring(10, MatchResult[i].length - 1)).toString(CryptoJS.enc.Utf8);
                                             ApplyDiv.appendChild(document.createElement("hr"));
@@ -4756,13 +4819,21 @@ int main()
                                                     ReplyButton.innerText = "回复";
                                                     ReplyButton.addEventListener("click", () => {
                                                         let Content = Replies[i].Content;
-                                                        while (Content.startsWith(">")) {
-                                                            Content = Content.substring(Content.indexOf("\n") + 1);
-                                                        }
-                                                        Content = Content.trim();
                                                         Content = Content.split("\n").map((Line) => {
-                                                            return "> " + Line;
-                                                        }).join("\n");
+                                                            // Count the number of '>' characters at the beginning of the line
+                                                            let nestingLevel = 0;
+                                                            while (Line.startsWith(">")) {
+                                                                nestingLevel++;
+                                                                Line = Line.substring(1).trim();
+                                                            }
+                                                            // If the line is nested more than 2 levels deep, skip it
+                                                            if (nestingLevel > 2) {
+                                                                return null;
+                                                            }
+                                                            // Reconstruct the line with the appropriate number of '>' characters
+                                                            return "> ".repeat(nestingLevel + 1) + Line;
+                                                        }).filter(Line => Line !== null)  // Remove null entries
+                                                            .join("\n");
                                                         ContentElement.value += Content + `\n\n@${Replies[i].UserID} `;
                                                         ContentElement.focus();
                                                     });
@@ -5044,7 +5115,7 @@ int main()
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            alert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\n\n Don't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
         }
     }
 }
