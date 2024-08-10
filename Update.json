@@ -2351,6 +2351,53 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.52": {
+            "UpdateDate": 1723260210125,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 663,
+                    "Description": "Do we really need this?"
+                },
+                {
+                    "PR": 664,
+                    "Description": "fix reply infinite looping"
+                },
+                {
+                    "PR": 665,
+                    "Description": "fix replying"
+                },
+                {
+                    "PR": 667,
+                    "Description": "fix replying(again)"
+                },
+                {
+                    "PR": 669,
+                    "Description": "smartAlert!"
+                },
+                {
+                    "PR": 670,
+                    "Description": "Fix RE"
+                },
+                {
+                    "PR": 671,
+                    "Description": "允许在已结束的比赛下提交 #287"
+                },
+                {
+                    "PR": 673,
+                    "Description": "Remove headers"
+                },
+                {
+                    "PR": 674,
+                    "Description": "Stop!"
+                },
+                {
+                    "PR": 680,
+                    "Description": " 解决强制O2的问题"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
