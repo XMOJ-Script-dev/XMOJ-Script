@@ -2409,6 +2409,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.54": {
+            "UpdateDate": 1723382899452,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 693,
+                    "Description": "限制Get-mention的站点"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
