@@ -1106,7 +1106,7 @@ async function main() {
                 ToastContainer.classList.add("toast-container", "position-fixed", "bottom-0", "end-0", "p-3");
                 document.body.appendChild(ToastContainer);
                 addEventListener("focus", () => {
-                    if (UtilityEnabled("BBSPopup")) {
+                    if (UtilityEnabled("BBSPopup")&&(location.pathname == "/index.php" || location.pathname == "/problemset.php" || location.pathname == "/contest.php")) {
                         RequestAPI("GetBBSMentionList", {}, (Response) => {
                             if (Response.Success) {
                                 ToastContainer.innerHTML = "";
@@ -1168,7 +1168,7 @@ async function main() {
                             }
                         });
                     }
-                    if (UtilityEnabled("MessagePopup")) {
+                    if (UtilityEnabled("MessagePopup") && (location.pathname == "/index.php" || location.pathname == "/problemset.php" || location.pathname == "/contest.php")) {
                         RequestAPI("GetMailMentionList", {}, async (Response) => {
                             if (Response.Success) {
                                 if (!UtilityEnabled("BBSPopup")) {
