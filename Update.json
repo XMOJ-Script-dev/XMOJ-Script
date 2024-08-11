@@ -2398,6 +2398,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.53": {
+            "UpdateDate": 1723352066327,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 690,
+                    "Description": "移除之前忘记操作的admin"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
