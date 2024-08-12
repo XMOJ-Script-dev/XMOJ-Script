@@ -919,11 +919,11 @@ async function main() {
                                 Array.from(PopupUL.children).forEach((item, index) => {
                                     clearTimeout(item._timeout);
                                     item.style.opacity = 0;
-                                    item.style.transform = 'translateY(-4px)';
+                                    item.style.transform = 'translateY(-8px)';
                                     item._timeout = setTimeout(() => {
                                         item.style.opacity = 1;
                                         item.style.transform = 'translateY(2px)';
-                                    }, index * 36);
+                                    }, index * 24);
                                 });
                             };
                             let hideDropdownItems = () => {
