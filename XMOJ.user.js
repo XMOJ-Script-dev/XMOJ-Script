@@ -4682,7 +4682,7 @@ int main()
                                 let CaptchaSecretKey = "";
                                 unsafeWindow.CaptchaLoadedCallback = () => {
                                     turnstile.render("#CaptchaContainer", {
-                                        theme: UtilityEnabled("DarkMode") ? "dark" : "light",
+                                        theme: UtilityEnabled("DarkMode") ? "dark" : "light",language: "zh-cn",
                                         sitekey: CaptchaSiteKey, callback: function (CaptchaSecretKeyValue) {
                                             CaptchaSecretKey = CaptchaSecretKeyValue;
                                             SubmitElement.disabled = false;
