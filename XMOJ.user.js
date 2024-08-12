@@ -2754,8 +2754,8 @@ async function main() {
                         ErrorElement.style.display = "none";
                         document.querySelector("#Submit").disabled = true;
                         document.querySelector("#Submit").value = "正在提交...";
-                        let o2Switch="&enable_O2=on";
-                        if(!document.querySelector("#enable_O2").checked)o2Switch="";
+                        let o2Switch = "&enable_O2=on";
+                        if (!document.querySelector("#enable_O2").checked) o2Switch = "";
                         await fetch("https://www.xmoj.tech/submit.php", {
                             "headers": {
                                 "content-type": "application/x-www-form-urlencoded"
@@ -2803,8 +2803,8 @@ async function main() {
                                     ErrorMessage.style.color = "red";
                                     ErrorMessage.innerText = "比赛已结束, 正在尝试像题目 " + rPID + " 提交";
                                     console.log("比赛已结束, 正在尝试像题目 " + rPID + " 提交");
-                                    let o2Switch="&enable_O2=on";
-                                    if(!document.querySelector("#enable_O2").checked)o2Switch="";
+                                    let o2Switch = "&enable_O2=on";
+                                    if (!document.querySelector("#enable_O2").checked) o2Switch = "";
                                     await fetch("https://www.xmoj.tech/submit.php", {
                                         "headers": {
                                             "content-type": "application/x-www-form-urlencoded"
@@ -4682,7 +4682,7 @@ int main()
                                 let CaptchaSecretKey = "";
                                 unsafeWindow.CaptchaLoadedCallback = () => {
                                     turnstile.render("#CaptchaContainer", {
-                                        theme: UtilityEnabled("DarkMode") ? "dark" : "light",language: "zh-cn",
+                                        theme: UtilityEnabled("DarkMode") ? "dark" : "light", language: "zh-cn",
                                         sitekey: CaptchaSiteKey, callback: function (CaptchaSecretKeyValue) {
                                             CaptchaSecretKey = CaptchaSecretKeyValue;
                                             SubmitElement.disabled = false;
