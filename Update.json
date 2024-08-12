@@ -2409,6 +2409,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.54": {
+            "UpdateDate": 1723450512410,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 694,
+                    "Description": "更新support url"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
