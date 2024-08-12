@@ -2420,6 +2420,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.55": {
+            "UpdateDate": 1723457520747,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 697,
+                    "Description": "优化动画效果（by zhouyiqing）"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
