@@ -2420,6 +2420,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.55": {
+            "UpdateDate": 1723461727277,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 698,
+                    "Description": "Set turnstile theme and language"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
