@@ -142,7 +142,7 @@ let NewData = Data.replaceAll(/(\/-?good first issue)|\/[A-Za-z_-]+/g, (match) =
     return match;
 });
 
-if (User === "PythonSmall-Q") {
+if (User === "boomzero") { 
     if (RemoveLabel("needs-triage")) {
         AddLabel("investigating");
         Milestone = LatestMilestone;
