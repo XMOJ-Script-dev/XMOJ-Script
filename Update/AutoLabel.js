@@ -3,7 +3,8 @@ import * as github from '@actions/github';
 const Octokit = github.getOctokit(process.argv[2]);
 const TrustedUsers = [
     "boomzero",
-    "PythonSmall-Q"
+    "PythonSmall-Q",
+    "ptsq-bot"
 ];
 const LabelList = [
     "addon-script",
@@ -142,7 +143,7 @@ let NewData = Data.replaceAll(/(\/-?good first issue)|\/[A-Za-z_-]+/g, (match) =
     return match;
 });
 
-if (User === "boomzero") { 
+if (User === "boomzero" || User === "ptsq-bot" || User === "PythonSmall-Q") { 
     if (RemoveLabel("needs-triage")) {
         AddLabel("investigating");
         Milestone = LatestMilestone;
