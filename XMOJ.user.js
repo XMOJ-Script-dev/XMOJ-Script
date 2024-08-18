@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.55
+// @version      1.2.56
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -878,10 +878,15 @@ async function main() {
                     }
                     if (UtilityEnabled("ResetType")) {
                         if (document.querySelector("#profile") != undefined && document.querySelector("#profile").innerHTML == "登录") {
-                            if (document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul").childNodes.length == 3) {
-                                document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul").childNodes[3].remove();
-                            }
-                        } else if (document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul > li:nth-child(3) > a > span") != undefined && document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul > li:nth-child(3) > a > span").innerText != "个人中心") {
+                                let PopupUL = document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul");
+                                PopupUL.innerHTML = `<li class="dropdown-item">登录</li>`;
+                                PopupUL.children[0].addEventListener("click", () => {
+                                    location.href = "https://www.xmoj.tech/loginpage.php";
+                                });
+                                let parentLi = document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li");
+                                document.addEventListener("click", (event) => { if (!parentLi.contains(event.target) && PopupUL.style.display === 'block') {hideDropdownItems();}});
+                        }
+                        else if (document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul > li:nth-child(3) > a > span") != undefined && document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul > li:nth-child(3) > a > span").innerText != "个人中心") {
                             let PopupUL = document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul");
                             PopupUL.innerHTML = `<li class="dropdown-item">修改帐号</li>
                                              <li class="dropdown-item">个人中心</li>

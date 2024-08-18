@@ -2431,6 +2431,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.56": {
+            "UpdateDate": 1723956966458,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 704,
+                    "Description": "登录界面优化"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
