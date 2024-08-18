@@ -1,7 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
-<loc>https://xmoj-bbs.tech/</loc>
-<lastmod>2024-01-23T23:16:10+08:00</lastmod>
+<loc>https://xmoj-bbs.me/</loc>
+<lastmod>2024-08-15T23:16:10+08:00</lastmod>
+</url>
+<url>
+<loc>https://support.xmoj-bbs.me/</loc>
+<lastmod>2024-08-16T23:16:10+08:00</lastmod>
+</url>
+<url>
+<loc>https://docs.xmoj-bbs.me/</loc>
+<lastmod>2024-08-16T23:16:10+08:00</lastmod>
 </url>
 </urlset>
