@@ -2398,6 +2398,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.53": {
+            "UpdateDate": 1723967681495,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 708,
+                    "Description": "Zhouyiqing0304 patch 1"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
