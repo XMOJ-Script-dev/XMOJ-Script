@@ -2442,6 +2442,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.57": {
+            "UpdateDate": 1723968698208,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 712,
+                    "Description": "更改个人中心一栏鼠标指针样式"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }

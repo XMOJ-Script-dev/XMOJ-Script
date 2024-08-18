@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.56
+// @version      1.2.57
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -888,6 +888,7 @@ async function main() {
                         }
                         else if (document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul > li:nth-child(3) > a > span") != undefined && document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul > li:nth-child(3) > a > span").innerText != "个人中心") {
                             let PopupUL = document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul");
+                            PopupUL.style.cursor = 'pointer';
                             PopupUL.innerHTML = `<li class="dropdown-item">修改帐号</li>
                                              <li class="dropdown-item">个人中心</li>
                                              <li class="dropdown-item">短消息</li>
