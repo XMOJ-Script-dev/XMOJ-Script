@@ -2453,6 +2453,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.58": {
+            "UpdateDate": 1724058379641,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 715,
+                    "Description": "更改短消息显示"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
