@@ -598,7 +598,9 @@ class NavbarStyler {
         }
     }
 }
-
+function replaceMarkdownImages(text,string) {
+    return text.replace(/!\[.*?\]\(.*?\)/g,string);
+}
 async function main() {
     try {
         if (location.href.startsWith('http://')) {
@@ -4147,7 +4149,7 @@ int main()
                                         }
                                         let LastsMessageCell = document.createElement("td");
                                         Row.appendChild(LastsMessageCell);
-                                        LastsMessageCell.innerText = Data[i].LastsMessage;
+                                        LastsMessageCell.innerText = replaceMarkdownImages(Data[i].LastsMessage,'[image]');
                                         let SendTimeCell = document.createElement("td");
                                         Row.appendChild(SendTimeCell);
                                         SendTimeCell.innerHTML = GetRelativeTime(Data[i].SendTime);
