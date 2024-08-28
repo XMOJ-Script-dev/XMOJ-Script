@@ -416,7 +416,8 @@ let RequestAPI = (Action, Data, CallBack) => {
             method: "POST",
             url: (UtilityEnabled("SuperDebug") ? "http://127.0.0.1:8787/" : "https://api.xmoj-bbs.me/") + Action,
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Cache-Control": "no-cache"
             },
             data: DataString,
             onload: (Response) => {
@@ -598,9 +599,11 @@ class NavbarStyler {
         }
     }
 }
-function replaceMarkdownImages(text,string) {
-    return text.replace(/!\[.*?\]\(.*?\)/g,string);
+
+function replaceMarkdownImages(text, string) {
+    return text.replace(/!\[.*?\]\(.*?\)/g, string);
 }
+
 async function main() {
     try {
         if (location.href.startsWith('http://')) {
@@ -880,15 +883,18 @@ async function main() {
                     }
                     if (UtilityEnabled("ResetType")) {
                         if (document.querySelector("#profile") != undefined && document.querySelector("#profile").innerHTML == "登录") {
-                                let PopupUL = document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul");
-                                PopupUL.innerHTML = `<li class="dropdown-item">登录</li>`;
-                                PopupUL.children[0].addEventListener("click", () => {
-                                    location.href = "https://www.xmoj.tech/loginpage.php";
-                                });
-                                let parentLi = document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li");
-                                document.addEventListener("click", (event) => { if (!parentLi.contains(event.target) && PopupUL.style.display === 'block') {hideDropdownItems();}});
-                        }
-                        else if (document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul > li:nth-child(3) > a > span") != undefined && document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul > li:nth-child(3) > a > span").innerText != "个人中心") {
+                            let PopupUL = document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul");
+                            PopupUL.innerHTML = `<li class="dropdown-item">登录</li>`;
+                            PopupUL.children[0].addEventListener("click", () => {
+                                location.href = "https://www.xmoj.tech/loginpage.php";
+                            });
+                            let parentLi = document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li");
+                            document.addEventListener("click", (event) => {
+                                if (!parentLi.contains(event.target) && PopupUL.style.display === 'block') {
+                                    hideDropdownItems();
+                                }
+                            });
+                        } else if (document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul > li:nth-child(3) > a > span") != undefined && document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul > li:nth-child(3) > a > span").innerText != "个人中心") {
                             let PopupUL = document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul");
                             PopupUL.style.cursor = 'pointer';
                             PopupUL.innerHTML = `<li class="dropdown-item">修改帐号</li>
@@ -4149,7 +4155,7 @@ int main()
                                         }
                                         let LastsMessageCell = document.createElement("td");
                                         Row.appendChild(LastsMessageCell);
-                                        LastsMessageCell.innerText = replaceMarkdownImages(Data[i].LastsMessage,'[image]');
+                                        LastsMessageCell.innerText = replaceMarkdownImages(Data[i].LastsMessage, '[image]');
                                         let SendTimeCell = document.createElement("td");
                                         Row.appendChild(SendTimeCell);
                                         SendTimeCell.innerHTML = GetRelativeTime(Data[i].SendTime);
