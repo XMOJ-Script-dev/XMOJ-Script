@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.52
+// @version      1.2.58
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -21,7 +21,7 @@
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @homepage     https://www.xmoj-bbs.me/
-// @supportURL   https://github.com/XMOJ-Script-dev/XMOJ-Script/issues
+// @supportURL   https://support.xmoj-bbs.me/form/8050213e-c806-4680-b414-0d1c48263677
 // @connect      api.xmoj-bbs.tech
 // @connect      api.xmoj-bbs.me
 // @connect      challenges.cloudflare.com
@@ -39,7 +39,7 @@
  */
 
 const CaptchaSiteKey = "0x4AAAAAAALBT58IhyDViNmv";
-const AdminUserList = ["zhuchenrui2", "shanwenxiao", "admin", "shihongxi"];
+const AdminUserList = ["zhuchenrui2", "shanwenxiao", "admin"];
 
 let PurifyHTML = (Input) => {
     try {
@@ -598,7 +598,9 @@ class NavbarStyler {
         }
     }
 }
-
+function replaceMarkdownImages(text,string) {
+    return text.replace(/!\[.*?\]\(.*?\)/g,string);
+}
 async function main() {
     try {
         if (location.href.startsWith('http://')) {
@@ -878,11 +880,17 @@ async function main() {
                     }
                     if (UtilityEnabled("ResetType")) {
                         if (document.querySelector("#profile") != undefined && document.querySelector("#profile").innerHTML == "登录") {
-                            if (document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul").childNodes.length == 3) {
-                                document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul").childNodes[3].remove();
-                            }
-                        } else if (document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul > li:nth-child(3) > a > span") != undefined && document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul > li:nth-child(3) > a > span").innerText != "个人中心") {
+                                let PopupUL = document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul");
+                                PopupUL.innerHTML = `<li class="dropdown-item">登录</li>`;
+                                PopupUL.children[0].addEventListener("click", () => {
+                                    location.href = "https://www.xmoj.tech/loginpage.php";
+                                });
+                                let parentLi = document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li");
+                                document.addEventListener("click", (event) => { if (!parentLi.contains(event.target) && PopupUL.style.display === 'block') {hideDropdownItems();}});
+                        }
+                        else if (document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul > li:nth-child(3) > a > span") != undefined && document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul > li:nth-child(3) > a > span").innerText != "个人中心") {
                             let PopupUL = document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul");
+                            PopupUL.style.cursor = 'pointer';
                             PopupUL.innerHTML = `<li class="dropdown-item">修改帐号</li>
                                              <li class="dropdown-item">个人中心</li>
                                              <li class="dropdown-item">短消息</li>
@@ -2754,8 +2762,8 @@ async function main() {
                         ErrorElement.style.display = "none";
                         document.querySelector("#Submit").disabled = true;
                         document.querySelector("#Submit").value = "正在提交...";
-                        let o2Switch="&enable_O2=on";
-                        if(!document.querySelector("#enable_O2").checked)o2Switch="";
+                        let o2Switch = "&enable_O2=on";
+                        if (!document.querySelector("#enable_O2").checked) o2Switch = "";
                         await fetch("https://www.xmoj.tech/submit.php", {
                             "headers": {
                                 "content-type": "application/x-www-form-urlencoded"
@@ -2803,8 +2811,8 @@ async function main() {
                                     ErrorMessage.style.color = "red";
                                     ErrorMessage.innerText = "比赛已结束, 正在尝试像题目 " + rPID + " 提交";
                                     console.log("比赛已结束, 正在尝试像题目 " + rPID + " 提交");
-                                    let o2Switch="&enable_O2=on";
-                                    if(!document.querySelector("#enable_O2").checked)o2Switch="";
+                                    let o2Switch = "&enable_O2=on";
+                                    if (!document.querySelector("#enable_O2").checked) o2Switch = "";
                                     await fetch("https://www.xmoj.tech/submit.php", {
                                         "headers": {
                                             "content-type": "application/x-www-form-urlencoded"
@@ -4141,7 +4149,7 @@ int main()
                                         }
                                         let LastsMessageCell = document.createElement("td");
                                         Row.appendChild(LastsMessageCell);
-                                        LastsMessageCell.innerText = Data[i].LastsMessage;
+                                        LastsMessageCell.innerText = replaceMarkdownImages(Data[i].LastsMessage,'[image]');
                                         let SendTimeCell = document.createElement("td");
                                         Row.appendChild(SendTimeCell);
                                         SendTimeCell.innerHTML = GetRelativeTime(Data[i].SendTime);
@@ -4682,6 +4690,7 @@ int main()
                                 let CaptchaSecretKey = "";
                                 unsafeWindow.CaptchaLoadedCallback = () => {
                                     turnstile.render("#CaptchaContainer", {
+                                        theme: UtilityEnabled("DarkMode") ? "dark" : "light", language: "zh-cn",
                                         sitekey: CaptchaSiteKey, callback: function (CaptchaSecretKeyValue) {
                                             CaptchaSecretKey = CaptchaSecretKeyValue;
                                             SubmitElement.disabled = false;

@@ -2398,6 +2398,72 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.53": {
+            "UpdateDate": 1723352066327,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 690,
+                    "Description": "移除之前忘记操作的admin"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.54": {
+            "UpdateDate": 1723450512410,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 694,
+                    "Description": "更新support url"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.55": {
+            "UpdateDate": 1723461779306,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 698,
+                    "Description": "Set turnstile theme and language"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.56": {
+            "UpdateDate": 1723956966458,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 704,
+                    "Description": "登录界面优化"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.57": {
+            "UpdateDate": 1723968698208,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 712,
+                    "Description": "更改个人中心一栏鼠标指针样式"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.58": {
+            "UpdateDate": 1724058379641,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 715,
+                    "Description": "更改短消息显示"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
