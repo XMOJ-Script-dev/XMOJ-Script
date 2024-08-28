@@ -2464,6 +2464,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.59": {
+            "UpdateDate": 1724836147641,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 718,
+                    "Description": "Prevent caching"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
