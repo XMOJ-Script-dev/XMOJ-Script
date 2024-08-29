@@ -1277,8 +1277,61 @@ async function main() {
                         let UtilitiesCardBody = document.createElement("div");
                         UtilitiesCardBody.classList.add("card-body");
                         let CreateList = (Data) => {
+                            // Function to create and append the CSS styles for the slider
+                            const addSliderStyles = () => {
+                                const style = document.createElement('style');
+                                style.textContent = `
+                                    .slider {
+                                        position: relative;
+                                        display: inline-block;
+                                        width: 34px;
+                                        height: 20px;
+                                    }
+
+                                    .slider input {
+                                        opacity: 0;
+                                        width: 0;
+                                        height: 0;
+                                    }
+
+                                    .slider .slider-round {
+                                        position: absolute;
+                                        cursor: pointer;
+                                        top: 4px;
+                                        left: -4px;
+                                        right: 12px;
+                                        bottom: 0;
+                                        background-color: #a9a9ad;
+                                        transition: .2s;
+                                        border-radius: 34px;
+                                    }
+
+                                    .slider .slider-round:before {
+                                        position: absolute;
+                                        content: "";
+                                        height: 12px;
+                                        width: 12px;
+                                        border-radius: 50%;
+                                        left: 3px;
+                                        bottom: 2px;
+                                        background-color: white;
+                                        transition: .2s;
+                                    }
+
+                                    input:checked + .slider-round {
+                                        background-color: #2196F3;
+                                    }
+
+                                    input:checked + .slider-round:before {
+                                        transform: translateX(8px);
+                                    }
+                                `;
+                                document.head.appendChild(style);
+                            };
+                            addSliderStyles();
                             let List = document.createElement("ul");
                             List.classList.add("list-group");
+
                             for (let i = 0; i < Data.length; i++) {
                                 let Row = document.createElement("li");
                                 Row.classList.add("list-group-item");
@@ -1289,27 +1342,32 @@ async function main() {
                                 } else if (Data[i].Type == "D") {
                                     Row.classList.add("list-group-item-danger");
                                 }
-                                if (Data[i].Children == undefined) {
+
+                                if (Data[i].Children === undefined) {
+                                    let SliderContainer = document.createElement("label");
+                                    SliderContainer.classList.add("slider");
+
                                     let CheckBox = document.createElement("input");
-                                    CheckBox.classList.add("form-check-input");
-                                    CheckBox.classList.add("me-1");
                                     CheckBox.type = "checkbox";
                                     CheckBox.id = Data[i].ID;
-                                    if (localStorage.getItem("UserScript-Setting-" + Data[i].ID) == null) {
+
+                                    if (localStorage.getItem("UserScript-Setting-" + Data[i].ID) === null) {
                                         localStorage.setItem("UserScript-Setting-" + Data[i].ID, "true");
                                     }
-                                    if (localStorage.getItem("UserScript-Setting-" + Data[i].ID) == "false") {
-                                        CheckBox.checked = false;
-                                    } else {
-                                        CheckBox.checked = true;
-                                    }
+                                    CheckBox.checked = localStorage.getItem("UserScript-Setting-" + Data[i].ID) === "true";
                                     CheckBox.addEventListener("change", () => {
-                                        return localStorage.setItem("UserScript-Setting-" + Data[i].ID, CheckBox.checked);
+                                        localStorage.setItem("UserScript-Setting-" + Data[i].ID, CheckBox.checked);
                                     });
 
-                                    Row.appendChild(CheckBox);
+                                    let SliderRound = document.createElement("span");
+                                    SliderRound.classList.add("slider-round");
+
+                                    SliderContainer.appendChild(CheckBox);
+                                    SliderContainer.appendChild(SliderRound);
+
+                                    Row.appendChild(SliderContainer);
+
                                     let Label = document.createElement("label");
-                                    Label.classList.add("form-check-label");
                                     Label.htmlFor = Data[i].ID;
                                     Label.innerText = Data[i].Name;
                                     Row.appendChild(Label);
@@ -1318,9 +1376,11 @@ async function main() {
                                     Label.innerText = Data[i].Name;
                                     Row.appendChild(Label);
                                 }
-                                if (Data[i].Children != undefined) {
+
+                                if (Data[i].Children !== undefined) {
                                     Row.appendChild(CreateList(Data[i].Children));
                                 }
+
                                 List.appendChild(Row);
                             }
                             return List;
