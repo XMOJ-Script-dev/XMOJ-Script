@@ -2510,6 +2510,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.61": {
+            "UpdateDate": 1725083743111,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 725,
+                    "Description": "Add CP Editor"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
