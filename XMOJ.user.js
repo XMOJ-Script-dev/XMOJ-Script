@@ -3859,6 +3859,10 @@ int main()
                             "Image": "https://a.fsdn.com/allura/p/redpanda-cpp/icon",
                             "URL": "https://sourceforge.net/projects/redpanda-cpp/"
                         }, {
+                            "Name": "CP Editor",
+                            "Image": "https://a.fsdn.com/allura/mirror/cp-editor/icon?c35437565079e4135a985ba557ef2fdbe97de6bafb27aceafd76bc54490c26e3?&w=90",
+                            "URL": "https://cpeditor.org/zh/download/"
+                        }, {
                             "Name": "CLion",
                             "Image": "https://resources.jetbrains.com/storage/products/company/brand/logos/CLion_icon.png",
                             "URL": "https://www.jetbrains.com/clion/download"
