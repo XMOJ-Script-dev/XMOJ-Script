@@ -322,13 +322,15 @@ let SizeToStringSize = (Memory) => {
     try {
         if (UtilityEnabled("AddUnits")) {
             if (Memory < 1024) {
-                return Memory + "KB";
+                return Memory + "B";
             } else if (Memory < 1024 * 1024) {
-                return (Memory / 1024).toFixed(2) + "MB";
+                return (Memory / 1024).toFixed(2) + "KB";
             } else if (Memory < 1024 * 1024 * 1024) {
-                return (Memory / 1024 / 1024).toFixed(2) + "GB";
+                return (Memory / 1024 / 1024).toFixed(2) + "MB";
+            } else if (Memory < 1024 * 1024 * 1024) {
+                return (Memory / 1024 / 1024 / 1024).toFixed(2) + "GB";
             } else {
-                return (Memory / 1024 / 1024 / 1024).toFixed(2) + "TB";
+                return (Memory / 1024 / 1024 / 1024 / 1024).toFixed(2) + "TB";
             }
         } else {
             return Memory;
