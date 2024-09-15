@@ -2435,12 +2435,12 @@ async function main() {
                                             NicknameCell.innerText = (RowData.Nickname.length < 16 ? RowData.Nickname : RowData.Nickname.substring(0, 15) + "...");
 
                                             let Names = {
-                                                "huangkai": "黄开",
                                                 "chenlangning": "陈朗宁",
                                                 "chensiru": "陈斯如",
                                                 "chensiqi": "陈思齐",
                                                 "chentianle": "陈天乐",
                                                 "chenxuanhe": "陈宣合",
+                                                "chenyiming5": "陈一铭",
                                                 "chenzecong": "陈泽聪",
                                                 "chenzerui": "陈泽睿",
                                                 "danwenxiao": "单文骁",
@@ -2456,6 +2456,7 @@ async function main() {
                                                 "heshuhan": "贺书瀚",
                                                 "hexinyi": "何昕弈",
                                                 "huheng": "胡恒",
+                                                "huangkai": "黄开",
                                                 "huangmingxuan": "黄铭宣",
                                                 "huangruina": "黄睿纳",
                                                 "huangwei": "黄唯",
