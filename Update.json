@@ -2532,6 +2532,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.63": {
+            "UpdateDate": 1727743018230,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 731,
+                    "Description": "a quick fix for mathjax"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
