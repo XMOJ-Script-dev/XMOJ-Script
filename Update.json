@@ -2565,6 +2565,33 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.66": {
+            "UpdateDate": 1727862388829,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 725,
+                    "Description": "Add CP Editor"
+                },
+                {
+                    "PR": 729,
+                    "Description": "add chenyiming5"
+                },
+                {
+                    "PR": 731,
+                    "Description": "a quick fix for mathjax"
+                },
+                {
+                    "PR": 735,
+                    "Description": "更新一大批名字"
+                },
+                {
+                    "PR": 737,
+                    "Description": "Add http request headers"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
