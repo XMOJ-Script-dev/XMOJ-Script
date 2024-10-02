@@ -1506,7 +1506,7 @@ async function main() {
                         localStorage.setItem("UserScript-Problem-" + Temp[i].children[1].innerText + "-Name", Temp[i].children[2].innerText);
                     }
                 } else if (location.pathname == "/problem.php") {
-                    RenderMathJax();
+                    await RenderMathJax();
                     if (SearchParams.get("cid") != null) {
                         document.getElementsByTagName("h2")[0].innerHTML += " (" + localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + SearchParams.get("pid") + "-PID") + ")";
                     }
