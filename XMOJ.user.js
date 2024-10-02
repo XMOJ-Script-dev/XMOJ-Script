@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.64
+// @version      1.2.65
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -417,7 +417,10 @@ let RequestAPI = (Action, Data, CallBack) => {
             url: (UtilityEnabled("SuperDebug") ? "http://127.0.0.1:8787/" : "https://api.xmoj-bbs.me/") + Action,
             headers: {
                 "Content-Type": "application/json",
-                "Cache-Control": "no-cache"
+                "Cache-Control": "no-cache",
+                "XMOJ-UserID": CurrentUsername,
+                "XMOJ-Script-Version": GM_info.script.version,
+                "DebugMode": UtilityEnabled("DebugMode")
             },
             data: DataString,
             onload: (Response) => {
@@ -1503,7 +1506,7 @@ async function main() {
                         localStorage.setItem("UserScript-Problem-" + Temp[i].children[1].innerText + "-Name", Temp[i].children[2].innerText);
                     }
                 } else if (location.pathname == "/problem.php") {
-                    RenderMathJax();
+                    await RenderMathJax();
                     if (SearchParams.get("cid") != null) {
                         document.getElementsByTagName("h2")[0].innerHTML += " (" + localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + SearchParams.get("pid") + "-PID") + ")";
                     }
