@@ -2543,6 +2543,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.64": {
+            "UpdateDate": 1727850190549,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 735,
+                    "Description": "更新一大批名字"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
