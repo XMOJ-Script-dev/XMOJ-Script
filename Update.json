@@ -2510,6 +2510,88 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.61": {
+            "UpdateDate": 1725083743111,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 725,
+                    "Description": "Add CP Editor"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.62": {
+            "UpdateDate": 1726406228773,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 729,
+                    "Description": "add chenyiming5"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.63": {
+            "UpdateDate": 1727743018230,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 731,
+                    "Description": "a quick fix for mathjax"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.64": {
+            "UpdateDate": 1727853823983,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 735,
+                    "Description": "更新一大批名字"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.65": {
+            "UpdateDate": 1727861782766,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 737,
+                    "Description": "Add http request headers"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.66": {
+            "UpdateDate": 1727862388829,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 725,
+                    "Description": "Add CP Editor"
+                },
+                {
+                    "PR": 729,
+                    "Description": "add chenyiming5"
+                },
+                {
+                    "PR": 731,
+                    "Description": "a quick fix for mathjax"
+                },
+                {
+                    "PR": 735,
+                    "Description": "更新一大批名字"
+                },
+                {
+                    "PR": 737,
+                    "Description": "Add http request headers"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
