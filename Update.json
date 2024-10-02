@@ -2475,6 +2475,85 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.60": {
+            "UpdateDate": 1725005372794,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 690,
+                    "Description": "移除之前忘记操作的admin"
+                },
+                {
+                    "PR": 694,
+                    "Description": "更新support url"
+                },
+                {
+                    "PR": 698,
+                    "Description": "Set turnstile theme and language"
+                },
+                {
+                    "PR": 704,
+                    "Description": "登录界面优化"
+                },
+                {
+                    "PR": 712,
+                    "Description": "更改个人中心一栏鼠标指针样式"
+                },
+                {
+                    "PR": 715,
+                    "Description": "更改短消息显示"
+                },
+                {
+                    "PR": 718,
+                    "Description": "Prevent caching"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.61": {
+            "UpdateDate": 1725083743111,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 725,
+                    "Description": "Add CP Editor"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.62": {
+            "UpdateDate": 1726406228773,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 729,
+                    "Description": "add chenyiming5"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.63": {
+            "UpdateDate": 1727743018230,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 731,
+                    "Description": "a quick fix for mathjax"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.64": {
+            "UpdateDate": 1727853823983,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 735,
+                    "Description": "更新一大批名字"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }

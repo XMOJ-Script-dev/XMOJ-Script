@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.59
+// @version      1.2.64
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -1503,6 +1503,7 @@ async function main() {
                         localStorage.setItem("UserScript-Problem-" + Temp[i].children[1].innerText + "-Name", Temp[i].children[2].innerText);
                     }
                 } else if (location.pathname == "/problem.php") {
+                    RenderMathJax();
                     if (SearchParams.get("cid") != null) {
                         document.getElementsByTagName("h2")[0].innerHTML += " (" + localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + SearchParams.get("pid") + "-PID") + ")";
                     }
@@ -2435,18 +2436,22 @@ async function main() {
                                             NicknameCell.innerText = (RowData.Nickname.length < 16 ? RowData.Nickname : RowData.Nickname.substring(0, 15) + "...");
 
                                             let Names = {
-                                                "huangkai": "黄开",
                                                 "chenlangning": "陈朗宁",
                                                 "chensiru": "陈斯如",
                                                 "chensiqi": "陈思齐",
                                                 "chentianle": "陈天乐",
+                                                "chenxi": "陈曦",
                                                 "chenxuanhe": "陈宣合",
+                                                "chenyiming5": "陈一铭",
                                                 "chenzecong": "陈泽聪",
                                                 "chenzerui": "陈泽睿",
                                                 "danwenxiao": "单文骁",
+                                                "dengwanting": "邓万廷",
                                                 "dongminghui": "董明辉",
                                                 "dujianping": "杜建平",
+                                                "fanxiaoran": "范小冉",
                                                 "gaochenming": "高晨茗",
+                                                "guhongran": "顾泓然",
                                                 "guoluxi": "郭麓羲",
                                                 "guoqingtong": "郭庆桐",
                                                 "guoruiqun": "郭睿群",
@@ -2456,14 +2461,17 @@ async function main() {
                                                 "heshuhan": "贺书瀚",
                                                 "hexinyi": "何昕弈",
                                                 "huheng": "胡恒",
+                                                "huangkai": "黄开",
                                                 "huangmingxuan": "黄铭宣",
                                                 "huangruina": "黄睿纳",
                                                 "huangwei": "黄唯",
                                                 "huyiyang": "胡以杨",
+                                                "hongshaolin": "洪绍霖",
                                                 "jiangxingyu": "姜星宇",
                                                 "jingtaiyu": "荆泰宇",
                                                 "jinweizhe": "金炜喆",
                                                 "leijiahan": "雷家涵",
+                                                "leizihao": "雷子昊",
                                                 "leiwenda": "雷文达",
                                                 "lidonglin": "李东霖",
                                                 "lihanzhang": "李含章",
@@ -2481,9 +2489,11 @@ async function main() {
                                                 "liuxixian": "刘希贤",
                                                 "liuyuxi": "刘雨夕",
                                                 "liyihan": "李亦涵",
+                                                "lejingyuan": "乐静远",
                                                 "luhanlin": "陆涵琳",
                                                 "lutianfeng": "陆天枫",
                                                 "luojinyang": "罗金阳",
+                                                "lvhouxi": "吕厚希",
                                                 "meitianyi": "梅天一",
                                                 "niruolin": "倪若琳",
                                                 "panyinliang": "潘胤良",
@@ -2495,6 +2505,7 @@ async function main() {
                                                 "shanwenxiao": "单文骁",
                                                 "shenhaoze": "沈昊泽",
                                                 "shenxichen": "沈熙晨",
+                                                "shenzichen": "沈孜晨",
                                                 "shihongxi": "施泓熙",
                                                 "shimufan": "施慕梵",
                                                 "shiyichen": "施奕辰",
@@ -2503,21 +2514,29 @@ async function main() {
                                                 "suiruochen": "隋若宸",
                                                 "sunyihan": "孙艺涵",
                                                 "sunyimiao": "孙义淼",
+                                                "sunyichen2": "孙袆辰",
                                                 "tangchao": "唐潮",
                                                 "tangyuhan": "唐钰涵",
                                                 "tanhaoxuan": "谭皓轩",
+                                                "tanghaoran": "汤皓然",
                                                 "taoxianyu": "陶羡榆",
                                                 "wangkangming": "王康明",
+                                                "wangmaohua": "王茂骅",
                                                 "wangminghao": "王明浩",
                                                 "wangmingshuo": "王茗铄",
                                                 "wangpengyu": "王芃雨",
                                                 "wangsiyuan3": "王思源",
                                                 "wangtianqi": "王天琦",
                                                 "wangzetong": "王泽通",
+                                                "wangjiarui5": "王加睿",
+                                                "wangjunzhe": "王俊喆",
                                                 "wanxinlian": "万馨联",
+                                                "weilai3": "魏铼",
+                                                "weilai4": "魏来",
                                                 "wensiyi": "闻思奕",
                                                 "wujinhong": "吴锦鸿",
                                                 "wuruitong": "吴瑞桐",
+                                                "wumingxuan2": "吴明轩",
                                                 "wurunze": "吴润泽",
                                                 "wuyukai": "巫昱恺",
                                                 "xiangjicheng": "项际诚",
@@ -2529,11 +2548,15 @@ async function main() {
                                                 "xiebingxiu": "谢秉修",
                                                 "xiebingxiu": "谢秉修",
                                                 "xieliren": "谢立仁",
+                                                "xieruiqi": "谢睿棋",
+                                                "xiongluofei": "熊洛菲",
                                                 "xinyihan": "辛轶涵",
                                                 "xuconghan": "徐从瀚",
                                                 "xukan": "徐衎",
                                                 "xuweiyi": "徐维易",
                                                 "yanghaochen": "杨皓宸",
+                                                "yangsining": "杨思凝",
+                                                "yangqinyu": "杨钦宇",
                                                 "yezijiong": "叶梓炅",
                                                 "youzhouhang": "尤周杭",
                                                 "yuanruiqing": "袁瑞擎",
@@ -2553,6 +2576,7 @@ async function main() {
                                                 "zhouyiqing": "周意清",
                                                 "zhoujunyu": "周峻瑜",
                                                 "zhouziyi": "周子逸",
+                                                "zhuziruo": "朱子若",
                                                 "zhouziyou": "周子游",
                                                 "zhuchenrui2": "朱晨瑞",
                                                 "zhuruichen": "朱睿宸",
@@ -3858,6 +3882,10 @@ int main()
                             "Name": "RedPanda C++",
                             "Image": "https://a.fsdn.com/allura/p/redpanda-cpp/icon",
                             "URL": "https://sourceforge.net/projects/redpanda-cpp/"
+                        }, {
+                            "Name": "CP Editor",
+                            "Image": "https://a.fsdn.com/allura/mirror/cp-editor/icon?c35437565079e4135a985ba557ef2fdbe97de6bafb27aceafd76bc54490c26e3?&w=90",
+                            "URL": "https://cpeditor.org/zh/download/"
                         }, {
                             "Name": "CLion",
                             "Image": "https://resources.jetbrains.com/storage/products/company/brand/logos/CLion_icon.png",
