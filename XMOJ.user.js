@@ -417,7 +417,10 @@ let RequestAPI = (Action, Data, CallBack) => {
             url: (UtilityEnabled("SuperDebug") ? "http://127.0.0.1:8787/" : "https://api.xmoj-bbs.me/") + Action,
             headers: {
                 "Content-Type": "application/json",
-                "Cache-Control": "no-cache"
+                "Cache-Control": "no-cache",
+                "XMOJ-UserID": CurrentUsername,
+                "XMOJ-Script-Version": GM_info.script.version,
+                "DebugMode": UtilityEnabled("DebugMode")
             },
             data: DataString,
             onload: (Response) => {
