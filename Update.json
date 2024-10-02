@@ -2554,6 +2554,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.65": {
+            "UpdateDate": 1727861782766,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 737,
+                    "Description": "Add http request headers"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
