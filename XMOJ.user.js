@@ -1561,7 +1561,7 @@ async function main() {
                             window.location.href = SubmitLink.href;
                             console.log(SubmitLink.href);
                         };
-                        Temp = document.querySelectorAll(".sampledata");
+                        var Temp = document.querySelectorAll(".sampledata");
                         for (var i = 0; i < Temp.length; i++) {
                             Temp[i].parentElement.className = "card";
                         }
