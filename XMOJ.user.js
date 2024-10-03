@@ -779,6 +779,9 @@ async function main() {
                 .status_n:hover {
                     box-shadow: #fe4c61 1px 1px 10px 0px !important;
                 }
+                .status_w:hover {
+                    box-shadow: #ffa900 1px 1px 10px 0px !important;
+                }
                 .test-case {
                     border-radius: 5px !important;
                 }
@@ -841,13 +844,17 @@ async function main() {
                 }
 
                 if (UtilityEnabled("ReplaceYN")) {
-                    Temp = document.getElementsByClassName("status_y");
+                    Temp = document.getElementsByClassName("status_y");//AC
                     for (let i = 0; i < Temp.length; i++) {
                         Temp[i].innerText = "✓";
                     }
-                    Temp = document.getElementsByClassName("status_n");
+                    Temp = document.getElementsByClassName("status_n");//WA
                     for (let i = 0; i < Temp.length; i++) {
                         Temp[i].innerText = "✗";
+                    }
+                    Temp = document.getElementsByClassName("status_w");//Waiting
+                    for (let i = 0; i < Temp.length; i++) {
+                        Temp[i].innerText = "⏳";
                     }
                 }
 
@@ -1352,7 +1359,7 @@ async function main() {
                             }, {
                                 "ID": "DarkPicture", "Type": "A", "Name": "使用反色的题目图片（需要启用暗色模式）"
                             }, {"ID": "AddAnimation", "Type": "A", "Name": "增加动画"}, {
-                                "ID": "ReplaceYN", "Type": "F", "Name": "题目前对错的Y和N替换为勾和叉"
+                                "ID": "ReplaceYN", "Type": "F", "Name": "题目前状态提示替换为好看的图标"
                             }, {"ID": "RemoveAlerts", "Type": "D", "Name": "去除多余反复的提示"}, {
                                 "ID": "Translate", "Type": "F", "Name": "统一使用中文，翻译了部分英文*"
                             }, {
