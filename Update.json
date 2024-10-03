@@ -2603,6 +2603,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.68": {
+            "UpdateDate": 1727921999757,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 743,
+                    "Description": "feat: 优化等待状态的显示"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
