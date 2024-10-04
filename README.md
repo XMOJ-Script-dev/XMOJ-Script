@@ -15,6 +15,10 @@
 地址：https://docs.xmoj-bbs.me
 仓库：https://github.com/XMOJ-Script-dev/docs
 
+### 好物推广
+
+我们推荐您购买服务器时选择“雨云”，[点击这里使用我们的推广码可以获得五折优惠](https://www.rainyun.com/NDUyNjk1_)！
+
 ### 介绍
 
 `xmoj-script` 是一个功能强大的浏览器扩展，旨在提升用户在小明的OJ（某虚拟在线竞赛平台）上的使用体验。
