@@ -2614,6 +2614,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.69": {
+            "UpdateDate": 1728563746855,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 748,
+                    "Description": "变动cdn源"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
