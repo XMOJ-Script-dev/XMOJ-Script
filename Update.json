@@ -2625,6 +2625,36 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.70": {
+            "UpdateDate": 1728784924115,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 741,
+                    "Description": "Fix Duplicate Names (warned by Qoanda)"
+                },
+                {
+                    "PR": 743,
+                    "Description": "feat: 优化等待状态的显示"
+                },
+                {
+                    "PR": 748,
+                    "Description": "变动cdn源"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.71": {
+            "UpdateDate": 1732545478542,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 753,
+                    "Description": "fix: 修复代码长度单位换算错误"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }

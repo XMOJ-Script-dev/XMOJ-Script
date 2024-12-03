@@ -13,7 +13,6 @@ const LabelList = [
     "dependency",
     "designing",
     "documentation",
-    "docs",
     "duplicate",
     "discussing",
     "enhancement",
