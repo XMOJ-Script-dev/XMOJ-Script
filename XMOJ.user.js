@@ -3957,7 +3957,8 @@ int main()
                     Temp = document.querySelector("#problemstatus > tbody").children;
                     for (let i = 0; i < Temp.length; i++) {
                         if (Temp[i].children[5].children[0] != null) {
-                            Temp[i].children[1].innerHTML = `<a href="${Temp[i].children[5].children[0].href}">${Temp[i].children[1].innerText.trim()}</a>`;
+                            const sanitizedText = DOMPurify.sanitize(Temp[i].children[1].innerText.trim());
+                            Temp[i].children[1].innerHTML = `<a href="${Temp[i].children[5].children[0].href}">${sanitizedText}</a>`;
                         }
                         GetUsernameHTML(Temp[i].children[2], Temp[i].children[2].innerText);
                         Temp[i].children[3].remove();
