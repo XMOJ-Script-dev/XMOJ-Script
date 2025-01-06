@@ -2644,6 +2644,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.71": {
+            "UpdateDate": 1736170173712,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 757,
+                    "Description": "Fix code scanning alert no. 28: DOM text reinterpreted as HTML"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
