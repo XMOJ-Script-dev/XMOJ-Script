@@ -2655,6 +2655,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.72": {
+            "UpdateDate": 1738077467342,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 758,
+                    "Description": "Fix #714"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
