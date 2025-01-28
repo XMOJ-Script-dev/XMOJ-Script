@@ -132,6 +132,7 @@ let GetUserInfo = async (Username) => {
             return Response.text();
         }).then((Response) => {
             if (Response.indexOf("No such User!") !== -1) {
+                console.log("No such user: ", Username);
                 return null;
             }
             const ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
@@ -215,7 +216,8 @@ let GetUserBadge = async (Username) => {
  */
 let GetUsernameHTML = async (Element, Username, Simple = false, Href = "https://www.xmoj.tech/userinfo.php?user=") => {
     try {
-        Username = Username.replaceAll(/[^a-zA-Z0-9]/g, "");
+        console.log(Username);
+        //Username = Username.replaceAll(/[^a-zA-Z0-9]/g, "");
         let ID = "Username-" + Username + "-" + Math.random();
         Element.id = ID;
         Element.innerHTML = `<div class="spinner-border spinner-border-sm me-2" role="status"></div>`;
