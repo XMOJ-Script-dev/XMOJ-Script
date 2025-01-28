@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.71
+// @version      1.2.72
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -215,7 +215,7 @@ let GetUserBadge = async (Username) => {
  */
 let GetUsernameHTML = async (Element, Username, Simple = false, Href = "https://www.xmoj.tech/userinfo.php?user=") => {
     try {
-        Username = Username.replaceAll(/[^a-zA-Z0-9]/g, "");
+        //Username = Username.replaceAll(/[^a-zA-Z0-9]/g, "");
         let ID = "Username-" + Username + "-" + Math.random();
         Element.id = ID;
         Element.innerHTML = `<div class="spinner-border spinner-border-sm me-2" role="status"></div>`;
