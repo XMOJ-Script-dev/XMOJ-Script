@@ -2666,6 +2666,21 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.73": {
+            "UpdateDate": 1738925550389,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 753,
+                    "Description": "fix: 修复代码长度单位换算错误"
+                },
+                {
+                    "PR": 758,
+                    "Description": "Fix #714"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
