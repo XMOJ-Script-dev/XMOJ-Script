@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.72
+// @version      1.2.74
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -1199,7 +1199,7 @@ async function main() {
                                     ToastViewButton.classList.add("btn", "btn-primary", "btn-sm");
                                     ToastViewButton.innerText = "查看";
                                     ToastViewButton.addEventListener("click", () => {
-                                        open("https://www.xmoj.tech/discuss3/thread.php?tid=" + MentionList[i].PostID, "_blank");
+                                        open("https://www.xmoj.tech/discuss3/thread.php?tid=" + MentionList[i].PostID + '&page=' + MentionList[i].PageNumber, "_blank");
                                         RequestAPI("ReadBBSMention", {
                                             "MentionID": Number(MentionList[i].MentionID)
                                         }, () => {
