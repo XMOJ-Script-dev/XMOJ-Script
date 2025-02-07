@@ -1199,7 +1199,7 @@ async function main() {
                                     ToastViewButton.classList.add("btn", "btn-primary", "btn-sm");
                                     ToastViewButton.innerText = "查看";
                                     ToastViewButton.addEventListener("click", () => {
-                                        open("https://www.xmoj.tech/discuss3/thread.php?tid=" + MentionList[i].PostID, "_blank");
+                                        open("https://www.xmoj.tech/discuss3/thread.php?tid=" + MentionList[i].PostID + '&page=' + MentionList[i].PageCount, "_blank");
                                         RequestAPI("ReadBBSMention", {
                                             "MentionID": Number(MentionList[i].MentionID)
                                         }, () => {
