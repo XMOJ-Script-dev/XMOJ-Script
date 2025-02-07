@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.70
+// @version      1.2.73
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -215,7 +215,7 @@ let GetUserBadge = async (Username) => {
  */
 let GetUsernameHTML = async (Element, Username, Simple = false, Href = "https://www.xmoj.tech/userinfo.php?user=") => {
     try {
-        Username = Username.replaceAll(/[^a-zA-Z0-9]/g, "");
+        //Username = Username.replaceAll(/[^a-zA-Z0-9]/g, "");
         let ID = "Username-" + Username + "-" + Math.random();
         Element.id = ID;
         Element.innerHTML = `<div class="spinner-border spinner-border-sm me-2" role="status"></div>`;
@@ -329,6 +329,28 @@ let SizeToStringSize = (Memory) => {
                 return (Memory / 1024 / 1024).toFixed(2) + "GB";
             } else {
                 return (Memory / 1024 / 1024 / 1024).toFixed(2) + "TB";
+            }
+        } else {
+            return Memory;
+        }
+    } catch (e) {
+        console.error(e);
+        if (UtilityEnabled("DebugMode")) {
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+        }
+    }
+};
+let CodeSizeToStringSize = (Memory) => {
+    try {
+        if (UtilityEnabled("AddUnits")) {
+            if (Memory < 1024) {
+                return Memory + "B";
+            } else if (Memory < 1024 * 1024) {
+                return (Memory / 1024).toFixed(2) + "KB";
+            } else if (Memory < 1024 * 1024 * 1024) {
+                return (Memory / 1024 / 1024).toFixed(2) + "MB";
+            } else {
+                return (Memory / 1024 / 1024 / 1024).toFixed(2) + "GB";
             }
         } else {
             return Memory;
@@ -1836,7 +1858,7 @@ async function main() {
                                 Temp[i].childNodes[3].childNodes[0].innerText = SizeToStringSize(Temp[i].childNodes[3].childNodes[0].innerText);
                                 Temp[i].childNodes[4].childNodes[0].innerText = TimeToStringTime(Temp[i].childNodes[4].childNodes[0].innerText);
                                 Temp[i].childNodes[5].innerText = Temp[i].childNodes[5].childNodes[0].innerText;
-                                Temp[i].childNodes[6].innerText = SizeToStringSize(Temp[i].childNodes[6].innerText.substring(0, Temp[i].childNodes[6].innerText.length - 1));
+                                Temp[i].childNodes[6].innerText = CodeSizeToStringSize(Temp[i].childNodes[6].innerText.substring(0, Temp[i].childNodes[6].innerText.length - 1));
                                 Temp[i].childNodes[9].innerText = (Temp[i].childNodes[9].innerText == "" ? "否" : "是");
                             }
                             if (SearchParams.get("cid") === null) {
