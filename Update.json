@@ -2681,6 +2681,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.2.74": {
+            "UpdateDate": 1738933722742,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 762,
+                    "Description": "讨论回复跳转优化"
+                }
+            ],
+            "Notes": "This was so hard......"
         }
     }
 }
