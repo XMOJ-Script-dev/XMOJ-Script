@@ -2692,6 +2692,17 @@
                 }
             ],
             "Notes": "This was so hard......"
+        },
+        "1.2.75": {
+            "UpdateDate": 1738974525711,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 767,
+                    "Description": "进入讨论后给出题目的链接 "
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
