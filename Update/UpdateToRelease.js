@@ -58,7 +58,7 @@ if (LastType == "Release") {
 if (LastJSVersion != NpmVersion) {
     console.warn("Assuming you manually ran npm version.");
 } else {
-    execSync("npm version patch");
+    execSync("npm version minor");
 }
 var CurrentVersion = execSync("jq -r '.version' package.json").toString().trim();
 console.log("Current version    : " + CurrentVersion);
