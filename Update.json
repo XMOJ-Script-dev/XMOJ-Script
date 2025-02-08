@@ -2703,6 +2703,21 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.3.0": {
+            "UpdateDate": 1738976786495,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 762,
+                    "Description": "讨论回复跳转优化"
+                },
+                {
+                    "PR": 767,
+                    "Description": "进入讨论后给出题目的链接 "
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
