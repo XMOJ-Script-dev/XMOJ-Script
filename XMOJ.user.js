@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.2.73
+// @version      1.3.0
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -1199,7 +1199,7 @@ async function main() {
                                     ToastViewButton.classList.add("btn", "btn-primary", "btn-sm");
                                     ToastViewButton.innerText = "查看";
                                     ToastViewButton.addEventListener("click", () => {
-                                        open("https://www.xmoj.tech/discuss3/thread.php?tid=" + MentionList[i].PostID, "_blank");
+                                        open("https://www.xmoj.tech/discuss3/thread.php?tid=" + MentionList[i].PostID + '&page=' + MentionList[i].PageNumber, "_blank");
                                         RequestAPI("ReadBBSMention", {
                                             "MentionID": Number(MentionList[i].MentionID)
                                         }, () => {
@@ -4847,7 +4847,7 @@ int main()
                                                     Delete.style.display = "";
                                                 }
                                             }
-                                            PostTitle.innerText = ResponseData.Data.Title + (ResponseData.Data.ProblemID == 0 ? "" : ` - 题目` + ResponseData.Data.ProblemID);
+                                            PostTitle.innerHTML = ResponseData.Data.Title + (ResponseData.Data.ProblemID == 0 ? "" : ` - 题目` + ` <a href="https://www.xmoj.tech/problem.php?id=` + ResponseData.Data.ProblemID + `">` + ResponseData.Data.ProblemID + `</a>`);
                                             document.title = "讨论" + ThreadID + ": " + ResponseData.Data.Title;
                                             PostAuthor.innerHTML = "<span></span>";
                                             GetUsernameHTML(PostAuthor.children[0], ResponseData.Data.UserID);
