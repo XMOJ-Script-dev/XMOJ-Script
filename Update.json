@@ -2717,7 +2717,7 @@
                     "Description": "进入讨论后给出题目的链接 "
                 }
             ],
-            "Notes": "No release notes were provided for this release."
+            "Notes": "If you are curious why the version number is v1.3.0, it's because we changed our versioning strategy! Click <a href=\"https://github.com/orgs/XMOJ-Script-dev/discussions/771\"> here </a> for more details."//!ci-no-touch
         }
     }
 }
