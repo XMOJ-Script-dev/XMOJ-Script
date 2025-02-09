@@ -41,6 +41,19 @@
 const CaptchaSiteKey = "0x4AAAAAAALBT58IhyDViNmv";
 const AdminUserList = ["zhuchenrui2", "shanwenxiao", "admin"];
 
+let escapeHTML = (str) => {
+    return str.replace(/[&<>"']/g, function (match) {
+        const escape = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        };
+        return escape[match];
+    });
+};
+
 let PurifyHTML = (Input) => {
     try {
         return DOMPurify.sanitize(Input, {
@@ -3979,7 +3992,7 @@ int main()
                     Temp = document.querySelector("#problemstatus > tbody").children;
                     for (let i = 0; i < Temp.length; i++) {
                         if (Temp[i].children[5].children[0] != null) {
-                            Temp[i].children[1].innerHTML = `<a href="${Temp[i].children[5].children[0].href}">${Temp[i].children[1].innerText.trim()}</a>`;
+                            Temp[i].children[1].innerHTML = `<a href="${Temp[i].children[5].children[0].href}">${escapeHTML(Temp[i].children[1].innerText.trim())}</a>`;
                         }
                         GetUsernameHTML(Temp[i].children[2], Temp[i].children[2].innerText);
                         Temp[i].children[3].remove();
