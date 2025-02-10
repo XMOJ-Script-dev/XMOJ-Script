@@ -465,10 +465,7 @@ let RequestAPI = (Action, Data, CallBack) => {
                 try {
                     CallBack(JSON.parse(Response.responseText));
                 } catch (Error) {
-                    console.log(Response.responseText);
-                    CallBack({
-                        "Success": false, "Message": "JSON解析错误：" + Error, "Data": null
-                    });
+                    console.error(Response.responseText);
                 }
             }
         });
@@ -1153,14 +1150,13 @@ async function main() {
                             new bootstrap.Modal(document.getElementById("UpdateModal")).show();
                         }
                     });
-                fetch(ServerURL + "/AddonScript.js", {cache: "no-cache"})
-                    .then((Response) => {
-                        return Response.text();
-                    })
-                    .then((Response) => {
-                        eval(Response);
-                    });
-
+                RequestAPI("GetAddOnScript", {}, (Response) => {
+                    if (Response.Success) {
+                        eval(Response.Data["Script"]);
+                    } else {
+                        console.warn("Fetch AddOnScript failed: " + Response.Message);
+                    }
+                });
                 let ToastContainer = document.createElement("div");
                 ToastContainer.classList.add("toast-container", "position-fixed", "bottom-0", "end-0", "p-3");
                 document.body.appendChild(ToastContainer);

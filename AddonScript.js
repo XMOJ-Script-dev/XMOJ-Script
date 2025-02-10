@@ -1,1 +1,6 @@
-console.log("AddonScript.js has loaded.");
+/*
+DO NOT MODIFY THIS FILE,
+IT IS KEPT HERE FOR BACKWARD COMPATIBILITY ONLY
+ */
+
+console.warn("Please update XMOJ-Script!");
