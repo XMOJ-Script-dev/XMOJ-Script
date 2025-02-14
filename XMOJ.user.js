@@ -418,7 +418,7 @@ let TidyTable = (Table) => {
 let UtilityEnabled = (Name) => {
     try {
         if (localStorage.getItem("UserScript-Setting-" + Name) == null) {
-            const defaultOffItems = ["DebugMode", "cdnjs", "SuperDebug", "ReplaceXM"];
+            const defaultOffItems = ["DebugMode", "cdnjs", "SuperDebug", "ReplaceXM", "KeepTopMarquee"];
             localStorage.setItem("UserScript-Setting-" + Name, defaultOffItems.includes(Name) ? "false" : "true");
         }
         return localStorage.getItem("UserScript-Setting-" + Name) == "true";
@@ -791,7 +791,7 @@ async function main() {
                     document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > a").setAttribute("data-bs-toggle", "dropdown");
                     document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > a").removeAttribute("data-toggle");
                 }
-                if (UtilityEnabled("RemoveUseless") && document.getElementsByTagName("marquee")[0] != undefined) {
+                if ((!UtilityEnabled("KeepTopMarquee")) && UtilityEnabled("RemoveUseless") && document.getElementsByTagName("marquee")[0] != undefined) {
                     document.getElementsByTagName("marquee")[0].remove();
                 }
                 let Style = document.createElement("style");
@@ -1396,6 +1396,8 @@ async function main() {
                             }, {
                                 "ID": "ReplaceLinks", "Type": "F", "Name": "将网站中所有以方括号包装的链接替换为按钮"
                             }, {"ID": "RemoveUseless", "Type": "D", "Name": "删去无法使用的功能*"}, {
+                                "ID": "KeepTopMarquee", "Type": "F", "Name": "保留上方跑马灯元素"
+                            }, {
                                 "ID": "ReplaceXM",
                                 "Type": "F",
                                 "Name": "将网站中所有“小明”和“我”关键字替换为“高老师”，所有“小红”替换为“徐师娘”，所有“小粉”替换为“彩虹”，所有“下海”、“海上”替换为“上海” (此功能默认关闭)"
