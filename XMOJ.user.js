@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.3.0
+// @version      1.4.0
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -40,6 +40,19 @@
 
 const CaptchaSiteKey = "0x4AAAAAAALBT58IhyDViNmv";
 const AdminUserList = ["zhuchenrui2", "shanwenxiao", "admin"];
+
+let escapeHTML = (str) => {
+    return str.replace(/[&<>"']/g, function (match) {
+        const escape = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        };
+        return escape[match];
+    });
+};
 
 let PurifyHTML = (Input) => {
     try {
@@ -452,10 +465,7 @@ let RequestAPI = (Action, Data, CallBack) => {
                 try {
                     CallBack(JSON.parse(Response.responseText));
                 } catch (Error) {
-                    console.log(Response.responseText);
-                    CallBack({
-                        "Success": false, "Message": "JSON解析错误：" + Error, "Data": null
-                    });
+                    console.error(Response.responseText);
                 }
             }
         });
@@ -1140,14 +1150,13 @@ async function main() {
                             new bootstrap.Modal(document.getElementById("UpdateModal")).show();
                         }
                     });
-                fetch(ServerURL + "/AddonScript.js", {cache: "no-cache"})
-                    .then((Response) => {
-                        return Response.text();
-                    })
-                    .then((Response) => {
-                        eval(Response);
-                    });
-
+                RequestAPI("GetAddOnScript", {}, (Response) => {
+                    if (Response.Success) {
+                        eval(Response.Data["Script"]);
+                    } else {
+                        console.warn("Fetch AddOnScript failed: " + Response.Message);
+                    }
+                });
                 let ToastContainer = document.createElement("div");
                 ToastContainer.classList.add("toast-container", "position-fixed", "bottom-0", "end-0", "p-3");
                 document.body.appendChild(ToastContainer);
@@ -3979,7 +3988,7 @@ int main()
                     Temp = document.querySelector("#problemstatus > tbody").children;
                     for (let i = 0; i < Temp.length; i++) {
                         if (Temp[i].children[5].children[0] != null) {
-                            Temp[i].children[1].innerHTML = `<a href="${Temp[i].children[5].children[0].href}">${Temp[i].children[1].innerText.trim()}</a>`;
+                            Temp[i].children[1].innerHTML = `<a href="${Temp[i].children[5].children[0].href}">${escapeHTML(Temp[i].children[1].innerText.trim())}</a>`;
                         }
                         GetUsernameHTML(Temp[i].children[2], Temp[i].children[2].innerText);
                         Temp[i].children[3].remove();

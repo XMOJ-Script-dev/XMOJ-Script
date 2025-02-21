@@ -2718,6 +2718,43 @@
                 }
             ],
             "Notes": "If you are curious why the version number is v1.3.0, it's because we changed our versioning strategy! Click <a href=\"https://github.com/orgs/XMOJ-Script-dev/discussions/771\"> here </a> for more details."
+        },
+        "1.3.1": {
+            "UpdateDate": 1739060055956,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 774,
+                    "Description": "Fix code scanning alert - DOM text reinterpreted as HTML"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.3.2": {
+            "UpdateDate": 1739187728351,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 778,
+                    "Description": "Change how we load addonscript (transition from GitHub pages to Cloudflare KV) + Fix *that* console error"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.4.0": {
+            "UpdateDate": 1740147937411,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 774,
+                    "Description": "Fix code scanning alert - DOM text reinterpreted as HTML"
+                },
+                {
+                    "PR": 778,
+                    "Description": "Change how we load addonscript (transition from GitHub pages to Cloudflare KV) + Fix *that* console error"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
