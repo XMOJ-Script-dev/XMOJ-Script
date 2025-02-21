@@ -2740,6 +2740,21 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.4.0": {
+            "UpdateDate": 1740147937411,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 774,
+                    "Description": "Fix code scanning alert - DOM text reinterpreted as HTML"
+                },
+                {
+                    "PR": 778,
+                    "Description": "Change how we load addonscript (transition from GitHub pages to Cloudflare KV) + Fix *that* console error"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
