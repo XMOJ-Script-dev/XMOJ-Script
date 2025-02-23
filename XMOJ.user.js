@@ -10,7 +10,7 @@
 // @require      https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/clike/clike.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/addon/merge/merge.min.js
-// @require      https://cdnjs.cloudflare.com/ajax/libs/diff-match-patch/1.0.5/index.js
+// @require      https://cdn.jsdelivr.net/gh/google/diff-match-patch@master/javascript/diff_match_patch_uncompressed.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.2/purify.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js
