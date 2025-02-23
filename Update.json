@@ -2740,6 +2740,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.3.3": {
+            "UpdateDate": 1740314109954,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 783,
+                    "Description": "Fix the cdn problem forever"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
