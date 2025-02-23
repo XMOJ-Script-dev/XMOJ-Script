@@ -2755,6 +2755,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.4.1": {
+            "UpdateDate": 1740314902240,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 784,
+                    "Description": "fix cdn"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
