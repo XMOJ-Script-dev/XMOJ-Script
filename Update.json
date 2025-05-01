@@ -2777,6 +2777,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.5.1": {
+            "UpdateDate": 1745307653685,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 791,
+                    "Description": "remove ACM rankings"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
