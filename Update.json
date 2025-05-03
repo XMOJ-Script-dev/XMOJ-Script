@@ -2788,6 +2788,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.5.2": {
+            "UpdateDate": 1746264285564,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 796,
+                    "Description": "Clear session cookie on logout for better security"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
