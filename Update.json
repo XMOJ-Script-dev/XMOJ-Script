@@ -2801,12 +2801,12 @@
             "Notes": "No release notes were provided for this release."
         },
         "1.5.3": {
-            "UpdateDate": 1746265056999,
+            "UpdateDate": 1746271148834,
             "Prerelease": true,
             "UpdateContents": [
                 {
                     "PR": 798,
-                    "Description": "Sync update by zhouyiqing"
+                    "Description": "修复文字错误"
                 }
             ],
             "Notes": "No release notes were provided for this release."
