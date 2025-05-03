@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.5.1
+// @version      1.5.2
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -946,6 +946,7 @@ async function main() {
                             PopupUL.children[5].addEventListener("click", () => {
                                 localStorage.removeItem("UserScript-Username");
                                 localStorage.removeItem("UserScript-Password");
+                                document.cookie = "PHPSESSID=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/"; //This is how you remove a cookie?
                                 location.href = "https://www.xmoj.tech/logout.php";
                             });
                             Array.from(PopupUL.children).forEach(item => {
