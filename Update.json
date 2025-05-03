@@ -2799,6 +2799,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.5.3": {
+            "UpdateDate": 1746265056999,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 798,
+                    "Description": "Sync update by zhouyiqing"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
