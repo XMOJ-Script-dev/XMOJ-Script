@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.5.2
+// @version      1.5.3
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -1383,7 +1383,7 @@ async function main() {
                                 "Name": "将网站中所有“小明”和“我”关键字替换为“高老师”，所有“小红”替换为“徐师娘”，所有“小粉”替换为“彩虹”，所有“下海”、“海上”替换为“上海” (此功能默认关闭)"
                             }]
                         }, {
-                            "ID": "AutoLogin", "Type": "A", "Name": "在需要登录的界面自动跳转到登陆界面"
+                            "ID": "AutoLogin", "Type": "A", "Name": "在需要登录的界面自动跳转到登录界面"
                         }, {
                             "ID": "SavePassword", "Type": "A", "Name": "自动保存用户名与密码，免去每次手动输入密码的繁琐"
                         }, {
