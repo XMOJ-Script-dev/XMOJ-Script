@@ -2777,6 +2777,58 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.5.1": {
+            "UpdateDate": 1745307653685,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 791,
+                    "Description": "remove ACM rankings"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.5.2": {
+            "UpdateDate": 1746264285564,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 796,
+                    "Description": "Clear session cookie on logout for better security"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.5.3": {
+            "UpdateDate": 1746271148834,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 798,
+                    "Description": "修复文字错误"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.6.0": {
+            "UpdateDate": 1746281721231,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 791,
+                    "Description": "remove ACM rankings"
+                },
+                {
+                    "PR": 796,
+                    "Description": "Clear session cookie on logout for better security"
+                },
+                {
+                    "PR": 798,
+                    "Description": "修复文字错误"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
