@@ -2831,12 +2831,12 @@
             "Notes": "No release notes were provided for this release."
         },
         "1.6.1": {
-            "UpdateDate": 1748781654957,
+            "UpdateDate": 1748781727380,
             "Prerelease": true,
             "UpdateContents": [
                 {
                     "PR": 802,
-                    "Description": "Add color-scheme meta tag and refine dark mode preloader logic"
+                    "Description": "Fix page flashes in dark mode"
                 }
             ],
             "Notes": "No release notes were provided for this release."
