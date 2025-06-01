@@ -57,31 +57,45 @@ const applyInitialTheme = () => {
 
     document.documentElement.setAttribute("data-bs-theme", isDarkMode ? "dark" : "light");
 
+    // Manage color-scheme meta tag for browser UI hints
+    let metaTag = document.querySelector('meta[name="color-scheme"]');
+    if (!metaTag) {
+        metaTag = document.createElement('meta');
+        metaTag.name = 'color-scheme';
+        document.documentElement.appendChild(metaTag);
+    }
+    metaTag.content = isDarkMode ? 'dark' : 'light';
+
+
     if (isDarkMode) {
         const minimalDarkStyle = document.createElement('style');
         minimalDarkStyle.id = 'tampermonkey-dark-preload';
         minimalDarkStyle.textContent = `
-                html[data-bs-theme="dark"] body {
-                    background-color: #212529 !important; /* Common Bootstrap dark background */
-                    color: #dee2e6 !important;           /* Common Bootstrap dark text */
+                html[data-bs-theme="dark"] {
+                    background-color: #212529 !important;
+                    color: #dee2e6 !important;
+                }
+                /* Hide body content to prevent Bootstrap 3 elements from flashing white. */
+                /* The body will become visible once this style tag is removed in DOMContentLoaded,
+                   allowing Bootstrap 5 styles to apply correctly. */
+                body {
+                    visibility: hidden !important;
                 }
             `;
-        // Append to documentElement as head/body might not be fully available.
         document.documentElement.appendChild(minimalDarkStyle);
-        console.log("Applied minimal dark preload styles.");
+        console.log("Applied dark mode: minimal preload styles (body hidden) and color-scheme meta tag.");
+    } else {
+        const preloadStyleElement = document.getElementById('tampermonkey-dark-preload');
+        if (preloadStyleElement) {
+            preloadStyleElement.remove();
+        }
+        console.log("Applied light mode: ensured no dark preload styles, set color-scheme meta tag.");
     }
-    // No specific preload for light mode needed as it's usually the default.
 };
 
 applyInitialTheme();
 
 window.addEventListener('DOMContentLoaded', async () => {
-    // Remove the preloader style now that the page is loading and Bootstrap 5 will take over.
-    const preloadStyleElement = document.getElementById('tampermonkey-dark-preload');
-    if (preloadStyleElement) {
-        preloadStyleElement.remove();
-        console.log("Removed minimal dark preload styles.");
-    }
     const CaptchaSiteKey = "0x4AAAAAAALBT58IhyDViNmv";
     const AdminUserList = ["zhuchenrui2", "shanwenxiao", "admin"];
 
@@ -1058,7 +1072,12 @@ window.addEventListener('DOMContentLoaded', async () => {
                             }
                         }
                     }, 100);
-
+                    // Remove the preloader style now that the page is loading and Bootstrap 5 will take over.
+                    const preloadStyleElement = document.getElementById('tampermonkey-dark-preload');
+                    if (preloadStyleElement) {
+                       preloadStyleElement.remove();
+                        console.log("Removed minimal dark preload styles.");
+                    }
                     fetch(ServerURL + "/Update.json", {cache: "no-cache"})
                         .then((Response) => {
                             return Response.json();
