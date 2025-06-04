@@ -2829,6 +2829,28 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.6.1": {
+            "UpdateDate": 1748781837958,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 802,
+                    "Description": "Fix page flashes in dark mode"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.7.0": {
+            "UpdateDate": 1748873286643,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 802,
+                    "Description": "Fix page flashes in dark mode"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
