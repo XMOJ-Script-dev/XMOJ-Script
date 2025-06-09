@@ -3141,39 +3141,6 @@ window.addEventListener('DOMContentLoaded', async () => {
                                 });
                             });
                         }
-                    } else if (location.pathname == "/conteststatistics.php") {
-                        if (new URL(location.href).searchParams.get("cid") != null) {
-                            document.title = "比赛 " + new URL(location.href).searchParams.get("cid") + " 统计";
-                        }
-                        document.querySelector("body > div > div.mt-3 > center > h3").innerText = "比赛统计";
-                        if (UtilityEnabled("ResetType")) {
-                            let Temp = document.getElementById("submission").childNodes;
-                            for (let i = 0; i < Temp.length; i++) {
-                                Temp[i].remove();
-                            }
-                            eval(document.querySelector("body > div.container > div > center > table:nth-child(4) > script:nth-child(6)").innerHTML);
-                            document.querySelector("#cs > thead > tr > th:nth-child(1)").innerText = "题目编号";
-                            document.querySelector("#cs > thead > tr > th:nth-child(10)").remove();
-                            document.querySelector("#cs > thead > tr > th:nth-child(11)").innerText = "总和";
-                            document.querySelector("#cs > thead > tr > th:nth-child(12)").remove();
-                            document.querySelector("#cs > thead > tr > th:nth-child(12)").remove();
-                            document.querySelector("#cs > thead > tr > th:nth-child(12)").remove();
-                            document.querySelector("#cs > tbody > tr:last-child > td").innerText = "总和";
-                            TidyTable(document.getElementById("cs"));
-                            Temp = document.querySelector("#cs > tbody").children;
-                            for (let i = 0; i < Temp.length; i++) {
-                                let CurrentRowChildren = Temp[i].children;
-                                CurrentRowChildren[9].remove();
-                                CurrentRowChildren[11].remove();
-                                CurrentRowChildren[11].remove();
-                                CurrentRowChildren[11].remove();
-                                for (let j = 0; j < CurrentRowChildren.length; j++) {
-                                    if (CurrentRowChildren[j].innerText == "") {
-                                        CurrentRowChildren[j].innerText = "0";
-                                    }
-                                }
-                            }
-                        }
                     } else if (location.pathname == "/comparesource.php") {
                         if (UtilityEnabled("CompareSource")) {
                             if (location.search == "") {
