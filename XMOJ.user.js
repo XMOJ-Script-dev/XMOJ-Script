@@ -2115,13 +2115,6 @@ window.addEventListener('DOMContentLoaded', async () => {
                                 document.querySelector("body > div > div.mt-3 > center > br:nth-child(2)").remove();
                                 document.querySelector("body > div > div.mt-3 > center > br:nth-child(2)").remove();
                                 document.querySelector("body > div > div.mt-3 > center > div > .red").innerHTML = String(document.querySelector("body > div > div.mt-3 > center > div > .red").innerHTML).replaceAll("<br>", "<br><br>");
-                                let StaticButton = document.createElement("button");
-                                document.querySelectorAll("body > div > div.mt-3 > center > div > .red")[1].appendChild(StaticButton);
-                                StaticButton.className = "btn btn-outline-secondary";
-                                StaticButton.innerText = "统计";
-                                StaticButton.addEventListener("click", () => {
-                                    location.href = "https://www.xmoj.tech/conteststatistics.php?cid=" + SearchParams.get("cid");
-                                });
 
                                 document.querySelector("#problemset > tbody").innerHTML = String(document.querySelector("#problemset > tbody").innerHTML).replaceAll(/\t&nbsp;([0-9]*) &nbsp;&nbsp;&nbsp;&nbsp; 问题 &nbsp;([^<]*)/g, "$2. $1");
 
