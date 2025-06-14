@@ -1075,7 +1075,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                     // Remove the preloader style now that the page is loading and Bootstrap 5 will take over.
                     const preloadStyleElement = document.getElementById('tampermonkey-dark-preload');
                     if (preloadStyleElement) {
-                       preloadStyleElement.remove();
+                        preloadStyleElement.remove();
                         console.log("Removed minimal dark preload styles.");
                     }
                     fetch(ServerURL + "/Update.json", {cache: "no-cache"})
@@ -2233,7 +2233,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                                         if (Submitted) location.reload(); else AutoCheatButton.innerHTML = "自动提交当年代码";
                                     });
                                     document.addEventListener("keydown", (Event) => {
-                                        if (Event.code === 'Enter' && Event.ctrlKey) {
+                                        if (Event.code === 'Enter' && (Event.metaKey || Event.ctrlKey)) {
                                             AutoCheatButton.click();
                                         }
                                     });
@@ -4211,7 +4211,7 @@ int main()
                                 TurnstileScript.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=CaptchaLoadedCallback";
                                 document.body.appendChild(TurnstileScript);
                                 ContentElement.addEventListener("keydown", (Event) => {
-                                    if (Event.ctrlKey && Event.keyCode == 13) {
+                                    if ((Event.metaKey || Event.ctrlKey) && Event.keyCode == 13) {
                                         SubmitElement.click();
                                     }
                                 });
@@ -4388,7 +4388,7 @@ int main()
                                     TurnstileScript.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=CaptchaLoadedCallback";
                                     document.body.appendChild(TurnstileScript);
                                     ContentElement.addEventListener("keydown", (Event) => {
-                                        if (Event.ctrlKey && Event.keyCode == 13) {
+                                        if ((Event.metaKey || Event.ctrlKey) && Event.keyCode == 13) {
                                             SubmitElement.click();
                                         }
                                     });
@@ -4642,7 +4642,7 @@ int main()
                                                         ContentEditor.value = ContentEditor.value.substring(0, ContentEditor.value.indexOf("<br>"));
                                                     }
                                                     ContentEditor.addEventListener("keydown", (Event) => {
-                                                        if (Event.ctrlKey && Event.keyCode == 13) {
+                                                        if ((Event.metaKey || Event.ctrlKey) && Event.keyCode == 13) {
                                                             OKButton.click();
                                                         }
                                                     });
