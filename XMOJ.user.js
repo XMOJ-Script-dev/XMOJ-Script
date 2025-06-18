@@ -564,132 +564,251 @@ window.addEventListener('DOMContentLoaded', async () => {
     let IsAdmin = AdminUserList.indexOf(CurrentUsername) !== -1;
 
 
-    class NavbarStyler {
-        constructor() {
-            try {
-                this.navbar = document.querySelector('.navbar.navbar-expand-lg.bg-body-tertiary');
-                if (this.navbar && UtilityEnabled("NewTopBar")) {
-                    this.init();
-                }
-            } catch (e) {
-                console.error(e);
-                if (UtilityEnabled("DebugMode")) {
-                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
-                }
+class NavbarStyler {
+    constructor() {
+        try {
+            this.navbar = document.querySelector('.navbar.navbar-expand-lg.bg-body-tertiary');
+            if (this.navbar && UtilityEnabled("NewTopBar")) {
+                this.isExpanded = true; 
+                this.handle = null;
+                this.init();
+            }
+        } catch (e) {
+            console.error(e);
+            if (UtilityEnabled("DebugMode")) {
+                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
             }
         }
-
-        init() {
-            try {
-                this.applyStyles();
-                this.createOverlay();
-                this.createSpacer();
-                window.addEventListener('resize', () => this.updateBlurOverlay());
+    }
+    init() {
+        try {
+            this.applyStyles();
+            this.createOverlay();
+            this.createSpacer();
+            this.createHandle();
+            window.addEventListener('scroll', () => this.handleScroll());
+            document.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+            
+            window.addEventListener('resize', () => {
+                this.createSpacer(); 
                 this.updateBlurOverlay();
-            } catch (e) {
-                console.error(e);
-                if (UtilityEnabled("DebugMode")) {
-                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
-                }
-            }
-        }
+                this.updateHandlePosition();
+            });
 
-        applyStyles() {
-            try {
-                let n = this.navbar;
-                n.classList.add('fixed-top', 'container', 'ml-auto');
-                Object.assign(n.style, {
-                    position: 'fixed',
-                    borderRadius: '28px',
-                    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
-                    margin: '16px auto',
-                    backgroundColor: 'rgba(255, 255, 255, 0)',
-                    opacity: '0.75',
-                    zIndex: '1000'
-                });
-            } catch (e) {
-                console.error(e);
-                if (UtilityEnabled("DebugMode")) {
-                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
-                }
-            }
-        }
-
-        createOverlay() {
-            try {
-                if (!document.getElementById('blur-overlay')) {
-                    let overlay = document.createElement('div');
-                    overlay.id = 'blur-overlay';
-                    document.body.appendChild(overlay);
-
-                    let style = document.createElement('style');
-                    style.textContent = `
-                #blur-overlay {
-                    position: fixed;
-                    backdrop-filter: blur(4px);
-                    z-index: 999;
-                    pointer-events: none;
-                    border-radius: 28px;
-                }
-            `;
-                    document.head.appendChild(style);
-                }
-            } catch (e) {
-                console.error(e);
-                if (UtilityEnabled("DebugMode")) {
-                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
-                }
-            }
-        }
-
-        updateBlurOverlay() {
-            try {
-                let overlay = document.getElementById('blur-overlay');
-                let n = this.navbar;
-                Object.assign(overlay.style, {
-                    top: `${n.offsetTop}px`,
-                    left: `${n.offsetLeft}px`,
-                    width: `${n.offsetWidth}px`,
-                    height: `${n.offsetHeight}px`
-                });
-            } catch (e) {
-                console.error(e);
-                if (UtilityEnabled("DebugMode")) {
-                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
-                }
-            }
-        }
-
-        createSpacer() {
-            try {
-                let spacer = document.getElementById('navbar-spacer');
-                let newHeight = this.navbar.offsetHeight + 24;
-                if (!spacer) {
-                    spacer = document.createElement('div');
-                    spacer.id = 'navbar-spacer';
-                    spacer.style.height = `${newHeight}px`;
-                    spacer.style.width = '100%';
-                    document.body.insertBefore(spacer, document.body.firstChild);
-                } else {
-                    let currentHeight = parseInt(spacer.style.height, 10);
-                    if (currentHeight !== newHeight) {
-                        document.body.removeChild(spacer);
-                        spacer = document.createElement('div');
-                        spacer.id = 'navbar-spacer';
-                        spacer.style.height = `${newHeight}px`;
-                        spacer.style.width = '100%';
-                        document.body.insertBefore(spacer, document.body.firstChild);
-                    }
-                }
-            } catch (e) {
-                console.error(e);
-                if (UtilityEnabled("DebugMode")) {
-                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
-                }
+            this.updateBlurOverlay();
+            this.updateHandlePosition();
+            this.handleScroll();
+        } catch (e) {
+            console.error(e);
+            if (UtilityEnabled("DebugMode")) {
+                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
             }
         }
     }
 
+    applyStyles() {
+        try {
+            let n = this.navbar;
+            n.classList.add('fixed-top', 'container', 'ml-auto');
+            Object.assign(n.style, {
+                position: 'fixed',
+                borderRadius: '28px',
+                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
+                margin: '16px auto',
+                backgroundColor: 'rgba(255, 255, 255, 0)',
+                opacity: '1',
+                zIndex: '1000',
+                transition: 'transform 0.5s ease-in-out, opacity 0.5s ease-in-out'
+            });
+        } catch (e) {
+            console.error(e);
+            if (UtilityEnabled("DebugMode")) {
+                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            }
+        }
+    }
+
+    createOverlay() {
+        try {
+            let overlay = document.getElementById('blur-overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'blur-overlay';
+                this.navbar.appendChild(overlay);
+
+                let style = document.createElement('style');
+                style.textContent = `
+                #blur-overlay {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    backdrop-filter: blur(4px);
+                    -webkit-backdrop-filter: blur(4px);
+                    z-index: -1;
+                    pointer-events: none;
+                    border-radius: 28px;
+                    transition: opacity 0.5s ease-in-out;
+                }
+                .navbar.retracted {
+                    transform: translateY(calc(-100% - 16px));
+                    opacity: 0;
+                    pointer-events: none;
+                }
+                #navbar-handle {
+                    position: fixed;
+                    top: 0;
+                    height: 10px;
+                    z-index: 998;
+                    cursor: pointer;
+                    background-color: rgba(128, 128, 128, 0.2);
+                    border-bottom-left-radius: 8px;
+                    border-bottom-right-radius: 8px;
+                    opacity: 0;
+                    pointer-events: none;
+                    transition: opacity 0.5s ease-in-out;
+                }
+                #navbar-handle.visible {
+                    opacity: 1;
+                }
+            `;
+                document.head.appendChild(style);
+            }
+        } catch (e) {
+            console.error(e);
+            if (UtilityEnabled("DebugMode")) {
+                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            }
+        }
+    }
+    createSpacer() {
+        try {
+            let spacer = document.getElementById('navbar-spacer');
+            let newHeight = this.navbar.offsetHeight + (parseInt(this.navbar.style.marginTop, 10) || 0) + (parseInt(this.navbar.style.marginBottom, 10) || 0);
+            if (!spacer) {
+                spacer = document.createElement('div');
+                spacer.id = 'navbar-spacer';
+                spacer.style.width = '100%';
+                document.body.insertBefore(spacer, document.body.firstChild);
+            }
+            spacer.style.height = `${newHeight}px`;
+        } catch (e) {
+            console.error(e);
+            if (UtilityEnabled("DebugMode")) {
+                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            }
+        }
+    }
+    updateBlurOverlay() {
+        try {
+            let overlay = document.getElementById('blur-overlay');
+            if (!overlay) return;
+            overlay.style.opacity = this.isExpanded ? '0.75' : '0';
+        } catch (e) {
+            console.error(e);
+            if (UtilityEnabled("DebugMode")) {
+                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            }
+        }
+    }
+    createHandle() {
+        try {
+            if (!document.getElementById('navbar-handle')) {
+                this.handle = document.createElement('div');
+                this.handle.id = 'navbar-handle';
+                document.body.appendChild(this.handle);
+            } else {
+                this.handle = document.getElementById('navbar-handle');
+            }
+        } catch (e) {
+            console.error(e);
+            if (UtilityEnabled("DebugMode")) {
+                SmartAlert("XMOJ-Script internal error creating handle!\n\n" + e);
+            }
+        }
+    }
+    updateHandlePosition() {
+        try {
+            if (!this.handle) return;
+            let n = this.navbar;
+            Object.assign(this.handle.style, {
+                left: `${n.offsetLeft}px`,
+                width: `${n.offsetWidth}px`
+            });
+        } catch (e) {
+            console.error(e);
+             if (UtilityEnabled("DebugMode")) {
+                SmartAlert("XMOJ-Script internal error updating handle position!\n\n" + e);
+            }
+        }
+    }
+    handleScroll() {
+        if (window.scrollY <= 20) {
+            this.showNavbar();
+        }
+    }
+    handleMouseMove(e) {
+        if (window.scrollY <= 20) {
+            return;
+        }
+
+        const activationZone = window.innerHeight * 0.08;
+        const shouldBeVisible = e.clientY < activationZone || this.navbar.matches(':hover');
+
+        if (shouldBeVisible && !this.isExpanded) {
+            this.showNavbar();
+        } else if (!shouldBeVisible && this.isExpanded) {
+            this.hideNavbar();
+        }
+    }
+    showNavbar() {
+        if (!this.navbar || this.isExpanded) return;
+        this.isExpanded = true;
+        this.navbar.classList.remove('retracted');
+        if (this.handle) this.handle.classList.remove('visible');
+        this.updateBlurOverlay();
+    }
+    hideNavbar() {
+        if (!this.navbar || !this.isExpanded) return;
+        this.isExpanded = false;
+        this.navbar.classList.add('retracted');
+        if (this.handle) this.handle.classList.add('visible');
+        this.updateBlurOverlay();
+    }
+}
+NavbarStyler.prototype.createHandle = function() {
+    try {
+        if (!document.getElementById('navbar-handle')) {
+            this.handle = document.createElement('div');
+            this.handle.id = 'navbar-handle';
+            document.body.appendChild(this.handle);
+        } else {
+            this.handle = document.getElementById('navbar-handle');
+        }
+    } catch (e) {
+        console.error(e);
+        if (UtilityEnabled("DebugMode")) {
+            SmartAlert("XMOJ-Script internal error creating handle!\n\n" + e);
+        }
+    }
+};
+
+NavbarStyler.prototype.updateHandlePosition = function() {
+    try {
+        if (!this.handle) return;
+        let n = this.navbar;
+        Object.assign(this.handle.style, {
+            left: `${n.offsetLeft}px`,
+            width: `${n.offsetWidth}px`
+        });
+    } catch (e) {
+        console.error(e);
+         if (UtilityEnabled("DebugMode")) {
+            SmartAlert("XMOJ-Script internal error updating handle position!\n\n" + e);
+        }
+    }
+};
     function replaceMarkdownImages(text, string) {
         return text.replace(/!\[.*?\]\(.*?\)/g, string);
     }
