@@ -2851,6 +2851,58 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.7.1": {
+            "UpdateDate": 1749457101103,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 806,
+                    "Description": "Remove the statistics button from contest page"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.7.2": {
+            "UpdateDate": 1749865010938,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 808,
+                    "Description": "feat: Enhance keyboard shortcuts for better cross-platform support"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.7.3": {
+            "UpdateDate": 1750594769202,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 811,
+                    "Description": "fix: Redirect to login page if profile element is missing"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.8.0": {
+            "UpdateDate": 1750594823374,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 806,
+                    "Description": "Remove the statistics button from contest page"
+                },
+                {
+                    "PR": 808,
+                    "Description": "feat: Enhance keyboard shortcuts for better cross-platform support"
+                },
+                {
+                    "PR": 811,
+                    "Description": "fix: Redirect to login page if profile element is missing"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }

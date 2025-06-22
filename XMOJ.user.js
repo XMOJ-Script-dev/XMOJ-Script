@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.7.0
+// @version      1.8.0
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -559,6 +559,9 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     let SearchParams = new URLSearchParams(location.search);
     let ServerURL = (UtilityEnabled("DebugMode") ? "https://ghpages.xmoj-bbs.me/" : "https://www.xmoj-bbs.me")
+    if (document.querySelector("#profile") === null) {
+        location.href = "https://www.xmoj.tech/loginpage.php";
+    }
     let CurrentUsername = document.querySelector("#profile").innerText;
     CurrentUsername = CurrentUsername.replaceAll(/[^a-zA-Z0-9]/g, "");
     let IsAdmin = AdminUserList.indexOf(CurrentUsername) !== -1;
@@ -1075,7 +1078,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                     // Remove the preloader style now that the page is loading and Bootstrap 5 will take over.
                     const preloadStyleElement = document.getElementById('tampermonkey-dark-preload');
                     if (preloadStyleElement) {
-                       preloadStyleElement.remove();
+                        preloadStyleElement.remove();
                         console.log("Removed minimal dark preload styles.");
                     }
                     fetch(ServerURL + "/Update.json", {cache: "no-cache"})
@@ -2115,13 +2118,6 @@ window.addEventListener('DOMContentLoaded', async () => {
                                 document.querySelector("body > div > div.mt-3 > center > br:nth-child(2)").remove();
                                 document.querySelector("body > div > div.mt-3 > center > br:nth-child(2)").remove();
                                 document.querySelector("body > div > div.mt-3 > center > div > .red").innerHTML = String(document.querySelector("body > div > div.mt-3 > center > div > .red").innerHTML).replaceAll("<br>", "<br><br>");
-                                let StaticButton = document.createElement("button");
-                                document.querySelectorAll("body > div > div.mt-3 > center > div > .red")[1].appendChild(StaticButton);
-                                StaticButton.className = "btn btn-outline-secondary";
-                                StaticButton.innerText = "统计";
-                                StaticButton.addEventListener("click", () => {
-                                    location.href = "https://www.xmoj.tech/conteststatistics.php?cid=" + SearchParams.get("cid");
-                                });
 
                                 document.querySelector("#problemset > tbody").innerHTML = String(document.querySelector("#problemset > tbody").innerHTML).replaceAll(/\t&nbsp;([0-9]*) &nbsp;&nbsp;&nbsp;&nbsp; 问题 &nbsp;([^<]*)/g, "$2. $1");
 
@@ -2240,7 +2236,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                                         if (Submitted) location.reload(); else AutoCheatButton.innerHTML = "自动提交当年代码";
                                     });
                                     document.addEventListener("keydown", (Event) => {
-                                        if (Event.code === 'Enter' && Event.ctrlKey) {
+                                        if (Event.code === 'Enter' && (Event.metaKey || Event.ctrlKey)) {
                                             AutoCheatButton.click();
                                         }
                                     });
@@ -3147,39 +3143,6 @@ window.addEventListener('DOMContentLoaded', async () => {
                                     }
                                 });
                             });
-                        }
-                    } else if (location.pathname == "/conteststatistics.php") {
-                        if (new URL(location.href).searchParams.get("cid") != null) {
-                            document.title = "比赛 " + new URL(location.href).searchParams.get("cid") + " 统计";
-                        }
-                        document.querySelector("body > div > div.mt-3 > center > h3").innerText = "比赛统计";
-                        if (UtilityEnabled("ResetType")) {
-                            let Temp = document.getElementById("submission").childNodes;
-                            for (let i = 0; i < Temp.length; i++) {
-                                Temp[i].remove();
-                            }
-                            eval(document.querySelector("body > div.container > div > center > table:nth-child(4) > script:nth-child(6)").innerHTML);
-                            document.querySelector("#cs > thead > tr > th:nth-child(1)").innerText = "题目编号";
-                            document.querySelector("#cs > thead > tr > th:nth-child(10)").remove();
-                            document.querySelector("#cs > thead > tr > th:nth-child(11)").innerText = "总和";
-                            document.querySelector("#cs > thead > tr > th:nth-child(12)").remove();
-                            document.querySelector("#cs > thead > tr > th:nth-child(12)").remove();
-                            document.querySelector("#cs > thead > tr > th:nth-child(12)").remove();
-                            document.querySelector("#cs > tbody > tr:last-child > td").innerText = "总和";
-                            TidyTable(document.getElementById("cs"));
-                            Temp = document.querySelector("#cs > tbody").children;
-                            for (let i = 0; i < Temp.length; i++) {
-                                let CurrentRowChildren = Temp[i].children;
-                                CurrentRowChildren[9].remove();
-                                CurrentRowChildren[11].remove();
-                                CurrentRowChildren[11].remove();
-                                CurrentRowChildren[11].remove();
-                                for (let j = 0; j < CurrentRowChildren.length; j++) {
-                                    if (CurrentRowChildren[j].innerText == "") {
-                                        CurrentRowChildren[j].innerText = "0";
-                                    }
-                                }
-                            }
                         }
                     } else if (location.pathname == "/comparesource.php") {
                         if (UtilityEnabled("CompareSource")) {
@@ -4251,7 +4214,7 @@ int main()
                                 TurnstileScript.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=CaptchaLoadedCallback";
                                 document.body.appendChild(TurnstileScript);
                                 ContentElement.addEventListener("keydown", (Event) => {
-                                    if (Event.ctrlKey && Event.keyCode == 13) {
+                                    if ((Event.metaKey || Event.ctrlKey) && Event.keyCode == 13) {
                                         SubmitElement.click();
                                     }
                                 });
@@ -4428,7 +4391,7 @@ int main()
                                     TurnstileScript.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=CaptchaLoadedCallback";
                                     document.body.appendChild(TurnstileScript);
                                     ContentElement.addEventListener("keydown", (Event) => {
-                                        if (Event.ctrlKey && Event.keyCode == 13) {
+                                        if ((Event.metaKey || Event.ctrlKey) && Event.keyCode == 13) {
                                             SubmitElement.click();
                                         }
                                     });
@@ -4682,7 +4645,7 @@ int main()
                                                         ContentEditor.value = ContentEditor.value.substring(0, ContentEditor.value.indexOf("<br>"));
                                                     }
                                                     ContentEditor.addEventListener("keydown", (Event) => {
-                                                        if (Event.ctrlKey && Event.keyCode == 13) {
+                                                        if ((Event.metaKey || Event.ctrlKey) && Event.keyCode == 13) {
                                                             OKButton.click();
                                                         }
                                                     });
