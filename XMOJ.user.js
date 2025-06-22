@@ -559,6 +559,9 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     let SearchParams = new URLSearchParams(location.search);
     let ServerURL = (UtilityEnabled("DebugMode") ? "https://ghpages.xmoj-bbs.me/" : "https://www.xmoj-bbs.me")
+    if (document.querySelector("#profile") === null) {
+        location.href = "https://www.xmoj.tech/loginpage.php";
+    }
     let CurrentUsername = document.querySelector("#profile").innerText;
     CurrentUsername = CurrentUsername.replaceAll(/[^a-zA-Z0-9]/g, "");
     let IsAdmin = AdminUserList.indexOf(CurrentUsername) !== -1;
