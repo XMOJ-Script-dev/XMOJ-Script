@@ -2884,6 +2884,25 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.8.0": {
+            "UpdateDate": 1750594823374,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 806,
+                    "Description": "Remove the statistics button from contest page"
+                },
+                {
+                    "PR": 808,
+                    "Description": "feat: Enhance keyboard shortcuts for better cross-platform support"
+                },
+                {
+                    "PR": 811,
+                    "Description": "fix: Redirect to login page if profile element is missing"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
