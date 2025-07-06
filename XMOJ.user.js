@@ -3355,9 +3355,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                         }
                     } else if (location.pathname == "/reinfo.php") {
                         document.title = "测试点信息: " + SearchParams.get("sid");
-                        if (document.querySelector("#results > div") == undefined) {
-                            document.querySelector("#results").parentElement.innerHTML = "没有测试点信息";
-                        } else {
+                        if (document.querySelector("#results > div") != undefined) {
                             for (let i = 0; i < document.querySelector("#results > div").children.length; i++) {
                                 let CurrentElement = document.querySelector("#results > div").children[i].children[0].children[0].children[0];
                                 let Temp = CurrentElement.innerText.substring(0, CurrentElement.innerText.length - 2).split("/");
@@ -3508,6 +3506,7 @@ int main()
                                 });
                             }
                         }
+                        document.body.innerHTML = String(document.body.innerHTML).replaceAll("<pre id=\"errtxt\" class=\"alert alert-error\">sorry , not available (,,,1)</pre>", "没有测试点信息");
                     } else if (location.pathname == "/downloads.php") {
                         let SoftwareList = document.querySelector("body > div > ul");
                         SoftwareList.remove();
