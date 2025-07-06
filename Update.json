@@ -2903,6 +2903,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.8.1": {
+            "UpdateDate": 1751814421274,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 815,
+                    "Description": "fix: reinfo.php shows no test results even if test results are available"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
