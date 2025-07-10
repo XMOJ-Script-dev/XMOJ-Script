@@ -2914,6 +2914,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.9.0": {
+            "UpdateDate": 1752132111562,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 817,
+                    "Description": "fix: reinfo.php shows no test results even if test results are available "
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
