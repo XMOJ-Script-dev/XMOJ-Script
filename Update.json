@@ -2925,6 +2925,28 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.9.1": {
+            "UpdateDate": 1753443057292,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 821,
+                    "Description": "修复工具栏"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.10.0": {
+            "UpdateDate": 1753443146018,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 821,
+                    "Description": "修复工具栏"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }

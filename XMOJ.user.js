@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.9.0
+// @version      1.10.0
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -922,7 +922,7 @@ async function main() {
                                     hideDropdownItems();
                                 }
                             });
-                        } else if (document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul > li:nth-child(3) > a > span") != undefined && document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul > li:nth-child(3) > a > span").innerText != "个人中心") {
+                        } else if (document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul") != undefined && document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul > li:nth-child(2)").innerText != "个人中心") {
                             let PopupUL = document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul");
                             PopupUL.style.cursor = 'pointer';
                             PopupUL.innerHTML = `<li class="dropdown-item">修改帐号</li>
