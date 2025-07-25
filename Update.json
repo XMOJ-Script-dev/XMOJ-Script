@@ -2936,6 +2936,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.10.0": {
+            "UpdateDate": 1753443146018,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 821,
+                    "Description": "修复工具栏"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
