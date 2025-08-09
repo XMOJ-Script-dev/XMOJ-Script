@@ -2949,12 +2949,12 @@
             "Notes": "No release notes were provided for this release."
         },
         "2.0.0": {
-            "UpdateDate": 1754723553804,
+            "UpdateDate": 1754723568315,
             "Prerelease": true,
             "UpdateContents": [
                 {
                     "PR": 826,
-                    "Description": "Boomzero/upd"
+                    "Description": "修复更新"
                 }
             ],
             "Notes": "No release notes were provided for this release."
