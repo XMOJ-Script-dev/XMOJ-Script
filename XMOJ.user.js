@@ -108,8 +108,8 @@ let GetRelativeTime = (Input) => {
     }
 };
 function compareVersions(currVer, remoteVer) {
-    const currParts = currver.split('.').map(Number);
-    const remoteParts = remotever.split('.').map(Number);
+    const currParts = currVer.split('.').map(Number);
+    const remoteParts = remoteVer.split('.').map(Number);
 
     for (let i = 0; i < 3; i++) {
         if (remoteParts[i] > currParts[i]) {
