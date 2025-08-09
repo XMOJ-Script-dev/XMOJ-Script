@@ -112,10 +112,13 @@ function compareVersions(currVer, remoteVer) {
     const currParts = currVer.split('.').map(Number);
     const remoteParts = remoteVer.split('.').map(Number);
 
-    for (let i = 0; i < 3; i++) {
-        if (remoteParts[i] > currParts[i]) {
+    const maxLen = Math.max(currParts.length, remoteParts.length);
+    for (let i = 0; i < maxLen; i++) {
+        const curr = currParts[i] !== undefined ? currParts[i] : 0;
+        const remote = remoteParts[i] !== undefined ? remoteParts[i] : 0;
+        if (remote > curr) {
             return true; // update needed
-        } else if (remoteParts[i] < currParts[i]) {
+        } else if (remote < curr) {
             return false; // no update needed
         }
     }
