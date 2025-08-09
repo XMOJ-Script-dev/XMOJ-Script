@@ -2914,6 +2914,61 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "1.9.0": {
+            "UpdateDate": 1752132111562,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 817,
+                    "Description": "fix: reinfo.php shows no test results even if test results are available "
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.9.1": {
+            "UpdateDate": 1753443057292,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 821,
+                    "Description": "修复工具栏"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.10.0": {
+            "UpdateDate": 1753443146018,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 821,
+                    "Description": "修复工具栏"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "2.0.0": {
+            "UpdateDate": 1754724044036,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 826,
+                    "Description": "修复更新"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "2.1.0": {
+            "UpdateDate": 1754724455081,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 826,
+                    "Description": "修复更新"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }

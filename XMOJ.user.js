@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      1.8.1
+// @version      2.1.0
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -39,7 +39,7 @@
  */
 
 const CaptchaSiteKey = "0x4AAAAAAALBT58IhyDViNmv";
-const AdminUserList = ["zhuchenrui2", "shanwenxiao", "admin"];
+const AdminUserList = ["zhuchenrui2", "shanwenxiao", "chenlangning", "admin"];
 
 let escapeHTML = (str) => {
     return str.replace(/[&<>"']/g, function (match) {
@@ -107,6 +107,24 @@ let GetRelativeTime = (Input) => {
         }
     }
 };
+
+function compareVersions(currVer, remoteVer) {
+    const currParts = currVer.split('.').map(Number);
+    const remoteParts = remoteVer.split('.').map(Number);
+
+    const maxLen = Math.max(currParts.length, remoteParts.length);
+    for (let i = 0; i < maxLen; i++) {
+        const curr = currParts[i] !== undefined ? currParts[i] : 0;
+        const remote = remoteParts[i] !== undefined ? remoteParts[i] : 0;
+        if (remote > curr) {
+            return true; // update needed
+        } else if (remote < curr) {
+            return false; // no update needed
+        }
+    }
+    return false; // versions are equal
+}
+
 let RenderMathJax = async () => {
     try {
         if (document.getElementById("MathJax-script") === null) {
@@ -269,9 +287,6 @@ let GetUsernameHTML = async (Element, Username, Simple = false, Href = "https://
         if (!Simple) {
             if (AdminUserList.includes(Username)) {
                 HTMLData += `<span class="badge text-bg-danger ms-2">脚本管理员</span>`;
-            }
-            if (Username == "chenlangning") {
-                HTMLData += `<span class="badge ms-2" style="background-color: #6633cc; color: #ffffff">吉祥物</span>`;
             }
             let BadgeInfo = await GetUserBadge(Username);
             if (BadgeInfo.Content != "") {
@@ -922,7 +937,7 @@ async function main() {
                                     hideDropdownItems();
                                 }
                             });
-                        } else if (document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul > li:nth-child(3) > a > span") != undefined && document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul > li:nth-child(3) > a > span").innerText != "个人中心") {
+                        } else if (document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul") != undefined && document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul > li:nth-child(2)").innerText != "个人中心") {
                             let PopupUL = document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul");
                             PopupUL.style.cursor = 'pointer';
                             PopupUL.innerHTML = `<li class="dropdown-item">修改帐号</li>
@@ -1031,7 +1046,7 @@ async function main() {
                                 break;
                             }
                         }
-                        if (CurrentVersion < LatestVersion) {
+                        if (compareVersions(CurrentVersion, LatestVersion)) {
                             let UpdateDiv = document.createElement("div");
                             UpdateDiv.innerHTML = `
                             <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
