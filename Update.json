@@ -2947,6 +2947,28 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "2.0.0": {
+            "UpdateDate": 1754724044036,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 826,
+                    "Description": "修复更新"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "2.1.0": {
+            "UpdateDate": 1754724455081,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 826,
+                    "Description": "修复更新"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
