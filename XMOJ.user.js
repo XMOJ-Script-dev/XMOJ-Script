@@ -39,7 +39,7 @@
  */
 
 const CaptchaSiteKey = "0x4AAAAAAALBT58IhyDViNmv";
-const AdminUserList = ["zhuchenrui2", "shanwenxiao", "admin"];
+const AdminUserList = ["zhuchenrui2", "shanwenxiao", "chenlangning", "admin"];
 
 let escapeHTML = (str) => {
     return str.replace(/[&<>"']/g, function (match) {
@@ -107,6 +107,7 @@ let GetRelativeTime = (Input) => {
         }
     }
 };
+
 function compareVersions(currVer, remoteVer) {
     const currParts = currVer.split('.').map(Number);
     const remoteParts = remoteVer.split('.').map(Number);
@@ -283,9 +284,6 @@ let GetUsernameHTML = async (Element, Username, Simple = false, Href = "https://
         if (!Simple) {
             if (AdminUserList.includes(Username)) {
                 HTMLData += `<span class="badge text-bg-danger ms-2">脚本管理员</span>`;
-            }
-            if (Username == "chenlangning") {
-                HTMLData += `<span class="badge ms-2" style="background-color: #6633cc; color: #ffffff">吉祥物</span>`;
             }
             let BadgeInfo = await GetUserBadge(Username);
             if (BadgeInfo.Content != "") {
