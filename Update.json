@@ -2947,6 +2947,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "2.0.0": {
+            "UpdateDate": 1754723553804,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 826,
+                    "Description": "Boomzero/upd"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
