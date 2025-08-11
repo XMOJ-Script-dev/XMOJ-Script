@@ -2969,6 +2969,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "2.1.1": {
+            "UpdateDate": 1754911541732,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 829,
+                    "Description": "Update diff-match-patch library source URL"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
