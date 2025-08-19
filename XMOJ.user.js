@@ -441,6 +441,35 @@ let UtilityEnabled = (Name) => {
         }
     }
 };
+let storeCredential = async (username, password) => {
+    if ('credentials' in navigator && window.PasswordCredential) {
+        try {
+            const credential = new PasswordCredential({ id: username, password: password });
+            await navigator.credentials.store(credential);
+        } catch (e) {
+            console.error(e);
+        }
+    }
+};
+let getCredential = async () => {
+    if ('credentials' in navigator && window.PasswordCredential) {
+        try {
+            return await navigator.credentials.get({ password: true, mediation: 'optional' });
+        } catch (e) {
+            console.error(e);
+        }
+    }
+    return null;
+};
+let clearCredential = async () => {
+    if ('credentials' in navigator && window.PasswordCredential) {
+        try {
+            await navigator.credentials.preventSilentAccess();
+        } catch (e) {
+            console.error(e);
+        }
+    }
+};
 let RequestAPI = (Action, Data, CallBack) => {
     try {
         let Session = "";
@@ -962,8 +991,7 @@ async function main() {
                                 location.href = "https://www.xmoj.tech/modifypage.php?ByUserScript=1";
                             });
                             PopupUL.children[5].addEventListener("click", () => {
-                                localStorage.removeItem("UserScript-Username");
-                                localStorage.removeItem("UserScript-Password");
+                                clearCredential();
                                 document.cookie = "PHPSESSID=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/"; //This is how you remove a cookie?
                                 location.href = "https://www.xmoj.tech/logout.php";
                             });
@@ -3213,12 +3241,11 @@ async function main() {
                                 .then((Response) => {
                                     return Response.text();
                                 })
-                                .then((Response) => {
+                                .then(async (Response) => {
                                     if (UtilityEnabled("LoginFailed")) {
                                         if (Response.indexOf("history.go(-2);") != -1) {
                                             if (UtilityEnabled("SavePassword")) {
-                                                localStorage.setItem("UserScript-Username", Username);
-                                                localStorage.setItem("UserScript-Password", Password);
+                                                await storeCredential(Username, Password);
                                             }
                                             let NewPage = localStorage.getItem("UserScript-LastPage");
                                             if (NewPage == null) {
@@ -3227,8 +3254,7 @@ async function main() {
                                             location.href = NewPage;
                                         } else {
                                             if (UtilityEnabled("SavePassword")) {
-                                                localStorage.removeItem("UserScript-Username");
-                                                localStorage.removeItem("UserScript-Password");
+                                                clearCredential();
                                             }
                                             Response = Response.substring(Response.indexOf("alert('") + 7);
                                             Response = Response.substring(0, Response.indexOf("');"));
@@ -3244,10 +3270,15 @@ async function main() {
                                 });
                         }
                     });
-                    if (UtilityEnabled("SavePassword") && localStorage.getItem("UserScript-Username") != null && localStorage.getItem("UserScript-Password") != null) {
-                        document.querySelector("#login > div:nth-child(1) > div > input").value = localStorage.getItem("UserScript-Username");
-                        document.querySelector("#login > div:nth-child(2) > div > input").value = localStorage.getItem("UserScript-Password");
-                        LoginButton.click();
+                    if (UtilityEnabled("SavePassword")) {
+                        (async () => {
+                            let Credential = await getCredential();
+                            if (Credential) {
+                                document.querySelector("#login > div:nth-child(1) > div > input").value = Credential.id;
+                                document.querySelector("#login > div:nth-child(2) > div > input").value = Credential.password;
+                                LoginButton.click();
+                            }
+                        })();
                     }
                 } else if (location.pathname == "/contest_video.php" || location.pathname == "/problem_video.php") {
                     let ScriptData = document.querySelector("body > div > div.mt-3 > center > script").innerHTML;
@@ -3814,7 +3845,7 @@ int main()
                             AddUser.disabled = true;
                             RequestAPI("SendMail", {
                                 "ToUser": String(UsernameData),
-                                "Content": String("您好，我是" + localStorage.getItem("UserScript-Username"))
+                                "Content": String("您好，我是" + CurrentUsername)
                             }, (ResponseData) => {
                                 AddUser.children[0].style.display = "none";
                                 AddUser.disabled = false;
