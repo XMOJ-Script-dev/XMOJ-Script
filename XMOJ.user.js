@@ -552,6 +552,24 @@ let CurrentUsername = document.querySelector("#profile").innerText;
 CurrentUsername = CurrentUsername.replaceAll(/[^a-zA-Z0-9]/g, "");
 let IsAdmin = AdminUserList.indexOf(CurrentUsername) !== -1;
 
+const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
+const applyTheme = (theme) => {
+    document.querySelector("html").setAttribute("data-bs-theme", theme);
+    localStorage.setItem("UserScript-Setting-DarkMode", theme === "dark" ? "true" : "false");
+};
+const applySystemTheme = (e) => applyTheme(e.matches ? "dark" : "light");
+let initTheme = () => {
+    const saved = localStorage.getItem("UserScript-Setting-Theme") || "auto";
+    if (saved === "auto") {
+        applyTheme(prefersDark.matches ? "dark" : "light");
+        prefersDark.addEventListener("change", applySystemTheme);
+    } else {
+        applyTheme(saved);
+        prefersDark.removeEventListener("change", applySystemTheme);
+    }
+};
+initTheme();
+
 
 class NavbarStyler {
     constructor() {
@@ -1359,7 +1377,32 @@ async function main() {
                                 } else if (Data[i].Type == "D") {
                                     Row.classList.add("list-group-item-danger");
                                 }
-                                if (Data[i].Children == undefined) {
+                                if (Data[i].ID == "Theme") {
+                                    let Label = document.createElement("label");
+                                    Label.classList.add("me-2");
+                                    Label.htmlFor = "UserScript-Setting-Theme";
+                                    Label.innerText = Data[i].Name;
+                                    Row.appendChild(Label);
+                                    let Select = document.createElement("select");
+                                    Select.classList.add("form-select", "form-select-sm", "w-auto", "d-inline");
+                                    Select.id = "UserScript-Setting-Theme";
+                                    [
+                                        ["light", "亮色"],
+                                        ["dark", "暗色"],
+                                        ["auto", "跟随系统"]
+                                    ].forEach(opt => {
+                                        let option = document.createElement("option");
+                                        option.value = opt[0];
+                                        option.innerText = opt[1];
+                                        Select.appendChild(option);
+                                    });
+                                    Select.value = localStorage.getItem("UserScript-Setting-Theme") || "auto";
+                                    Select.addEventListener("change", () => {
+                                        localStorage.setItem("UserScript-Setting-Theme", Select.value);
+                                        initTheme();
+                                    });
+                                    Row.appendChild(Select);
+                                } else if (Data[i].Children == undefined) {
                                     let CheckBox = document.createElement("input");
                                     CheckBox.classList.add("form-check-input");
                                     CheckBox.classList.add("me-1");
@@ -1417,7 +1460,7 @@ async function main() {
                             }, {"ID": "ResetType", "Type": "F", "Name": "重新排版*"}, {
                                 "ID": "AddColorText", "Type": "A", "Name": "增加彩色文字"
                             }, {"ID": "AddUnits", "Type": "A", "Name": "状态界面内存与耗时添加单位"}, {
-                                "ID": "DarkMode", "Type": "A", "Name": "使用暗色模式"
+                                "ID": "Theme", "Type": "A", "Name": "界面主题"
                             }, {"ID": "AddAnimation", "Type": "A", "Name": "增加动画"}, {
                                 "ID": "ReplaceYN", "Type": "F", "Name": "题目前状态提示替换为好看的图标"
                             }, {"ID": "RemoveAlerts", "Type": "D", "Name": "去除多余反复的提示"}, {
