@@ -2980,6 +2980,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "2.1.2": {
+            "UpdateDate": 1755589063111,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 834,
+                    "Description": "feat: use credential management api"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
