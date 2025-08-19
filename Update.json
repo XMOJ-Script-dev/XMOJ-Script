@@ -2991,6 +2991,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "2.1.3": {
+            "UpdateDate": 1755596470421,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 835,
+                    "Description": "feat: add user-selectable theme"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
