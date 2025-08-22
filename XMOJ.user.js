@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      2.1.0
+// @version      2.2.0
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -10,7 +10,7 @@
 // @require      https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/clike/clike.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/addon/merge/merge.min.js
-// @require      https://cdn.jsdelivr.net/gh/google/diff-match-patch@master/javascript/diff_match_patch_uncompressed.js
+// @require      https://gitee.com/mirrors_google/diff-match-patch/raw/master/javascript/diff_match_patch_uncompressed.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.2/purify.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js
@@ -441,6 +441,35 @@ let UtilityEnabled = (Name) => {
         }
     }
 };
+let storeCredential = async (username, password) => {
+    if ('credentials' in navigator && window.PasswordCredential) {
+        try {
+            const credential = new PasswordCredential({ id: username, password: password });
+            await navigator.credentials.store(credential);
+        } catch (e) {
+            console.error(e);
+        }
+    }
+};
+let getCredential = async () => {
+    if ('credentials' in navigator && window.PasswordCredential) {
+        try {
+            return await navigator.credentials.get({ password: true, mediation: 'optional' });
+        } catch (e) {
+            console.error(e);
+        }
+    }
+    return null;
+};
+let clearCredential = async () => {
+    if ('credentials' in navigator && window.PasswordCredential) {
+        try {
+            await navigator.credentials.preventSilentAccess();
+        } catch (e) {
+            console.error(e);
+        }
+    }
+};
 let RequestAPI = (Action, Data, CallBack) => {
     try {
         let Session = "";
@@ -522,6 +551,24 @@ if (document.querySelector("#profile") === null) {
 let CurrentUsername = document.querySelector("#profile").innerText;
 CurrentUsername = CurrentUsername.replaceAll(/[^a-zA-Z0-9]/g, "");
 let IsAdmin = AdminUserList.indexOf(CurrentUsername) !== -1;
+
+const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
+const applyTheme = (theme) => {
+    document.querySelector("html").setAttribute("data-bs-theme", theme);
+    localStorage.setItem("UserScript-Setting-DarkMode", theme === "dark" ? "true" : "false");
+};
+const applySystemTheme = (e) => applyTheme(e.matches ? "dark" : "light");
+let initTheme = () => {
+    const saved = localStorage.getItem("UserScript-Setting-Theme") || "auto";
+    if (saved === "auto") {
+        applyTheme(prefersDark.matches ? "dark" : "light");
+        prefersDark.addEventListener("change", applySystemTheme);
+    } else {
+        applyTheme(saved);
+        prefersDark.removeEventListener("change", applySystemTheme);
+    }
+};
+initTheme();
 
 
 class NavbarStyler {
@@ -962,8 +1009,7 @@ async function main() {
                                 location.href = "https://www.xmoj.tech/modifypage.php?ByUserScript=1";
                             });
                             PopupUL.children[5].addEventListener("click", () => {
-                                localStorage.removeItem("UserScript-Username");
-                                localStorage.removeItem("UserScript-Password");
+                                clearCredential();
                                 document.cookie = "PHPSESSID=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/"; //This is how you remove a cookie?
                                 location.href = "https://www.xmoj.tech/logout.php";
                             });
@@ -1331,7 +1377,32 @@ async function main() {
                                 } else if (Data[i].Type == "D") {
                                     Row.classList.add("list-group-item-danger");
                                 }
-                                if (Data[i].Children == undefined) {
+                                if (Data[i].ID == "Theme") {
+                                    let Label = document.createElement("label");
+                                    Label.classList.add("me-2");
+                                    Label.htmlFor = "UserScript-Setting-Theme";
+                                    Label.innerText = Data[i].Name;
+                                    Row.appendChild(Label);
+                                    let Select = document.createElement("select");
+                                    Select.classList.add("form-select", "form-select-sm", "w-auto", "d-inline");
+                                    Select.id = "UserScript-Setting-Theme";
+                                    [
+                                        ["light", "亮色"],
+                                        ["dark", "暗色"],
+                                        ["auto", "跟随系统"]
+                                    ].forEach(opt => {
+                                        let option = document.createElement("option");
+                                        option.value = opt[0];
+                                        option.innerText = opt[1];
+                                        Select.appendChild(option);
+                                    });
+                                    Select.value = localStorage.getItem("UserScript-Setting-Theme") || "auto";
+                                    Select.addEventListener("change", () => {
+                                        localStorage.setItem("UserScript-Setting-Theme", Select.value);
+                                        initTheme();
+                                    });
+                                    Row.appendChild(Select);
+                                } else if (Data[i].Children == undefined) {
                                     let CheckBox = document.createElement("input");
                                     CheckBox.classList.add("form-check-input");
                                     CheckBox.classList.add("me-1");
@@ -1389,7 +1460,7 @@ async function main() {
                             }, {"ID": "ResetType", "Type": "F", "Name": "重新排版*"}, {
                                 "ID": "AddColorText", "Type": "A", "Name": "增加彩色文字"
                             }, {"ID": "AddUnits", "Type": "A", "Name": "状态界面内存与耗时添加单位"}, {
-                                "ID": "DarkMode", "Type": "A", "Name": "使用暗色模式"
+                                "ID": "Theme", "Type": "A", "Name": "界面主题"
                             }, {"ID": "AddAnimation", "Type": "A", "Name": "增加动画"}, {
                                 "ID": "ReplaceYN", "Type": "F", "Name": "题目前状态提示替换为好看的图标"
                             }, {"ID": "RemoveAlerts", "Type": "D", "Name": "去除多余反复的提示"}, {
@@ -3213,12 +3284,11 @@ async function main() {
                                 .then((Response) => {
                                     return Response.text();
                                 })
-                                .then((Response) => {
+                                .then(async (Response) => {
                                     if (UtilityEnabled("LoginFailed")) {
                                         if (Response.indexOf("history.go(-2);") != -1) {
                                             if (UtilityEnabled("SavePassword")) {
-                                                localStorage.setItem("UserScript-Username", Username);
-                                                localStorage.setItem("UserScript-Password", Password);
+                                                await storeCredential(Username, Password);
                                             }
                                             let NewPage = localStorage.getItem("UserScript-LastPage");
                                             if (NewPage == null) {
@@ -3227,8 +3297,7 @@ async function main() {
                                             location.href = NewPage;
                                         } else {
                                             if (UtilityEnabled("SavePassword")) {
-                                                localStorage.removeItem("UserScript-Username");
-                                                localStorage.removeItem("UserScript-Password");
+                                                clearCredential();
                                             }
                                             Response = Response.substring(Response.indexOf("alert('") + 7);
                                             Response = Response.substring(0, Response.indexOf("');"));
@@ -3244,10 +3313,15 @@ async function main() {
                                 });
                         }
                     });
-                    if (UtilityEnabled("SavePassword") && localStorage.getItem("UserScript-Username") != null && localStorage.getItem("UserScript-Password") != null) {
-                        document.querySelector("#login > div:nth-child(1) > div > input").value = localStorage.getItem("UserScript-Username");
-                        document.querySelector("#login > div:nth-child(2) > div > input").value = localStorage.getItem("UserScript-Password");
-                        LoginButton.click();
+                    if (UtilityEnabled("SavePassword")) {
+                        (async () => {
+                            let Credential = await getCredential();
+                            if (Credential) {
+                                document.querySelector("#login > div:nth-child(1) > div > input").value = Credential.id;
+                                document.querySelector("#login > div:nth-child(2) > div > input").value = Credential.password;
+                                LoginButton.click();
+                            }
+                        })();
                     }
                 } else if (location.pathname == "/contest_video.php" || location.pathname == "/problem_video.php") {
                     let ScriptData = document.querySelector("body > div > div.mt-3 > center > script").innerHTML;
@@ -3814,7 +3888,7 @@ int main()
                             AddUser.disabled = true;
                             RequestAPI("SendMail", {
                                 "ToUser": String(UsernameData),
-                                "Content": String("您好，我是" + localStorage.getItem("UserScript-Username"))
+                                "Content": String("您好，我是" + CurrentUsername)
                             }, (ResponseData) => {
                                 AddUser.children[0].style.display = "none";
                                 AddUser.disabled = false;

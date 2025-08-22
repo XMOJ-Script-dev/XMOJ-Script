@@ -2969,6 +2969,58 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "2.1.1": {
+            "UpdateDate": 1754911555185,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 829,
+                    "Description": "Update diff-match-patch library source URL"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "2.1.2": {
+            "UpdateDate": 1755589063111,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 834,
+                    "Description": "feat: use credential management api"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "2.1.3": {
+            "UpdateDate": 1755596470421,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 835,
+                    "Description": "feat: add user-selectable theme"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "2.2.0": {
+            "UpdateDate": 1755767075588,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 829,
+                    "Description": "Update diff-match-patch library source URL"
+                },
+                {
+                    "PR": 834,
+                    "Description": "feat: use credential management api"
+                },
+                {
+                    "PR": 835,
+                    "Description": "feat: add user-selectable theme"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
