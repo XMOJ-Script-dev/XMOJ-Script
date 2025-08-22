@@ -3002,6 +3002,25 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "2.2.0": {
+            "UpdateDate": 1755767075588,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 829,
+                    "Description": "Update diff-match-patch library source URL"
+                },
+                {
+                    "PR": 834,
+                    "Description": "feat: use credential management api"
+                },
+                {
+                    "PR": 835,
+                    "Description": "feat: add user-selectable theme"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
