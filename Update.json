@@ -3032,6 +3032,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "2.2.2": {
+            "UpdateDate": 1756005398822,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 842,
+                    "Description": "test something"
+                }
+            ],
+            "Notes": "Test 1234"
         }
     }
 }
