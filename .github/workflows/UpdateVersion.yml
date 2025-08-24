@@ -23,4 +23,6 @@ jobs:
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - uses: actions/checkout@v5
       - name: Update version
-        run: node ./Update/UpdateVersion.js ${{ steps.generate_token.outputs.token }} ${{ github.event.number }} "${{ github.event.pull_request.title }}"
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: node ./Update/UpdateVersion.js ${{ steps.generate_token.outputs.token }} ${{ github.event.number }} "${{ github.event.pull_request.title }}" "$PR_BODY"

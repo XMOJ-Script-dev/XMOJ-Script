@@ -3,6 +3,13 @@ import {execSync} from "child_process";
 
 var GithubToken = process.argv[2];
 var PRNumber = process.argv[3];
+function extractReleaseNotes(body) {
+    const match = body
+        .replace(/\r\n/g, "\n")
+        .match(/<!--\s*release[- ]notes\s*([\s\S]*?)-->/i);
+    return match ? match[1].trim() : "";
+}
+var CurrentNotes = extractReleaseNotes(String(process.argv[4] || ""));
 process.env.GITHUB_TOKEN = GithubToken;
 execSync("gh pr checkout " + PRNumber);
 console.info("PR #" + PRNumber + " has been checked out.");
@@ -45,6 +52,7 @@ console.log("Last JSON version  : " + LastJSONVersion);
 console.log("Last PR            : " + LastPR);
 console.log("Last type          : " + LastType);
 console.log("npm version        : " + NpmVersion);
+console.log("Current notes      : " + (CurrentNotes || "No release notes were provided for this release."));
 
 if (LastJSONVersion != LastJSVersion) {
     console.error("XMOJ.user.js and Update.json have different patch versions.");
@@ -67,7 +75,7 @@ JSONObject.UpdateHistory[CurrentVersion] = {
     "UpdateDate": Date.now(),
     "Prerelease": false,
     "UpdateContents": [],
-    "Notes": "No release notes were provided for this release."
+    "Notes": CurrentNotes || "No release notes were provided for this release."
 };
 
 for (var i = Object.keys(JSONObject.UpdateHistory).length - 2; i >= 0; i--) {
