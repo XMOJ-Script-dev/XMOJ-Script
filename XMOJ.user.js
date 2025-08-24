@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      2.2.0
+// @version      2.2.1
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -1513,7 +1513,7 @@ async function main() {
                         FeedbackCardBody.className = "card-body";
                         let FeedbackCardText = document.createElement("p");
                         FeedbackCardText.className = "card-text";
-                        FeedbackCardText.innerText = "如果您有任何建议或者发现了bug，请前往本项目的GitHub页面并提交issue。提交issue前请先搜索是否有相同的issue，如果有请在该issue下留言。请在issue中尽可能详细地描述您的问题，并且附上您的浏览器版本、操作系统版本、脚本版本、复现步骤等信息。谢谢您支持本项目。";
+                        FeedbackCardText.innerText = "如果您有任何建议或者发现了 bug，请前往本项目的 GitHub 页面并提交 issue。提交 issue 前请先搜索是否有相同的 issue，如果有请在该 issue 下留言。请在 issue 中尽可能详细地描述您的问题，并且附上您的浏览器版本、操作系统版本、脚本版本、复现步骤等信息。谢谢您支持本项目。";
                         FeedbackCardBody.appendChild(FeedbackCardText);
                         let FeedbackCardLink = document.createElement("a");
                         FeedbackCardLink.className = "card-link";
