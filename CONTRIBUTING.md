@@ -18,3 +18,4 @@ We believe that you must be excited to contribute to our repo, but first, please
 - Be patient. We are a small team and may not be able to review your PR immediately.
 - Please be considerate towards the developers and other users when raising issues or presenting pull requests.
 - Respect our decision(s), and do not be upset or abusive if your submission is not used.
+- For release pull requests, include an HTML comment block starting with `<!-- release-notes` and ending with `-->` in the PR description. The automation will extract that block into the release notes.
