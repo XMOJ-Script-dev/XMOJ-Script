@@ -1,6 +1,7 @@
 name: 新功能提案
 description: 对已有功能的大幅度修改，或添加一个新内容或选项
 labels: enhancement, needs-triage
+type: Feature
 #assignees: PythonSmall-Q, boomzero, shihongxi
 title: "[Feature Request]"
 body:
