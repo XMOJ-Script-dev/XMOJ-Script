@@ -1521,7 +1521,7 @@ async function main() {
                         FeedbackCardLink.href = "https://github.com/XMOJ-Script-dev/XMOJ-Script";
                         FeedbackCardBody.appendChild(FeedbackCardLink);
                         FeedbackCard.appendChild(FeedbackCardBody);
-                        Container.appendChild(FeedbackCard);
+                        Container.appendChild(FeedbackCard);//
                     } else {
                         let Temp = document.querySelector("body > div > div.mt-3 > div > div.col-md-8").children;
                         let NewsData = [];
