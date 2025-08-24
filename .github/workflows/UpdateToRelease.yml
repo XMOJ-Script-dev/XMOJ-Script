@@ -5,6 +5,7 @@ on:
       - opened
       - reopened
       - synchronize
+      - edited
     branches:
       - master
 jobs:
@@ -24,7 +25,8 @@ jobs:
             gh pr comment ${{ github.event.pull_request.number }} --body "请向\`dev\`分支提交pull request, 本pull request将被自动关闭"
             gh pr close ${{ github.event.pull_request.number }}
           else
-            node ./Update/UpdateToRelease.js ${{ secrets.GITHUB_TOKEN }} ${{ github.event.number }}
+            node ./Update/UpdateToRelease.js ${{ secrets.GITHUB_TOKEN }} ${{ github.event.number }} "$PR_BODY"
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_BODY: ${{ github.event.pull_request.body }}

@@ -47,6 +47,13 @@ execSync("git config --global user.email \"github-actions[bot]@users.noreply.git
 execSync("git config --global user.name \"github-actions[bot]\"");
 var CurrentPR = Number(PRNumber);
 var CurrentDescription = String(process.argv[4]);
+function extractReleaseNotes(body) {
+    const match = body
+        .replace(/\r\n/g, "\n")
+        .match(/<!--\s*release[- ]notes\s*([\s\S]*?)-->/i);
+    return match ? match[1].trim() : "";
+}
+var CurrentNotes = extractReleaseNotes(String(process.argv[5] || ""));
 if (LastJSVersion != NpmVersion) {
     console.warn("Assuming you manually ran npm version.");
 } else if (!(LastPR == CurrentPR && NpmVersion == LastJSVersion)) {
@@ -58,6 +65,7 @@ var CurrentVersion = execSync("jq -r '.version' package.json").toString().trim()
 console.log("Current version    : " + CurrentVersion);
 console.log("Current PR         : " + CurrentPR);
 console.log("Current description: " + CurrentDescription);
+console.log("Current notes      : " + (CurrentNotes || "No release notes were provided for this release."));
 
 var ChangedFileList = execSync("gh pr diff " + CurrentPR + " --name-only").toString().trim().split("\n");
 console.log("Changed files      : " + ChangedFileList.join(", "));
@@ -67,6 +75,9 @@ if (LastPR == CurrentPR && NpmVersion == LastJSVersion) {
     console.warn("Warning: PR is the same as last version.");
     JSONObject.UpdateHistory[LastJSVersion].UpdateDate = Date.now();
     JSONObject.UpdateHistory[LastJSVersion].UpdateContents[0].Description = CurrentDescription;
+    if (CurrentNotes) {
+        JSONObject.UpdateHistory[LastJSVersion].Notes = CurrentNotes;
+    }
     CommitMessage = "Update time and description of " + LastJSVersion;
 } else if (ChangedFileList.indexOf("XMOJ.user.js") == -1) {
     console.warn("XMOJ.user.js is not changed, so the version should not be updated.");
@@ -79,7 +90,7 @@ if (LastPR == CurrentPR && NpmVersion == LastJSVersion) {
             "PR": CurrentPR,
             "Description": CurrentDescription
         }],
-        "Notes": "No release notes were provided for this release."
+        "Notes": CurrentNotes || "No release notes were provided for this release."
     };
     writeFileSync(JSFileName, JSFileContent.replace(/@version(\s+)\d+\.\d+\.\d+/, "@version$1" + CurrentVersion), "utf8");
     console.warn("XMOJ.user.js has been updated.");
