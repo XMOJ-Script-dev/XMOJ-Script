@@ -22,6 +22,10 @@ jobs:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - uses: actions/checkout@v5
+      - name: Install dependencies
+        run: npm install
+      - name: Build
+        run: npm run build
       - name: Update version
         env:
           PR_BODY: ${{ github.event.pull_request.body }}

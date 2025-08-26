@@ -1,0 +1,15 @@
+{
+    "UpdateHistory": {
+        "2.2.0": {
+            "UpdateDate": 1672531200000,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 845,
+                    "Description": "Initial commit"
+                }
+            ],
+            "Notes": "This is the last version before the Vite refactoring."
+        }
+    }
+}

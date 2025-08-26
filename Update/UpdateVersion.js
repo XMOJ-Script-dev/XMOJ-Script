@@ -8,7 +8,7 @@ execSync("gh pr checkout " + PRNumber);
 console.info("PR #" + PRNumber + " has been checked out.");
 
 const JSONFileName = "./Update.json";
-const JSFileName = "./XMOJ.user.js";
+const JSFileName = "./dist/XMOJ.user.js";
 var JSONFileContent = readFileSync(JSONFileName, "utf8");
 var JSFileContent = readFileSync(JSFileName, "utf8");
 execSync("git config --global user.email \"github-actions[bot]@users.noreply.github.com\"");
