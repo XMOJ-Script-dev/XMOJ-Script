@@ -1,15 +1,2180 @@
 {
     "UpdateHistory": {
-        "2.2.0": {
-            "UpdateDate": 1672531200000,
+        "1.0.200": {
+            "UpdateDate": 1696254577068,
             "Prerelease": false,
             "UpdateContents": [
                 {
-                    "PR": 845,
-                    "Description": "Initial commit"
+                    "PR": 0,
+                    "Description": ""
+                }
+            ]
+        },
+        "1.0.201": {
+            "UpdateDate": 1696315453970,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 26,
+                    "Description": "增加名字"
+                }
+            ]
+        },
+        "1.0.202": {
+            "UpdateDate": 1696337480177,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 26,
+                    "Description": "增加名字"
+                }
+            ]
+        },
+        "1.0.203": {
+            "UpdateDate": 1696342022363,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 57,
+                    "Description": "add more credits"
+                }
+            ]
+        },
+        "1.0.204": {
+            "UpdateDate": 1696342420616,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 58,
+                    "Description": "把@langningchen当作吉祥物"
+                }
+            ]
+        },
+        "1.0.205": {
+            "UpdateDate": 1696384470503,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 57,
+                    "Description": "add more credits"
+                },
+                {
+                    "PR": 58,
+                    "Description": "把@langningchen当作吉祥物"
+                }
+            ]
+        },
+        "1.0.206": {
+            "UpdateDate": 1696382789791,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 67,
+                    "Description": "允许用户关闭获取数据，开启学术模式选择"
+                }
+            ]
+        },
+        "1.0.207": {
+            "UpdateDate": 1696392248973,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 82,
+                    "Description": "Dev Release"
+                }
+            ]
+        },
+        "1.0.208": {
+            "UpdateDate": 1696429996532,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 95,
+                    "Description": "修复编辑用户显示"
+                }
+            ]
+        },
+        "1.0.209": {
+            "UpdateDate": 1696490377673,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 98,
+                    "Description": "修复部分功能"
+                }
+            ]
+        },
+        "1.0.210": {
+            "UpdateDate": 1696510135483,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 102,
+                    "Description": "修复高亮"
+                }
+            ]
+        },
+        "1.0.211": {
+            "UpdateDate": 1696514142283,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 104,
+                    "Description": "自动提交当年代码"
+                }
+            ]
+        },
+        "1.0.212": {
+            "UpdateDate": 1696515556253,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 105,
+                    "Description": "emergency fix"
+                }
+            ]
+        },
+        "1.0.213": {
+            "UpdateDate": 1696550511282,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 108,
+                    "Description": "修复自动提交当年代码不计分"
+                }
+            ]
+        },
+        "1.0.214": {
+            "UpdateDate": 1696551077104,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 67,
+                    "Description": "允许用户关闭获取数据，开启学术模式选择"
+                },
+                {
+                    "PR": 82,
+                    "Description": "Dev Release"
+                },
+                {
+                    "PR": 95,
+                    "Description": "修复编辑用户显示"
+                },
+                {
+                    "PR": 98,
+                    "Description": "修复部分功能"
+                },
+                {
+                    "PR": 102,
+                    "Description": "修复高亮"
+                },
+                {
+                    "PR": 104,
+                    "Description": "自动提交当年代码"
+                },
+                {
+                    "PR": 105,
+                    "Description": "emergency fix"
+                },
+                {
+                    "PR": 108,
+                    "Description": "修复自动提交当年代码不计分"
+                }
+            ]
+        },
+        "1.0.215": {
+            "UpdateDate": 1696556056381,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 113,
+                    "Description": "更改学术模式"
+                }
+            ]
+        },
+        "1.0.216": {
+            "UpdateDate": 1696562219491,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 114,
+                    "Description": "改变自动提交当年代码样式"
+                }
+            ]
+        },
+        "1.0.217": {
+            "UpdateDate": 1696566723926,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 117,
+                    "Description": "不自动提交已AC题目"
+                }
+            ]
+        },
+        "1.0.218": {
+            "UpdateDate": 1696568744173,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 119,
+                    "Description": "预编译使用C++14"
+                }
+            ]
+        },
+        "1.0.219": {
+            "UpdateDate": 1696857809857,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 128,
+                    "Description": "Why?"
+                }
+            ]
+        },
+        "1.0.220": {
+            "UpdateDate": 1696859775005,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 132,
+                    "Description": " bump version "
+                }
+            ]
+        },
+        "1.0.221": {
+            "UpdateDate": 1696859889320,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 113,
+                    "Description": "更改学术模式"
+                },
+                {
+                    "PR": 114,
+                    "Description": "改变自动提交当年代码样式"
+                },
+                {
+                    "PR": 117,
+                    "Description": "不自动提交已AC题目"
+                },
+                {
+                    "PR": 119,
+                    "Description": "预编译使用C++14"
+                },
+                {
+                    "PR": 128,
+                    "Description": "Why?"
+                },
+                {
+                    "PR": 132,
+                    "Description": " bump version "
+                }
+            ]
+        },
+        "1.0.222": {
+            "UpdateDate": 1696860193859,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 135,
+                    "Description": "Update XMOJ.user.js"
+                }
+            ]
+        },
+        "1.0.223": {
+            "UpdateDate": 1696860366697,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 135,
+                    "Description": "Update XMOJ.user.js"
+                }
+            ]
+        },
+        "1.0.224": {
+            "UpdateDate": 1697249568431,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 140,
+                    "Description": "121 feature request 抄std的给badge作弊者"
+                }
+            ]
+        },
+        "1.0.225": {
+            "UpdateDate": 1697351158955,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 144,
+                    "Description": "禁止用户修改badge，只允许用户向管理组提出修改请求"
+                }
+            ]
+        },
+        "1.0.226": {
+            "UpdateDate": 1697351411842,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 145,
+                    "Description": "Emergency Fix"
+                }
+            ]
+        },
+        "1.0.227": {
+            "UpdateDate": 1697367771069,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 149,
+                    "Description": "Update XMOJ.user.js"
+                }
+            ]
+        },
+        "1.0.228": {
+            "UpdateDate": 1697368165342,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 151,
+                    "Description": "增加开发组成员"
+                }
+            ]
+        },
+        "1.0.229": {
+            "UpdateDate": 1697640660452,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 156,
+                    "Description": "修复部分题目状态页没有运行编号 (#155)"
+                }
+            ]
+        },
+        "1.0.230": {
+            "UpdateDate": 1697725858941,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 160,
+                    "Description": "1.修改了大量中文 2.写明提醒内容 3.update 关键字词替换"
+                }
+            ]
+        },
+        "1.0.231": {
+            "UpdateDate": 1697789116509,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 163,
+                    "Description": "让cln的badge好看一点"
+                }
+            ]
+        },
+        "1.0.232": {
+            "UpdateDate": 1697789214002,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 140,
+                    "Description": "121 feature request 抄std的给badge作弊者"
+                },
+                {
+                    "PR": 144,
+                    "Description": "禁止用户修改badge，只允许用户向管理组提出修改请求"
+                },
+                {
+                    "PR": 145,
+                    "Description": "Emergency Fix"
+                },
+                {
+                    "PR": 149,
+                    "Description": "Update XMOJ.user.js"
+                },
+                {
+                    "PR": 151,
+                    "Description": "增加开发组成员"
+                },
+                {
+                    "PR": 156,
+                    "Description": "修复部分题目状态页没有运行编号 (#155)"
+                },
+                {
+                    "PR": 160,
+                    "Description": "1.修改了大量中文 2.写明提醒内容 3.update 关键字词替换"
+                },
+                {
+                    "PR": 163,
+                    "Description": "让cln的badge好看一点"
+                }
+            ]
+        },
+        "1.0.233": {
+            "UpdateDate": 1697864346624,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 169,
+                    "Description": "为用户脚本增加icon"
+                }
+            ]
+        },
+        "1.0.234": {
+            "UpdateDate": 1698975944441,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 169,
+                    "Description": "为用户脚本增加icon"
+                }
+            ]
+        },
+        "1.0.235": {
+            "UpdateDate": 1699008412737,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 190,
+                    "Description": "使用新的图床api"
+                }
+            ]
+        },
+        "1.0.236": {
+            "UpdateDate": 1699069499723,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 195,
+                    "Description": "不需要申请啦~"
+                }
+            ]
+        },
+        "1.0.237": {
+            "UpdateDate": 1699078360562,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 197,
+                    "Description": "修复更新链接"
+                }
+            ]
+        },
+        "1.0.238": {
+            "UpdateDate": 1699617792536,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 190,
+                    "Description": "使用新的图床api"
+                },
+                {
+                    "PR": 195,
+                    "Description": "不需要申请啦~"
+                },
+                {
+                    "PR": 197,
+                    "Description": "修复更新链接"
+                }
+            ]
+        },
+        "1.0.239": {
+            "UpdateDate": 1699691535438,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 204,
+                    "Description": "remove this as it causes console errors"
+                },
+                {
+                    "PR": 205,
+                    "Description": "修复题目标题显示 #138"
+                }
+            ]
+        },
+        "1.0.240": {
+            "UpdateDate": 1699766077528,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 205,
+                    "Description": "修复题目标题显示 #138"
+                },
+                {
+                    "PR": 204,
+                    "Description": "remove this as it causes console errors"
+                }
+            ]
+        },
+        "1.0.241": {
+            "UpdateDate": 1699766855912,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 220,
+                    "Description": "Update Prerelease.yml"
+                }
+            ]
+        },
+        "1.0.242": {
+            "UpdateDate": 1699766973308,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 221,
+                    "Description": "烦死了。。。"
+                }
+            ]
+        },
+        "1.0.243": {
+            "UpdateDate": 1699767075836,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 222,
+                    "Description": "Update Prerelease.yml"
+                }
+            ]
+        },
+        "1.0.244": {
+            "UpdateDate": 1699767251761,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 223,
+                    "Description": "wtf"
+                }
+            ]
+        },
+        "1.0.245": {
+            "UpdateDate": 1700289812416,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 232,
+                    "Description": "使用Base64编码icon"
+                }
+            ]
+        },
+        "1.0.246": {
+            "UpdateDate": 1700921733760,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 250,
+                    "Description": "发送统计数据"
+                }
+            ]
+        },
+        "1.0.247": {
+            "UpdateDate": 1700922013381,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 220,
+                    "Description": "Update Prerelease.yml"
+                },
+                {
+                    "PR": 221,
+                    "Description": "烦死了。。。"
+                },
+                {
+                    "PR": 222,
+                    "Description": "Update Prerelease.yml"
+                },
+                {
+                    "PR": 223,
+                    "Description": "wtf"
+                },
+                {
+                    "PR": 232,
+                    "Description": "使用Base64编码icon"
+                },
+                {
+                    "PR": 250,
+                    "Description": "发送统计数据"
+                }
+            ]
+        },
+        "1.0.248": {
+            "UpdateDate": 1700981994538,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 267,
+                    "Description": "修复提交按钮"
+                }
+            ]
+        },
+        "1.0.249": {
+            "UpdateDate": 1701180984140,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 269,
+                    "Description": "显示最后在线时间"
+                }
+            ]
+        },
+        "1.0.250": {
+            "UpdateDate": 1701264987062,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 273,
+                    "Description": "send extra information"
+                }
+            ]
+        },
+        "1.0.251": {
+            "UpdateDate": 1701426631116,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 276,
+                    "Description": "Update XMOJ.user.js"
+                }
+            ]
+        },
+        "1.0.252": {
+            "UpdateDate": 1701435211051,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 267,
+                    "Description": "修复提交按钮"
+                },
+                {
+                    "PR": 269,
+                    "Description": "显示最后在线时间"
+                },
+                {
+                    "PR": 273,
+                    "Description": "send extra information"
+                },
+                {
+                    "PR": 276,
+                    "Description": "Change the include statement"
+                }
+            ]
+        },
+        "1.0.253": {
+            "UpdateDate": 1701491993821,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 282,
+                    "Description": "use https in xmoj"
+                }
+            ]
+        },
+        "1.0.254": {
+            "UpdateDate": 1701511837385,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 282,
+                    "Description": "use https in xmoj"
+                }
+            ]
+        },
+        "1.1.0": {
+            "UpdateDate": 1702641659793,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 300,
+                    "Description": "Add Docs"
+                }
+            ]
+        },
+        "1.1.1": {
+            "UpdateDate": 1702641844861,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 300,
+                    "Description": "Add Docs"
+                }
+            ]
+        },
+        "1.1.2": {
+            "UpdateDate": 1702687185849,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 301,
+                    "Description": "改变更新架构"
+                }
+            ]
+        },
+        "1.1.3": {
+            "UpdateDate": 1702821395564,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 302,
+                    "Description": "Update allowed tags in PurifyHTML function to allow the  tag"
+                }
+            ]
+        },
+        "1.1.4": {
+            "UpdateDate": 1702822514246,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 305,
+                    "Description": "add release notes (#303)"
                 }
             ],
-            "Notes": "This is the last version before the Vite refactoring."
-        }
-    }
-}
+            "Notes": "Hello, release notes! test 测试"
+        },
+        "1.1.5": {
+            "UpdateDate": 1702993420758,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 310,
+                    "Description": "Add an Easter egg"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.6": {
+            "UpdateDate": 1702995326126,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 312,
+                    "Description": "fix release notes"
+                }
+            ],
+            "Notes": "Welcome!"
+        },
+        "1.1.7": {
+            "UpdateDate": 1703253098623,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 315,
+                    "Description": "修复无法在某些页面检查登录状态"
+                }
+            ],
+            "Notes": "<big>test:</big> 这个算公告吗？@<a href=\"https://www.xmoj.tech/userinfo.php?user=chenlangning\" class=\"link-offset-2 link-underline-opacity-50 link-danger\" ;\"=\"\">chenlangning</a>"
+        },
+        "1.1.8": {
+            "UpdateDate": 1703253440322,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 300,
+                    "Description": "Add Docs"
+                },
+                {
+                    "PR": 300,
+                    "Description": "Add Docs"
+                },
+                {
+                    "PR": 301,
+                    "Description": "改变更新架构"
+                },
+                {
+                    "PR": 302,
+                    "Description": "Update allowed tags in PurifyHTML function to allow the  tag"
+                },
+                {
+                    "PR": 305,
+                    "Description": "add release notes (#303)"
+                },
+                {
+                    "PR": 310,
+                    "Description": "Add an Easter egg"
+                },
+                {
+                    "PR": 312,
+                    "Description": "fix release notes"
+                },
+                {
+                    "PR": 315,
+                    "Description": "修复无法在某些页面检查登录状态"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.9": {
+            "UpdateDate": 1703253440322,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 300,
+                    "Description": "Add Docs"
+                },
+                {
+                    "PR": 300,
+                    "Description": "Add Docs"
+                },
+                {
+                    "PR": 301,
+                    "Description": "改变更新架构"
+                },
+                {
+                    "PR": 302,
+                    "Description": "Update allowed tags in PurifyHTML function to allow the  tag"
+                },
+                {
+                    "PR": 305,
+                    "Description": "add release notes (#303)"
+                },
+                {
+                    "PR": 310,
+                    "Description": "Add an Easter egg"
+                },
+                {
+                    "PR": 312,
+                    "Description": "fix release notes"
+                },
+                {
+                    "PR": 315,
+                    "Description": "修复无法在某些页面检查登录状态"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.10": {
+            "UpdateDate": 1703254332078,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 300,
+                    "Description": "Add Docs"
+                },
+                {
+                    "PR": 300,
+                    "Description": "Add Docs"
+                },
+                {
+                    "PR": 301,
+                    "Description": "改变更新架构"
+                },
+                {
+                    "PR": 302,
+                    "Description": "Update allowed tags in PurifyHTML function to allow the  tag"
+                },
+                {
+                    "PR": 305,
+                    "Description": "add release notes (#303)"
+                },
+                {
+                    "PR": 310,
+                    "Description": "Add an Easter egg"
+                },
+                {
+                    "PR": 312,
+                    "Description": "fix release notes"
+                },
+                {
+                    "PR": 315,
+                    "Description": "修复无法在某些页面检查登录状态"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.11": {
+            "UpdateDate": 1703923205023,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 327,
+                    "Description": "优化用户体验"
+                }
+            ],
+            "Notes": "增加bug上报和主页按钮"
+        },
+        "1.1.12": {
+            "UpdateDate": 1704017187302,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 329,
+                    "Description": "增加权限"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.13": {
+            "UpdateDate": 1704936560583,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 340,
+                    "Description": "add the native link"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.14": {
+            "UpdateDate": 1705756153752,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 355,
+                    "Description": "fix #332"
+                },
+                {
+                    "PR": 356,
+                    "Description": "N/A"
+                }
+            ],
+            "Notes": "修复题解标题"
+        },
+        "1.1.15": {
+            "UpdateDate": 1705807807990,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 357,
+                    "Description": "cleanup"
+                }
+            ],
+            "Notes": "This release fixes a lot of things"
+        },
+        "1.1.16": {
+            "UpdateDate": 1705807913261,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 327,
+                    "Description": "优化用户体验"
+                },
+                {
+                    "PR": 329,
+                    "Description": "增加权限"
+                },
+                {
+                    "PR": 340,
+                    "Description": "add the native link"
+                },
+                {
+                    "PR": 356,
+                    "Description": "N/A"
+                },
+                {
+                    "PR": 355,
+                    "Description": "fix #332"
+                },
+                {
+                    "PR": 357,
+                    "Description": "cleanup"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.17": {
+            "UpdateDate": 1705808495397,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 327,
+                    "Description": "优化用户体验"
+                },
+                {
+                    "PR": 329,
+                    "Description": "增加权限"
+                },
+                {
+                    "PR": 340,
+                    "Description": "add the native link"
+                },
+                {
+                    "PR": 356,
+                    "Description": "N/A"
+                },
+                {
+                    "PR": 355,
+                    "Description": "fix #332"
+                },
+                {
+                    "PR": 357,
+                    "Description": "cleanup"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.18": {
+            "UpdateDate": 1705813603117,
+            "Prerelease": false,
+            "UpdateContents": [],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.19": {
+            "UpdateDate": 1705841193051,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 372,
+                    "Description": "use the same peram (?to_user) as xmoj"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.20": {
+            "UpdateDate": 1705929267062,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 375,
+                    "Description": "add spellcheck"
+                }
+            ],
+            "Notes": "This release enables spell checking for bbs and short_msg! 🎉\nI did it 5 minutes after proposing it, swx."
+        },
+        "1.1.21": {
+            "UpdateDate": 1705929832424,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 377,
+                    "Description": "fix spellcheck"
+                }
+            ],
+            "Notes": "Oops, sorry. I forgot to add the spellcheck some text fields. Anyway, it's fixed now. 😅"
+        },
+        "1.1.22": {
+            "UpdateDate": 1705983862747,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 378,
+                    "Description": "sleep for a sec after submitting to prevent xmoj from crashing"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.23": {
+            "UpdateDate": 1706103530551,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 390,
+                    "Description": "更新support链接"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.24": {
+            "UpdateDate": 1706245175892,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 393,
+                    "Description": "make the upload_std interface prettier"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.25": {
+            "UpdateDate": 1706250229435,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 394,
+                    "Description": "fix problemstatus"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.28": {
+            "UpdateDate": 1706250296931,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 372,
+                    "Description": "use the same peram (?to_user) as xmoj"
+                },
+                {
+                    "PR": 375,
+                    "Description": "add spellcheck"
+                },
+                {
+                    "PR": 377,
+                    "Description": "fix spellcheck"
+                },
+                {
+                    "PR": 378,
+                    "Description": "sleep for a sec after submitting to prevent xmoj from crashing"
+                },
+                {
+                    "PR": 390,
+                    "Description": "更新support链接"
+                },
+                {
+                    "PR": 393,
+                    "Description": "make the upload_std interface prettier"
+                },
+                {
+                    "PR": 394,
+                    "Description": "fix problemstatus"
+                }
+            ],
+            "Notes": "Note: v1.1.26-27 is gone.\nVersion 1.1.28 of xmoj-script ships a lot of quality of life improvements and bug fixes. \n\n- Add spell checking for bbs and short_msg\n- Fix the problem status page\n- Make the upload_std interface prettier\n- Use the same parameter as xmoj for the native link\n- Sleep for a second after submitting to prevent xmoj from crashing\n- Update support link \n <big>Please note that upload_std now uploads the user's code if there is no std.\n See you in the next release!🎆</big>"
+        },
+        "1.1.30": {
+            "UpdateDate": 1706507043236,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 403,
+                    "Description": "make the script much faster"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.31": {
+            "UpdateDate": 1706507178378,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 403,
+                    "Description": "make the script much faster"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.32": {
+            "UpdateDate": 1706509019854,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 406,
+                    "Description": "more choices"
+                }
+            ],
+            "Notes": "Because choices..."
+        },
+        "1.1.33": {
+            "UpdateDate": 1706509685600,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 407,
+                    "Description": "superdebug mode"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.34": {
+            "UpdateDate": 1706623811152,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 411,
+                    "Description": "修正部分用户姓名设置的错误"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.35": {
+            "UpdateDate": 1706625057380,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 412,
+                    "Description": "修改警告"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.36": {
+            "UpdateDate": 1706680652574,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 413,
+                    "Description": "fix #409"
+                }
+            ],
+            "Notes": "A very important fix!"
+        },
+        "1.1.37": {
+            "UpdateDate": 1706680926393,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 406,
+                    "Description": "more choices"
+                },
+                {
+                    "PR": 407,
+                    "Description": "superdebug mode"
+                },
+                {
+                    "PR": 411,
+                    "Description": "修正部分用户姓名设置的错误"
+                },
+                {
+                    "PR": 412,
+                    "Description": "修改警告"
+                },
+                {
+                    "PR": 413,
+                    "Description": "fix #409"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.38": {
+            "UpdateDate": 1706681565820,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 416,
+                    "Description": "major restructuring(fixes #364)"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.39": {
+            "UpdateDate": 1706865355252,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 425,
+                    "Description": "Revert 增加更新链接，优化格式"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.40": {
+            "UpdateDate": 1706867021708,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 428,
+                    "Description": "更新部分语言"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.41": {
+            "UpdateDate": 1706867272746,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 429,
+                    "Description": "增加开发组成员，zhouyiqing"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.42": {
+            "UpdateDate": 1707642572244,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 445,
+                    "Description": "fix  [Bug] 右上角用户名点击后无反应 "
+                }
+            ],
+            "Notes": "Popper.js is so stupid..."
+        },
+        "1.1.43": {
+            "UpdateDate": 1707715028113,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 447,
+                    "Description": "fix the unpkg-cdn option"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.44": {
+            "UpdateDate": 1707803296933,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 449,
+                    "Description": "regression!"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.45": {
+            "UpdateDate": 1708070431275,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 454,
+                    "Description": "fix #400 + //ci-no-touch"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.46": {
+            "UpdateDate": 1708137046736,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 445,
+                    "Description": "fix  [Bug] 右上角用户名点击后无反应 "
+                },
+                {
+                    "PR": 447,
+                    "Description": "fix the unpkg-cdn option"
+                },
+                {
+                    "PR": 449,
+                    "Description": "regression!"
+                },
+                {
+                    "PR": 454,
+                    "Description": "fix #400 + //ci-no-touch"
+                }
+            ],
+            "Notes": "A lot of QoL improvements!"
+        },
+        "1.1.48": {
+            "UpdateDate": 1709370871510,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 485,
+                    "Description": "and I am so frustrated I actually make another code contribution"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.49": {
+            "UpdateDate": 1709371832051,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 486,
+                    "Description": "fix showsource"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.50": {
+            "UpdateDate": 1710576508444,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 485,
+                    "Description": "and I am so frustrated I actually make another code contribution"
+                },
+                {
+                    "PR": 486,
+                    "Description": "fix showsource"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.51": {
+            "UpdateDate": 1710641069919,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 491,
+                    "Description": "Update ticket email"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.52": {
+            "UpdateDate": 1711848297024,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 493,
+                    "Description": "Make the dismiss button work + improve showsource"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.53": {
+            "UpdateDate": 1712374147729,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 491,
+                    "Description": "Update ticket email"
+                },
+                {
+                    "PR": 493,
+                    "Description": "Make the dismiss button work + improve showsource"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.54": {
+            "UpdateDate": 1712395969816,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 497,
+                    "Description": "move the main msg content into a div with flex!!! :tada:"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.55": {
+            "UpdateDate": 1712411916005,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 499,
+                    "Description": "add markdown support to short messages "
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.56": {
+            "UpdateDate": 1713525771039,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 505,
+                    "Description": "让 ctrl + enter 触发自动提交当年代码"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.57": {
+            "UpdateDate": 1713526164395,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 497,
+                    "Description": "move the main msg content into a div with flex!!! :tada:"
+                },
+                {
+                    "PR": 499,
+                    "Description": "add markdown support to short messages "
+                },
+                {
+                    "PR": 505,
+                    "Description": "让 ctrl + enter 触发自动提交当年代码"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.58": {
+            "UpdateDate": 1713668825681,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 514,
+                    "Description": "支持跳转到讨论编号 修改讨论区用户界面 在讨论区Page过大时自动跳转 在讨论区最后一页自动删除"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.59": {
+            "UpdateDate": 1713676517652,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 515,
+                    "Description": "允许管理在用户页管理badge并在修改badge后清除缓存"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.60": {
+            "UpdateDate": 1713682768316,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 516,
+                    "Description": "revert #514"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.61": {
+            "UpdateDate": 1714207526058,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 517,
+                    "Description": "Auto Read Short message mentions"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.62": {
+            "UpdateDate": 1714208364065,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 519,
+                    "Description": "Refresh Short Messages at fixed intervals (experimental)"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.63": {
+            "UpdateDate": 1714740837007,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 522,
+                    "Description": "chore: 删除被 @boomzero 除名的开发组成员"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.64": {
+            "UpdateDate": 1714819418530,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 523,
+                    "Description": "Revert Refresh Short Messages at fixed intervals (experimental)"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.65": {
+            "UpdateDate": 1714819512051,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 514,
+                    "Description": "支持跳转到讨论编号 修改讨论区用户界面 在讨论区Page过大时自动跳转 在讨论区最后一页自动删除"
+                },
+                {
+                    "PR": 515,
+                    "Description": "允许管理在用户页管理badge并在修改badge后清除缓存"
+                },
+                {
+                    "PR": 516,
+                    "Description": "revert #514"
+                },
+                {
+                    "PR": 517,
+                    "Description": "Auto Read Short message mentions"
+                },
+                {
+                    "PR": 519,
+                    "Description": "Refresh Short Messages at fixed intervals (experimental)"
+                },
+                {
+                    "PR": 522,
+                    "Description": "chore: 删除被 @boomzero 除名的开发组成员"
+                },
+                {
+                    "PR": 523,
+                    "Description": "Revert Refresh Short Messages at fixed intervals (experimental)"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.66": {
+            "UpdateDate": 1714821016028,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 526,
+                    "Description": "[ImgBot] Optimize images"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.67": {
+            "UpdateDate": 1714822822741,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 526,
+                    "Description": "[ImgBot] Optimize images"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.68": {
+            "UpdateDate": 1718670038883,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 544,
+                    "Description": "fix https://www.xmoj.tech/open_contest_sign_up.php"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.69": {
+            "UpdateDate": 1719815069812,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 546,
+                    "Description": "fix memory displays"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.70": {
+            "UpdateDate": 1719815850792,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 544,
+                    "Description": "fix https://www.xmoj.tech/open_contest_sign_up.php"
+                },
+                {
+                    "PR": 546,
+                    "Description": "fix memory displays"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.71": {
+            "UpdateDate": 1719843873067,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 550,
+                    "Description": "Improve debug mode"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.1.72": {
+            "UpdateDate": 1721535836758,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 552,
+                    "Description": "Update the api domain"
+                }
+            ],
+            "Notes": "Please note that users using DebugMode should update immediately. <br> The domain ghpages.xmoj-bbs.tech will be updated at a later date."
+        },
+        "1.2.0": {
+            "UpdateDate": 1721638608232,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 550,
+                    "Description": "Improve debug mode"
+                },
+                {
+                    "PR": 552,
+                    "Description": "Update the api domain"
+                }
+            ],
+            "Notes": "Please update immediately, thank you. <br>This release changes the api domain from xmoj-bbs.tech to xmoj-bbs.me"
+        },
+        "1.2.1": {
+            "UpdateDate": 1721656184134,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 557,
+                    "Description": "更改获取数据体验(增加报错)"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.2": {
+            "UpdateDate": 1721887214365,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 559,
+                    "Description": "Add CLion"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.3": {
+            "UpdateDate": 1722003346568,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 563,
+                    "Description": "fix #562"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.4": {
+            "UpdateDate": 1722040221117,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 565,
+                    "Description": "短消息增加图床支持"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.5": {
+            "UpdateDate": 1722044501316,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 566,
+                    "Description": "预览版域名切换"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.6": {
+            "UpdateDate": 1722048484899,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 557,
+                    "Description": "更改获取数据体验(增加报错)"
+                },
+                {
+                    "PR": 559,
+                    "Description": "Add CLion"
+                },
+                {
+                    "PR": 563,
+                    "Description": "fix #562"
+                },
+                {
+                    "PR": 565,
+                    "Description": "短消息增加图床支持"
+                },
+                {
+                    "PR": 566,
+                    "Description": "预览版域名切换"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.7": {
+            "UpdateDate": 1722063024309,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 570,
+                    "Description": "增加公告栏"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.8": {
+            "UpdateDate": 1722070813624,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 570,
+                    "Description": "增加公告栏"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.9": {
+            "UpdateDate": 1722088781344,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 573,
+                    "Description": "add username rendering for noticeboard"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.10": {
+            "UpdateDate": 1722425862935,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 574,
+                    "Description": "disable tidytable"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.11": {
+            "UpdateDate": 1722432013017,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 575,
+                    "Description": "Upgrade bootstrap + cdnjs"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.12": {
+            "UpdateDate": 1722433643071,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 576,
+                    "Description": "fix tidytable"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.13": {
+            "UpdateDate": 1722435875725,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 573,
+                    "Description": "add username rendering for noticeboard"
+                },
+                {
+                    "PR": 574,
+                    "Description": "disable tidytable"
+                },
+                {
+                    "PR": 575,
+                    "Description": "Upgrade bootstrap + cdnjs"
+                },
+                {
+                    "PR": 576,
+                    "Description": "fix tidytable"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.14": {
+            "UpdateDate": 1722470253103,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 580,
+                    "Description": "Improve popover usability"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.15": {
+            "UpdateDate": 1722472465539,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 581,
+                    "Description": "fix copymd"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.16": {
+            "UpdateDate": 1722478374388,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 583,
+                    "Description": "fix ACM rank"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.17": {
+            "UpdateDate": 1722513002990,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 594,
+                    "Description": "Revert Extern"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.18": {
+            "UpdateDate": 1722513340833,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 595,
+                    "Description": "update pic"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.19": {
+            "UpdateDate": 1722513622681,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 596,
+                    "Description": "ahhhhhh typos"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.20": {
+            "UpdateDate": 1722558316642,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 600,
+                    "Description": "add some document.titles"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.21": {
+            "UpdateDate": 1722558913797,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 601,
+                    "Description": "more document titles"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.22": {
+            "UpdateDate": 1722596300758,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 608,
+                    "Description": "美化导航栏（by zhouyiqing）"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.23": {
+            "UpdateDate": 1722601450156,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 615,
+                    "Description": "解决动画打断问题"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.24": {
+            "UpdateDate": 1722821084232,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 622,
+                    "Description": "Extern contrib from @zhouyiqing0304"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.25": {
+            "UpdateDate": 1722923378941,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 629,
+                    "Description": "Emergency fix"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.26": {
+            "UpdateDate": 1722934373375,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 631,
+                    "Description": "Update More Names"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.27": {
+            "UpdateDate": 1722953708717,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 633,
+                    "Description": "Add error Reporting"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.28": {
+            "UpdateDate": 1722992901032,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 634,
+                    "Description": "减少歧义"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.29": {
+            "UpdateDate": 1722993130679,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 580,
+                    "Description": "Improve popover usability"
+                },
+                {
+                    "PR": 581,
+                    "Description": "fix copymd"
+                },
+                {
+                    "PR": 583,
+                    "Description": "fix ACM rank"
+                },
+                {
+                    "PR": 594,
+                    "Description": "Revert Extern"
+                },
+                {
+                    "PR": 595,
+                    "Description": "update pic"
+                },
+                {
+                    "PR": 596,
+                    "Description": "ahhhhhh typos"
+                },
+                {
+                    "PR": 600,
+                    "Description": "add some document.titles"
+                },
+                {
+                    "PR": 601,
+                    "Description": "more document titles"
+                },
+                {
+                    "PR": 608,
+                    "Description": "美化导航栏（by zhouyiqing）"
+                },
+                {
+                    "PR": 615,
+                    "Description": "解决动画打断问题"
+                },
+                {
+                    "PR": 622,
+                    "Description": "Extern contrib from @zhouyiqing0304"
+                },
+                {
+                    "PR": 629,
+                    "Description": "Emergency fix"
+                },
+                {
+                    "PR": 631,
+                    "Description": "Update More Names"
+                },
+                {
+                    "PR": 633,
+                    "Description": "Add error Reporting"
+                },
+                {
+                    "PR": 634,
+                    "Description": "减少歧义"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.30": {
+            "UpdateDate": 1722995904167,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 639,
+                    "Description": "Restore License"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.31": {
+            "UpdateDate": 1723001178967,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 642,
+                    "Description": "freopen检测优化 （by zhouyiqing）"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.32": {
+            "UpdateDate": 1723006469038,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 644,
+                    "Description": "Better error Reporting"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.33": {
+            "UpdateDate": 1723007791910,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 645,
+                    "Description": "Codemirror for freopen"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.34": {
+            "UpdateDate": 1723008021982,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 648,
+                    "Description": "format freopen statement"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.35": {
+            "UpdateDate": 1723008839982,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 651,
+                    "Description": "prevent RE"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.36": {
+            "UpdateDate": 1723018816861,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 653,
+                    "Description": "Update a number of names"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.37": {
+            "UpdateDate": 1723094016287,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 655,
+                    "Description": "Prevent RE"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.38": {
+            "UpdateDate": 1723094571329,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 657,
+                    "Description": "log Success"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "1.2.39": {
+.
+.
+.
+I am having trouble reading the full content of the file.
+Can you please try to send it to me again?
+If that does not work, we can try to find an alternative.
+You **must** respond now, using the `message_user` tool.
+System Info: timestamp: 2025-08-26 05:46:04.974911
