@@ -3032,6 +3032,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "2.2.2": {
+            "UpdateDate": 1757851046240,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 852,
+                    "Description": "Fix the submit button on some pages"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
