@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      2.2.1
+// @version      2.2.2
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -444,7 +444,7 @@ let UtilityEnabled = (Name) => {
 let storeCredential = async (username, password) => {
     if ('credentials' in navigator && window.PasswordCredential) {
         try {
-            const credential = new PasswordCredential({ id: username, password: password });
+            const credential = new PasswordCredential({id: username, password: password});
             await navigator.credentials.store(credential);
         } catch (e) {
             console.error(e);
@@ -454,7 +454,7 @@ let storeCredential = async (username, password) => {
 let getCredential = async () => {
     if ('credentials' in navigator && window.PasswordCredential) {
         try {
-            return await navigator.credentials.get({ password: true, mediation: 'optional' });
+            return await navigator.credentials.get({password: true, mediation: 'optional'});
         } catch (e) {
             console.error(e);
         }
@@ -1627,8 +1627,9 @@ async function main() {
                         }, 1000);
                     } else {
                         let PID = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + SearchParams.get("pid") + "-PID");
-
-                        document.querySelector("body > div > div.mt-3 > center").lastChild.style.marginLeft = "10px";
+                        if (document.querySelector("body > div > div.mt-3 > center").lastElementChild !== null) {
+                            document.querySelector("body > div > div.mt-3 > center").lastElementChild.style.marginLeft = "10px";
+                        }
                         //修复提交按钮
                         let SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(12)');
                         if (SubmitLink == null) { //a special type of problem
