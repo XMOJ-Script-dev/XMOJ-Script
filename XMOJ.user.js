@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      2.2.0
+// @version      2.3.0
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -444,7 +444,7 @@ let UtilityEnabled = (Name) => {
 let storeCredential = async (username, password) => {
     if ('credentials' in navigator && window.PasswordCredential) {
         try {
-            const credential = new PasswordCredential({ id: username, password: password });
+            const credential = new PasswordCredential({id: username, password: password});
             await navigator.credentials.store(credential);
         } catch (e) {
             console.error(e);
@@ -454,7 +454,7 @@ let storeCredential = async (username, password) => {
 let getCredential = async () => {
     if ('credentials' in navigator && window.PasswordCredential) {
         try {
-            return await navigator.credentials.get({ password: true, mediation: 'optional' });
+            return await navigator.credentials.get({password: true, mediation: 'optional'});
         } catch (e) {
             console.error(e);
         }
@@ -1513,7 +1513,7 @@ async function main() {
                         FeedbackCardBody.className = "card-body";
                         let FeedbackCardText = document.createElement("p");
                         FeedbackCardText.className = "card-text";
-                        FeedbackCardText.innerText = "如果您有任何建议或者发现了bug，请前往本项目的GitHub页面并提交issue。提交issue前请先搜索是否有相同的issue，如果有请在该issue下留言。请在issue中尽可能详细地描述您的问题，并且附上您的浏览器版本、操作系统版本、脚本版本、复现步骤等信息。谢谢您支持本项目。";
+                        FeedbackCardText.innerText = "如果您有任何建议或者发现了 bug，请前往本项目的 GitHub 页面并提交 issue。提交 issue 前请先搜索是否有相同的 issue，如果有请在该 issue 下留言。请在 issue 中尽可能详细地描述您的问题，并且附上您的浏览器版本、操作系统版本、脚本版本、复现步骤等信息。谢谢您支持本项目。";
                         FeedbackCardBody.appendChild(FeedbackCardText);
                         let FeedbackCardLink = document.createElement("a");
                         FeedbackCardLink.className = "card-link";
@@ -1627,8 +1627,9 @@ async function main() {
                         }, 1000);
                     } else {
                         let PID = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + SearchParams.get("pid") + "-PID");
-
-                        document.querySelector("body > div > div.mt-3 > center").lastChild.style.marginLeft = "10px";
+                        if (document.querySelector("body > div > div.mt-3 > center").lastElementChild !== null) {
+                            document.querySelector("body > div > div.mt-3 > center").lastElementChild.style.marginLeft = "10px";
+                        }
                         //修复提交按钮
                         let SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(12)');
                         if (SubmitLink == null) { //a special type of problem

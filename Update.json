@@ -3021,6 +3021,43 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "2.2.1": {
+            "UpdateDate": 1756003502262,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 839,
+                    "Description": "Fix formatting in feedback card text"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "2.2.2": {
+            "UpdateDate": 1757851046240,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 852,
+                    "Description": "Fix the submit button on some pages"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "2.3.0": {
+            "UpdateDate": 1757851277491,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 839,
+                    "Description": "Fix formatting in feedback card text"
+                },
+                {
+                    "PR": 852,
+                    "Description": "Fix the submit button on some pages"
+                }
+            ],
+            "Notes": "随着 CI 更新, 相信以后的 release 都会有 release notes("
         }
     }
 }
