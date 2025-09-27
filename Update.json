@@ -3032,6 +3032,43 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "2.2.2": {
+            "UpdateDate": 1757851046240,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 852,
+                    "Description": "Fix the submit button on some pages"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "2.3.0": {
+            "UpdateDate": 1757851277491,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 839,
+                    "Description": "Fix formatting in feedback card text"
+                },
+                {
+                    "PR": 852,
+                    "Description": "Fix the submit button on some pages"
+                }
+            ],
+            "Notes": "随着 CI 更新, 相信以后的 release 都会有 release notes("
+        },
+        "2.3.1": {
+            "UpdateDate": 1758944205783,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 856,
+                    "Description": "修复由于 PHPSESSID 启用了 httpOnly 导致的后台不可用"
+                }
+            ],
+            "Notes": "本版本修复了由于 PHPSESSID 启用了 httpOnly 导致的后台不可用"
         }
     }
 }
