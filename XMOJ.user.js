@@ -483,7 +483,7 @@ let RequestAPI = (Action, Data, CallBack) => {
         if (Session === "") { //The cookie is httpOnly
             GM.cookie.set({
                 name: 'PHPSESSID',
-                value: Math.random().toString(36).substring(2, 15),
+                value: (Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)).substring(0, 28),
                 path: "/"
             })
                 .then(() => {
@@ -1027,7 +1027,7 @@ async function main() {
                                 clearCredential();
                                 GM.cookie.set({
                                     name: 'PHPSESSID',
-                                    value: Math.random().toString(36).substring(2, 15),
+                                    value: (Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)).substring(0, 28),
                                     path: "/"
                                 })
                                     .then(() => {
