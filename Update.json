@@ -3069,6 +3069,17 @@
                 }
             ],
             "Notes": "本版本修复了由于 PHPSESSID 启用了 httpOnly 导致的后台不可用"
+        },
+        "2.4.0": {
+            "UpdateDate": 1758956527554,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 856,
+                    "Description": "修复由于 PHPSESSID 启用了 httpOnly 导致的后台不可用"
+                }
+            ],
+            "Notes": "请尽快升级至本版本！"
         }
     }
 }
