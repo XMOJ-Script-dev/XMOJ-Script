@@ -20,6 +20,7 @@
 // @grant        unsafeWindow
 // @grant        GM_setValue
 // @grant        GM_getValue
+// @grant        GM_cookie
 // @homepage     https://www.xmoj-bbs.me/
 // @supportURL   https://support.xmoj-bbs.me/form/8050213e-c806-4680-b414-0d1c48263677
 // @connect      api.xmoj-bbs.tech
@@ -478,6 +479,20 @@ let RequestAPI = (Action, Data, CallBack) => {
             if (Temp[i].includes("PHPSESSID")) {
                 Session = Temp[i].split("=")[1];
             }
+        }
+        if (Session === "") { //The cookie is httpOnly
+            GM.cookie.set({
+                name: 'PHPSESSID',
+                value: Math.random().toString(36).substring(2, 15),
+                path: "/"
+            })
+                .then(() => {
+                    console.log('Reset PHPSESSID successfully.');
+                    location.reload(); //Refresh the page to auth with the new PHPSESSID
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
         }
         let PostData = {
             "Authentication": {
@@ -1010,7 +1025,17 @@ async function main() {
                             });
                             PopupUL.children[5].addEventListener("click", () => {
                                 clearCredential();
-                                document.cookie = "PHPSESSID=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/"; //This is how you remove a cookie?
+                                GM.cookie.set({
+                                    name: 'PHPSESSID',
+                                    value: Math.random().toString(36).substring(2, 15),
+                                    path: "/"
+                                })
+                                    .then(() => {
+                                        console.log('Reset PHPSESSID successfully.');
+                                    })
+                                    .catch((error) => {
+                                        console.error(error);
+                                    }); //We can no longer rely of the server to set the cookie for us
                                 location.href = "https://www.xmoj.tech/logout.php";
                             });
                             Array.from(PopupUL.children).forEach(item => {
