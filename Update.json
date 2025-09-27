@@ -3058,6 +3058,17 @@
                 }
             ],
             "Notes": "随着 CI 更新, 相信以后的 release 都会有 release notes("
+        },
+        "2.3.1": {
+            "UpdateDate": 1758944205783,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 856,
+                    "Description": "修复由于 PHPSESSID 启用了 httpOnly 导致的后台不可用"
+                }
+            ],
+            "Notes": "本版本修复了由于 PHPSESSID 启用了 httpOnly 导致的后台不可用"
         }
     }
 }
