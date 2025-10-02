@@ -3069,6 +3069,50 @@
                 }
             ],
             "Notes": "本版本修复了由于 PHPSESSID 启用了 httpOnly 导致的后台不可用"
+        },
+        "2.4.0": {
+            "UpdateDate": 1758956527554,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 856,
+                    "Description": "修复由于 PHPSESSID 启用了 httpOnly 导致的后台不可用"
+                }
+            ],
+            "Notes": "请尽快升级至本版本！"
+        },
+        "2.4.1": {
+            "UpdateDate": 1759412851092,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 861,
+                    "Description": "Update CSS selector"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "2.4.2": {
+            "UpdateDate": 1759413584731,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 863,
+                    "Description": "修复“NaN年前“"
+                }
+            ],
+            "Notes": "修复“NaN年前“"
+        },
+        "2.4.3": {
+            "UpdateDate": 1759414259108,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 865,
+                    "Description": "删除获取数据功能"
+                }
+            ],
+            "Notes": "因为它利用的bug被修复了"
         }
     }
 }
