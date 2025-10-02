@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      2.4.1
+// @version      2.4.2
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -81,7 +81,7 @@ let SmartAlert = (Message) => {
  */
 let GetRelativeTime = (Input) => {
     try {
-        Input = new Date(Input);
+        Input = new Date(parseInt(Input));
         let Now = new Date().getTime();
         let Delta = Now - Input.getTime();
         let RelativeName = "";
