@@ -1644,6 +1644,53 @@ async function main() {
                     await RenderMathJax();
                     if (SearchParams.get("cid") != null) {
                         document.getElementsByTagName("h2")[0].innerHTML += " (" + localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + SearchParams.get("pid") + "-PID") + ")";
+                        let ContestProblemList = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-ProblemList");
+                        if (ContestProblemList == null) {
+                            const contestReq = await fetch("https://www.xmoj.tech/contest.php?cid=" + SearchParams.get("cid"));
+                            const res = await contestReq.text();
+                            if (contestReq.status === 200 && res.indexOf("比赛尚未开始或私有，不能查看题目。") === -1) {
+                                const parser = new DOMParser();
+                                const dom = parser.parseFromString(res, "text/html");
+                                const rows = (dom.querySelector("#problemset > tbody")).rows;
+                                let problemList = [];
+                                for (let i = 0; i < rows.length; i++) {
+                                    problemList.push({
+                                        "title": rows[i].children[2].innerText,
+                                        "url": rows[i].children[2].children[0].href
+                                    });
+                                }
+                                localStorage.setItem("UserScript-Contest-" + SearchParams.get("cid") + "-ProblemList", JSON.stringify(problemList));
+                                ContestProblemList = JSON.stringify(problemList);
+                            }
+                        }
+
+                        let problemSwitcher = document.createElement("div");
+                        problemSwitcher.style.position = "fixed";
+                        problemSwitcher.style.top = "50%";
+                        problemSwitcher.style.left = "0";
+                        problemSwitcher.style.transform = "translateY(-50%)";
+                        problemSwitcher.style.width = "auto";
+                        if (document.querySelector("html").getAttribute("data-bs-theme") == "dark") {
+                            problemSwitcher.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
+                        } else {
+                            problemSwitcher.style.backgroundColor = "rgba(255, 255, 255, 0.8)";
+                        }
+                        problemSwitcher.style.padding = "10px";
+                        problemSwitcher.style.borderRadius = "0 10px 10px 0";
+                        problemSwitcher.style.display = "flex";
+                        problemSwitcher.style.flexDirection = "column";
+
+                        let problemList = JSON.parse(ContestProblemList);
+                        for (let i = 0; i < problemList.length; i++) {
+                            let buttonText = "";
+                            if (i < 26) {
+                                buttonText = String.fromCharCode(65 + i);
+                            } else {
+                                buttonText = String.fromCharCode(97 + (i - 26));
+                            }
+                            problemSwitcher.innerHTML += `<a href="${problemList[i].url}" class="btn btn-outline-secondary mb-2">${buttonText}</a>`;
+                        }
+                        document.body.appendChild(problemSwitcher);
                     }
                     if (document.querySelector("body > div > div.mt-3 > h2") != null) {
                         document.querySelector("body > div > div.mt-3").innerHTML = "没有此题目或题目对你不可见";
