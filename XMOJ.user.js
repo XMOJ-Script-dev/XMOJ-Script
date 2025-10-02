@@ -81,7 +81,7 @@ let SmartAlert = (Message) => {
  */
 let GetRelativeTime = (Input) => {
     try {
-        Input = new Date(Input);
+        Input = new Date(parseInt(Input));
         let Now = new Date().getTime();
         let Delta = Now - Input.getTime();
         let RelativeName = "";
