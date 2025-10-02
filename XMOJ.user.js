@@ -1506,6 +1506,8 @@ async function main() {
                         }, {
                             "ID": "RefreshSolution", "Type": "F", "Name": "状态页面结果自动刷新每次只能刷新一个"
                         }, {"ID": "CopyMD", "Type": "A", "Name": "复制题目或题解内容"}, {
+                            "ID": "ProblemSwitcher", "Type": "A", "Name": "比赛题目切换器"
+                        }, {
                             "ID": "OpenAllProblem", "Type": "A", "Name": "比赛题目界面一键打开所有题目"
                         }, {
                             "ID": "CheckCode", "Type": "A", "Name": "提交代码前对代码进行检查", "Children": [{
@@ -1642,7 +1644,7 @@ async function main() {
                     }
                 } else if (location.pathname == "/problem.php") {
                     await RenderMathJax();
-                    if (SearchParams.get("cid") != null) {
+                    if (SearchParams.get("cid") != null && UtilityEnabled("ProblemSwitcher")) {
                         document.getElementsByTagName("h2")[0].innerHTML += " (" + localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + SearchParams.get("pid") + "-PID") + ")";
                         let ContestProblemList = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-ProblemList");
                         if (ContestProblemList == null) {
@@ -1669,7 +1671,8 @@ async function main() {
                         problemSwitcher.style.top = "50%";
                         problemSwitcher.style.left = "0";
                         problemSwitcher.style.transform = "translateY(-50%)";
-                        problemSwitcher.style.width = "auto";
+                        problemSwitcher.style.maxHeight = "80vh";
+                        problemSwitcher.style.overflowY = "auto";
                         if (document.querySelector("html").getAttribute("data-bs-theme") == "dark") {
                             problemSwitcher.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
                         } else {
@@ -1688,7 +1691,11 @@ async function main() {
                             } else {
                                 buttonText = String.fromCharCode(97 + (i - 26));
                             }
-                            problemSwitcher.innerHTML += `<a href="${problemList[i].url}" class="btn btn-outline-secondary mb-2">${buttonText}</a>`;
+                            let activeClass = "";
+                            if (problemList[i].url === location.href) {
+                                activeClass = "active";
+                            }
+                            problemSwitcher.innerHTML += `<a href="${problemList[i].url}" class="btn btn-outline-secondary mb-2 ${activeClass}">${buttonText}</a>`;
                         }
                         document.body.appendChild(problemSwitcher);
                     }
