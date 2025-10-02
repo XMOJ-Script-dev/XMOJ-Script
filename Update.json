@@ -3091,6 +3091,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "2.4.2": {
+            "UpdateDate": 1759413584731,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 863,
+                    "Description": "修复“NaN年前“"
+                }
+            ],
+            "Notes": "修复“NaN年前“"
         }
     }
 }
