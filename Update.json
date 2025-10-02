@@ -3113,6 +3113,17 @@
                 }
             ],
             "Notes": "因为它利用的bug被修复了"
+        },
+        "2.4.4": {
+            "UpdateDate": 1759417362937,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 866,
+                    "Description": "比赛题目页面里左侧栏加入题目序号列表"
+                }
+            ],
+            "Notes": "#860 ..."
         }
     }
 }
