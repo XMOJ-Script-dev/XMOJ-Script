@@ -3080,6 +3080,17 @@
                 }
             ],
             "Notes": "请尽快升级至本版本！"
+        },
+        "2.4.1": {
+            "UpdateDate": 1759412851092,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 861,
+                    "Description": "Update CSS selector"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
