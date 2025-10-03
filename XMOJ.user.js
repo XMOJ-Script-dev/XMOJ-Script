@@ -1726,6 +1726,9 @@ async function main() {
                         if (SubmitLink == null) { //为什么这个破东西老是换位置
                             SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(7)');
                         }
+                        if (SubmitLink == null) { //tmd又换位置
+                            SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(8)');
+                        }
                         let SubmitButton = document.createElement('button');
                         SubmitButton.id = 'SubmitButton';
                         SubmitButton.className = 'btn btn-outline-secondary';
