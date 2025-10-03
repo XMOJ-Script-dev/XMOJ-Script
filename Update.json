@@ -3124,6 +3124,17 @@
                 }
             ],
             "Notes": "#860 ..."
+        },
+        "2.4.5": {
+            "UpdateDate": 1759487413226,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 869,
+                    "Description": "Update CSS selector (again...)"
+                }
+            ],
+            "Notes": "为什么这个破东西老是换位置"
         }
     }
 }

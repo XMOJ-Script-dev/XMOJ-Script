@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      2.4.4
+// @version      2.4.5
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -1725,6 +1725,9 @@ async function main() {
                         }
                         if (SubmitLink == null) { //为什么这个破东西老是换位置
                             SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(7)');
+                        }
+                        if (SubmitLink == null) { //tmd又换位置
+                            SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(8)');
                         }
                         let SubmitButton = document.createElement('button');
                         SubmitButton.id = 'SubmitButton';
