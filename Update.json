@@ -3157,6 +3157,41 @@
                 }
             ],
             "Notes": "funny"
+        },
+        "2.5.0": {
+            "UpdateDate": 1759568103629,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 861,
+                    "Description": "Update CSS selector"
+                },
+                {
+                    "PR": 863,
+                    "Description": "修复“NaN年前“"
+                },
+                {
+                    "PR": 865,
+                    "Description": "删除获取数据功能"
+                },
+                {
+                    "PR": 866,
+                    "Description": "比赛题目页面里左侧栏加入题目序号列表"
+                },
+                {
+                    "PR": 869,
+                    "Description": "Update CSS selector (again...)"
+                },
+                {
+                    "PR": 871,
+                    "Description": "Add tooltip for ProblemSwitcher"
+                },
+                {
+                    "PR": 872,
+                    "Description": "修复获取数据"
+                }
+            ],
+            "Notes": "XMOJ-Script 2.5.0 新增了比赛题目切换器，方便您在题目之间快速切换。此功能默认启用，您也可以在设置中禁用它。本版本还修复了一个导致时间显示为“NaN年前”的错误, 更新了一些 CSS selector，以适应 XMOJ 网站的最新变化."
         }
     }
 }
