@@ -3146,6 +3146,17 @@
                 }
             ],
             "Notes": "现在, 你只需要将鼠标悬浮在比赛题目切换器上方, 即可查看题目名称"
+        },
+        "2.4.7": {
+            "UpdateDate": 1759549826774,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 872,
+                    "Description": "修复获取数据"
+                }
+            ],
+            "Notes": "funny"
         }
     }
 }
