@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      2.4.5
+// @version      2.4.6
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -1695,7 +1695,7 @@ async function main() {
                             if (problemList[i].url === location.href) {
                                 activeClass = "active";
                             }
-                            problemSwitcher.innerHTML += `<a href="${problemList[i].url}" class="btn btn-outline-secondary mb-2 ${activeClass}">${buttonText}</a>`;
+                            problemSwitcher.innerHTML += `<a href="${problemList[i].url}" title="${problemList[i].title.trim()}" class="btn btn-outline-secondary mb-2 ${activeClass}">${buttonText}</a>`;
                         }
                         document.body.appendChild(problemSwitcher);
                     }

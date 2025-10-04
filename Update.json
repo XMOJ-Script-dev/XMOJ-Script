@@ -3135,6 +3135,17 @@
                 }
             ],
             "Notes": "为什么这个破东西老是换位置"
+        },
+        "2.4.6": {
+            "UpdateDate": 1759548958578,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 871,
+                    "Description": "Add tooltip for ProblemSwitcher"
+                }
+            ],
+            "Notes": "现在, 你只需要将鼠标悬浮在比赛题目切换器上方, 即可查看题目名称"
         }
     }
 }
