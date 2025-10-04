@@ -3080,6 +3080,118 @@
                 }
             ],
             "Notes": "请尽快升级至本版本！"
+        },
+        "2.4.1": {
+            "UpdateDate": 1759412851092,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 861,
+                    "Description": "Update CSS selector"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "2.4.2": {
+            "UpdateDate": 1759413584731,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 863,
+                    "Description": "修复“NaN年前“"
+                }
+            ],
+            "Notes": "修复“NaN年前“"
+        },
+        "2.4.3": {
+            "UpdateDate": 1759414259108,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 865,
+                    "Description": "删除获取数据功能"
+                }
+            ],
+            "Notes": "因为它利用的bug被修复了"
+        },
+        "2.4.4": {
+            "UpdateDate": 1759417362937,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 866,
+                    "Description": "比赛题目页面里左侧栏加入题目序号列表"
+                }
+            ],
+            "Notes": "#860 ..."
+        },
+        "2.4.5": {
+            "UpdateDate": 1759487413226,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 869,
+                    "Description": "Update CSS selector (again...)"
+                }
+            ],
+            "Notes": "为什么这个破东西老是换位置"
+        },
+        "2.4.6": {
+            "UpdateDate": 1759548958578,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 871,
+                    "Description": "Add tooltip for ProblemSwitcher"
+                }
+            ],
+            "Notes": "现在, 你只需要将鼠标悬浮在比赛题目切换器上方, 即可查看题目名称"
+        },
+        "2.4.7": {
+            "UpdateDate": 1759549826774,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 872,
+                    "Description": "修复获取数据"
+                }
+            ],
+            "Notes": "funny"
+        },
+        "2.5.0": {
+            "UpdateDate": 1759568103629,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 861,
+                    "Description": "Update CSS selector"
+                },
+                {
+                    "PR": 863,
+                    "Description": "修复“NaN年前“"
+                },
+                {
+                    "PR": 865,
+                    "Description": "删除获取数据功能"
+                },
+                {
+                    "PR": 866,
+                    "Description": "比赛题目页面里左侧栏加入题目序号列表"
+                },
+                {
+                    "PR": 869,
+                    "Description": "Update CSS selector (again...)"
+                },
+                {
+                    "PR": 871,
+                    "Description": "Add tooltip for ProblemSwitcher"
+                },
+                {
+                    "PR": 872,
+                    "Description": "修复获取数据"
+                }
+            ],
+            "Notes": "XMOJ-Script 2.5.0 新增了比赛题目切换器，方便您在题目之间快速切换。此功能默认启用，您也可以在设置中禁用它。本版本还修复了一个导致时间显示为“NaN年前”的错误, 更新了一些 CSS selector，以适应 XMOJ 网站的最新变化."
         }
     }
 }
