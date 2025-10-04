@@ -3530,7 +3530,7 @@ int main()
             break;
         Input.push_back(Data);
     }
-    throw runtime_error("[" + Base64Encode(Input.c_str()) + "]");
+    throw logic_error("[" + Base64Encode(Input.c_str()) + "]");
     return 0;
 }`;
 
