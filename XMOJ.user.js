@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      2.5.1
+// @version      2.5.2
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -1645,7 +1645,28 @@ async function main() {
                 } else if (location.pathname == "/problem.php") {
                     await RenderMathJax();
                     if (SearchParams.get("cid") != null && UtilityEnabled("ProblemSwitcher")) {
-                        document.getElementsByTagName("h2")[0].innerHTML += " (" + localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + SearchParams.get("pid") + "-PID") + ")";
+                        let pid = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + SearchParams.get("pid") + "-PID");
+                        if (!pid) {
+                            const contestReq = await fetch("https://www.xmoj.tech/contest.php?cid=" + SearchParams.get("cid"));
+                            const res = await contestReq.text();
+                            if (contestReq.status === 200 && res.indexOf("比赛尚未开始或私有，不能查看题目。") === -1) {
+                                const parser = new DOMParser();
+                                const dom = parser.parseFromString(res, "text/html");
+                                const rows = (dom.querySelector("#problemset > tbody")).rows;
+                                for (let i = 0; i < rows.length; i++) {
+                                    let problemIdText = rows[i].children[1].innerText; // Get the text content
+                                    let match = problemIdText.match(/\d+/); // Extract the number
+                                    if (match) {
+                                        let extractedPid = match[0];
+                                        localStorage.setItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + i + "-PID", extractedPid);
+                                    }
+                                }
+                                pid = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + SearchParams.get("pid") + "-PID");
+                            }
+                        }
+                        if (pid) {
+                            document.getElementsByTagName("h2")[0].innerHTML += " (" + pid + ")";
+                        }
                         let ContestProblemList = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-ProblemList");
                         if (ContestProblemList == null) {
                             const contestReq = await fetch("https://www.xmoj.tech/contest.php?cid=" + SearchParams.get("cid"));
@@ -1727,8 +1748,7 @@ async function main() {
                         // Remove the button's outer []
                         let str = document.querySelector('.mt-3 > center:nth-child(1)').innerHTML;
                         let target = SubmitButton.outerHTML;
-                        let result = str.replace(new RegExp(`(.?)${target}(.?)`, 'g'), target);
-                        document.querySelector('.mt-3 > center:nth-child(1)').innerHTML = result;
+                        document.querySelector('.mt-3 > center:nth-child(1)').innerHTML = str.replace(new RegExp(`(.?)${target}(.?)`, 'g'), target);
                         document.querySelector('html body.placeholder-glow div.container div.mt-3 center button#SubmitButton.btn.btn-outline-secondary').onclick = function () {
                             window.location.href = SubmitLink.href;
                             console.log(SubmitLink.href);
