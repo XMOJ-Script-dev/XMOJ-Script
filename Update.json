@@ -3203,6 +3203,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "2.5.2": {
+            "UpdateDate": 1759845614758,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 877,
+                    "Description": "fix: problem PID 可能为 null"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
