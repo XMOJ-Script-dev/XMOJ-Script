@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      2.5.0
+// @version      2.5.1
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -1710,25 +1710,8 @@ async function main() {
                             document.querySelector("body > div > div.mt-3 > center").lastElementChild.style.marginLeft = "10px";
                         }
                         //修复提交按钮
-                        let SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(12)');
-                        if (SubmitLink == null) { //a special type of problem
-                            SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(10)');
-                        }
-                        if (SubmitLink == null) {
-                            SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(11)');
-                        }
-                        if (SubmitLink == null) {
-                            SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(13)');
-                        }
-                        if (SubmitLink == null) {
-                            SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(9)');
-                        }
-                        if (SubmitLink == null) { //为什么这个破东西老是换位置
-                            SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(7)');
-                        }
-                        if (SubmitLink == null) { //tmd又换位置
-                            SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(8)');
-                        }
+                        const links = document.querySelectorAll('.mt-3 > center:nth-child(1) > a');
+                        const SubmitLink = Array.from(links).find(a => a.textContent.trim() === '提交');
                         let SubmitButton = document.createElement('button');
                         SubmitButton.id = 'SubmitButton';
                         SubmitButton.className = 'btn btn-outline-secondary';
