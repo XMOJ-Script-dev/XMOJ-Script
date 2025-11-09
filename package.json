@@ -4,7 +4,12 @@
   "description": "an improvement script for xmoj.tech",
   "main": "AddonScript.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint \"**/*.js\" --ignore-pattern \"node_modules/\"",
+    "lint:fix": "eslint \"**/*.js\" --fix --ignore-pattern \"node_modules/\"",
+    "format": "prettier --write \"**/*.{js,json,md,yml,yaml}\"",
+    "format:check": "prettier --check \"**/*.{js,json,md,yml,yaml}\"",
+    "prepare": "husky install"
   },
   "repository": {
     "type": "git",
@@ -18,5 +23,24 @@
   "bugs": {
     "url": "https://github.com/XMOJ-Script-dev/XMOJ-Script/issues"
   },
-  "homepage": "https://github.com/XMOJ-Script-dev/XMOJ-Script#readme"
+  "homepage": "https://github.com/XMOJ-Script-dev/XMOJ-Script#readme",
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-security": "^3.0.1",
+    "globals": "^15.13.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.11",
+    "prettier": "^3.4.2"
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
+  }
 }

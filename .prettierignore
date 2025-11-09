@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build output
+dist/
+build/
+*.min.js
+
+# Generated files
+Update.json
+
+# Backend (separate project)
+backend/
+
+# Images and binary files
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.ico
+*.svg
+*.webp
+
+# Other
+.git/
+.idea/
+.vscode/
+.DS_Store

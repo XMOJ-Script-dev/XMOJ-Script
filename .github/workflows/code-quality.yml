@@ -1,0 +1,41 @@
+name: Code Quality
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+      - extern-contrib
+  pull_request:
+    branches:
+      - main
+      - dev
+      - extern-contrib
+
+jobs:
+  lint:
+    name: Lint and Format Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Check code formatting
+        run: npm run format:check
+
+      - name: Run CodeQL if available
+        continue-on-error: true
+        run: echo "CodeQL analysis runs separately"
