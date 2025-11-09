@@ -2,8 +2,11 @@
   "name": "xmoj-script",
   "version": "2.5.0",
   "description": "an improvement script for xmoj.tech",
-  "main": "AddonScript.js",
+  "type": "module",
+  "main": "dist/XMOJ.user.js",
   "scripts": {
+    "build": "rollup -c",
+    "watch": "rollup -c -w",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -18,5 +21,10 @@
   "bugs": {
     "url": "https://github.com/XMOJ-Script-dev/XMOJ-Script/issues"
   },
-  "homepage": "https://github.com/XMOJ-Script-dev/XMOJ-Script#readme"
+  "homepage": "https://github.com/XMOJ-Script-dev/XMOJ-Script#readme",
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^29.0.0",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "rollup": "^4.53.1"
+  }
 }

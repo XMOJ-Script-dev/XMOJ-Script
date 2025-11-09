@@ -1,0 +1,56 @@
+/**
+ * Main entry point for XMOJ Script
+ * This file imports all utilities and features, then initializes the application
+ */
+
+// Core imports
+import { UtilityEnabled } from './core/config.js';
+import { AdminUserList } from './core/constants.js';
+
+// Utility imports
+import { escapeHTML, PurifyHTML } from './utils/html.js';
+import { SmartAlert } from './utils/alerts.js';
+import { GetRelativeTime, SecondsToString, StringToSeconds, TimeToStringTime } from './utils/time.js';
+import { SizeToStringSize, CodeSizeToStringSize } from './utils/format.js';
+import { compareVersions } from './utils/version.js';
+import { RequestAPI } from './utils/api.js';
+import { storeCredential, getCredential, clearCredential } from './utils/credentials.js';
+import { RenderMathJax } from './utils/mathjax.js';
+import { TidyTable } from './utils/table.js';
+import { GetUserInfo, GetUserBadge, GetUsernameHTML } from './utils/user.js';
+
+// Core application imports
+import { initTheme, NavbarStyler, replaceMarkdownImages, main } from './core/bootstrap.js';
+import { registerMenuCommands } from './core/menu.js';
+
+// Make utilities globally available (for compatibility with inline code)
+window.escapeHTML = escapeHTML;
+window.PurifyHTML = PurifyHTML;
+window.SmartAlert = SmartAlert;
+window.GetRelativeTime = GetRelativeTime;
+window.SecondsToString = SecondsToString;
+window.StringToSeconds = StringToSeconds;
+window.TimeToStringTime = TimeToStringTime;
+window.SizeToStringSize = SizeToStringSize;
+window.CodeSizeToStringSize = CodeSizeToStringSize;
+window.compareVersions = compareVersions;
+window.RequestAPI = RequestAPI;
+window.storeCredential = storeCredential;
+window.getCredential = getCredential;
+window.clearCredential = clearCredential;
+window.RenderMathJax = RenderMathJax;
+window.TidyTable = TidyTable;
+window.GetUserInfo = GetUserInfo;
+window.GetUserBadge = GetUserBadge;
+window.GetUsernameHTML = GetUsernameHTML;
+window.UtilityEnabled = UtilityEnabled;
+window.AdminUserList = AdminUserList;
+
+// Register menu commands
+registerMenuCommands();
+
+// Initialize theme
+initTheme();
+
+// Start the main application
+main();
