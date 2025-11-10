@@ -103,6 +103,12 @@ The following features have been extracted into separate modules under `src/feat
 - **CopySamples** (`copy-samples.js`) - Fixes copy functionality for test samples
 - **CompareSource** (`compare-source.js`) - Side-by-side code comparison with diff highlighting
 - **RemoveUseless** (`remove-useless.js`) - Removes unwanted page elements (marquees, footers, etc.)
+- **ReplaceXM** (`replace-xm.js`) - Replaces "小明" references with "高老师"
+- **ReplaceYN** (`replace-yn.js`) - Replaces Y/N status indicators with symbols (✓/✗/⏳)
+- **AddAnimation** (`add-animation.js`) - Adds CSS transitions to status and test-case elements
+- **AddColorText** (`add-color-text.js`) - Adds CSS classes for colored text (red, green, blue)
+- **SavePassword** (`save-password.js`) - Automatically saves and fills login credentials
+- **RemoveAlerts** (`remove-alerts.js`) - Removes redundant alerts and warnings
 
 ### Feature Extraction Pattern
 
@@ -139,17 +145,16 @@ To extract additional features from `bootstrap.js`:
 
 The following features remain in `bootstrap.js` and can be extracted following the pattern above:
 
-- AddAnimation, AddColorText, AddUnits
+- AddUnits
 - ApplyData, AutoCheat, AutoCountdown, AutoO2, AutoRefresh
 - BBSPopup, CompileError, CopyMD
 - DarkMode (theme already extracted, check for additional code)
 - DebugMode, DownloadPlayback, ExportACCode
 - IOFile, ImproveACRate, LoginFailed, MessagePopup
 - MoreSTD, NewBootstrap, NewDownload, NewTopBar
-- OpenAllProblem, ProblemSwitcher
-- RefreshSolution, RemoveAlerts
-- ReplaceLinks, ReplaceXM, ReplaceYN, ResetType
-- SavePassword, Translate, UploadStd
+- OpenAllProblem, ProblemSwitcher, Rating
+- RefreshSolution, ReplaceLinks, ResetType
+- Translate, UploadStd
 
 ## Development
 

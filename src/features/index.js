@@ -11,6 +11,12 @@ import { init as initDiscussion } from './discussion.js';
 import { init as initCopySamples } from './copy-samples.js';
 import { init as initCompareSource } from './compare-source.js';
 import { init as initRemoveUseless } from './remove-useless.js';
+import { init as initReplaceXM } from './replace-xm.js';
+import { init as initReplaceYN } from './replace-yn.js';
+import { init as initAddAnimation } from './add-animation.js';
+import { init as initAddColorText } from './add-color-text.js';
+import { init as initSavePassword } from './save-password.js';
+import { init as initRemoveAlerts } from './remove-alerts.js';
 
 /**
  * Initialize all feature modules
@@ -33,9 +39,19 @@ export async function initializeFeatures(context) {
 
         // Initialize features that clean up/modify the page
         initRemoveUseless();
+        initRemoveAlerts();
+
+        // Initialize cosmetic/styling features
+        initAddAnimation();
+        initAddColorText();
+
+        // Initialize text replacement features
+        initReplaceXM();
+        initReplaceYN();
 
         // Initialize page-specific features
         initCopySamples();
+        initSavePassword();
         await initCompareSource();
 
         // Initialize complex features that need context
@@ -60,5 +76,11 @@ export function getExtractedFeatures() {
         'CopySamples',
         'CompareSource',
         'RemoveUseless',
+        'ReplaceXM',
+        'ReplaceYN',
+        'AddAnimation',
+        'AddColorText',
+        'SavePassword',
+        'RemoveAlerts',
     ];
 }

@@ -5094,7 +5094,7 @@ int main()
      * Initialize auto login feature
      * Checks if user is logged in and redirects to login page if necessary
      */
-    function init$4() {
+    function init$a() {
         // Only execute if AutoLogin feature is enabled
         if (!UtilityEnabled("AutoLogin")) {
             return;
@@ -5154,7 +5154,7 @@ int main()
      * @param {Function} context.PurifyHTML - Function to sanitize HTML content
      * @param {Function} context.RenderMathJax - Function to render math formulas
      */
-    function init$3(context) {
+    function init$9(context) {
         // Only execute if Discussion feature is enabled
         if (!UtilityEnabled("Discussion")) {
             return;
@@ -6037,7 +6037,7 @@ int main()
      *
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js lines 1226-1244
      */
-    function init$2() {
+    function init$8() {
         // Only execute if CopySamples feature is enabled
         if (!UtilityEnabled("CopySamples")) {
             return;
@@ -6084,7 +6084,7 @@ int main()
      * - Adds a "Compare Submissions" button on problem pages
      * - Creates comparison interface on comparesource.php page
      */
-    async function init$1() {
+    async function init$7() {
         // Only execute if CompareSource feature is enabled
         if (!UtilityEnabled("CompareSource")) {
             return;
@@ -6266,7 +6266,7 @@ int main()
      * - Line 2500-2505: Remove submission child nodes on userinfo page
      * - Line 3209-3211: Remove h2.lang_en on problem_solution page
      */
-    function init() {
+    function init$6() {
         // Only execute if RemoveUseless feature is enabled
         if (!UtilityEnabled("RemoveUseless")) {
             return;
@@ -6325,6 +6325,246 @@ int main()
     }
 
     /**
+     * Replace XM Feature
+     * Replaces "小明" references with "高老师"
+     * Feature ID: ReplaceXM
+     * Type: C (Cosmetic/Fun)
+     * Description: 将"小明"替换为"高老师"
+     */
+
+
+    /**
+     * Initialize ReplaceXM feature
+     * Replaces text content throughout the page:
+     * - "我" -> "高老师"
+     * - "小明" -> "高老师"
+     * - "下海" -> "上海"
+     *
+     * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
+     * - Lines 219-222: Text replacement
+     * - Line 304: Navbar brand text
+     */
+    function init$5() {
+        // Only execute if ReplaceXM feature is enabled
+        if (!UtilityEnabled("ReplaceXM")) {
+            return;
+        }
+
+        // Replace text content throughout the page
+        document.body.innerHTML = String(document.body.innerHTML).replaceAll("我", "高老师");
+        document.body.innerHTML = String(document.body.innerHTML).replaceAll("小明", "高老师");
+        document.body.innerHTML = String(document.body.innerHTML).replaceAll("下海", "上海");
+    }
+
+    /**
+     * Replace YN Feature
+     * Replaces Y/N status indicators with symbols
+     * Feature ID: ReplaceYN
+     * Type: U (Utility)
+     * Description: 将Y/N状态替换为符号
+     */
+
+
+    /**
+     * Initialize ReplaceYN feature
+     * Replaces status text with symbols:
+     * - "Y" (AC/Accepted) -> "✓"
+     * - "N" (WA/Wrong Answer) -> "✗"
+     * - "W" (Waiting) -> "⏳"
+     *
+     * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
+     * - Lines 404-417: Status text replacement
+     */
+    function init$4() {
+        // Only execute if ReplaceYN feature is enabled
+        if (!UtilityEnabled("ReplaceYN")) {
+            return;
+        }
+
+        // Replace AC (Accepted) status
+        let elements = document.getElementsByClassName("status_y");
+        for (let i = 0; i < elements.length; i++) {
+            elements[i].innerText = "✓";
+        }
+
+        // Replace WA (Wrong Answer) status
+        elements = document.getElementsByClassName("status_n");
+        for (let i = 0; i < elements.length; i++) {
+            elements[i].innerText = "✗";
+        }
+
+        // Replace Waiting status
+        elements = document.getElementsByClassName("status_w");
+        for (let i = 0; i < elements.length; i++) {
+            elements[i].innerText = "⏳";
+        }
+    }
+
+    /**
+     * Add Animation Feature
+     * Adds CSS transitions to status and test-case elements
+     * Feature ID: AddAnimation
+     * Type: C (Cosmetic)
+     * Description: 为状态和测试用例元素添加动画
+     */
+
+
+    /**
+     * Initialize AddAnimation feature
+     * Adds smooth transitions to status and test-case elements
+     *
+     * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
+     * - Lines 381-384: Animation CSS
+     */
+    function init$3() {
+        // Only execute if AddAnimation feature is enabled
+        if (!UtilityEnabled("AddAnimation")) {
+            return;
+        }
+
+        // Add CSS for animations
+        const style = document.createElement('style');
+        style.innerHTML = `.status, .test-case {
+        transition: 0.5s !important;
+    }`;
+        document.head.appendChild(style);
+    }
+
+    /**
+     * Add Color Text Feature
+     * Adds CSS classes for colored text (red, green, blue)
+     * Feature ID: AddColorText
+     * Type: U (Utility)
+     * Description: 添加彩色文本CSS类
+     */
+
+
+    /**
+     * Initialize AddColorText feature
+     * Adds CSS classes for red, green, and blue text
+     *
+     * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
+     * - Lines 386-395: Color text CSS
+     */
+    function init$2() {
+        // Only execute if AddColorText feature is enabled
+        if (!UtilityEnabled("AddColorText")) {
+            return;
+        }
+
+        // Add CSS for colored text classes
+        const style = document.createElement('style');
+        style.innerHTML = `.red {
+        color: red !important;
+    }
+    .green {
+        color: green !important;
+    }
+    .blue {
+        color: blue !important;
+    }`;
+        document.head.appendChild(style);
+    }
+
+    /**
+     * Save Password Feature
+     * Automatically saves and fills login credentials
+     * Feature ID: SavePassword
+     * Type: U (Utility)
+     * Description: 自动保存和填充登录凭据
+     */
+
+
+    /**
+     * Initialize SavePassword feature
+     * Sets up auto-fill on login page when credentials are available
+     *
+     * Note: This feature also integrates with the login handler to:
+     * - Save credentials after successful login
+     * - Clear credentials after failed login
+     *
+     * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
+     * - Lines 2841-2843: Save credentials on success
+     * - Lines 2850-2852: Clear credentials on failure
+     * - Lines 2867-2876: Auto-fill and auto-submit login form
+     */
+    function init$1() {
+        // Only execute on login page
+        if (location.pathname !== "/loginpage.php") {
+            return;
+        }
+
+        // Only execute if SavePassword feature is enabled
+        if (!UtilityEnabled("SavePassword")) {
+            return;
+        }
+
+        // Auto-fill login form with saved credentials
+        (async () => {
+            // Wait a bit for the page to be ready
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            const credential = await getCredential$1();
+            if (credential) {
+                const usernameInput = document.querySelector("#login > div:nth-child(1) > div > input");
+                const passwordInput = document.querySelector("#login > div:nth-child(2) > div > input");
+                const loginButton = document.getElementsByName("submit")[0];
+
+                if (usernameInput && passwordInput && loginButton) {
+                    usernameInput.value = credential.id;
+                    passwordInput.value = credential.password;
+                    loginButton.click();
+                }
+            }
+        })();
+    }
+
+    /**
+     * Remove Alerts Feature
+     * Removes redundant alerts and warnings
+     * Feature ID: RemoveAlerts
+     * Type: D (Debug/Development)
+     * Description: 去除多余反复的提示
+     */
+
+
+    /**
+     * Initialize RemoveAlerts feature
+     * Modifies contest links to bypass "contest not started" alerts
+     *
+     * On contest pages, when the contest hasn't started yet, this feature
+     * changes the link to point directly to start_contest.php, bypassing
+     * the alert that would normally prevent access.
+     *
+     * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
+     * - Lines 1666-1667: Modify contest start link
+     */
+    function init() {
+        // Only execute if RemoveAlerts feature is enabled
+        if (!UtilityEnabled("RemoveAlerts")) {
+            return;
+        }
+
+        // Only execute on contest pages
+        if (location.pathname !== "/contest.php") {
+            return;
+        }
+
+        // Check if contest hasn't started yet
+        const centerElement = document.querySelector("body > div > div.mt-3 > center");
+        if (centerElement && centerElement.innerHTML.indexOf("尚未开始比赛") !== -1) {
+            const contestLink = document.querySelector("body > div > div.mt-3 > center > a");
+            const searchParams = new URLSearchParams(location.search);
+            const cid = searchParams.get("cid");
+
+            if (contestLink && cid) {
+                // Modify link to bypass alert
+                contestLink.setAttribute("href", `start_contest.php?cid=${cid}`);
+            }
+        }
+    }
+
+    /**
      * Feature loader - Initializes all extracted feature modules
      *
      * This module provides a centralized way to initialize all feature modules.
@@ -6350,14 +6590,24 @@ int main()
     async function initializeFeatures(context) {
         try {
             // Initialize features that need to run early (before main page load)
-            init$4();
+            init$a();
 
             // Initialize features that clean up/modify the page
+            init$6();
             init();
 
-            // Initialize page-specific features
+            // Initialize cosmetic/styling features
+            init$3();
             init$2();
-            await init$1();
+
+            // Initialize text replacement features
+            init$5();
+            init$4();
+
+            // Initialize page-specific features
+            init$8();
+            init$1();
+            await init$7();
 
             // Initialize complex features that need context
             if (context) ;
@@ -6379,6 +6629,12 @@ int main()
             'CopySamples',
             'CompareSource',
             'RemoveUseless',
+            'ReplaceXM',
+            'ReplaceYN',
+            'AddAnimation',
+            'AddColorText',
+            'SavePassword',
+            'RemoveAlerts',
         ];
     }
 
