@@ -20,6 +20,10 @@ import { init as initRemoveAlerts } from './remove-alerts.js';
 import { init as initReplaceLinks } from './replace-links.js';
 import { init as initAutoO2 } from './auto-o2.js';
 import { init as initTranslate } from './translate.js';
+import { init as initAutoCountdown } from './auto-countdown.js';
+import { init as initMoreSTD } from './more-std.js';
+import { init as initExportACCode } from './export-ac-code.js';
+import { init as initOpenAllProblem } from './open-all-problem.js';
 
 /**
  * Initialize all feature modules
@@ -54,10 +58,16 @@ export async function initializeFeatures(context) {
         initReplaceLinks();
         initTranslate();
 
+        // Initialize utility features
+        initAutoCountdown();
+        initMoreSTD();
+        initOpenAllProblem();
+
         // Initialize page-specific features
         initCopySamples();
         initSavePassword();
         initAutoO2();
+        initExportACCode();
         await initCompareSource();
 
         // Initialize complex features that need context
@@ -91,5 +101,9 @@ export function getExtractedFeatures() {
         'ReplaceLinks',
         'AutoO2',
         'Translate',
+        'AutoCountdown',
+        'MoreSTD',
+        'ExportACCode',
+        'OpenAllProblem',
     ];
 }

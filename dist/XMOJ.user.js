@@ -5094,7 +5094,7 @@ int main()
      * Initialize auto login feature
      * Checks if user is logged in and redirects to login page if necessary
      */
-    function init$d() {
+    function init$h() {
         // Only execute if AutoLogin feature is enabled
         if (!UtilityEnabled("AutoLogin")) {
             return;
@@ -5154,7 +5154,7 @@ int main()
      * @param {Function} context.PurifyHTML - Function to sanitize HTML content
      * @param {Function} context.RenderMathJax - Function to render math formulas
      */
-    function init$c(context) {
+    function init$g(context) {
         // Only execute if Discussion feature is enabled
         if (!UtilityEnabled("Discussion")) {
             return;
@@ -6037,7 +6037,7 @@ int main()
      *
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js lines 1226-1244
      */
-    function init$b() {
+    function init$f() {
         // Only execute if CopySamples feature is enabled
         if (!UtilityEnabled("CopySamples")) {
             return;
@@ -6084,7 +6084,7 @@ int main()
      * - Adds a "Compare Submissions" button on problem pages
      * - Creates comparison interface on comparesource.php page
      */
-    async function init$a() {
+    async function init$e() {
         // Only execute if CompareSource feature is enabled
         if (!UtilityEnabled("CompareSource")) {
             return;
@@ -6266,7 +6266,7 @@ int main()
      * - Line 2500-2505: Remove submission child nodes on userinfo page
      * - Line 3209-3211: Remove h2.lang_en on problem_solution page
      */
-    function init$9() {
+    function init$d() {
         // Only execute if RemoveUseless feature is enabled
         if (!UtilityEnabled("RemoveUseless")) {
             return;
@@ -6344,7 +6344,7 @@ int main()
      * - Lines 219-222: Text replacement
      * - Line 304: Navbar brand text
      */
-    function init$8() {
+    function init$c() {
         // Only execute if ReplaceXM feature is enabled
         if (!UtilityEnabled("ReplaceXM")) {
             return;
@@ -6375,7 +6375,7 @@ int main()
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
      * - Lines 404-417: Status text replacement
      */
-    function init$7() {
+    function init$b() {
         // Only execute if ReplaceYN feature is enabled
         if (!UtilityEnabled("ReplaceYN")) {
             return;
@@ -6416,7 +6416,7 @@ int main()
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
      * - Lines 381-384: Animation CSS
      */
-    function init$6() {
+    function init$a() {
         // Only execute if AddAnimation feature is enabled
         if (!UtilityEnabled("AddAnimation")) {
             return;
@@ -6446,7 +6446,7 @@ int main()
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
      * - Lines 386-395: Color text CSS
      */
-    function init$5() {
+    function init$9() {
         // Only execute if AddColorText feature is enabled
         if (!UtilityEnabled("AddColorText")) {
             return;
@@ -6488,7 +6488,7 @@ int main()
      * - Lines 2850-2852: Clear credentials on failure
      * - Lines 2867-2876: Auto-fill and auto-submit login form
      */
-    function init$4() {
+    function init$8() {
         // Only execute on login page
         if (location.pathname !== "/loginpage.php") {
             return;
@@ -6539,7 +6539,7 @@ int main()
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
      * - Lines 1666-1667: Modify contest start link
      */
-    function init$3() {
+    function init$7() {
         // Only execute if RemoveAlerts feature is enabled
         if (!UtilityEnabled("RemoveAlerts")) {
             return;
@@ -6584,7 +6584,7 @@ int main()
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
      * - Lines 216-218: Link to button replacement
      */
-    function init$2() {
+    function init$6() {
         // Only execute if ReplaceLinks feature is enabled
         if (!UtilityEnabled("ReplaceLinks")) {
             return;
@@ -6613,7 +6613,7 @@ int main()
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
      * - Lines 2020-2022: Auto-check O2 flag
      */
-    function init$1() {
+    function init$5() {
         // Only execute if AutoO2 feature is enabled
         if (!UtilityEnabled("AutoO2")) {
             return;
@@ -6656,7 +6656,7 @@ int main()
      * - Lines 1073-1078: Problemset page translations
      * - Lines 1611-1617: Contest page translations
      */
-    function init() {
+    function init$4() {
         // Only execute if Translate feature is enabled
         if (!UtilityEnabled("Translate")) {
             return;
@@ -6741,6 +6741,342 @@ int main()
     }
 
     /**
+     * Auto Countdown Feature
+     * Automatically updates countdown timers on the page
+     * Feature ID: AutoCountdown
+     * Type: U (Utility)
+     * Description: 自动更新页面上的倒计时器
+     */
+
+
+    /**
+     * Initialize AutoCountdown feature
+     * Updates countdown timers with class "UpdateByJS" and reloads page when time expires
+     *
+     * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
+     * - Lines 547-566: Countdown timer update logic
+     * - Lines 1592-1594: Disables default clock on contest page
+     */
+    function init$3() {
+        // Only execute if AutoCountdown feature is enabled
+        if (!UtilityEnabled("AutoCountdown")) {
+            return;
+        }
+
+        // Disable default clock on contest page
+        if (location.pathname === "/contest.php") {
+            window.clock = () => {};
+        }
+
+        // Update countdown timers
+        const updateCountdowns = () => {
+            const elements = document.getElementsByClassName("UpdateByJS");
+
+            for (let i = 0; i < elements.length; i++) {
+                const endTime = elements[i].getAttribute("EndTime");
+
+                if (endTime === null) {
+                    elements[i].classList.remove("UpdateByJS");
+                    continue;
+                }
+
+                const timeStamp = parseInt(endTime) - new Date().getTime();
+
+                // Reload page when countdown expires
+                if (timeStamp < 3000) {
+                    elements[i].classList.remove("UpdateByJS");
+                    location.reload();
+                }
+
+                // Calculate remaining time
+                const currentDate = new Date(timeStamp);
+                const day = parseInt((timeStamp / 1000 / 60 / 60 / 24).toFixed(0));
+                const hour = currentDate.getUTCHours();
+                const minute = currentDate.getUTCMinutes();
+                const second = currentDate.getUTCSeconds();
+
+                // Format and display countdown
+                elements[i].innerHTML =
+                    (day !== 0 ? day + "天" : "") +
+                    (hour !== 0 ? (hour < 10 ? "0" : "") + hour + "小时" : "") +
+                    (minute !== 0 ? (minute < 10 ? "0" : "") + minute + "分" : "") +
+                    (second !== 0 ? (second < 10 ? "0" : "") + second + "秒" : "");
+            }
+        };
+
+        // Initial update
+        updateCountdowns();
+
+        // Update every second
+        setInterval(updateCountdowns, 1000);
+    }
+
+    /**
+     * More STD Feature
+     * Adds standard solution links to contest problem tables
+     * Feature ID: MoreSTD
+     * Type: U (Utility)
+     * Description: 在比赛题目表格中添加标程链接
+     */
+
+
+    /**
+     * Initialize MoreSTD feature
+     * Reorganizes contest problem table to add standard solution links
+     *
+     * This feature:
+     * 1. Removes any existing "标程" column
+     * 2. Adds a new "标程" column header
+     * 3. Adds links to standard solutions for each problem
+     *
+     * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
+     * - Lines 1699-1717: Standard solution column management
+     */
+    function init$2() {
+        // Only execute if MoreSTD feature is enabled
+        if (!UtilityEnabled("MoreSTD")) {
+            return;
+        }
+
+        // Only execute on contest pages
+        if (location.pathname !== "/contest.php") {
+            return;
+        }
+
+        // Check if we're in a contest with problem list
+        const searchParams = new URLSearchParams(location.search);
+        if (!searchParams.get("cid")) {
+            return;
+        }
+
+        // Wait for page to be ready
+        setTimeout(() => {
+            try {
+                const tableHeader = document.querySelector("#problemset > thead > tr");
+
+                // Only proceed if table exists and has "标程" column
+                if (!tableHeader || tableHeader.innerHTML.indexOf("标程") === -1) {
+                    return;
+                }
+
+                // Remove existing "标程" column
+                let headerCells = tableHeader.children;
+                for (let i = 0; i < headerCells.length; i++) {
+                    if (headerCells[i].innerText === "标程") {
+                        headerCells[i].remove();
+
+                        // Remove corresponding cells from each row
+                        const bodyRows = document.querySelector("#problemset > tbody").children;
+                        for (let j = 0; j < bodyRows.length; j++) {
+                            if (bodyRows[j].children[i] !== undefined) {
+                                bodyRows[j].children[i].remove();
+                            }
+                        }
+                    }
+                }
+
+                // Add new "标程" column header
+                tableHeader.innerHTML += '<td width="5%">标程</td>';
+
+                // Add standard solution links for each problem
+                const bodyRows = document.querySelector("#problemset > tbody").children;
+                const cid = Number(searchParams.get("cid"));
+
+                for (let i = 0; i < bodyRows.length; i++) {
+                    bodyRows[i].innerHTML +=
+                        `<td><a href="https://www.xmoj.tech/problem_std.php?cid=${cid}&pid=${i}" target="_blank">打开</a></td>`;
+                }
+            } catch (error) {
+                console.error('[MoreSTD] Error adding standard solution links:', error);
+            }
+        }, 100);
+    }
+
+    /**
+     * Export AC Code Feature
+     * Exports all accepted code solutions as a ZIP file
+     * Feature ID: ExportACCode
+     * Type: U (Utility)
+     * Description: 导出所有AC代码为ZIP文件
+     */
+
+
+    /**
+     * Initialize ExportACCode feature
+     * Adds a button to export all accepted code solutions
+     *
+     * This feature:
+     * 1. Adds an "导出AC代码" button to the user page
+     * 2. Fetches all AC code from export_ac_code.php
+     * 3. Creates a ZIP file with all accepted solutions
+     * 4. Uses JSZip library for compression
+     *
+     * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
+     * - Lines 2445-2495: Export AC code button and logic
+     */
+    function init$1() {
+        // Only execute if ExportACCode feature is enabled
+        if (!UtilityEnabled("ExportACCode")) {
+            return;
+        }
+
+        // Only execute on user information page
+        if (location.pathname !== "/userinfo.php") {
+            return;
+        }
+
+        // Wait for page to be ready
+        setTimeout(() => {
+            try {
+                const container = document.querySelector("body > div.container > div");
+                if (!container) return;
+
+                // Create export button
+                const exportButton = document.createElement("button");
+                container.appendChild(exportButton);
+                exportButton.innerText = "导出AC代码";
+                exportButton.className = "btn btn-outline-secondary";
+
+                // Add click handler
+                exportButton.addEventListener("click", () => {
+                    exportButton.disabled = true;
+                    exportButton.innerText = "正在导出...";
+
+                    const request = new XMLHttpRequest();
+                    request.addEventListener("readystatechange", () => {
+                        if (request.readyState === 4) {
+                            if (request.status === 200) {
+                                const response = request.responseText;
+                                const acCode = response.split("------------------------------------------------------\r\n");
+
+                                // Load JSZip library
+                                const scriptElement = document.createElement("script");
+                                scriptElement.src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
+                                document.head.appendChild(scriptElement);
+
+                                scriptElement.onload = () => {
+                                    const zip = new JSZip();
+
+                                    // Add each AC code file to ZIP
+                                    for (let i = 0; i < acCode.length; i++) {
+                                        let currentCode = acCode[i];
+                                        if (currentCode !== "") {
+                                            const currentQuestionID = currentCode.substring(7, 11);
+                                            currentCode = currentCode.substring(14);
+                                            currentCode = currentCode.replaceAll("\r", "");
+                                            zip.file(currentQuestionID + ".cpp", currentCode);
+                                        }
+                                    }
+
+                                    exportButton.innerText = "正在生成压缩包……";
+                                    zip.generateAsync({ type: "blob" })
+                                        .then((content) => {
+                                            saveAs(content, "ACCodes.zip");
+                                            exportButton.innerText = "AC代码导出成功";
+                                            exportButton.disabled = false;
+                                            setTimeout(() => {
+                                                exportButton.innerText = "导出AC代码";
+                                            }, 1000);
+                                        });
+                                };
+                            } else {
+                                exportButton.disabled = false;
+                                exportButton.innerText = "AC代码导出失败";
+                                setTimeout(() => {
+                                    exportButton.innerText = "导出AC代码";
+                                }, 1000);
+                            }
+                        }
+                    });
+
+                    request.open("GET", "https://www.xmoj.tech/export_ac_code.php", true);
+                    request.send();
+                });
+            } catch (error) {
+                console.error('[ExportACCode] Error initializing export button:', error);
+            }
+        }, 100);
+    }
+
+    /**
+     * Open All Problem Feature
+     * Adds buttons to open all problems or only unsolved problems in new tabs
+     * Feature ID: OpenAllProblem
+     * Type: U (Utility)
+     * Description: 添加按钮以在新标签页中打开所有题目或仅未解决的题目
+     */
+
+
+    /**
+     * Initialize OpenAllProblem feature
+     * Adds two buttons to contest pages:
+     * 1. "打开全部题目" - Opens all contest problems in new tabs
+     * 2. "打开未解决题目" - Opens only unsolved problems in new tabs
+     *
+     * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
+     * - Lines 1817-1841: Open all problem buttons
+     */
+    function init() {
+        // Only execute if OpenAllProblem feature is enabled
+        if (!UtilityEnabled("OpenAllProblem")) {
+            return;
+        }
+
+        // Only execute on contest pages with problem list
+        if (location.pathname !== "/contest.php") {
+            return;
+        }
+
+        const searchParams = new URLSearchParams(location.search);
+        if (!searchParams.get("cid")) {
+            return;
+        }
+
+        // Wait for page to be ready
+        setTimeout(() => {
+            try {
+                // Find or create container for buttons
+                let cheatDiv = document.querySelector("#CheatDiv");
+                if (!cheatDiv) {
+                    return;
+                }
+
+                // Create "Open All Problems" button
+                const openAllButton = document.createElement("button");
+                openAllButton.className = "btn btn-outline-secondary";
+                openAllButton.innerText = "打开全部题目";
+                openAllButton.style.marginRight = "5px";
+                cheatDiv.appendChild(openAllButton);
+
+                openAllButton.addEventListener("click", () => {
+                    const rows = document.querySelector("#problemset > tbody").rows;
+                    for (let i = 0; i < rows.length; i++) {
+                        open(rows[i].children[2].children[0].href, "_blank");
+                    }
+                });
+
+                // Create "Open Unsolved Problems" button
+                const openUnsolvedButton = document.createElement("button");
+                openUnsolvedButton.className = "btn btn-outline-secondary";
+                openUnsolvedButton.innerText = "打开未解决题目";
+                cheatDiv.appendChild(openUnsolvedButton);
+
+                openUnsolvedButton.addEventListener("click", () => {
+                    const rows = document.querySelector("#problemset > tbody").rows;
+                    for (let i = 0; i < rows.length; i++) {
+                        // Only open problems that are not marked as solved (status_y)
+                        if (!rows[i].children[0].children[0].classList.contains("status_y")) {
+                            open(rows[i].children[2].children[0].href, "_blank");
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('[OpenAllProblem] Error initializing buttons:', error);
+            }
+        }, 100);
+    }
+
+    /**
      * Feature loader - Initializes all extracted feature modules
      *
      * This module provides a centralized way to initialize all feature modules.
@@ -6766,27 +7102,33 @@ int main()
     async function initializeFeatures(context) {
         try {
             // Initialize features that need to run early (before main page load)
-            init$d();
+            init$h();
 
             // Initialize features that clean up/modify the page
-            init$9();
-            init$3();
+            init$d();
+            init$7();
 
             // Initialize cosmetic/styling features
-            init$6();
-            init$5();
+            init$a();
+            init$9();
 
             // Initialize text replacement features
-            init$8();
-            init$7();
+            init$c();
+            init$b();
+            init$6();
+            init$4();
+
+            // Initialize utility features
+            init$3();
             init$2();
             init();
 
             // Initialize page-specific features
-            init$b();
-            init$4();
+            init$f();
+            init$8();
+            init$5();
             init$1();
-            await init$a();
+            await init$e();
 
             // Initialize complex features that need context
             if (context) ;
@@ -6817,6 +7159,10 @@ int main()
             'ReplaceLinks',
             'AutoO2',
             'Translate',
+            'AutoCountdown',
+            'MoreSTD',
+            'ExportACCode',
+            'OpenAllProblem',
         ];
     }
 
