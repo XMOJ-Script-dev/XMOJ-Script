@@ -17,6 +17,9 @@ import { init as initAddAnimation } from './add-animation.js';
 import { init as initAddColorText } from './add-color-text.js';
 import { init as initSavePassword } from './save-password.js';
 import { init as initRemoveAlerts } from './remove-alerts.js';
+import { init as initReplaceLinks } from './replace-links.js';
+import { init as initAutoO2 } from './auto-o2.js';
+import { init as initTranslate } from './translate.js';
 
 /**
  * Initialize all feature modules
@@ -48,10 +51,13 @@ export async function initializeFeatures(context) {
         // Initialize text replacement features
         initReplaceXM();
         initReplaceYN();
+        initReplaceLinks();
+        initTranslate();
 
         // Initialize page-specific features
         initCopySamples();
         initSavePassword();
+        initAutoO2();
         await initCompareSource();
 
         // Initialize complex features that need context
@@ -82,5 +88,8 @@ export function getExtractedFeatures() {
         'AddColorText',
         'SavePassword',
         'RemoveAlerts',
+        'ReplaceLinks',
+        'AutoO2',
+        'Translate',
     ];
 }

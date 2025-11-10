@@ -5094,7 +5094,7 @@ int main()
      * Initialize auto login feature
      * Checks if user is logged in and redirects to login page if necessary
      */
-    function init$a() {
+    function init$d() {
         // Only execute if AutoLogin feature is enabled
         if (!UtilityEnabled("AutoLogin")) {
             return;
@@ -5154,7 +5154,7 @@ int main()
      * @param {Function} context.PurifyHTML - Function to sanitize HTML content
      * @param {Function} context.RenderMathJax - Function to render math formulas
      */
-    function init$9(context) {
+    function init$c(context) {
         // Only execute if Discussion feature is enabled
         if (!UtilityEnabled("Discussion")) {
             return;
@@ -6037,7 +6037,7 @@ int main()
      *
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js lines 1226-1244
      */
-    function init$8() {
+    function init$b() {
         // Only execute if CopySamples feature is enabled
         if (!UtilityEnabled("CopySamples")) {
             return;
@@ -6084,7 +6084,7 @@ int main()
      * - Adds a "Compare Submissions" button on problem pages
      * - Creates comparison interface on comparesource.php page
      */
-    async function init$7() {
+    async function init$a() {
         // Only execute if CompareSource feature is enabled
         if (!UtilityEnabled("CompareSource")) {
             return;
@@ -6266,7 +6266,7 @@ int main()
      * - Line 2500-2505: Remove submission child nodes on userinfo page
      * - Line 3209-3211: Remove h2.lang_en on problem_solution page
      */
-    function init$6() {
+    function init$9() {
         // Only execute if RemoveUseless feature is enabled
         if (!UtilityEnabled("RemoveUseless")) {
             return;
@@ -6344,7 +6344,7 @@ int main()
      * - Lines 219-222: Text replacement
      * - Line 304: Navbar brand text
      */
-    function init$5() {
+    function init$8() {
         // Only execute if ReplaceXM feature is enabled
         if (!UtilityEnabled("ReplaceXM")) {
             return;
@@ -6375,7 +6375,7 @@ int main()
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
      * - Lines 404-417: Status text replacement
      */
-    function init$4() {
+    function init$7() {
         // Only execute if ReplaceYN feature is enabled
         if (!UtilityEnabled("ReplaceYN")) {
             return;
@@ -6416,7 +6416,7 @@ int main()
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
      * - Lines 381-384: Animation CSS
      */
-    function init$3() {
+    function init$6() {
         // Only execute if AddAnimation feature is enabled
         if (!UtilityEnabled("AddAnimation")) {
             return;
@@ -6446,7 +6446,7 @@ int main()
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
      * - Lines 386-395: Color text CSS
      */
-    function init$2() {
+    function init$5() {
         // Only execute if AddColorText feature is enabled
         if (!UtilityEnabled("AddColorText")) {
             return;
@@ -6488,7 +6488,7 @@ int main()
      * - Lines 2850-2852: Clear credentials on failure
      * - Lines 2867-2876: Auto-fill and auto-submit login form
      */
-    function init$1() {
+    function init$4() {
         // Only execute on login page
         if (location.pathname !== "/loginpage.php") {
             return;
@@ -6539,7 +6539,7 @@ int main()
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
      * - Lines 1666-1667: Modify contest start link
      */
-    function init() {
+    function init$3() {
         // Only execute if RemoveAlerts feature is enabled
         if (!UtilityEnabled("RemoveAlerts")) {
             return;
@@ -6561,6 +6561,182 @@ int main()
                 // Modify link to bypass alert
                 contestLink.setAttribute("href", `start_contest.php?cid=${cid}`);
             }
+        }
+    }
+
+    /**
+     * Replace Links Feature
+     * Replaces bracketed links with styled buttons
+     * Feature ID: ReplaceLinks
+     * Type: F (Format/UI)
+     * Description: 将网站中所有以方括号包装的链接替换为按钮
+     */
+
+
+    /**
+     * Initialize ReplaceLinks feature
+     * Replaces all links in format [<a href="...">text</a>] with styled buttons
+     *
+     * Example transformation:
+     * [<a href="/problem.php?id=1001">Problem 1001</a>]
+     * -> <button onclick="location.href='/problem.php?id=1001'" class="btn btn-outline-secondary">Problem 1001</button>
+     *
+     * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
+     * - Lines 216-218: Link to button replacement
+     */
+    function init$2() {
+        // Only execute if ReplaceLinks feature is enabled
+        if (!UtilityEnabled("ReplaceLinks")) {
+            return;
+        }
+
+        // Replace all bracketed links with buttons
+        document.body.innerHTML = String(document.body.innerHTML).replaceAll(
+            /\[<a href="([^"]*)">([^<]*)<\/a>\]/g,
+            '<button onclick="location.href=\'$1\'" class="btn btn-outline-secondary">$2</button>'
+        );
+    }
+
+    /**
+     * Auto O2 Feature
+     * Automatically enables O2 optimization flag for code submissions
+     * Feature ID: AutoO2
+     * Type: U (Utility)
+     * Description: 自动启用O2编译优化标志
+     */
+
+
+    /**
+     * Initialize AutoO2 feature
+     * Automatically checks the "Enable O2" checkbox on problem submission pages
+     *
+     * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
+     * - Lines 2020-2022: Auto-check O2 flag
+     */
+    function init$1() {
+        // Only execute if AutoO2 feature is enabled
+        if (!UtilityEnabled("AutoO2")) {
+            return;
+        }
+
+        // Only execute on problem pages
+        if (location.pathname !== "/problem.php") {
+            return;
+        }
+
+        // Wait a bit for the page to be ready
+        setTimeout(() => {
+            const o2Checkbox = document.querySelector("#enable_O2");
+            if (o2Checkbox) {
+                o2Checkbox.checked = true;
+            }
+        }, 100);
+    }
+
+    /**
+     * Translate Feature
+     * Translates English text to Chinese throughout the site
+     * Feature ID: Translate
+     * Type: F (Format/UI)
+     * Description: 统一使用中文，翻译了部分英文
+     */
+
+
+    /**
+     * Initialize Translate feature
+     * Translates various English UI elements to Chinese based on current page
+     *
+     * Translations include:
+     * - Navbar: "Problems" -> "题库"
+     * - Problem set page: Form placeholders and table headers
+     * - Contest page: Table headers
+     *
+     * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
+     * - Lines 211-213: Navbar translation
+     * - Lines 1073-1078: Problemset page translations
+     * - Lines 1611-1617: Contest page translations
+     */
+    function init() {
+        // Only execute if Translate feature is enabled
+        if (!UtilityEnabled("Translate")) {
+            return;
+        }
+
+        const pathname = location.pathname;
+
+        // Translate navbar (on all pages)
+        translateNavbar();
+
+        // Page-specific translations
+        if (pathname === "/problemset.php") {
+            translateProblemsetPage();
+        } else if (pathname === "/contest.php") {
+            translateContestPage();
+        }
+    }
+
+    /**
+     * Translate navbar elements
+     */
+    function translateNavbar() {
+        try {
+            const problemsLink = document.querySelector("#navbar > ul:nth-child(1) > li:nth-child(2) > a");
+            if (problemsLink) {
+                problemsLink.innerText = "题库";
+            }
+        } catch (e) {
+            console.error('[Translate] Error translating navbar:', e);
+        }
+    }
+
+    /**
+     * Translate problemset page elements
+     */
+    function translateProblemsetPage() {
+        try {
+            // Translate search form placeholders and buttons
+            const problemIdInput = document.querySelector("body > div > div.mt-3 > center > table:nth-child(2) > tbody > tr > td:nth-child(2) > form > input");
+            if (problemIdInput) {
+                problemIdInput.placeholder = "题目编号";
+            }
+
+            const confirmButton = document.querySelector("body > div > div.mt-3 > center > table:nth-child(2) > tbody > tr > td:nth-child(2) > form > button");
+            if (confirmButton) {
+                confirmButton.innerText = "确认";
+            }
+
+            const searchInput = document.querySelector("body > div > div.mt-3 > center > table:nth-child(2) > tbody > tr > td:nth-child(3) > form > input");
+            if (searchInput) {
+                searchInput.placeholder = "标题或内容";
+            }
+
+            // Translate table header
+            const statusHeader = document.querySelector("#problemset > thead > tr > th:nth-child(1)");
+            if (statusHeader) {
+                statusHeader.innerText = "状态";
+            }
+        } catch (e) {
+            console.error('[Translate] Error translating problemset page:', e);
+        }
+    }
+
+    /**
+     * Translate contest page table headers
+     */
+    function translateContestPage() {
+        try {
+            const tableHeader = document.querySelector("body > div > div.mt-3 > center > table > thead > tr");
+            if (tableHeader && tableHeader.childNodes.length >= 4) {
+                tableHeader.childNodes[0].innerText = "编号";
+                tableHeader.childNodes[1].innerText = "标题";
+                tableHeader.childNodes[2].innerText = "状态";
+                tableHeader.childNodes[3].remove();
+                if (tableHeader.childNodes[3]) {
+                    tableHeader.childNodes[3].innerText = "创建者";
+                }
+            }
+        } catch (e) {
+            console.error('[Translate] Error translating contest page:', e);
         }
     }
 
@@ -6590,24 +6766,27 @@ int main()
     async function initializeFeatures(context) {
         try {
             // Initialize features that need to run early (before main page load)
-            init$a();
+            init$d();
 
             // Initialize features that clean up/modify the page
-            init$6();
-            init();
+            init$9();
+            init$3();
 
             // Initialize cosmetic/styling features
-            init$3();
-            init$2();
+            init$6();
+            init$5();
 
             // Initialize text replacement features
-            init$5();
-            init$4();
+            init$8();
+            init$7();
+            init$2();
+            init();
 
             // Initialize page-specific features
-            init$8();
+            init$b();
+            init$4();
             init$1();
-            await init$7();
+            await init$a();
 
             // Initialize complex features that need context
             if (context) ;
@@ -6635,6 +6814,9 @@ int main()
             'AddColorText',
             'SavePassword',
             'RemoveAlerts',
+            'ReplaceLinks',
+            'AutoO2',
+            'Translate',
         ];
     }
 

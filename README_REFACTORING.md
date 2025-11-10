@@ -109,6 +109,9 @@ The following features have been extracted into separate modules under `src/feat
 - **AddColorText** (`add-color-text.js`) - Adds CSS classes for colored text (red, green, blue)
 - **SavePassword** (`save-password.js`) - Automatically saves and fills login credentials
 - **RemoveAlerts** (`remove-alerts.js`) - Removes redundant alerts and warnings
+- **ReplaceLinks** (`replace-links.js`) - Replaces bracketed links with styled buttons
+- **AutoO2** (`auto-o2.js`) - Automatically enables O2 optimization flag for code submissions
+- **Translate** (`translate.js`) - Translates English text to Chinese throughout the site
 
 ### Feature Extraction Pattern
 
@@ -146,15 +149,15 @@ To extract additional features from `bootstrap.js`:
 The following features remain in `bootstrap.js` and can be extracted following the pattern above:
 
 - AddUnits
-- ApplyData, AutoCheat, AutoCountdown, AutoO2, AutoRefresh
+- ApplyData, AutoCheat, AutoCountdown, AutoRefresh
 - BBSPopup, CompileError, CopyMD
 - DarkMode (theme already extracted, check for additional code)
 - DebugMode, DownloadPlayback, ExportACCode
 - IOFile, ImproveACRate, LoginFailed, MessagePopup
 - MoreSTD, NewBootstrap, NewDownload, NewTopBar
 - OpenAllProblem, ProblemSwitcher, Rating
-- RefreshSolution, ReplaceLinks, ResetType
-- Translate, UploadStd
+- RefreshSolution, ResetType
+- UploadStd
 
 ## Development
 
