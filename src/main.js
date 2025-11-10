@@ -23,6 +23,9 @@ import { GetUserInfo, GetUserBadge, GetUsernameHTML } from './utils/user.js';
 import { initTheme, NavbarStyler, replaceMarkdownImages, main } from './core/bootstrap.js';
 import { registerMenuCommands } from './core/menu.js';
 
+// Feature modules imports
+import { initializeFeatures, getExtractedFeatures } from './features/index.js';
+
 // Make utilities globally available (for compatibility with inline code)
 window.escapeHTML = escapeHTML;
 window.PurifyHTML = PurifyHTML;
@@ -52,5 +55,14 @@ registerMenuCommands();
 // Initialize theme
 initTheme();
 
+// Initialize extracted feature modules
+// These run before main() to allow early initialization (like AutoLogin)
+initializeFeatures().then(() => {
+    console.log('[XMOJ-Script] Extracted features loaded:', getExtractedFeatures());
+});
+
 // Start the main application
+// Note: bootstrap.js still contains all original code for compatibility
+// Extracted features in src/features/ provide the same functionality
+// in a more maintainable way
 main();

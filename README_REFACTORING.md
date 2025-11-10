@@ -93,19 +93,63 @@ The userscript includes the following features (controlled via `UtilityEnabled`)
 - Translate - Translation features
 - UploadStd - Upload standard solutions
 
-## Future Improvements
+## Extracted Features
 
-Individual features should be extracted into separate modules under `src/features/` for better organization and maintainability. Each feature module should:
+The following features have been extracted into separate modules under `src/features/`:
 
-1. Export an initialization function
-2. Only activate when `UtilityEnabled("FeatureName")` returns true
-3. Contain all code specific to that feature
+### Currently Extracted
+- **AutoLogin** (`auto-login.js`) - Automatically redirects to login page when not authenticated
+- **Discussion** (`discussion.js`) - Complete forum system with post creation, viewing, and replies
+- **CopySamples** (`copy-samples.js`) - Fixes copy functionality for test samples
+- **CompareSource** (`compare-source.js`) - Side-by-side code comparison with diff highlighting
+- **RemoveUseless** (`remove-useless.js`) - Removes unwanted page elements (marquees, footers, etc.)
 
-This allows for:
-- Better code organization
-- Easier testing of individual features
-- Ability to enable/disable features independently
-- Simpler debugging
+### Feature Extraction Pattern
+
+Each feature module follows this pattern:
+
+```javascript
+import { UtilityEnabled } from '../core/config.js';
+// Import other needed utilities...
+
+/**
+ * Initialize the FeatureName feature
+ */
+export function init(context) {
+    // Check if feature is enabled
+    if (!UtilityEnabled("FeatureName")) {
+        return;
+    }
+
+    // Feature implementation...
+}
+```
+
+### Adding New Features
+
+To extract additional features from `bootstrap.js`:
+
+1. Identify code that checks `UtilityEnabled("FeatureName")`
+2. Create `src/features/feature-name.js` with the extracted code
+3. Add import to `src/features/index.js`
+4. Add initialization call in `initializeFeatures()`
+5. Test the build with `npm run build`
+
+### Remaining Features to Extract
+
+The following features remain in `bootstrap.js` and can be extracted following the pattern above:
+
+- AddAnimation, AddColorText, AddUnits
+- ApplyData, AutoCheat, AutoCountdown, AutoO2, AutoRefresh
+- BBSPopup, CompileError, CopyMD
+- DarkMode (theme already extracted, check for additional code)
+- DebugMode, DownloadPlayback, ExportACCode
+- IOFile, ImproveACRate, LoginFailed, MessagePopup
+- MoreSTD, NewBootstrap, NewDownload, NewTopBar
+- OpenAllProblem, ProblemSwitcher
+- RefreshSolution, RemoveAlerts
+- ReplaceLinks, ReplaceXM, ReplaceYN, ResetType
+- SavePassword, Translate, UploadStd
 
 ## Development
 
