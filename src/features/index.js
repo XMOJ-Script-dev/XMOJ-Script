@@ -24,6 +24,8 @@ import { init as initAutoCountdown } from './auto-countdown.js';
 import { init as initMoreSTD } from './more-std.js';
 import { init as initExportACCode } from './export-ac-code.js';
 import { init as initOpenAllProblem } from './open-all-problem.js';
+import { init as initDarkMode } from './dark-mode.js';
+import { init as initImproveACRate } from './improve-ac-rate.js';
 
 /**
  * Initialize all feature modules
@@ -44,6 +46,9 @@ export async function initializeFeatures(context) {
         // Initialize features that need to run early (before main page load)
         initAutoLogin();
 
+        // Initialize theme (must run early)
+        initDarkMode();
+
         // Initialize features that clean up/modify the page
         initRemoveUseless();
         initRemoveAlerts();
@@ -62,6 +67,7 @@ export async function initializeFeatures(context) {
         initAutoCountdown();
         initMoreSTD();
         initOpenAllProblem();
+        initImproveACRate();
 
         // Initialize page-specific features
         initCopySamples();
@@ -105,5 +111,7 @@ export function getExtractedFeatures() {
         'MoreSTD',
         'ExportACCode',
         'OpenAllProblem',
+        'DarkMode',
+        'ImproveACRate',
     ];
 }

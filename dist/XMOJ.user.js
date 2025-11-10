@@ -5094,7 +5094,7 @@ int main()
      * Initialize auto login feature
      * Checks if user is logged in and redirects to login page if necessary
      */
-    function init$h() {
+    function init$j() {
         // Only execute if AutoLogin feature is enabled
         if (!UtilityEnabled("AutoLogin")) {
             return;
@@ -5154,7 +5154,7 @@ int main()
      * @param {Function} context.PurifyHTML - Function to sanitize HTML content
      * @param {Function} context.RenderMathJax - Function to render math formulas
      */
-    function init$g(context) {
+    function init$i(context) {
         // Only execute if Discussion feature is enabled
         if (!UtilityEnabled("Discussion")) {
             return;
@@ -6037,7 +6037,7 @@ int main()
      *
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js lines 1226-1244
      */
-    function init$f() {
+    function init$h() {
         // Only execute if CopySamples feature is enabled
         if (!UtilityEnabled("CopySamples")) {
             return;
@@ -6084,7 +6084,7 @@ int main()
      * - Adds a "Compare Submissions" button on problem pages
      * - Creates comparison interface on comparesource.php page
      */
-    async function init$e() {
+    async function init$g() {
         // Only execute if CompareSource feature is enabled
         if (!UtilityEnabled("CompareSource")) {
             return;
@@ -6266,7 +6266,7 @@ int main()
      * - Line 2500-2505: Remove submission child nodes on userinfo page
      * - Line 3209-3211: Remove h2.lang_en on problem_solution page
      */
-    function init$d() {
+    function init$f() {
         // Only execute if RemoveUseless feature is enabled
         if (!UtilityEnabled("RemoveUseless")) {
             return;
@@ -6344,7 +6344,7 @@ int main()
      * - Lines 219-222: Text replacement
      * - Line 304: Navbar brand text
      */
-    function init$c() {
+    function init$e() {
         // Only execute if ReplaceXM feature is enabled
         if (!UtilityEnabled("ReplaceXM")) {
             return;
@@ -6375,7 +6375,7 @@ int main()
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
      * - Lines 404-417: Status text replacement
      */
-    function init$b() {
+    function init$d() {
         // Only execute if ReplaceYN feature is enabled
         if (!UtilityEnabled("ReplaceYN")) {
             return;
@@ -6416,7 +6416,7 @@ int main()
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
      * - Lines 381-384: Animation CSS
      */
-    function init$a() {
+    function init$c() {
         // Only execute if AddAnimation feature is enabled
         if (!UtilityEnabled("AddAnimation")) {
             return;
@@ -6446,7 +6446,7 @@ int main()
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
      * - Lines 386-395: Color text CSS
      */
-    function init$9() {
+    function init$b() {
         // Only execute if AddColorText feature is enabled
         if (!UtilityEnabled("AddColorText")) {
             return;
@@ -6488,7 +6488,7 @@ int main()
      * - Lines 2850-2852: Clear credentials on failure
      * - Lines 2867-2876: Auto-fill and auto-submit login form
      */
-    function init$8() {
+    function init$a() {
         // Only execute on login page
         if (location.pathname !== "/loginpage.php") {
             return;
@@ -6539,7 +6539,7 @@ int main()
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
      * - Lines 1666-1667: Modify contest start link
      */
-    function init$7() {
+    function init$9() {
         // Only execute if RemoveAlerts feature is enabled
         if (!UtilityEnabled("RemoveAlerts")) {
             return;
@@ -6584,7 +6584,7 @@ int main()
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
      * - Lines 216-218: Link to button replacement
      */
-    function init$6() {
+    function init$8() {
         // Only execute if ReplaceLinks feature is enabled
         if (!UtilityEnabled("ReplaceLinks")) {
             return;
@@ -6613,7 +6613,7 @@ int main()
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
      * - Lines 2020-2022: Auto-check O2 flag
      */
-    function init$5() {
+    function init$7() {
         // Only execute if AutoO2 feature is enabled
         if (!UtilityEnabled("AutoO2")) {
             return;
@@ -6656,7 +6656,7 @@ int main()
      * - Lines 1073-1078: Problemset page translations
      * - Lines 1611-1617: Contest page translations
      */
-    function init$4() {
+    function init$6() {
         // Only execute if Translate feature is enabled
         if (!UtilityEnabled("Translate")) {
             return;
@@ -6757,7 +6757,7 @@ int main()
      * - Lines 547-566: Countdown timer update logic
      * - Lines 1592-1594: Disables default clock on contest page
      */
-    function init$3() {
+    function init$5() {
         // Only execute if AutoCountdown feature is enabled
         if (!UtilityEnabled("AutoCountdown")) {
             return;
@@ -6832,7 +6832,7 @@ int main()
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
      * - Lines 1699-1717: Standard solution column management
      */
-    function init$2() {
+    function init$4() {
         // Only execute if MoreSTD feature is enabled
         if (!UtilityEnabled("MoreSTD")) {
             return;
@@ -6914,7 +6914,7 @@ int main()
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
      * - Lines 2445-2495: Export AC code button and logic
      */
-    function init$1() {
+    function init$3() {
         // Only execute if ExportACCode feature is enabled
         if (!UtilityEnabled("ExportACCode")) {
             return;
@@ -7016,7 +7016,7 @@ int main()
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
      * - Lines 1817-1841: Open all problem buttons
      */
-    function init() {
+    function init$2() {
         // Only execute if OpenAllProblem feature is enabled
         if (!UtilityEnabled("OpenAllProblem")) {
             return;
@@ -7077,6 +7077,172 @@ int main()
     }
 
     /**
+     * Dark Mode Feature
+     * Enables dark theme for the website
+     * Feature ID: DarkMode
+     * Type: A (Appearance)
+     * Description: 启用网站深色主题
+     */
+
+
+    /**
+     * Initialize DarkMode feature
+     * Sets the Bootstrap theme to dark or light based on user preference
+     *
+     * Note: This feature also affects other parts of the application:
+     * - CodeMirror theme selection
+     * - Contest rank table text colors
+     * - Problem switcher background
+     *
+     * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
+     * - Lines 247-251: Theme attribute setting
+     * - Used throughout the codebase for conditional styling (17 occurrences)
+     */
+    function init$1() {
+        // Set theme based on DarkMode setting
+        if (UtilityEnabled("DarkMode")) {
+            document.querySelector("html").setAttribute("data-bs-theme", "dark");
+        } else {
+            document.querySelector("html").setAttribute("data-bs-theme", "light");
+        }
+    }
+
+    /**
+     * Improve AC Rate Feature
+     * Adds a button to resubmit already-AC'd problems to improve submission statistics
+     * Feature ID: ImproveACRate
+     * Type: U (Utility)
+     * Description: 添加按钮来重新提交已AC的题目以提高正确率
+     */
+
+
+    /**
+     * Initialize ImproveACRate feature
+     * Adds a "提高正确率" button that resubmits already-AC'd problems
+     *
+     * This feature:
+     * 1. Fetches user's AC problems from userinfo page
+     * 2. Displays current AC rate percentage
+     * 3. On click, randomly selects 3 AC'd problems and resubmits them
+     * 4. Uses existing AC code from status page
+     *
+     * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
+     * - Lines 1405-1463: Improve AC rate button and logic
+     */
+    function init() {
+        // Only execute if ImproveACRate feature is enabled
+        if (!UtilityEnabled("ImproveACRate")) {
+            return;
+        }
+
+        // Only execute on status page
+        if (location.pathname !== "/status.php") {
+            return;
+        }
+
+        // Need current username
+        const currentUsername = document.querySelector("#profile")?.innerText;
+        if (!currentUsername || currentUsername === "登录") {
+            return;
+        }
+
+        // Wait for page to be ready
+        setTimeout(async () => {
+            try {
+                const container = document.querySelector("body > div.container > div > div.input-append");
+                if (!container) return;
+
+                // Create improve AC rate button
+                const improveACRateButton = document.createElement("button");
+                container.appendChild(improveACRateButton);
+                improveACRateButton.className = "btn btn-outline-secondary";
+                improveACRateButton.innerText = "提高正确率";
+                improveACRateButton.disabled = true;
+
+                // Fetch user's AC problems
+                let acProblems = [];
+                await fetch(`https://www.xmoj.tech/userinfo.php?user=${currentUsername}`)
+                    .then((response) => response.text())
+                    .then((response) => {
+                        const parsedDocument = new DOMParser().parseFromString(response, "text/html");
+
+                        // Calculate and display AC rate
+                        const acCount = parseInt(parsedDocument.querySelector("#statics > tbody > tr:nth-child(4) > td:nth-child(2)").innerText);
+                        const submitCount = parseInt(parsedDocument.querySelector("#statics > tbody > tr:nth-child(3) > td:nth-child(2)").innerText);
+                        const acRate = (acCount / submitCount * 100).toFixed(2);
+                        improveACRateButton.innerText += ` (${acRate}%)`;
+
+                        // Extract AC problem IDs
+                        const scriptContent = parsedDocument.querySelector("#statics > tbody > tr:nth-child(2) > td:nth-child(3) > script").innerText.split("\n")[5].split(";");
+                        for (let i = 0; i < scriptContent.length; i++) {
+                            const problemId = Number(scriptContent[i].substring(2, scriptContent[i].indexOf(",")));
+                            if (!isNaN(problemId)) {
+                                acProblems.push(problemId);
+                            }
+                        }
+
+                        improveACRateButton.disabled = false;
+                    });
+
+                // Add click handler
+                improveACRateButton.addEventListener("click", async () => {
+                    improveACRateButton.disabled = true;
+                    const submitTimes = 3;
+                    let count = 0;
+
+                    const submitInterval = setInterval(async () => {
+                        if (count >= submitTimes) {
+                            clearInterval(submitInterval);
+                            location.reload();
+                            return;
+                        }
+
+                        improveACRateButton.innerText = `正在提交 (${count + 1}/${submitTimes})`;
+
+                        // Randomly select an AC'd problem
+                        const pid = acProblems[Math.floor(Math.random() * acProblems.length)];
+
+                        // Get a solution ID for this problem
+                        let sid = 0;
+                        await fetch(`https://www.xmoj.tech/status.php?problem_id=${pid}&jresult=4`)
+                            .then((result) => result.text())
+                            .then((result) => {
+                                const parsedDocument = new DOMParser().parseFromString(result, "text/html");
+                                sid = parsedDocument.querySelector("#result-tab > tbody > tr:nth-child(1) > td:nth-child(2)").innerText;
+                            });
+
+                        // Get the source code
+                        let code = "";
+                        await fetch(`https://www.xmoj.tech/getsource.php?id=${sid}`)
+                            .then((response) => response.text())
+                            .then((response) => {
+                                code = response.substring(0, response.indexOf("/**************************************************************")).trim();
+                            });
+
+                        // Resubmit the code
+                        await fetch("https://www.xmoj.tech/submit.php", {
+                            headers: {
+                                "content-type": "application/x-www-form-urlencoded"
+                            },
+                            referrer: `https://www.xmoj.tech/submitpage.php?id=${pid}`,
+                            method: "POST",
+                            body: `id=${pid}&language=1&source=${encodeURIComponent(code)}&enable_O2=on`
+                        });
+
+                        count++;
+                    }, 1000);
+                });
+
+                // Style the button
+                improveACRateButton.style.marginBottom = "7px";
+                improveACRateButton.style.marginRight = "7px";
+            } catch (error) {
+                console.error('[ImproveACRate] Error initializing button:', error);
+            }
+        }, 100);
+    }
+
+    /**
      * Feature loader - Initializes all extracted feature modules
      *
      * This module provides a centralized way to initialize all feature modules.
@@ -7102,33 +7268,37 @@ int main()
     async function initializeFeatures(context) {
         try {
             // Initialize features that need to run early (before main page load)
-            init$h();
+            init$j();
+
+            // Initialize theme (must run early)
+            init$1();
 
             // Initialize features that clean up/modify the page
-            init$d();
-            init$7();
-
-            // Initialize cosmetic/styling features
-            init$a();
+            init$f();
             init$9();
 
-            // Initialize text replacement features
+            // Initialize cosmetic/styling features
             init$c();
             init$b();
+
+            // Initialize text replacement features
+            init$e();
+            init$d();
+            init$8();
             init$6();
-            init$4();
 
             // Initialize utility features
-            init$3();
+            init$5();
+            init$4();
             init$2();
             init();
 
             // Initialize page-specific features
-            init$f();
-            init$8();
-            init$5();
-            init$1();
-            await init$e();
+            init$h();
+            init$a();
+            init$7();
+            init$3();
+            await init$g();
 
             // Initialize complex features that need context
             if (context) ;
@@ -7163,6 +7333,8 @@ int main()
             'MoreSTD',
             'ExportACCode',
             'OpenAllProblem',
+            'DarkMode',
+            'ImproveACRate',
         ];
     }
 

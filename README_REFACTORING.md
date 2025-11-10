@@ -116,6 +116,8 @@ The following features have been extracted into separate modules under `src/feat
 - **MoreSTD** (`more-std.js`) - Adds standard solution links to contest problem tables
 - **ExportACCode** (`export-ac-code.js`) - Exports all accepted code solutions as a ZIP file
 - **OpenAllProblem** (`open-all-problem.js`) - Adds buttons to open all problems or only unsolved ones
+- **DarkMode** (`dark-mode.js`) - Enables dark theme for the website
+- **ImproveACRate** (`improve-ac-rate.js`) - Adds a button to resubmit already-AC'd problems
 
 ### Feature Extraction Pattern
 
@@ -155,9 +157,8 @@ The following features remain in `bootstrap.js` and can be extracted following t
 - AddUnits
 - ApplyData, AutoCheat, AutoRefresh
 - BBSPopup, CompileError, CopyMD
-- DarkMode (theme already extracted, check for additional code)
 - DebugMode, DownloadPlayback
-- IOFile, ImproveACRate, LoginFailed, MessagePopup
+- IOFile, LoginFailed, MessagePopup
 - NewBootstrap, NewDownload, NewTopBar
 - ProblemSwitcher, Rating
 - RefreshSolution, ResetType
