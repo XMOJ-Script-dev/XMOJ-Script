@@ -101,6 +101,10 @@ Page-specific styling and functionality has been extracted into separate modules
 - **contest.js** - `/contest.php` - Contest list and contest view with countdown timers, problem list formatting
 - **status.js** - `/status.php` - Submission status page
 - **submit.js** - `/submitpage.php` - Code submission page
+- **problemset.js** - `/problemset.php` - Problem list page with search forms and column widths
+- **userinfo.js** - `/userinfo.php` - User profile page with avatar, AC problems, badge management
+- **login.js** - `/loginpage.php` - Login page with Bootstrap-styled form
+- **contestrank.js** - `/contestrank-oi.php` and `/contestrank-correct.php` - Contest ranking pages with colored cells
 
 Page modules are loaded automatically based on the current pathname and handle page-specific DOM manipulations that don't belong to any particular feature.
 

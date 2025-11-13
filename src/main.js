@@ -80,7 +80,13 @@ window.addEventListener('load', () => {
         RenderMathJax,
         RequestAPI,
         TidyTable,
-        Style: document.querySelector('style#UserScript-Style'), // Assuming bootstrap creates this
+        GetUserInfo,
+        GetUserBadge,
+        GetUsernameHTML,
+        GetRelativeTime,
+        SmartAlert,
+        Style: document.querySelector('style#UserScript-Style'),
+        IsAdmin: window.IsAdmin || false, // Set by bootstrap.js
     };
 
     initializePage(pageContext).then(() => {

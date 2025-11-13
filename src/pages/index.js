@@ -9,6 +9,10 @@ import { init as initProblemPage } from './problem.js';
 import { init as initContestPage } from './contest.js';
 import { init as initStatusPage } from './status.js';
 import { init as initSubmitPage } from './submit.js';
+import { init as initProblemsetPage } from './problemset.js';
+import { init as initUserinfoPage } from './userinfo.js';
+import { init as initLoginPage } from './login.js';
+import { init as initContestRankPage } from './contestrank.js';
 
 /**
  * Page route mapping
@@ -18,6 +22,11 @@ const PAGE_ROUTES = {
     '/contest.php': initContestPage,
     '/status.php': initStatusPage,
     '/submitpage.php': initSubmitPage,
+    '/problemset.php': initProblemsetPage,
+    '/userinfo.php': initUserinfoPage,
+    '/loginpage.php': initLoginPage,
+    '/contestrank-oi.php': initContestRankPage,
+    '/contestrank-correct.php': initContestRankPage,
 };
 
 /**
