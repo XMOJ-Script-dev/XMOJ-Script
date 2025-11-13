@@ -5094,7 +5094,7 @@ int main()
      * Initialize auto login feature
      * Checks if user is logged in and redirects to login page if necessary
      */
-    function init$j() {
+    function init$n() {
         // Only execute if AutoLogin feature is enabled
         if (!UtilityEnabled("AutoLogin")) {
             return;
@@ -5154,7 +5154,7 @@ int main()
      * @param {Function} context.PurifyHTML - Function to sanitize HTML content
      * @param {Function} context.RenderMathJax - Function to render math formulas
      */
-    function init$i(context) {
+    function init$m(context) {
         // Only execute if Discussion feature is enabled
         if (!UtilityEnabled("Discussion")) {
             return;
@@ -6037,7 +6037,7 @@ int main()
      *
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js lines 1226-1244
      */
-    function init$h() {
+    function init$l() {
         // Only execute if CopySamples feature is enabled
         if (!UtilityEnabled("CopySamples")) {
             return;
@@ -6084,7 +6084,7 @@ int main()
      * - Adds a "Compare Submissions" button on problem pages
      * - Creates comparison interface on comparesource.php page
      */
-    async function init$g() {
+    async function init$k() {
         // Only execute if CompareSource feature is enabled
         if (!UtilityEnabled("CompareSource")) {
             return;
@@ -6266,7 +6266,7 @@ int main()
      * - Line 2500-2505: Remove submission child nodes on userinfo page
      * - Line 3209-3211: Remove h2.lang_en on problem_solution page
      */
-    function init$f() {
+    function init$j() {
         // Only execute if RemoveUseless feature is enabled
         if (!UtilityEnabled("RemoveUseless")) {
             return;
@@ -6344,7 +6344,7 @@ int main()
      * - Lines 219-222: Text replacement
      * - Line 304: Navbar brand text
      */
-    function init$e() {
+    function init$i() {
         // Only execute if ReplaceXM feature is enabled
         if (!UtilityEnabled("ReplaceXM")) {
             return;
@@ -6375,7 +6375,7 @@ int main()
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
      * - Lines 404-417: Status text replacement
      */
-    function init$d() {
+    function init$h() {
         // Only execute if ReplaceYN feature is enabled
         if (!UtilityEnabled("ReplaceYN")) {
             return;
@@ -6416,7 +6416,7 @@ int main()
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
      * - Lines 381-384: Animation CSS
      */
-    function init$c() {
+    function init$g() {
         // Only execute if AddAnimation feature is enabled
         if (!UtilityEnabled("AddAnimation")) {
             return;
@@ -6446,7 +6446,7 @@ int main()
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
      * - Lines 386-395: Color text CSS
      */
-    function init$b() {
+    function init$f() {
         // Only execute if AddColorText feature is enabled
         if (!UtilityEnabled("AddColorText")) {
             return;
@@ -6488,7 +6488,7 @@ int main()
      * - Lines 2850-2852: Clear credentials on failure
      * - Lines 2867-2876: Auto-fill and auto-submit login form
      */
-    function init$a() {
+    function init$e() {
         // Only execute on login page
         if (location.pathname !== "/loginpage.php") {
             return;
@@ -6539,7 +6539,7 @@ int main()
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
      * - Lines 1666-1667: Modify contest start link
      */
-    function init$9() {
+    function init$d() {
         // Only execute if RemoveAlerts feature is enabled
         if (!UtilityEnabled("RemoveAlerts")) {
             return;
@@ -6584,7 +6584,7 @@ int main()
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
      * - Lines 216-218: Link to button replacement
      */
-    function init$8() {
+    function init$c() {
         // Only execute if ReplaceLinks feature is enabled
         if (!UtilityEnabled("ReplaceLinks")) {
             return;
@@ -6613,7 +6613,7 @@ int main()
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
      * - Lines 2020-2022: Auto-check O2 flag
      */
-    function init$7() {
+    function init$b() {
         // Only execute if AutoO2 feature is enabled
         if (!UtilityEnabled("AutoO2")) {
             return;
@@ -6656,7 +6656,7 @@ int main()
      * - Lines 1073-1078: Problemset page translations
      * - Lines 1611-1617: Contest page translations
      */
-    function init$6() {
+    function init$a() {
         // Only execute if Translate feature is enabled
         if (!UtilityEnabled("Translate")) {
             return;
@@ -6757,7 +6757,7 @@ int main()
      * - Lines 547-566: Countdown timer update logic
      * - Lines 1592-1594: Disables default clock on contest page
      */
-    function init$5() {
+    function init$9() {
         // Only execute if AutoCountdown feature is enabled
         if (!UtilityEnabled("AutoCountdown")) {
             return;
@@ -6832,7 +6832,7 @@ int main()
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
      * - Lines 1699-1717: Standard solution column management
      */
-    function init$4() {
+    function init$8() {
         // Only execute if MoreSTD feature is enabled
         if (!UtilityEnabled("MoreSTD")) {
             return;
@@ -6914,7 +6914,7 @@ int main()
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
      * - Lines 2445-2495: Export AC code button and logic
      */
-    function init$3() {
+    function init$7() {
         // Only execute if ExportACCode feature is enabled
         if (!UtilityEnabled("ExportACCode")) {
             return;
@@ -7016,7 +7016,7 @@ int main()
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
      * - Lines 1817-1841: Open all problem buttons
      */
-    function init$2() {
+    function init$6() {
         // Only execute if OpenAllProblem feature is enabled
         if (!UtilityEnabled("OpenAllProblem")) {
             return;
@@ -7098,7 +7098,7 @@ int main()
      * - Lines 247-251: Theme attribute setting
      * - Used throughout the codebase for conditional styling (17 occurrences)
      */
-    function init$1() {
+    function init$5() {
         // Set theme based on DarkMode setting
         if (UtilityEnabled("DarkMode")) {
             document.querySelector("html").setAttribute("data-bs-theme", "dark");
@@ -7129,7 +7129,7 @@ int main()
      * Extracted from: /home/user/XMOJ-Script/src/core/bootstrap.js
      * - Lines 1405-1463: Improve AC rate button and logic
      */
-    function init() {
+    function init$4() {
         // Only execute if ImproveACRate feature is enabled
         if (!UtilityEnabled("ImproveACRate")) {
             return;
@@ -7268,37 +7268,37 @@ int main()
     async function initializeFeatures(context) {
         try {
             // Initialize features that need to run early (before main page load)
-            init$j();
+            init$n();
 
             // Initialize theme (must run early)
-            init$1();
+            init$5();
 
             // Initialize features that clean up/modify the page
-            init$f();
-            init$9();
+            init$j();
+            init$d();
 
             // Initialize cosmetic/styling features
-            init$c();
-            init$b();
+            init$g();
+            init$f();
 
             // Initialize text replacement features
-            init$e();
-            init$d();
-            init$8();
-            init$6();
+            init$i();
+            init$h();
+            init$c();
+            init$a();
 
             // Initialize utility features
-            init$5();
+            init$9();
+            init$8();
+            init$6();
             init$4();
-            init$2();
-            init();
 
             // Initialize page-specific features
-            init$h();
-            init$a();
+            init$l();
+            init$e();
+            init$b();
             init$7();
-            init$3();
-            await init$g();
+            await init$k();
 
             // Initialize complex features that need context
             if (context) ;
@@ -7336,6 +7336,501 @@ int main()
             'DarkMode',
             'ImproveACRate',
         ];
+    }
+
+    /**
+     * Problem Page Module
+     * Handles all styling and functionality for /problem.php
+     */
+
+
+    /**
+     * Initialize problem page
+     * @param {Object} context - Page context with utilities
+     */
+    async function init$3(context) {
+        const { SearchParams, RenderMathJax, RequestAPI, Style } = context;
+
+        // Render MathJax
+        await RenderMathJax();
+
+        // Check if problem doesn't exist
+        if (document.querySelector("body > div > div.mt-3 > h2") != null) {
+            document.querySelector("body > div > div.mt-3").innerHTML = "没有此题目或题目对你不可见";
+            setTimeout(() => {
+                location.href = "https://www.xmoj.tech/problemset.php";
+            }, 1000);
+            return;
+        }
+
+        const PID = SearchParams.get("cid")
+            ? localStorage.getItem(`UserScript-Contest-${SearchParams.get("cid")}-Problem-${SearchParams.get("pid")}-PID`)
+            : SearchParams.get("id");
+
+        // Fix spacing
+        if (document.querySelector("body > div > div.mt-3 > center").lastElementChild !== null) {
+            document.querySelector("body > div > div.mt-3 > center").lastElementChild.style.marginLeft = "10px";
+        }
+
+        // Fix submit button
+        fixSubmitButton();
+
+        // Style sample data cards
+        const sampleDataElements = document.querySelectorAll(".sampledata");
+        for (let i = 0; i < sampleDataElements.length; i++) {
+            sampleDataElements[i].parentElement.className = "card";
+        }
+
+        // Handle IO file information
+        handleIOFile(PID);
+
+        // Add discussion button (if Discussion feature is enabled)
+        if (UtilityEnabled("Discussion")) {
+            addDiscussionButton(PID, SearchParams, RequestAPI);
+        }
+
+        // Tidy tables
+        const tables = document.getElementsByTagName("table");
+        for (let i = 0; i < tables.length; i++) {
+            TidyTable(tables[i]);
+        }
+
+        // Add custom styles
+        addPageStyles(Style);
+    }
+
+    /**
+     * Fix submit button styling and behavior
+     */
+    function fixSubmitButton() {
+        // Try multiple selectors to find the submit link (it keeps moving position)
+        const selectors = [
+            '.mt-3 > center:nth-child(1) > a:nth-child(12)',
+            '.mt-3 > center:nth-child(1) > a:nth-child(10)',
+            '.mt-3 > center:nth-child(1) > a:nth-child(11)',
+            '.mt-3 > center:nth-child(1) > a:nth-child(13)',
+            '.mt-3 > center:nth-child(1) > a:nth-child(9)',
+            '.mt-3 > center:nth-child(1) > a:nth-child(7)',
+            '.mt-3 > center:nth-child(1) > a:nth-child(8)',
+        ];
+
+        let submitLink = null;
+        for (const selector of selectors) {
+            submitLink = document.querySelector(selector);
+            if (submitLink) break;
+        }
+
+        if (!submitLink) return;
+
+        // Create submit button
+        const submitButton = document.createElement('button');
+        submitButton.id = 'SubmitButton';
+        submitButton.className = 'btn btn-outline-secondary';
+        submitButton.textContent = '提交';
+        submitButton.onclick = function () {
+            window.location.href = submitLink.href;
+        };
+
+        // Replace the link with the button
+        submitLink.parentNode.replaceChild(submitButton, submitLink);
+
+        // Remove the button's outer brackets
+        const container = document.querySelector('.mt-3 > center:nth-child(1)');
+        if (container) {
+            let str = container.innerHTML;
+            let target = submitButton.outerHTML;
+            let result = str.replace(new RegExp(`(.?)${target}(.?)`, 'g'), target);
+            container.innerHTML = result;
+
+            // Re-attach click handler after innerHTML replacement
+            const newButton = document.querySelector('html body.placeholder-glow div.container div.mt-3 center button#SubmitButton.btn.btn-outline-secondary');
+            if (newButton) {
+                newButton.onclick = function () {
+                    window.location.href = submitLink.href;
+                };
+            }
+        }
+    }
+
+    /**
+     * Handle IO file information display
+     * @param {string} PID - Problem ID
+     */
+    function handleIOFile(PID) {
+        const ioFileElement = document.querySelector("body > div > div.mt-3 > center > h3");
+        if (!ioFileElement) return;
+
+        // Move child nodes out of h3
+        while (ioFileElement.childNodes.length >= 1) {
+            ioFileElement.parentNode.insertBefore(ioFileElement.childNodes[0], ioFileElement);
+        }
+        ioFileElement.parentNode.insertBefore(document.createElement("br"), ioFileElement);
+        ioFileElement.remove();
+
+        // Extract and store IO filename
+        const centerNode = document.querySelector("body > div > div.mt-3 > center");
+        if (centerNode && centerNode.childNodes[2]) {
+            const temp = centerNode.childNodes[2].data.trim();
+            const ioFilename = temp.substring(0, temp.length - 3);
+            localStorage.setItem(`UserScript-Problem-${PID}-IOFilename`, ioFilename);
+        }
+    }
+
+    /**
+     * Add discussion button with unread badge
+     * @param {string} PID - Problem ID
+     * @param {URLSearchParams} SearchParams - URL search parameters
+     * @param {Function} RequestAPI - API request function
+     */
+    function addDiscussionButton(PID, SearchParams, RequestAPI) {
+        const discussButton = document.createElement("button");
+        discussButton.className = "btn btn-outline-secondary position-relative";
+        discussButton.innerHTML = `讨论`;
+        discussButton.style.marginLeft = "10px";
+        discussButton.type = "button";
+
+        discussButton.addEventListener("click", () => {
+            const problemId = SearchParams.get("cid") ? PID : SearchParams.get("id");
+            open(`https://www.xmoj.tech/discuss3/discuss.php?pid=${problemId}`, "_blank");
+        });
+
+        document.querySelector("body > div > div.mt-3 > center").appendChild(discussButton);
+
+        // Add unread badge
+        const unreadBadge = document.createElement("span");
+        unreadBadge.className = "position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger";
+        unreadBadge.style.display = "none";
+        discussButton.appendChild(unreadBadge);
+
+        // Refresh unread count
+        const refreshCount = () => {
+            RequestAPI("GetPostCount", {
+                "ProblemID": Number(PID)
+            }, (response) => {
+                if (response.Success && response.Data.DiscussCount != 0) {
+                    unreadBadge.innerText = response.Data.DiscussCount;
+                    unreadBadge.style.display = "";
+                }
+            });
+        };
+
+        refreshCount();
+        addEventListener("focus", refreshCount);
+    }
+
+    /**
+     * Add custom page styles
+     * @param {HTMLStyleElement} Style - Style element to append to
+     */
+    function addPageStyles(Style) {
+        Style.innerHTML += `
+code, kbd, pre, samp {
+    font-family: monospace, Consolas, 'Courier New';
+    font-size: 1rem;
+}
+pre {
+    padding: 0.3em 0.5em;
+    margin: 0.5em 0;
+}
+.in-out {
+    overflow: hidden;
+    display: flex;
+    padding: 0.5em 0;
+}
+.in-out .in-out-item {
+    flex: 1;
+}`;
+    }
+
+    /**
+     * Contest Page Module
+     * Handles all styling and functionality for /contest.php
+     */
+
+
+    /**
+     * Initialize contest page
+     * @param {Object} context - Page context with utilities
+     */
+    async function init$2(context) {
+        const { SearchParams } = context;
+
+        // Check if viewing specific contest or contest list
+        if (location.href.indexOf("?cid=") === -1) {
+            // Contest list page
+            initContestList();
+        } else {
+            // Specific contest page
+            initContestView(SearchParams);
+        }
+    }
+
+    /**
+     * Initialize contest list view
+     */
+    function initContestList() {
+        // Style contest list table rows
+        const contestRows = document.querySelector("body > div > div.mt-3 > center > table > tbody")?.childNodes;
+        if (!contestRows) return;
+
+        for (let i = 1; i < contestRows.length; i++) {
+            const currentElement = contestRows[i].childNodes[2]?.childNodes;
+            if (!currentElement) continue;
+
+            // Handle different contest states
+            if (currentElement[1]?.childNodes[0]?.data?.indexOf("运行中") !== -1) {
+                handleRunningContest(currentElement);
+            } else if (currentElement[1]?.childNodes[0]?.data?.indexOf("开始于") !== -1) {
+                handleUpcomingContest(currentElement);
+            } else if (currentElement[1]?.childNodes[0]?.data?.indexOf("已结束") !== -1) {
+                handleFinishedContest(currentElement);
+            }
+
+            // Hide column and add user link
+            contestRows[i].childNodes[3].style.display = "none";
+            const creator = contestRows[i].childNodes[4].innerHTML;
+            contestRows[i].childNodes[4].innerHTML = `<a href="https://www.xmoj.tech/userinfo.php?user=${creator}">${creator}</a>`;
+
+            // Store contest name
+            const contestId = contestRows[i].childNodes[0].innerText;
+            const contestName = contestRows[i].childNodes[1].innerText;
+            localStorage.setItem(`UserScript-Contest-${contestId}-Name`, contestName);
+        }
+    }
+
+    /**
+     * Handle running contest countdown
+     * @param {NodeList} element - Contest row element
+     */
+    function handleRunningContest(element) {
+        const time = String(element[1].childNodes[1].innerText).substring(4);
+
+        // Parse time components
+        const day = parseInt(time.substring(0, time.indexOf("天"))) || 0;
+        const hourStart = time.indexOf("天") === -1 ? 0 : time.indexOf("天") + 1;
+        const hour = parseInt(time.substring(hourStart, time.indexOf("小时"))) || 0;
+        const minuteStart = time.indexOf("小时") === -1 ? 0 : time.indexOf("小时") + 2;
+        const minute = parseInt(time.substring(minuteStart, time.indexOf("分"))) || 0;
+        const secondStart = time.indexOf("分") === -1 ? 0 : time.indexOf("分") + 1;
+        const second = parseInt(time.substring(secondStart, time.indexOf("秒"))) || 0;
+
+        // Calculate timestamp
+        const diff = window.diff || 0; // Global time diff
+        const timeStamp = new Date().getTime() + diff + ((((day * 24 + hour) * 60 + minute) * 60 + second) * 1000);
+
+        element[1].childNodes[1].setAttribute("EndTime", timeStamp);
+        element[1].childNodes[1].classList.add("UpdateByJS");
+    }
+
+    /**
+     * Handle upcoming contest
+     * @param {NodeList} element - Contest row element
+     */
+    function handleUpcomingContest(element) {
+        const diff = window.diff || 0;
+        const timeStamp = Date.parse(String(element[1].childNodes[0].data).substring(4)) + diff;
+        element[1].setAttribute("EndTime", timeStamp);
+        element[1].classList.add("UpdateByJS");
+    }
+
+    /**
+     * Handle finished contest
+     * @param {NodeList} element - Contest row element
+     */
+    function handleFinishedContest(element) {
+        const timeStamp = String(element[1].childNodes[0].data).substring(4);
+        element[1].childNodes[0].data = " 已结束 ";
+        element[1].className = "red";
+
+        const span = document.createElement("span");
+        span.className = "green";
+        span.innerHTML = timeStamp;
+        element[1].appendChild(span);
+    }
+
+    /**
+     * Initialize specific contest view
+     * @param {URLSearchParams} SearchParams - URL search parameters
+     */
+    function initContestView(SearchParams) {
+        // Update title
+        const title = document.getElementsByTagName("h3")[0];
+        if (title) {
+            title.innerHTML = "比赛" + title.innerHTML.substring(7);
+        }
+
+        // Handle countdown timer
+        const timeLeft = document.querySelector("#time_left");
+        if (timeLeft) {
+            const centerNode = document.querySelector("body > div > div.mt-3 > center");
+            let endTimeText = centerNode?.childNodes[3]?.data;
+
+            if (endTimeText) {
+                endTimeText = endTimeText.substring(endTimeText.indexOf("结束时间是：") + 6, endTimeText.lastIndexOf("。"));
+                const endTime = new Date(endTimeText).getTime();
+
+                if (new Date().getTime() < endTime) {
+                    timeLeft.classList.add("UpdateByJS");
+                    timeLeft.setAttribute("EndTime", endTime);
+                }
+            }
+        }
+
+        // Format contest information
+        const infoDiv = document.querySelector("body > div > div.mt-3 > center > div");
+        if (infoDiv) {
+            let htmlData = infoDiv.innerHTML;
+            htmlData = htmlData.replaceAll("&nbsp;&nbsp;\n&nbsp;&nbsp;", "&nbsp;");
+            htmlData = htmlData.replaceAll("<br>开始于: ", "开始时间：");
+            htmlData = htmlData.replaceAll("\n结束于: ", "<br>结束时间：");
+            htmlData = htmlData.replaceAll("\n订正截止日期: ", "<br>订正截止日期：");
+            htmlData = htmlData.replaceAll("\n现在时间: ", "当前时间：");
+            htmlData = htmlData.replaceAll("\n状态:", "<br>状态：");
+            infoDiv.innerHTML = htmlData;
+        }
+
+        // Format problem list
+        formatProblemList();
+
+        // Store problem count
+        const problemCount = document.querySelector("#problemset > tbody")?.rows.length;
+        if (problemCount) {
+            localStorage.setItem(`UserScript-Contest-${SearchParams.get("cid")}-ProblemCount`, problemCount);
+        }
+    }
+
+    /**
+     * Format problem list in contest
+     */
+    function formatProblemList() {
+        const tbody = document.querySelector("#problemset > tbody");
+        if (!tbody) return;
+
+        // Format problem names
+        tbody.innerHTML = tbody.innerHTML.replaceAll(
+            /\t&nbsp;([0-9]*) &nbsp;&nbsp;&nbsp;&nbsp; 问题 &nbsp;([^<]*)/g,
+            "$2. $1"
+        );
+        tbody.innerHTML = tbody.innerHTML.replaceAll(
+            /\t\*([0-9]*) &nbsp;&nbsp;&nbsp;&nbsp; 问题 &nbsp;([^<]*)/g,
+            "拓展$2. $1"
+        );
+
+        // Ensure status divs exist
+        const rows = tbody.rows;
+        for (let i = 0; i < rows.length; i++) {
+            if (rows[i].childNodes[0]?.children.length === 0) {
+                rows[i].childNodes[0].innerHTML = '<div class="status"></div>';
+            }
+
+            // Make problem title link open in new tab
+            const titleLink = rows[i].children[2]?.children[0];
+            if (titleLink) {
+                titleLink.target = "_blank";
+            }
+        }
+    }
+
+    /**
+     * Status Page Module
+     * Handles all styling and functionality for /status.php
+     */
+
+    /**
+     * Initialize status page
+     * @param {Object} context - Page context with utilities
+     */
+    async function init$1(context) {
+        const { SearchParams } = context;
+
+        // Only proceed if not in special UserScript mode
+        if (SearchParams.get("ByUserScript") !== null) {
+            return;
+        }
+
+        // Set page title
+        document.title = "提交状态";
+
+        // Remove old script tags
+        const oldScript = document.querySelector("body > script:nth-child(5)");
+        if (oldScript) {
+            oldScript.remove();
+        }
+
+        // Additional status page initialization can go here
+        // Most status page features are handled by feature modules
+    }
+
+    /**
+     * Submit Page Module
+     * Handles all styling and functionality for /submitpage.php
+     */
+
+    /**
+     * Initialize submit page
+     * @param {Object} context - Page context with utilities
+     */
+    async function init(context) {
+        const { SearchParams } = context;
+
+        // Set page title
+        const problemId = SearchParams.get("id");
+        const contestId = SearchParams.get("cid");
+
+        if (problemId) {
+            document.title = `提交代码: 题目${Number(problemId)}`;
+        } else if (contestId) {
+            String.fromCharCode(65 + parseInt(SearchParams.get("pid")));
+            document.title = `提交代码: 比赛${Number(contestId)}`;
+        }
+
+        // Additional submit page initialization can go here
+        // Most submit page features are handled by feature modules and CodeMirror initialization
+    }
+
+    /**
+     * Page loader - Initializes page-specific modules based on current URL
+     *
+     * This module provides a centralized way to load page-specific styling and functionality.
+     * Each page module handles its own initialization and styling.
+     */
+
+
+    /**
+     * Page route mapping
+     */
+    const PAGE_ROUTES = {
+        '/problem.php': init$3,
+        '/contest.php': init$2,
+        '/status.php': init$1,
+        '/submitpage.php': init,
+    };
+
+    /**
+     * Initialize page-specific module based on current pathname
+     * @param {Object} context - Shared context object with dependencies
+     */
+    async function initializePage(context) {
+        const pathname = location.pathname;
+
+        const pageInit = PAGE_ROUTES[pathname];
+
+        if (pageInit) {
+            try {
+                await pageInit(context);
+                console.log(`[XMOJ-Script] Initialized page module: ${pathname}`);
+            } catch (error) {
+                console.error(`[XMOJ-Script] Error initializing page ${pathname}:`, error);
+            }
+        }
+    }
+
+    /**
+     * Get list of all implemented page modules
+     * @returns {string[]} List of page pathnames with modules
+     */
+    function getImplementedPages() {
+        return Object.keys(PAGE_ROUTES);
     }
 
     /**
@@ -7384,5 +7879,23 @@ int main()
     // Extracted features in src/features/ provide the same functionality
     // in a more maintainable way
     main();
+
+    // Initialize page-specific modules after main() runs
+    // Page modules handle page-specific styling and DOM manipulations
+    // This needs to run after bootstrap.js sets up the basic structure
+    window.addEventListener('load', () => {
+        // Create context object with commonly used utilities
+        const pageContext = {
+            SearchParams: new URLSearchParams(location.search),
+            RenderMathJax: RenderMathJax$1,
+            RequestAPI,
+            TidyTable,
+            Style: document.querySelector('style#UserScript-Style'), // Assuming bootstrap creates this
+        };
+
+        initializePage(pageContext).then(() => {
+            console.log('[XMOJ-Script] Page modules available for:', getImplementedPages());
+        });
+    });
 
 })();

@@ -93,6 +93,17 @@ The userscript includes the following features (controlled via `UtilityEnabled`)
 - Translate - Translation features
 - UploadStd - Upload standard solutions
 
+## Page Modules
+
+Page-specific styling and functionality has been extracted into separate modules under `src/pages/`:
+
+- **problem.js** - `/problem.php` - Problem view page with submit button fixes, sample data styling, discussion button
+- **contest.js** - `/contest.php` - Contest list and contest view with countdown timers, problem list formatting
+- **status.js** - `/status.php` - Submission status page
+- **submit.js** - `/submitpage.php` - Code submission page
+
+Page modules are loaded automatically based on the current pathname and handle page-specific DOM manipulations that don't belong to any particular feature.
+
 ## Extracted Features
 
 The following features have been extracted into separate modules under `src/features/`:

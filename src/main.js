@@ -26,6 +26,9 @@ import { registerMenuCommands } from './core/menu.js';
 // Feature modules imports
 import { initializeFeatures, getExtractedFeatures } from './features/index.js';
 
+// Page modules imports
+import { initializePage, getImplementedPages } from './pages/index.js';
+
 // Make utilities globally available (for compatibility with inline code)
 window.escapeHTML = escapeHTML;
 window.PurifyHTML = PurifyHTML;
@@ -66,3 +69,21 @@ initializeFeatures().then(() => {
 // Extracted features in src/features/ provide the same functionality
 // in a more maintainable way
 main();
+
+// Initialize page-specific modules after main() runs
+// Page modules handle page-specific styling and DOM manipulations
+// This needs to run after bootstrap.js sets up the basic structure
+window.addEventListener('load', () => {
+    // Create context object with commonly used utilities
+    const pageContext = {
+        SearchParams: new URLSearchParams(location.search),
+        RenderMathJax,
+        RequestAPI,
+        TidyTable,
+        Style: document.querySelector('style#UserScript-Style'), // Assuming bootstrap creates this
+    };
+
+    initializePage(pageContext).then(() => {
+        console.log('[XMOJ-Script] Page modules available for:', getImplementedPages());
+    });
+});
