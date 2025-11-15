@@ -170,6 +170,9 @@ export function replaceMarkdownImages(text, string) {
 // Main initialization function
 export async function main() {
     try {
+        // Create SearchParams for use throughout bootstrap.js
+        const SearchParams = new URLSearchParams(location.search);
+
         if (location.href.startsWith('http://')) {
             //use https
             location.href = location.href.replace('http://', 'https://');
