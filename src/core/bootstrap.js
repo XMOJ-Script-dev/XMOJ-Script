@@ -607,7 +607,16 @@ export async function main() {
                                 });
                             }
                             document.body.appendChild(UpdateDiv);
-                            document.querySelector("body > div").insertBefore(UpdateDiv, document.querySelector("body > div > div.mt-3"));
+                            // Try to move update div before mt-3, but handle DOM structure differences
+                            try {
+                                const container = document.querySelector("body > div");
+                                const mt3 = document.querySelector("body > div > div.mt-3");
+                                if (container && mt3 && mt3.parentNode === container) {
+                                    container.insertBefore(UpdateDiv, mt3);
+                                }
+                            } catch (e) {
+                                console.warn('[XMOJ-Script] Could not reposition update div:', e);
+                            }
                         }
                         if (localStorage.getItem("UserScript-Update-LastVersion") != GM_info.script.version) {
                             localStorage.setItem("UserScript-Update-LastVersion", GM_info.script.version);
@@ -2864,16 +2873,6 @@ export async function main() {
                                 });
                         }
                     });
-                    if (UtilityEnabled("SavePassword")) {
-                        (async () => {
-                            let Credential = await getCredential();
-                            if (Credential) {
-                                document.querySelector("#login > div:nth-child(1) > div > input").value = Credential.id;
-                                document.querySelector("#login > div:nth-child(2) > div > input").value = Credential.password;
-                                LoginButton.click();
-                            }
-                        })();
-                    }
                 } else if (location.pathname == "/contest_video.php" || location.pathname == "/problem_video.php") {
                     let ScriptData = document.querySelector("body > div > div.mt-3 > center > script").innerHTML;
                     if (document.getElementById("J_prismPlayer0").innerHTML != "") {
