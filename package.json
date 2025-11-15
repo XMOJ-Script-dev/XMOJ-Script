@@ -1,6 +1,6 @@
 {
   "name": "xmoj-script",
-  "version": "2.5.0",
+  "version": "2.5.2",
   "description": "an improvement script for xmoj.tech",
   "type": "module",
   "main": "dist/XMOJ.user.js",

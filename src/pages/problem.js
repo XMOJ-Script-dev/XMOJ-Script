@@ -25,9 +25,25 @@ export async function init(context) {
         return;
     }
 
-    const PID = SearchParams.get("cid")
+    let PID = SearchParams.get("cid")
         ? localStorage.getItem(`UserScript-Contest-${SearchParams.get("cid")}-Problem-${SearchParams.get("pid")}-PID`)
         : SearchParams.get("id");
+
+    // Handle null PID for contest problems (fetch from page)
+    if (PID === null && SearchParams.get("cid")) {
+        await fetch(location.href)
+            .then((response) => response.text())
+            .then((response) => {
+                const parsedDocument = new DOMParser().parseFromString(response, "text/html");
+                const allAnchors = parsedDocument.querySelectorAll('.mt-3 > center:nth-child(1) > a');
+                const SubmitLink = Array.from(allAnchors).find(a => a.textContent.trim() === '提交');
+                if (SubmitLink && SubmitLink.href) {
+                    const url = new URL(SubmitLink.href);
+                    PID = url.searchParams.get("id");
+                    localStorage.setItem(`UserScript-Contest-${SearchParams.get("cid")}-Problem-${SearchParams.get("pid")}-PID`, PID);
+                }
+            });
+    }
 
     // Fix spacing
     if (document.querySelector("body > div > div.mt-3 > center").lastElementChild !== null) {
@@ -65,22 +81,9 @@ export async function init(context) {
  * Fix submit button styling and behavior
  */
 function fixSubmitButton() {
-    // Try multiple selectors to find the submit link (it keeps moving position)
-    const selectors = [
-        '.mt-3 > center:nth-child(1) > a:nth-child(12)',
-        '.mt-3 > center:nth-child(1) > a:nth-child(10)',
-        '.mt-3 > center:nth-child(1) > a:nth-child(11)',
-        '.mt-3 > center:nth-child(1) > a:nth-child(13)',
-        '.mt-3 > center:nth-child(1) > a:nth-child(9)',
-        '.mt-3 > center:nth-child(1) > a:nth-child(7)',
-        '.mt-3 > center:nth-child(1) > a:nth-child(8)',
-    ];
-
-    let submitLink = null;
-    for (const selector of selectors) {
-        submitLink = document.querySelector(selector);
-        if (submitLink) break;
-    }
+    // Find submit link by text content (more reliable than nth-child selectors)
+    const links = document.querySelectorAll('.mt-3 > center:nth-child(1) > a');
+    const submitLink = Array.from(links).find(a => a.textContent.trim() === '提交');
 
     if (!submitLink) return;
 

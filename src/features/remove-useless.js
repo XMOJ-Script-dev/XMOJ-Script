@@ -34,13 +34,13 @@ export function init() {
 
     // Remove marquee elements (scrolling banners) - Line 320-322
     const marquee = document.getElementsByTagName("marquee")[0];
-    if (marquee !== undefined) {
+    if (marquee !== undefined && marquee !== null) {
         marquee.remove();
     }
 
     // Remove footer - Line 398-402
     const footer = document.getElementsByClassName("footer")[0];
-    if (footer !== null) {
+    if (footer !== undefined && footer !== null) {
         footer.remove();
     }
 
@@ -50,12 +50,12 @@ export function init() {
     // Problem page specific removals - Line 1222-1225
     if (pathname === "/problem.php") {
         const langEnHeader = document.querySelector("h2.lang_en");
-        if (langEnHeader) {
+        if (langEnHeader !== null) {
             langEnHeader.remove();
         }
 
         const centerElements = document.getElementsByTagName("center");
-        if (centerElements[1]) {
+        if (centerElements.length > 1 && centerElements[1] !== null) {
             centerElements[1].remove();
         }
     }
@@ -78,7 +78,7 @@ export function init() {
     // Problem solution page specific removals - Line 3209-3211
     if (pathname === "/problem_solution.php") {
         const langEnHeader = document.querySelector("h2.lang_en");
-        if (langEnHeader) {
+        if (langEnHeader !== null) {
             langEnHeader.remove();
         }
     }
