@@ -1,12 +1,10 @@
 /**
  * Login Page Module
  * Handles all styling and functionality for /loginpage.php
- *
- * Note: Login functionality is handled by LoginFailed and SavePassword features
- * This module only handles page styling
  */
 
 import { UtilityEnabled } from '../core/config.js';
+import { storeCredential, clearCredential } from '../utils/credentials.js';
 
 /**
  * Initialize login page
@@ -18,7 +16,8 @@ export async function init(context) {
         replaceLoginForm();
     }
 
-    // Login handling and SavePassword are handled by feature modules
+    // Attach login button handler
+    attachLoginHandler();
 }
 
 /**
@@ -57,5 +56,87 @@ function replaceLoginForm() {
         </form>`;
     } catch (error) {
         console.error('[Login] Error replacing login form:', error);
+    }
+}
+
+/**
+ * Attach login button click handler
+ */
+function attachLoginHandler() {
+    try {
+        // Add error message div
+        const errorText = document.createElement("div");
+        errorText.style.color = "red";
+        errorText.style.marginBottom = "5px";
+        const loginForm = document.querySelector("#login");
+        if (!loginForm) return;
+        loginForm.appendChild(errorText);
+
+        // Get login button
+        const loginButton = document.getElementsByName("submit")[0];
+        if (!loginButton) {
+            console.warn('[Login] Login button not found');
+            return;
+        }
+
+        // Attach click handler
+        loginButton.addEventListener("click", async () => {
+            const username = document.getElementsByName("user_id")[0].value;
+            const password = document.getElementsByName("password")[0].value;
+
+            if (username === "" || password === "") {
+                errorText.innerText = "用户名或密码不能为空";
+                return;
+            }
+
+            try {
+                const response = await fetch("https://www.xmoj.tech/login.php", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: "user_id=" + encodeURIComponent(username) + "&password=" + hex_md5(password)
+                });
+
+                const responseText = await response.text();
+
+                if (UtilityEnabled("LoginFailed")) {
+                    if (responseText.indexOf("history.go(-2);") !== -1) {
+                        // Login successful
+                        if (UtilityEnabled("SavePassword")) {
+                            await storeCredential(username, password);
+                        }
+
+                        let newPage = localStorage.getItem("UserScript-LastPage");
+                        if (newPage === null) {
+                            newPage = "https://www.xmoj.tech/index.php";
+                        }
+                        location.href = newPage;
+                    } else {
+                        // Login failed
+                        if (UtilityEnabled("SavePassword")) {
+                            await clearCredential();
+                        }
+
+                        let errorMsg = responseText.substring(responseText.indexOf("alert('") + 7);
+                        errorMsg = errorMsg.substring(0, errorMsg.indexOf("');"));
+
+                        if (errorMsg === "UserName or Password Wrong!") {
+                            errorText.innerText = "用户名或密码错误！";
+                        } else {
+                            errorText.innerText = errorMsg;
+                        }
+                    }
+                } else {
+                    // LoginFailed feature disabled, use default behavior
+                    document.innerHTML = responseText;
+                }
+            } catch (error) {
+                console.error('[Login] Error during login:', error);
+                errorText.innerText = "登录请求失败，请重试";
+            }
+        });
+    } catch (error) {
+        console.error('[Login] Error attaching login handler:', error);
     }
 }
