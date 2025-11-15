@@ -11,6 +11,15 @@ import { TidyTable } from '../utils/table.js';
 import { compareVersions } from '../utils/version.js';
 import { clearCredential } from '../utils/credentials.js';
 
+// Turnstile Captcha Site Key
+const CaptchaSiteKey = "0x4AAAAAAALBT58IhyDViNmv";
+// Make it globally available for Turnstile callbacks
+if (typeof unsafeWindow !== 'undefined') {
+    unsafeWindow.CaptchaSiteKey = CaptchaSiteKey;
+} else if (typeof window !== 'undefined') {
+    window.CaptchaSiteKey = CaptchaSiteKey;
+}
+
 // Time difference for server synchronization (initialized to 0)
 let diff = 0;
 
@@ -190,6 +199,10 @@ export async function main() {
                 CurrentUsername = document.querySelector("#profile").innerText;
                 CurrentUsername = CurrentUsername.replaceAll(/[^a-zA-Z0-9]/g, "");
             }
+
+            // Check if current user is admin
+            let IsAdmin = AdminUserList.indexOf(CurrentUsername) !== -1;
+            window.IsAdmin = IsAdmin; // Make available globally for page modules
 
             // Determine server URL
             let ServerURL = (UtilityEnabled("DebugMode") ? "https://ghpages.xmoj-bbs.me/" : "https://www.xmoj-bbs.me");
