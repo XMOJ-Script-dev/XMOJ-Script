@@ -3214,6 +3214,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "2.5.3": {
+            "UpdateDate": 1765369009839,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 882,
+                    "Description": "refactor userscript structure "
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
