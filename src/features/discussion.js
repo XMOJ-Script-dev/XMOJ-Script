@@ -205,7 +205,8 @@ export function init(context) {
                                 TitleLink.classList.add("link-secondary");
                                 TitleLink.innerHTML = "🔒 ";
                             }
-                            TitleLink.innerHTML += Posts[i].Title;
+                            // Avoid re-parsing by appending a text node
+                            TitleLink.appendChild(document.createTextNode(Posts[i].Title));
                             let AuthorCell = document.createElement("td");
                             Row.appendChild(AuthorCell);
                             GetUsernameHTML(AuthorCell, Posts[i].UserID);
@@ -704,9 +705,26 @@ export function init(context) {
                                 ReplyContentElement.innerHTML = PurifyHTML(marked.parse(Replies[i].Content)).replaceAll(/@([a-zA-Z0-9]+)/g, `<b>@</b><span class="ms-1 Usernames">$1</span>`);
                                 if (Replies[i].EditTime != null) {
                                     if (Replies[i].EditPerson == Replies[i].UserID) {
-                                        ReplyContentElement.innerHTML += `<span class="text-muted" style="font-size: 12px">最后编辑于${GetRelativeTime(Replies[i].EditTime)}</span>`;
+                                        {
+                                            const span = document.createElement('span');
+                                            span.className = 'text-muted';
+                                            span.style.fontSize = '12px';
+                                            span.appendChild(document.createTextNode(`最后编辑于${GetRelativeTime(Replies[i].EditTime)}`));
+                                            ReplyContentElement.appendChild(span);
+                                        }
                                     } else {
-                                        ReplyContentElement.innerHTML += `<span class="text-muted" style="font-size: 12px">最后被<span class="Usernames">${Replies[i].EditPerson}</span>编辑于${GetRelativeTime(Replies[i].EditTime)}</span>`;
+                                        {
+                                            const outer = document.createElement('span');
+                                            outer.className = 'text-muted';
+                                            outer.style.fontSize = '12px';
+                                            outer.appendChild(document.createTextNode('最后被'));
+                                            const userSpan = document.createElement('span');
+                                            userSpan.className = 'Usernames';
+                                            userSpan.appendChild(document.createTextNode(Replies[i].EditPerson));
+                                            outer.appendChild(userSpan);
+                                            outer.appendChild(document.createTextNode(`编辑于${GetRelativeTime(Replies[i].EditTime)}`));
+                                            ReplyContentElement.appendChild(outer);
+                                        }
                                     }
                                 }
                                 let ContentEditElement = document.createElement("div");
@@ -794,7 +812,7 @@ export function init(context) {
                                 let LockUsernameSpan = document.createElement("span");
                                 LockElement.appendChild(LockUsernameSpan);
                                 GetUsernameHTML(LockUsernameSpan, ResponseData.Data.Lock.LockPerson);
-                                LockElement.innerHTML += " 锁定";
+                                LockElement.appendChild(document.createTextNode(" 锁定"));
                                 LockElement.classList.add("mb-5");
                             }
 

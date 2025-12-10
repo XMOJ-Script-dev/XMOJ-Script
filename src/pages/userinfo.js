@@ -180,11 +180,15 @@ async function createUserLayout(userId, userNick, acProblems, GetUserInfo, GetUs
     const userInfoElement = document.createElement("div");
     userInfoElement.classList.add("col-auto");
     userInfoElement.style.lineHeight = "40px";
-    userInfoElement.innerHTML += `用户名：${userId}<br>`;
-    userInfoElement.innerHTML += `昵称：${userNick}<br>`;
+    // Safer text insertion without re-parsing HTML
+    userInfoElement.appendChild(document.createTextNode(`用户名：${userId}`));
+    userInfoElement.appendChild(document.createElement('br'));
+    userInfoElement.appendChild(document.createTextNode(`昵称：${userNick}`));
+    userInfoElement.appendChild(document.createElement('br'));
 
     if (UtilityEnabled("Rating")) {
-        userInfoElement.innerHTML += `评分：${userInfo?.Rating || 'N/A'}<br>`;
+        userInfoElement.appendChild(document.createTextNode(`评分：${userInfo?.Rating || 'N/A'}`));
+        userInfoElement.appendChild(document.createElement('br'));
     }
 
     // Last online time (async)
@@ -217,10 +221,18 @@ async function createUserLayout(userId, userNick, acProblems, GetUserInfo, GetUs
     const rightDiv = document.createElement("div");
     rightDiv.className = "col-md-7";
     row.appendChild(rightDiv);
-    rightDiv.innerHTML = "<h5>已解决题目</h5>";
+    // Heading
+    const heading = document.createElement('h5');
+    heading.appendChild(document.createTextNode('已解决题目'));
+    rightDiv.appendChild(heading);
 
     for (const problemId of acProblems) {
-        rightDiv.innerHTML += `<a href="https://www.xmoj.tech/problem.php?id=${problemId}" target="_blank">${problemId}</a> `;
+        const link = document.createElement('a');
+        link.href = `https://www.xmoj.tech/problem.php?id=${problemId}`;
+        link.target = '_blank';
+        link.appendChild(document.createTextNode(String(problemId)));
+        rightDiv.appendChild(link);
+        rightDiv.appendChild(document.createTextNode(' '));
     }
 
     // Replace page content

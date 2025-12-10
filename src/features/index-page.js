@@ -1,9 +1,9 @@
 // Index page handler
-import { UtilityEnabled } from '../utils/settings.js';
+import { UtilityEnabled } from '../core/config.js';
 import { RequestAPI } from '../utils/api.js';
-import { TidyTable } from '../utils/dom.js';
+import { TidyTable } from '../utils/table.js';
 import { RenderMathJax } from '../utils/mathjax.js';
-import { GetUsernameHTML } from '../utils/username.js';
+import { GetUsernameHTML } from '../utils/user.js';
 
 /**
  * Handle index page (/index.php or /)
@@ -142,7 +142,7 @@ export async function handleIndexPage(context) {
                 }, {"ID": "RemoveUseless", "Type": "D", "Name": "删去无法使用的功能*"}, {
                     "ID": "ReplaceXM",
                     "Type": "F",
-                    "Name": "将网站中所有"小明"和"我"关键字替换为"高老师"，所有"小红"替换为"徐师娘"，所有"小粉"替换为"彩虹"，所有"下海"、"海上"替换为"上海" (此功能默认关闭)"
+                    "Name": "将网站中所有\"小明\"和\"我\"关键字替换为\"高老师\"，所有\"小红\"替换为\"徐师娘\"，所有\"小粉\"替换为\"彩虹\"，所有\"下海\"、\"海上\"替换为\"上海\" (此功能默认关闭)"
                 }]
             }, {
                 "ID": "AutoLogin", "Type": "A", "Name": "在需要登录的界面自动跳转到登录界面"

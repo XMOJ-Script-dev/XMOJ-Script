@@ -2120,6 +2120,7 @@ export async function main() {
                                             ),
                                         );
                                     }
+                                    let rPID;
                                     rPID = contestProblems[new URL(location.href).searchParams.get("pid")];
                                     if (UtilityEnabled("DebugMode")) {
                                         console.log("Contest Problems:", contestProblems);

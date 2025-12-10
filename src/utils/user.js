@@ -123,7 +123,7 @@ export let GetUsernameHTML = async (Element, Username, Simple = false, Href = "h
         let HTMLData = "";
         if (!Simple) {
             HTMLData += `<img src="`;
-            if (UserInfo.EmailHash == undefined) {
+            if (UserInfo.EmailHash === undefined) {
                 HTMLData += `https://cravatar.cn/avatar/00000000000000000000000000000000?d=mp&f=y`;
             } else {
                 HTMLData += `https://cravatar.cn/avatar/${UserInfo.EmailHash}?d=retro`;
@@ -149,13 +149,13 @@ export let GetUsernameHTML = async (Element, Username, Simple = false, Href = "h
         } else {
             HTMLData += "link-info";
         }
-        HTMLData += `\";"></a>`;
+        HTMLData += `"></a>`;
         if (!Simple) {
             if (AdminUserList.includes(Username)) {
                 HTMLData += `<span class="badge text-bg-danger ms-2">脚本管理员</span>`;
             }
             let BadgeInfo = await GetUserBadge(Username);
-            if (BadgeInfo.Content != "") {
+            if (BadgeInfo.Content !== "") {
                 HTMLData += `<span class="badge ms-2" style="background-color: ${BadgeInfo.BackgroundColor}; color: ${BadgeInfo.Color}">${BadgeInfo.Content}</span>`;
             }
         }
