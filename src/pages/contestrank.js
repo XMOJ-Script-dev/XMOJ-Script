@@ -206,7 +206,8 @@ function styleProblemCell(cell) {
         }
     }
 
-    cell.innerHTML = innerText;
+    // Set cell text safely without re-parsing HTML
+    cell.textContent = innerText;
     cell.style.backgroundColor = backgroundColor;
     cell.style.color = UtilityEnabled("DarkMode") ? "white" : "black";
 }
