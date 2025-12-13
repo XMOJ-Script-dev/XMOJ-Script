@@ -32,7 +32,7 @@ export let GetUserInfo = async (Username) => {
             let Email = Temp[Temp.length - 1].children[1].innerText.trim();
             let EmailHash = CryptoJS.MD5(Email).toString();
             localStorage.setItem("UserScript-User-" + Username + "-UserRating", Rating);
-            if (Email == "") {
+            if (Email === "") {
                 EmailHash = undefined;
             } else {
                 localStorage.setItem("UserScript-User-" + Username + "-EmailHash", EmailHash);

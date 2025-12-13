@@ -20,7 +20,7 @@ import { TidyTable } from './utils/table.js';
 import { GetUserInfo, GetUserBadge, GetUsernameHTML } from './utils/user.js';
 
 // Core application imports
-import { initTheme, NavbarStyler, replaceMarkdownImages, main } from './core/bootstrap.js';
+import { initTheme, main } from './core/bootstrap.js';
 import { registerMenuCommands } from './core/menu.js';
 
 // Feature modules imports

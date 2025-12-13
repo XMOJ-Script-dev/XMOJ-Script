@@ -3,8 +3,6 @@
  * Handles all styling and functionality for /contest.php
  */
 
-import { UtilityEnabled } from '../core/config.js';
-
 /**
  * Initialize contest page
  * @param {Object} context - Page context with utilities

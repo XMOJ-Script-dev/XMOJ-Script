@@ -17,7 +17,6 @@ export async function init(context) {
     if (problemId) {
         document.title = `提交代码: 题目${Number(problemId)}`;
     } else if (contestId) {
-        const problemLetter = String.fromCharCode(65 + parseInt(SearchParams.get("pid")));
         document.title = `提交代码: 比赛${Number(contestId)}`;
     }
 
