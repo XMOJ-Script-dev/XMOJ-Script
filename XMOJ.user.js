@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      2.5.2
+// @version      2.5.3
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -3002,8 +3002,14 @@ async function main() {
                                                 for (let i = 0; i < ACCode.length; i++) {
                                                     let CurrentCode = ACCode[i];
                                                     if (CurrentCode != "") {
-                                                        let CurrentQuestionID = CurrentCode.substring(7, 11);
-                                                        CurrentCode = CurrentCode.substring(14);
+                                                        let lineBreakPos = CurrentCode.search(/[\r\n]/);
+                                                        if (lineBreakPos === -1) continue;
+                                                        let headerLine = CurrentCode.slice(0, lineBreakPos);
+                                                        let digitMatch = headerLine.match(/\d+/);
+                                                        if (!digitMatch) continue;
+                                                        let CurrentQuestionID = digitMatch[0];
+                                                        let newlinePos = CurrentCode.indexOf('\n');
+                                                        CurrentCode = CurrentCode.slice(newlinePos + 1);
                                                         CurrentCode = CurrentCode.replaceAll("\r", "");
                                                         Zip.file(CurrentQuestionID + ".cpp", CurrentCode);
                                                     }

@@ -3214,6 +3214,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "2.5.3": {
+            "UpdateDate": 1770358959413,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 888,
+                    "Description": "Fix AC code export for 5-digit question IDs"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
