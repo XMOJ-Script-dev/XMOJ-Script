@@ -3002,8 +3002,11 @@ async function main() {
                                                 for (let i = 0; i < ACCode.length; i++) {
                                                     let CurrentCode = ACCode[i];
                                                     if (CurrentCode != "") {
-                                                        let CurrentQuestionID = CurrentCode.substring(7, 11);
-                                                        CurrentCode = CurrentCode.substring(14);
+                                                        let lineBreakPos = CurrentCode.search(/[\r\n]/);
+                                                        let headerLine = CurrentCode.slice(0, lineBreakPos);
+                                                        let digitMatch = headerLine.match(/\d+/);
+                                                        let CurrentQuestionID = digitMatch ? digitMatch[0] : "";
+                                                        CurrentCode = CurrentCode.slice(CurrentCode.indexOf('\n') + 1);
                                                         CurrentCode = CurrentCode.replaceAll("\r", "");
                                                         Zip.file(CurrentQuestionID + ".cpp", CurrentCode);
                                                     }
