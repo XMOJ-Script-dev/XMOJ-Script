@@ -3003,10 +3003,13 @@ async function main() {
                                                     let CurrentCode = ACCode[i];
                                                     if (CurrentCode != "") {
                                                         let lineBreakPos = CurrentCode.search(/[\r\n]/);
+                                                        if (lineBreakPos === -1) continue;
                                                         let headerLine = CurrentCode.slice(0, lineBreakPos);
                                                         let digitMatch = headerLine.match(/\d+/);
-                                                        let CurrentQuestionID = digitMatch ? digitMatch[0] : "";
-                                                        CurrentCode = CurrentCode.slice(CurrentCode.indexOf('\n') + 1);
+                                                        if (!digitMatch) continue;
+                                                        let CurrentQuestionID = digitMatch[0];
+                                                        let newlinePos = CurrentCode.indexOf('\n');
+                                                        CurrentCode = CurrentCode.slice(newlinePos + 1);
                                                         CurrentCode = CurrentCode.replaceAll("\r", "");
                                                         Zip.file(CurrentQuestionID + ".cpp", CurrentCode);
                                                     }
