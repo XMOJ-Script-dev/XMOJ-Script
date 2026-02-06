@@ -3214,6 +3214,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "2.5.3": {
+            "UpdateDate": 1770339958988,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 888,
+                    "Description": "[WIP] Fix bug in exporting AC codes for topics above 9999"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
