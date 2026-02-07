@@ -2589,6 +2589,7 @@ async function main() {
                             });
                     }
 
+                    let isSubmitting = false;
                     PassCheck.addEventListener("click", async () => {
                         ErrorElement.style.display = "none";
                         document.querySelector("#Submit").disabled = true;
@@ -2672,7 +2673,6 @@ async function main() {
                         })
                     });
 
-                    let isSubmitting = false;
                     Submit.addEventListener("click", async () => {
                         if (isSubmitting) {
                             return;
