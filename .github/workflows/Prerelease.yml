@@ -21,9 +21,9 @@ jobs:
         with:
           node-version: 16
           registry-url: https://registry.npmjs.org/
-      # - uses: actions/checkout@v6
-      #   with:
-      #     fetch-depth: 0
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
       # - name: Publish to npm
       #   run: npm publish --provenance
       #   env:
