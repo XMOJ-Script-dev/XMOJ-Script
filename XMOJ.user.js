@@ -522,7 +522,30 @@ let RequestAPI = (Action, Data, CallBack) => {
                     CallBack(JSON.parse(Response.responseText));
                 } catch (Error) {
                     console.log(Response.responseText);
+                    // Call callback with error response
+                    CallBack({
+                        Success: false,
+                        Message: "解析响应失败，请重试"
+                    });
                 }
+            },
+            onerror: (Error) => {
+                if (UtilityEnabled("DebugMode")) {
+                    console.error("Request error for", Action + ":", Error);
+                }
+                CallBack({
+                    Success: false,
+                    Message: "网络请求失败，请检查网络连接"
+                });
+            },
+            ontimeout: () => {
+                if (UtilityEnabled("DebugMode")) {
+                    console.error("Request timeout for", Action);
+                }
+                CallBack({
+                    Success: false,
+                    Message: "请求超时，请重试"
+                });
             }
         });
     } catch (e) {
@@ -2626,6 +2649,10 @@ async function main() {
                                         res.indexOf("比赛尚未开始或私有，不能查看题目。") !== -1
                                     ) {
                                         console.error(`Failed to get contest page!`);
+                                        Submit.disabled = false;
+                                        Submit.value = "提交";
+                                        isSubmitting = false;
+                                        isPassCheckRunning = false;
                                         return;
                                     }
                                     const parser = new DOMParser();
@@ -2679,6 +2706,17 @@ async function main() {
                                 isSubmitting = false;
                                 isPassCheckRunning = false;
                             }
+                        }).catch((error) => {
+                            if (UtilityEnabled("DebugMode")) {
+                                console.error("Submission request failed:", error);
+                            }
+                            ErrorElement.style.display = "block";
+                            ErrorMessage.style.color = "red";
+                            ErrorMessage.innerText = "提交失败！请检查网络后重试！";
+                            Submit.disabled = false;
+                            Submit.value = "提交";
+                            isSubmitting = false;
+                            isPassCheckRunning = false;
                         })
                     });
 
@@ -2771,17 +2809,25 @@ async function main() {
                                     }
                                 });
                             });
-                            let Response = JSON.parse(ResponseData.responseText);
-                            if (Response.returncode) {
-                                PassCheck.style.display = "";
-                                ErrorElement.style.display = "block";
-                                if (UtilityEnabled("DarkMode")) ErrorMessage.style.color = "yellow"; else ErrorMessage.style.color = "red";
-                                ErrorMessage.innerText = "编译错误：\n" + Response.stderr.trim();
-                                document.querySelector("#Submit").disabled = false;
-                                document.querySelector("#Submit").value = "提交";
-                                isSubmitting = false;
-                                return false;
-                            } else {
+                            try {
+                                let Response = JSON.parse(ResponseData.responseText);
+                                if (Response.returncode) {
+                                    PassCheck.style.display = "";
+                                    ErrorElement.style.display = "block";
+                                    if (UtilityEnabled("DarkMode")) ErrorMessage.style.color = "yellow"; else ErrorMessage.style.color = "red";
+                                    ErrorMessage.innerText = "编译错误：\n" + Response.stderr.trim();
+                                    document.querySelector("#Submit").disabled = false;
+                                    document.querySelector("#Submit").value = "提交";
+                                    isSubmitting = false;
+                                    return false;
+                                } else {
+                                    PassCheck.click();
+                                }
+                            } catch (error) {
+                                if (UtilityEnabled("DebugMode")) {
+                                    console.error("Failed to parse compile check response:", error);
+                                }
+                                // If parse fails, proceed with submission anyway
                                 PassCheck.click();
                             }
                         } else {
