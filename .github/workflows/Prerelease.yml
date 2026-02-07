@@ -21,13 +21,13 @@ jobs:
         with:
           node-version: 16
           registry-url: https://registry.npmjs.org/
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - name: Publish to npm
-        run: npm publish --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+      # - name: Publish to npm
+      #   run: npm publish --provenance
+      #   env:
+      #     NODE_AUTH_TOKEN: ${{secrets.npm_token}}
       - name: Get version
         env:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}

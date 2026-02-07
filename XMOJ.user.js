@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      2.5.0
+// @version      2.7.2
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -1645,7 +1645,28 @@ async function main() {
                 } else if (location.pathname == "/problem.php") {
                     await RenderMathJax();
                     if (SearchParams.get("cid") != null && UtilityEnabled("ProblemSwitcher")) {
-                        document.getElementsByTagName("h2")[0].innerHTML += " (" + localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + SearchParams.get("pid") + "-PID") + ")";
+                        let pid = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + SearchParams.get("pid") + "-PID");
+                        if (!pid) {
+                            const contestReq = await fetch("https://www.xmoj.tech/contest.php?cid=" + SearchParams.get("cid"));
+                            const res = await contestReq.text();
+                            if (contestReq.status === 200 && res.indexOf("比赛尚未开始或私有，不能查看题目。") === -1) {
+                                const parser = new DOMParser();
+                                const dom = parser.parseFromString(res, "text/html");
+                                const rows = (dom.querySelector("#problemset > tbody")).rows;
+                                for (let i = 0; i < rows.length; i++) {
+                                    let problemIdText = rows[i].children[1].innerText; // Get the text content
+                                    let match = problemIdText.match(/\d+/); // Extract the number
+                                    if (match) {
+                                        let extractedPid = match[0];
+                                        localStorage.setItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + i + "-PID", extractedPid);
+                                    }
+                                }
+                                pid = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + SearchParams.get("pid") + "-PID");
+                            }
+                        }
+                        if (pid) {
+                            document.getElementsByTagName("h2")[0].innerHTML += " (" + pid + ")";
+                        }
                         let ContestProblemList = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-ProblemList");
                         if (ContestProblemList == null) {
                             const contestReq = await fetch("https://www.xmoj.tech/contest.php?cid=" + SearchParams.get("cid"));
@@ -1710,25 +1731,8 @@ async function main() {
                             document.querySelector("body > div > div.mt-3 > center").lastElementChild.style.marginLeft = "10px";
                         }
                         //修复提交按钮
-                        let SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(12)');
-                        if (SubmitLink == null) { //a special type of problem
-                            SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(10)');
-                        }
-                        if (SubmitLink == null) {
-                            SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(11)');
-                        }
-                        if (SubmitLink == null) {
-                            SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(13)');
-                        }
-                        if (SubmitLink == null) {
-                            SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(9)');
-                        }
-                        if (SubmitLink == null) { //为什么这个破东西老是换位置
-                            SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(7)');
-                        }
-                        if (SubmitLink == null) { //tmd又换位置
-                            SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(8)');
-                        }
+                        const links = document.querySelectorAll('.mt-3 > center:nth-child(1) > a');
+                        const SubmitLink = Array.from(links).find(a => a.textContent.trim() === '提交');
                         let SubmitButton = document.createElement('button');
                         SubmitButton.id = 'SubmitButton';
                         SubmitButton.className = 'btn btn-outline-secondary';
@@ -1744,8 +1748,7 @@ async function main() {
                         // Remove the button's outer []
                         let str = document.querySelector('.mt-3 > center:nth-child(1)').innerHTML;
                         let target = SubmitButton.outerHTML;
-                        let result = str.replace(new RegExp(`(.?)${target}(.?)`, 'g'), target);
-                        document.querySelector('.mt-3 > center:nth-child(1)').innerHTML = result;
+                        document.querySelector('.mt-3 > center:nth-child(1)').innerHTML = str.replace(new RegExp(`(.?)${target}(.?)`, 'g'), target);
                         document.querySelector('html body.placeholder-glow div.container div.mt-3 center button#SubmitButton.btn.btn-outline-secondary').onclick = function () {
                             window.location.href = SubmitLink.href;
                             console.log(SubmitLink.href);
@@ -2999,8 +3002,17 @@ async function main() {
                                                 for (let i = 0; i < ACCode.length; i++) {
                                                     let CurrentCode = ACCode[i];
                                                     if (CurrentCode != "") {
-                                                        let CurrentQuestionID = CurrentCode.substring(7, 11);
-                                                        CurrentCode = CurrentCode.substring(14);
+                                                        let lineBreakPos = CurrentCode.search(/[\r\n]/);
+                                                        if (lineBreakPos === -1) continue;
+                                                        let headerLine = CurrentCode.slice(0, lineBreakPos);
+                                                        let digitMatch = headerLine.match(/\d+/);
+                                                        if (!digitMatch) continue;
+                                                        let CurrentQuestionID = digitMatch[0];
+                                                        let bodyStart = lineBreakPos + 1;
+                                                        if (CurrentCode[lineBreakPos] === '\r' && CurrentCode[lineBreakPos + 1] === '\n') {
+                                                            bodyStart = lineBreakPos + 2;
+                                                        }
+                                                        CurrentCode = CurrentCode.slice(bodyStart);
                                                         CurrentCode = CurrentCode.replaceAll("\r", "");
                                                         Zip.file(CurrentQuestionID + ".cpp", CurrentCode);
                                                     }

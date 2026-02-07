@@ -3192,6 +3192,102 @@
                 }
             ],
             "Notes": "XMOJ-Script 2.5.0 新增了比赛题目切换器，方便您在题目之间快速切换。此功能默认启用，您也可以在设置中禁用它。本版本还修复了一个导致时间显示为“NaN年前”的错误, 更新了一些 CSS selector，以适应 XMOJ 网站的最新变化."
+        },
+        "2.5.1": {
+            "UpdateDate": 1759830659949,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 876,
+                    "Description": "refactor: simplify SubmitLink selection by querying all anchors and finding by text"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "2.5.2": {
+            "UpdateDate": 1759845614758,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 877,
+                    "Description": "fix: problem PID 可能为 null"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "2.5.3": {
+            "UpdateDate": 1770358959413,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 888,
+                    "Description": "Fix AC code export for 5-digit question IDs"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "2.6.0": {
+            "UpdateDate": 1770426020324,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 876,
+                    "Description": "refactor: simplify SubmitLink selection by querying all anchors and finding by text"
+                },
+                {
+                    "PR": 877,
+                    "Description": "fix: problem PID 可能为 null"
+                },
+                {
+                    "PR": 888,
+                    "Description": "Fix AC code export for 5-digit question IDs"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "2.6.1": {
+            "UpdateDate": 1770426401298,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 892,
+                    "Description": "Update to release 2.6.0"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "2.7.0": {
+            "UpdateDate": 1770426883598,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 892,
+                    "Description": "Update to release 2.6.0"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "2.7.1": {
+            "UpdateDate": 1770426896026,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 895,
+                    "Description": "Update to release 2.7.0"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "2.7.2": {
+            "UpdateDate": 1770429143486,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 896,
+                    "Description": "Update to release 2.7.0"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
