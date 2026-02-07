@@ -2571,8 +2571,9 @@ async function main() {
                         try {
                             editAreaLoader.delete_instance('source');
                         } catch (e) {
+                            // EditArea instance may not exist yet or already deleted - this is fine
                             if (UtilityEnabled("DebugMode")) {
-                                console.log("EditArea cleanup failed (expected):", e);
+                                console.log("EditArea instance not found or already deleted:", e);
                             }
                         }
                     }
@@ -2628,9 +2629,9 @@ async function main() {
                         if (UtilityEnabled("DebugMode")) {
                             console.log("PassCheck clicked, isPassCheckRunning =", isPassCheckRunning, "PassCheck.disabled =", PassCheck.disabled);
                         }
-                        if (isPassCheckRunning) {
+                        if (isPassCheckRunning || PassCheck.disabled) {
                             if (UtilityEnabled("DebugMode")) {
-                                console.log("PassCheck already running, ignoring click");
+                                console.log("PassCheck already running or disabled, ignoring click");
                             }
                             return;
                         }
