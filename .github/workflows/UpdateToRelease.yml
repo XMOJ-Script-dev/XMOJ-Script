@@ -11,11 +11,13 @@ on:
 jobs:
   UpdateToRelease:
     runs-on: ubuntu-latest
+    # 添加条件：如果是 bot 触发的则跳过，避免无限循环
+    if: github.event.pull_request.user.login != 'github-actions[bot]'
     permissions:
       pull-requests: write
       contents: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Update to release
@@ -25,7 +27,7 @@ jobs:
             gh pr comment ${{ github.event.pull_request.number }} --body "请向\`dev\`分支提交pull request, 本pull request将被自动关闭"
             gh pr close ${{ github.event.pull_request.number }}
           else
-            node ./Update/UpdateToRelease.js ${{ secrets.GITHUB_TOKEN }} ${{ github.event.number }} "$PR_BODY"
+            node ./Update/UpdateToRelease.js ${{ secrets.GITHUB_TOKEN }} ${{ github.event.pull_request.number }} "$PR_BODY"
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
