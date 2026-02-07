@@ -3225,6 +3225,25 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "2.6.0": {
+            "UpdateDate": 1770426020324,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 876,
+                    "Description": "refactor: simplify SubmitLink selection by querying all anchors and finding by text"
+                },
+                {
+                    "PR": 877,
+                    "Description": "fix: problem PID 可能为 null"
+                },
+                {
+                    "PR": 888,
+                    "Description": "Fix AC code export for 5-digit question IDs"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
