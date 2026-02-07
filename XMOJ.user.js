@@ -2566,6 +2566,16 @@ async function main() {
                         }
                     }
                 } else if (location.pathname == "/submitpage.php") {
+                    // Disable EditArea if it's loaded by the original page
+                    if (typeof editAreaLoader !== 'undefined') {
+                        try {
+                            editAreaLoader.delete_instance('source');
+                        } catch (e) {
+                            if (UtilityEnabled("DebugMode")) {
+                                console.log("EditArea cleanup failed (expected):", e);
+                            }
+                        }
+                    }
                     document.title = "提交代码: " + (SearchParams.get("id") != null ? "题目" + Number(SearchParams.get("id")) : "比赛" + Number(SearchParams.get("cid")));
                     document.querySelector("body > div > div.mt-3").innerHTML = `<center class="mb-3">` + `<h3>提交代码</h3>` + (SearchParams.get("id") != null ? `题目<span class="blue">${Number(SearchParams.get("id"))}</span>` : `比赛<span class="blue">${Number(SearchParams.get("cid")) + `</span>&emsp;题目<span class="blue">` + String.fromCharCode(65 + parseInt(SearchParams.get("pid")))}</span>`) + `</center>
     <textarea id="CodeInput"></textarea>
@@ -2622,6 +2632,7 @@ async function main() {
                             return;
                         }
                         isPassCheckRunning = true;
+                        PassCheck.disabled = true;
                         ErrorElement.style.display = "none";
                         document.querySelector("#Submit").disabled = true;
                         document.querySelector("#Submit").value = "正在提交...";
@@ -2651,6 +2662,7 @@ async function main() {
                                         console.error(`Failed to get contest page!`);
                                         Submit.disabled = false;
                                         Submit.value = "提交";
+                                        PassCheck.disabled = false;
                                         isSubmitting = false;
                                         isPassCheckRunning = false;
                                         return;
@@ -2703,6 +2715,7 @@ async function main() {
                                 ErrorMessage.innerText = "提交失败！请关闭脚本后重试！";
                                 Submit.disabled = false;
                                 Submit.value = "提交";
+                                PassCheck.disabled = false;
                                 isSubmitting = false;
                                 isPassCheckRunning = false;
                             }
@@ -2715,6 +2728,7 @@ async function main() {
                             ErrorMessage.innerText = "提交失败！请检查网络后重试！";
                             Submit.disabled = false;
                             Submit.value = "提交";
+                            PassCheck.disabled = false;
                             isSubmitting = false;
                             isPassCheckRunning = false;
                         })
