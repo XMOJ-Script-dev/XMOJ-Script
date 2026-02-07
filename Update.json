@@ -3288,6 +3288,21 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "2.8.0": {
+            "UpdateDate": 1770429225115,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 895,
+                    "Description": "Update to release 2.7.0"
+                },
+                {
+                    "PR": 896,
+                    "Description": "Update to release 2.7.0"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
