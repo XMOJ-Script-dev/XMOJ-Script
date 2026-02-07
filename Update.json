@@ -3288,6 +3288,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "2.7.3": {
+            "UpdateDate": 1770435927359,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 901,
+                    "Description": "Add isSubmitting flags to prevent multiple submissions"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
