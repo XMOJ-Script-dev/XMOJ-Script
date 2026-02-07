@@ -2625,6 +2625,9 @@ async function main() {
                     let isSubmitting = false;
                     let isPassCheckRunning = false;
                     PassCheck.addEventListener("click", async () => {
+                        if (UtilityEnabled("DebugMode")) {
+                            console.log("PassCheck clicked, isPassCheckRunning =", isPassCheckRunning, "PassCheck.disabled =", PassCheck.disabled);
+                        }
                         if (isPassCheckRunning) {
                             if (UtilityEnabled("DebugMode")) {
                                 console.log("PassCheck already running, ignoring click");
@@ -2633,6 +2636,9 @@ async function main() {
                         }
                         isPassCheckRunning = true;
                         PassCheck.disabled = true;
+                        if (UtilityEnabled("DebugMode")) {
+                            console.log("PassCheck starting submission");
+                        }
                         ErrorElement.style.display = "none";
                         document.querySelector("#Submit").disabled = true;
                         document.querySelector("#Submit").value = "正在提交...";
@@ -2735,7 +2741,13 @@ async function main() {
                     });
 
                     Submit.addEventListener("click", async () => {
+                        if (UtilityEnabled("DebugMode")) {
+                            console.log("Submit clicked, isSubmitting =", isSubmitting);
+                        }
                         if (isSubmitting) {
+                            if (UtilityEnabled("DebugMode")) {
+                                console.log("Already submitting, ignoring click");
+                            }
                             return;
                         }
                         isSubmitting = true;
