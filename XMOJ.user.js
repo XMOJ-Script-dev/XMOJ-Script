@@ -2667,11 +2667,17 @@ async function main() {
                                 ErrorMessage.innerText = "提交失败！请关闭脚本后重试！";
                                 Submit.disabled = false;
                                 Submit.value = "提交";
+                                isSubmitting = false;
                             }
                         })
                     });
 
+                    let isSubmitting = false;
                     Submit.addEventListener("click", async () => {
+                        if (isSubmitting) {
+                            return;
+                        }
+                        isSubmitting = true;
                         PassCheck.style.display = "none";
                         ErrorElement.style.display = "none";
                         document.querySelector("#Submit").disabled = true;
@@ -2721,6 +2727,7 @@ async function main() {
                                 freopenCodeField.setSize("100%", "auto");
                                 document.querySelector("#Submit").disabled = false;
                                 document.querySelector("#Submit").value = "提交";
+                                isSubmitting = false;
                                 return false;
                             } else if (RegExp("//.*freopen").test(Source)) {
                                 PassCheck.style.display = "";
@@ -2729,6 +2736,7 @@ async function main() {
                                 ErrorMessage.innerText = "请不要注释freopen语句";
                                 document.querySelector("#Submit").disabled = false;
                                 document.querySelector("#Submit").value = "提交";
+                                isSubmitting = false;
                                 return false;
                             }
                         }
@@ -2739,6 +2747,7 @@ async function main() {
                             ErrorMessage.innerText = "源代码为空";
                             document.querySelector("#Submit").disabled = false;
                             document.querySelector("#Submit").value = "提交";
+                            isSubmitting = false;
                             return false;
                         }
                         if (UtilityEnabled("CompileError")) {
@@ -2761,6 +2770,7 @@ async function main() {
                                 ErrorMessage.innerText = "编译错误：\n" + Response.stderr.trim();
                                 document.querySelector("#Submit").disabled = false;
                                 document.querySelector("#Submit").value = "提交";
+                                isSubmitting = false;
                                 return false;
                             } else {
                                 PassCheck.click();
@@ -4378,22 +4388,30 @@ int main()
                                     }
                                 }
                             });
+                            let isSubmittingPost = false;
                             SubmitElement.addEventListener("click", async () => {
+                                if (isSubmittingPost) {
+                                    return;
+                                }
+                                isSubmittingPost = true;
                                 ErrorElement.style.display = "none";
                                 let Title = TitleElement.value;
                                 let Content = ContentElement.value;
                                 let ProblemID = parseInt(SearchParams.get("pid"));
                                 if (Title === "") {
                                     TitleElement.classList.add("is-invalid");
+                                    isSubmittingPost = false;
                                     return;
                                 }
                                 if (Content === "") {
                                     ContentElement.classList.add("is-invalid");
+                                    isSubmittingPost = false;
                                     return;
                                 }
                                 if (document.querySelector("#Board input:checked") === null) {
                                     ErrorElement.innerText = "请选择要发布的板块";
                                     ErrorElement.style.display = "block";
+                                    isSubmittingPost = false;
                                     return;
                                 }
                                 SubmitElement.disabled = true;
@@ -4407,6 +4425,7 @@ int main()
                                 }, (ResponseData) => {
                                     SubmitElement.disabled = false;
                                     SubmitElement.children[0].style.display = "none";
+                                    isSubmittingPost = false;
                                     if (ResponseData.Success == true) {
                                         location.href = "https://www.xmoj.tech/discuss3/thread.php?tid=" + ResponseData.Data.PostID;
                                     } else {
@@ -4897,7 +4916,12 @@ int main()
                                         }
                                     });
                                 });
+                                let isSubmittingReply = false;
                                 SubmitElement.addEventListener("click", async () => {
+                                    if (isSubmittingReply) {
+                                        return;
+                                    }
+                                    isSubmittingReply = true;
                                     ErrorElement.style.display = "none";
                                     SubmitElement.disabled = true;
                                     SubmitElement.children[0].style.display = "inline-block";
@@ -4908,6 +4932,7 @@ int main()
                                     }, async (ResponseData) => {
                                         SubmitElement.disabled = false;
                                         SubmitElement.children[0].style.display = "none";
+                                        isSubmittingReply = false;
                                         if (ResponseData.Success == true) {
                                             RefreshReply();
                                             ContentElement.value = "";
