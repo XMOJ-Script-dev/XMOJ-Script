@@ -2589,7 +2589,16 @@ async function main() {
                             });
                     }
 
+                    let isSubmitting = false;
+                    let isPassCheckRunning = false;
                     PassCheck.addEventListener("click", async () => {
+                        if (isPassCheckRunning) {
+                            if (UtilityEnabled("DebugMode")) {
+                                console.log("PassCheck already running, ignoring click");
+                            }
+                            return;
+                        }
+                        isPassCheckRunning = true;
                         ErrorElement.style.display = "none";
                         document.querySelector("#Submit").disabled = true;
                         document.querySelector("#Submit").value = "正在提交...";
@@ -2668,11 +2677,11 @@ async function main() {
                                 Submit.disabled = false;
                                 Submit.value = "提交";
                                 isSubmitting = false;
+                                isPassCheckRunning = false;
                             }
                         })
                     });
 
-                    let isSubmitting = false;
                     Submit.addEventListener("click", async () => {
                         if (isSubmitting) {
                             return;
