@@ -3255,6 +3255,39 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "2.7.0": {
+            "UpdateDate": 1770426883598,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 892,
+                    "Description": "Update to release 2.6.0"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "2.7.1": {
+            "UpdateDate": 1770426896026,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 895,
+                    "Description": "Update to release 2.7.0"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "2.7.2": {
+            "UpdateDate": 1770429143486,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 896,
+                    "Description": "Update to release 2.7.0"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
