@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      2.5.3
+// @version      2.7.2
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -3008,8 +3008,11 @@ async function main() {
                                                         let digitMatch = headerLine.match(/\d+/);
                                                         if (!digitMatch) continue;
                                                         let CurrentQuestionID = digitMatch[0];
-                                                        let newlinePos = CurrentCode.indexOf('\n');
-                                                        CurrentCode = CurrentCode.slice(newlinePos + 1);
+                                                        let bodyStart = lineBreakPos + 1;
+                                                        if (CurrentCode[lineBreakPos] === '\r' && CurrentCode[lineBreakPos + 1] === '\n') {
+                                                            bodyStart = lineBreakPos + 2;
+                                                        }
+                                                        CurrentCode = CurrentCode.slice(bodyStart);
                                                         CurrentCode = CurrentCode.replaceAll("\r", "");
                                                         Zip.file(CurrentQuestionID + ".cpp", CurrentCode);
                                                     }
