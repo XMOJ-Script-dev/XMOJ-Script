@@ -25,6 +25,7 @@ The `backend/` directory is a git submodule pointing to https://github.com/XMOJ-
 3. Merge latest `dev` into your branch before submitting to resolve conflicts
 
 The workflow is: `dev` → (when ready) → `master` for releases. Direct PRs to `master` are not accepted.
+You should follow the PR template that can be found [here](https://raw.githubusercontent.com/XMOJ-Script-dev/.github/refs/heads/main/.github/PULL_REQUEST_TEMPLATE.md).
 
 ### Version Management (CRITICAL - Fully Automated)
 
