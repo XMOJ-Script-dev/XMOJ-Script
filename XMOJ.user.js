@@ -533,6 +533,306 @@ let RequestAPI = (Action, Data, CallBack) => {
     }
 };
 
+// WebSocket Notification System
+let NotificationSocket = null;
+let NotificationSocketReconnectAttempts = 0;
+let NotificationSocketReconnectDelay = 1000;
+let NotificationSocketPingInterval = null;
+
+function GetPHPSESSID() {
+    let Session = "";
+    let Temp = document.cookie.split(";");
+    for (let i = 0; i < Temp.length; i++) {
+        if (Temp[i].includes("PHPSESSID")) {
+            Session = Temp[i].split("=")[1];
+            break;
+        }
+    }
+    return Session;
+}
+
+function ConnectNotificationSocket() {
+    try {
+        let Session = GetPHPSESSID();
+        if (Session === "") {
+            if (UtilityEnabled("DebugMode")) {
+                console.log("WebSocket: PHPSESSID not available, skipping connection");
+            }
+            return;
+        }
+
+        let wsUrl = (UtilityEnabled("SuperDebug") ? "ws://127.0.0.1:8787" : "wss://api.xmoj-bbs.me") + "/ws/notifications?SessionID=" + Session;
+
+        if (UtilityEnabled("DebugMode")) {
+            console.log("WebSocket: Connecting to", wsUrl);
+        }
+
+        NotificationSocket = new WebSocket(wsUrl);
+
+        NotificationSocket.onopen = () => {
+            if (UtilityEnabled("DebugMode")) {
+                console.log("WebSocket: Connected successfully");
+            }
+            NotificationSocketReconnectAttempts = 0;
+            NotificationSocketReconnectDelay = 1000;
+
+            // Start ping keepalive
+            if (NotificationSocketPingInterval) {
+                clearInterval(NotificationSocketPingInterval);
+            }
+            NotificationSocketPingInterval = setInterval(() => {
+                if (NotificationSocket && NotificationSocket.readyState === WebSocket.OPEN) {
+                    NotificationSocket.send(JSON.stringify({ type: 'ping' }));
+                    if (UtilityEnabled("DebugMode")) {
+                        console.log("WebSocket: Sent ping");
+                    }
+                } else {
+                    clearInterval(NotificationSocketPingInterval);
+                }
+            }, 30000);
+        };
+
+        NotificationSocket.onmessage = (event) => {
+            HandleNotificationMessage(event);
+        };
+
+        NotificationSocket.onerror = (error) => {
+            if (UtilityEnabled("DebugMode")) {
+                console.error("WebSocket: Error", error);
+            }
+        };
+
+        NotificationSocket.onclose = (event) => {
+            if (UtilityEnabled("DebugMode")) {
+                console.log("WebSocket: Connection closed", event.code, event.reason);
+            }
+            if (NotificationSocketPingInterval) {
+                clearInterval(NotificationSocketPingInterval);
+            }
+            ReconnectNotificationSocket();
+        };
+    } catch (e) {
+        console.error("WebSocket: Failed to connect", e);
+        ReconnectNotificationSocket();
+    }
+}
+
+function ReconnectNotificationSocket() {
+    const delay = Math.min(NotificationSocketReconnectDelay * Math.pow(2, NotificationSocketReconnectAttempts), 30000);
+    NotificationSocketReconnectAttempts++;
+
+    if (UtilityEnabled("DebugMode")) {
+        console.log(`WebSocket: Reconnecting in ${delay}ms (attempt ${NotificationSocketReconnectAttempts})`);
+    }
+
+    setTimeout(() => {
+        ConnectNotificationSocket();
+    }, delay);
+}
+
+function HandleNotificationMessage(event) {
+    try {
+        const notification = JSON.parse(event.data);
+
+        if (UtilityEnabled("DebugMode")) {
+            console.log("WebSocket: Received message", notification);
+        }
+
+        if (notification.type === 'connected') {
+            if (UtilityEnabled("DebugMode")) {
+                console.log("WebSocket: Server confirmed connection at timestamp", notification.timestamp);
+            }
+        } else if (notification.type === 'bbs_mention') {
+            // Fetch full mention details from API to get PostTitle and PageNumber
+            RequestAPI("GetBBSMentionList", {}, (Response) => {
+                if (Response.Success) {
+                    let MentionList = Response.Data.MentionList;
+                    // Find the matching mention by PostID and ReplyID
+                    for (let i = 0; i < MentionList.length; i++) {
+                        if (MentionList[i].PostID == notification.data.PostID &&
+                            MentionList[i].ReplyID == notification.data.ReplyID) {
+                            CreateAndShowBBSMentionToast(MentionList[i]);
+                            break;
+                        }
+                    }
+                }
+            });
+        } else if (notification.type === 'mail_mention') {
+            // Fetch full mail mention details from API
+            RequestAPI("GetMailMentionList", {}, (Response) => {
+                if (Response.Success) {
+                    let MentionList = Response.Data.MentionList;
+                    // Find the matching mention by FromUserID
+                    for (let i = 0; i < MentionList.length; i++) {
+                        if (MentionList[i].FromUserID === notification.data.FromUserID) {
+                            CreateAndShowMailMentionToast(MentionList[i]);
+                            break;
+                        }
+                    }
+                }
+            });
+        } else if (notification.type === 'pong') {
+            if (UtilityEnabled("DebugMode")) {
+                console.log("WebSocket: Received pong");
+            }
+        }
+    } catch (e) {
+        console.error("WebSocket: Failed to handle message", e);
+    }
+}
+
+function CreateAndShowBBSMentionToast(mention) {
+    let ToastContainer = document.querySelector(".toast-container");
+    if (!ToastContainer) return;
+
+    let Toast = document.createElement("div");
+    Toast.classList.add("toast");
+    Toast.setAttribute("role", "alert");
+    let ToastHeader = document.createElement("div");
+    ToastHeader.classList.add("toast-header");
+    let ToastTitle = document.createElement("strong");
+    ToastTitle.classList.add("me-auto");
+    ToastTitle.innerHTML = "提醒：有人@你";
+    ToastHeader.appendChild(ToastTitle);
+    let ToastTime = document.createElement("small");
+    ToastTime.classList.add("text-body-secondary");
+    ToastTime.innerHTML = GetRelativeTime(mention.MentionTime);
+    ToastHeader.appendChild(ToastTime);
+    let ToastCloseButton = document.createElement("button");
+    ToastCloseButton.type = "button";
+    ToastCloseButton.classList.add("btn-close");
+    ToastCloseButton.setAttribute("data-bs-dismiss", "toast");
+    ToastHeader.appendChild(ToastCloseButton);
+    Toast.appendChild(ToastHeader);
+    let ToastBody = document.createElement("div");
+    ToastBody.classList.add("toast-body");
+    ToastBody.innerHTML = "讨论" + mention.PostTitle + "有新回复";
+    let ToastFooter = document.createElement("div");
+    ToastFooter.classList.add("mt-2", "pt-2", "border-top");
+    let ToastDismissButton = document.createElement("button");
+    ToastDismissButton.type = "button";
+    ToastDismissButton.classList.add("btn", "btn-secondary", "btn-sm", "me-2");
+    ToastDismissButton.innerText = "忽略";
+    ToastDismissButton.addEventListener("click", () => {
+        RequestAPI("ReadBBSMention", {
+            "MentionID": Number(mention.MentionID)
+        }, () => {
+        });
+        Toast.remove();
+    });
+    ToastFooter.appendChild(ToastDismissButton);
+    let ToastViewButton = document.createElement("button");
+    ToastViewButton.type = "button";
+    ToastViewButton.classList.add("btn", "btn-primary", "btn-sm");
+    ToastViewButton.innerText = "查看";
+    ToastViewButton.addEventListener("click", () => {
+        open("https://www.xmoj.tech/discuss3/thread.php?tid=" + mention.PostID + '&page=' + mention.PageNumber, "_blank");
+        RequestAPI("ReadBBSMention", {
+            "MentionID": Number(mention.MentionID)
+        }, () => {
+        });
+    });
+    ToastFooter.appendChild(ToastViewButton);
+    ToastBody.appendChild(ToastFooter);
+    Toast.appendChild(ToastBody);
+    ToastContainer.appendChild(Toast);
+    new bootstrap.Toast(Toast).show();
+}
+
+function CreateAndShowMailMentionToast(mention) {
+    let ToastContainer = document.querySelector(".toast-container");
+    if (!ToastContainer) return;
+
+    let Toast = document.createElement("div");
+    Toast.classList.add("toast");
+    Toast.setAttribute("role", "alert");
+    let ToastHeader = document.createElement("div");
+    ToastHeader.classList.add("toast-header");
+    let ToastTitle = document.createElement("strong");
+    ToastTitle.classList.add("me-auto");
+    ToastTitle.innerHTML = "提醒：有新消息";
+    ToastHeader.appendChild(ToastTitle);
+    let ToastTime = document.createElement("small");
+    ToastTime.classList.add("text-body-secondary");
+    ToastTime.innerHTML = GetRelativeTime(mention.MentionTime);
+    ToastHeader.appendChild(ToastTime);
+    let ToastCloseButton = document.createElement("button");
+    ToastCloseButton.type = "button";
+    ToastCloseButton.classList.add("btn-close");
+    ToastCloseButton.setAttribute("data-bs-dismiss", "toast");
+    ToastHeader.appendChild(ToastCloseButton);
+    Toast.appendChild(ToastHeader);
+    let ToastBody = document.createElement("div");
+    ToastBody.classList.add("toast-body");
+    let ToastUser = document.createElement("span");
+    GetUsernameHTML(ToastUser, mention.FromUserID);
+    ToastBody.appendChild(ToastUser);
+    ToastBody.innerHTML += "  给你发了一封短消息";
+    let ToastFooter = document.createElement("div");
+    ToastFooter.classList.add("mt-2", "pt-2", "border-top");
+    let ToastDismissButton = document.createElement("button");
+    ToastDismissButton.type = "button";
+    ToastDismissButton.classList.add("btn", "btn-secondary", "btn-sm", "me-2");
+    ToastDismissButton.setAttribute("data-bs-dismiss", "toast");
+    ToastDismissButton.innerText = "忽略";
+    ToastDismissButton.addEventListener("click", () => {
+        RequestAPI("ReadMailMention", {
+            "MentionID": Number(mention.MentionID)
+        }, () => {
+        });
+    });
+    ToastFooter.appendChild(ToastDismissButton);
+    let ToastViewButton = document.createElement("button");
+    ToastViewButton.type = "button";
+    ToastViewButton.classList.add("btn", "btn-primary", "btn-sm");
+    ToastViewButton.innerText = "查看";
+    ToastViewButton.addEventListener("click", () => {
+        open("https://www.xmoj.tech/mail.php?to_user=" + mention.FromUserID, "_blank");
+        RequestAPI("ReadMailMention", {
+            "MentionID": Number(mention.MentionID)
+        }, () => {
+        });
+    });
+    ToastFooter.appendChild(ToastViewButton);
+    ToastBody.appendChild(ToastFooter);
+    Toast.appendChild(ToastBody);
+    ToastContainer.appendChild(Toast);
+    new bootstrap.Toast(Toast).show();
+}
+
+function PollNotifications() {
+    if (UtilityEnabled("BBSPopup")) {
+        RequestAPI("GetBBSMentionList", {}, (Response) => {
+            if (Response.Success) {
+                let ToastContainer = document.querySelector(".toast-container");
+                if (ToastContainer) {
+                    ToastContainer.innerHTML = "";
+                }
+                let MentionList = Response.Data.MentionList;
+                for (let i = 0; i < MentionList.length; i++) {
+                    CreateAndShowBBSMentionToast(MentionList[i]);
+                }
+            }
+        });
+    }
+    if (UtilityEnabled("MessagePopup")) {
+        RequestAPI("GetMailMentionList", {}, (Response) => {
+            if (Response.Success) {
+                if (!UtilityEnabled("BBSPopup")) {
+                    let ToastContainer = document.querySelector(".toast-container");
+                    if (ToastContainer) {
+                        ToastContainer.innerHTML = "";
+                    }
+                }
+                let MentionList = Response.Data.MentionList;
+                for (let i = 0; i < MentionList.length; i++) {
+                    CreateAndShowMailMentionToast(MentionList[i]);
+                }
+            }
+        });
+    }
+}
+
 GM_registerMenuCommand("清除缓存", () => {
     let Temp = [];
     for (let i = 0; i < localStorage.length; i++) {
@@ -1232,135 +1532,29 @@ async function main() {
                 let ToastContainer = document.createElement("div");
                 ToastContainer.classList.add("toast-container", "position-fixed", "bottom-0", "end-0", "p-3");
                 document.body.appendChild(ToastContainer);
+                // Initialize WebSocket notification system
+                if (CurrentUsername && (UtilityEnabled("BBSPopup") || UtilityEnabled("MessagePopup"))) {
+                    ConnectNotificationSocket();
+                }
+
+                // Fallback polling when WebSocket is not connected
                 addEventListener("focus", () => {
-                    if (UtilityEnabled("BBSPopup")) {
-                        RequestAPI("GetBBSMentionList", {}, (Response) => {
-                            if (Response.Success) {
-                                ToastContainer.innerHTML = "";
-                                let MentionList = Response.Data.MentionList;
-                                for (let i = 0; i < MentionList.length; i++) {
-                                    let Toast = document.createElement("div");
-                                    Toast.classList.add("toast");
-                                    Toast.setAttribute("role", "alert");
-                                    let ToastHeader = document.createElement("div");
-                                    ToastHeader.classList.add("toast-header");
-                                    let ToastTitle = document.createElement("strong");
-                                    ToastTitle.classList.add("me-auto");
-                                    ToastTitle.innerHTML = "提醒：有人@你";
-                                    ToastHeader.appendChild(ToastTitle);
-                                    let ToastTime = document.createElement("small");
-                                    ToastTime.classList.add("text-body-secondary");
-                                    ToastTime.innerHTML = GetRelativeTime(MentionList[i].MentionTime);
-                                    ToastHeader.appendChild(ToastTime);
-                                    let ToastCloseButton = document.createElement("button");
-                                    ToastCloseButton.type = "button";
-                                    ToastCloseButton.classList.add("btn-close");
-                                    ToastCloseButton.setAttribute("data-bs-dismiss", "toast");
-                                    ToastHeader.appendChild(ToastCloseButton);
-                                    Toast.appendChild(ToastHeader);
-                                    let ToastBody = document.createElement("div");
-                                    ToastBody.classList.add("toast-body");
-                                    ToastBody.innerHTML = "讨论" + MentionList[i].PostTitle + "有新回复";
-                                    let ToastFooter = document.createElement("div");
-                                    ToastFooter.classList.add("mt-2", "pt-2", "border-top");
-                                    let ToastDismissButton = document.createElement("button");
-                                    ToastDismissButton.type = "button";
-                                    ToastDismissButton.classList.add("btn", "btn-secondary", "btn-sm", "me-2");
-                                    ToastDismissButton.innerText = "忽略";
-                                    ToastDismissButton.addEventListener("click", () => {
-                                        RequestAPI("ReadBBSMention", {
-                                            "MentionID": Number(MentionList[i].MentionID)
-                                        }, () => {
-                                        });
-                                        Toast.remove();
-                                    });
-                                    ToastFooter.appendChild(ToastDismissButton);
-                                    let ToastViewButton = document.createElement("button");
-                                    ToastViewButton.type = "button";
-                                    ToastViewButton.classList.add("btn", "btn-primary", "btn-sm");
-                                    ToastViewButton.innerText = "查看";
-                                    ToastViewButton.addEventListener("click", () => {
-                                        open("https://www.xmoj.tech/discuss3/thread.php?tid=" + MentionList[i].PostID + '&page=' + MentionList[i].PageNumber, "_blank");
-                                        RequestAPI("ReadBBSMention", {
-                                            "MentionID": Number(MentionList[i].MentionID)
-                                        }, () => {
-                                        });
-                                    });
-                                    ToastFooter.appendChild(ToastViewButton);
-                                    ToastBody.appendChild(ToastFooter);
-                                    Toast.appendChild(ToastBody);
-                                    ToastContainer.appendChild(Toast);
-                                    new bootstrap.Toast(Toast).show();
-                                }
-                            }
-                        });
+                    if (!NotificationSocket || NotificationSocket.readyState !== WebSocket.OPEN) {
+                        PollNotifications();
                     }
-                    if (UtilityEnabled("MessagePopup")) {
-                        RequestAPI("GetMailMentionList", {}, async (Response) => {
-                            if (Response.Success) {
-                                if (!UtilityEnabled("BBSPopup")) {
-                                    ToastContainer.innerHTML = "";
-                                }
-                                let MentionList = Response.Data.MentionList;
-                                for (let i = 0; i < MentionList.length; i++) {
-                                    let Toast = document.createElement("div");
-                                    Toast.classList.add("toast");
-                                    Toast.setAttribute("role", "alert");
-                                    let ToastHeader = document.createElement("div");
-                                    ToastHeader.classList.add("toast-header");
-                                    let ToastTitle = document.createElement("strong");
-                                    ToastTitle.classList.add("me-auto");
-                                    ToastTitle.innerHTML = "提醒：有新消息";
-                                    ToastHeader.appendChild(ToastTitle);
-                                    let ToastTime = document.createElement("small");
-                                    ToastTime.classList.add("text-body-secondary");
-                                    ToastTime.innerHTML = GetRelativeTime(MentionList[i].MentionTime);
-                                    ToastHeader.appendChild(ToastTime);
-                                    let ToastCloseButton = document.createElement("button");
-                                    ToastCloseButton.type = "button";
-                                    ToastCloseButton.classList.add("btn-close");
-                                    ToastCloseButton.setAttribute("data-bs-dismiss", "toast");
-                                    ToastHeader.appendChild(ToastCloseButton);
-                                    Toast.appendChild(ToastHeader);
-                                    let ToastBody = document.createElement("div");
-                                    ToastBody.classList.add("toast-body");
-                                    let ToastUser = document.createElement("span");
-                                    GetUsernameHTML(ToastUser, MentionList[i].FromUserID);
-                                    ToastBody.appendChild(ToastUser);
-                                    ToastBody.innerHTML += "  给你发了一封短消息";
-                                    let ToastFooter = document.createElement("div");
-                                    ToastFooter.classList.add("mt-2", "pt-2", "border-top");
-                                    let ToastDismissButton = document.createElement("button");
-                                    ToastDismissButton.type = "button";
-                                    ToastDismissButton.classList.add("btn", "btn-secondary", "btn-sm", "me-2");
-                                    ToastDismissButton.setAttribute("data-bs-dismiss", "toast");
-                                    ToastDismissButton.innerText = "忽略";
-                                    ToastDismissButton.addEventListener("click", () => {
-                                        RequestAPI("ReadMailMention", {
-                                            "MentionID": Number(MentionList[i].MentionID)
-                                        }, () => {
-                                        });
-                                    });
-                                    ToastFooter.appendChild(ToastDismissButton);
-                                    let ToastViewButton = document.createElement("button");
-                                    ToastViewButton.type = "button";
-                                    ToastViewButton.classList.add("btn", "btn-primary", "btn-sm");
-                                    ToastViewButton.innerText = "查看";
-                                    ToastViewButton.addEventListener("click", () => {
-                                        open("https://www.xmoj.tech/mail.php?to_user=" + MentionList[i].FromUserID, "_blank");
-                                        RequestAPI("ReadMailMention", {
-                                            "MentionID": Number(MentionList[i].MentionID)
-                                        }, () => {
-                                        });
-                                    });
-                                    ToastFooter.appendChild(ToastViewButton);
-                                    ToastBody.appendChild(ToastFooter);
-                                    Toast.appendChild(ToastBody);
-                                    ToastContainer.appendChild(Toast);
-                                    new bootstrap.Toast(Toast).show();
-                                }
-                            }
-                        });
+                });
+
+                // Periodic fallback polling every 60 seconds when WebSocket is down
+                setInterval(() => {
+                    if (!NotificationSocket || NotificationSocket.readyState !== WebSocket.OPEN) {
+                        PollNotifications();
+                    }
+                }, 60000);
+
+                // Handle tab visibility changes - reconnect if connection dropped
+                document.addEventListener('visibilitychange', () => {
+                    if (!document.hidden && NotificationSocket && NotificationSocket.readyState !== WebSocket.OPEN) {
+                        ConnectNotificationSocket();
                     }
                 });
                 dispatchEvent(new Event("focus"));
