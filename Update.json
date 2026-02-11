@@ -3288,6 +3288,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "2.7.3": {
+            "UpdateDate": 1770809777402,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 905,
+                    "Description": "Add WebSocket notification system for real-time BBS and mail mentions"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
