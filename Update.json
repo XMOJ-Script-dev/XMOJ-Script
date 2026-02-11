@@ -3021,6 +3021,273 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "2.2.1": {
+            "UpdateDate": 1756003502262,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 839,
+                    "Description": "Fix formatting in feedback card text"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "2.2.2": {
+            "UpdateDate": 1757851046240,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 852,
+                    "Description": "Fix the submit button on some pages"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "2.3.0": {
+            "UpdateDate": 1757851277491,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 839,
+                    "Description": "Fix formatting in feedback card text"
+                },
+                {
+                    "PR": 852,
+                    "Description": "Fix the submit button on some pages"
+                }
+            ],
+            "Notes": "随着 CI 更新, 相信以后的 release 都会有 release notes("
+        },
+        "2.3.1": {
+            "UpdateDate": 1758944205783,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 856,
+                    "Description": "修复由于 PHPSESSID 启用了 httpOnly 导致的后台不可用"
+                }
+            ],
+            "Notes": "本版本修复了由于 PHPSESSID 启用了 httpOnly 导致的后台不可用"
+        },
+        "2.4.0": {
+            "UpdateDate": 1758956527554,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 856,
+                    "Description": "修复由于 PHPSESSID 启用了 httpOnly 导致的后台不可用"
+                }
+            ],
+            "Notes": "请尽快升级至本版本！"
+        },
+        "2.4.1": {
+            "UpdateDate": 1759412851092,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 861,
+                    "Description": "Update CSS selector"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "2.4.2": {
+            "UpdateDate": 1759413584731,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 863,
+                    "Description": "修复“NaN年前“"
+                }
+            ],
+            "Notes": "修复“NaN年前“"
+        },
+        "2.4.3": {
+            "UpdateDate": 1759414259108,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 865,
+                    "Description": "删除获取数据功能"
+                }
+            ],
+            "Notes": "因为它利用的bug被修复了"
+        },
+        "2.4.4": {
+            "UpdateDate": 1759417362937,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 866,
+                    "Description": "比赛题目页面里左侧栏加入题目序号列表"
+                }
+            ],
+            "Notes": "#860 ..."
+        },
+        "2.4.5": {
+            "UpdateDate": 1759487413226,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 869,
+                    "Description": "Update CSS selector (again...)"
+                }
+            ],
+            "Notes": "为什么这个破东西老是换位置"
+        },
+        "2.4.6": {
+            "UpdateDate": 1759548958578,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 871,
+                    "Description": "Add tooltip for ProblemSwitcher"
+                }
+            ],
+            "Notes": "现在, 你只需要将鼠标悬浮在比赛题目切换器上方, 即可查看题目名称"
+        },
+        "2.4.7": {
+            "UpdateDate": 1759549826774,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 872,
+                    "Description": "修复获取数据"
+                }
+            ],
+            "Notes": "funny"
+        },
+        "2.5.0": {
+            "UpdateDate": 1759568103629,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 861,
+                    "Description": "Update CSS selector"
+                },
+                {
+                    "PR": 863,
+                    "Description": "修复“NaN年前“"
+                },
+                {
+                    "PR": 865,
+                    "Description": "删除获取数据功能"
+                },
+                {
+                    "PR": 866,
+                    "Description": "比赛题目页面里左侧栏加入题目序号列表"
+                },
+                {
+                    "PR": 869,
+                    "Description": "Update CSS selector (again...)"
+                },
+                {
+                    "PR": 871,
+                    "Description": "Add tooltip for ProblemSwitcher"
+                },
+                {
+                    "PR": 872,
+                    "Description": "修复获取数据"
+                }
+            ],
+            "Notes": "XMOJ-Script 2.5.0 新增了比赛题目切换器，方便您在题目之间快速切换。此功能默认启用，您也可以在设置中禁用它。本版本还修复了一个导致时间显示为“NaN年前”的错误, 更新了一些 CSS selector，以适应 XMOJ 网站的最新变化."
+        },
+        "2.5.1": {
+            "UpdateDate": 1759830659949,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 876,
+                    "Description": "refactor: simplify SubmitLink selection by querying all anchors and finding by text"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "2.5.2": {
+            "UpdateDate": 1759845614758,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 877,
+                    "Description": "fix: problem PID 可能为 null"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "2.5.3": {
+            "UpdateDate": 1770358959413,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 888,
+                    "Description": "Fix AC code export for 5-digit question IDs"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "2.6.0": {
+            "UpdateDate": 1770426020324,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 876,
+                    "Description": "refactor: simplify SubmitLink selection by querying all anchors and finding by text"
+                },
+                {
+                    "PR": 877,
+                    "Description": "fix: problem PID 可能为 null"
+                },
+                {
+                    "PR": 888,
+                    "Description": "Fix AC code export for 5-digit question IDs"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "2.6.1": {
+            "UpdateDate": 1770426401298,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 892,
+                    "Description": "Update to release 2.6.0"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "2.7.0": {
+            "UpdateDate": 1770426883598,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 892,
+                    "Description": "Update to release 2.6.0"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "2.7.1": {
+            "UpdateDate": 1770426896026,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 895,
+                    "Description": "Update to release 2.7.0"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "2.7.2": {
+            "UpdateDate": 1770429143486,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 896,
+                    "Description": "Update to release 2.7.0"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }

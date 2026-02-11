@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      2.2.0
+// @version      2.7.2
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -20,6 +20,7 @@
 // @grant        unsafeWindow
 // @grant        GM_setValue
 // @grant        GM_getValue
+// @grant        GM_cookie
 // @homepage     https://www.xmoj-bbs.me/
 // @supportURL   https://support.xmoj-bbs.me/form/8050213e-c806-4680-b414-0d1c48263677
 // @connect      api.xmoj-bbs.tech
@@ -80,7 +81,7 @@ let SmartAlert = (Message) => {
  */
 let GetRelativeTime = (Input) => {
     try {
-        Input = new Date(Input);
+        Input = new Date(parseInt(Input));
         let Now = new Date().getTime();
         let Delta = Now - Input.getTime();
         let RelativeName = "";
@@ -444,7 +445,7 @@ let UtilityEnabled = (Name) => {
 let storeCredential = async (username, password) => {
     if ('credentials' in navigator && window.PasswordCredential) {
         try {
-            const credential = new PasswordCredential({ id: username, password: password });
+            const credential = new PasswordCredential({id: username, password: password});
             await navigator.credentials.store(credential);
         } catch (e) {
             console.error(e);
@@ -454,7 +455,7 @@ let storeCredential = async (username, password) => {
 let getCredential = async () => {
     if ('credentials' in navigator && window.PasswordCredential) {
         try {
-            return await navigator.credentials.get({ password: true, mediation: 'optional' });
+            return await navigator.credentials.get({password: true, mediation: 'optional'});
         } catch (e) {
             console.error(e);
         }
@@ -478,6 +479,20 @@ let RequestAPI = (Action, Data, CallBack) => {
             if (Temp[i].includes("PHPSESSID")) {
                 Session = Temp[i].split("=")[1];
             }
+        }
+        if (Session === "") { //The cookie is httpOnly
+            GM.cookie.set({
+                name: 'PHPSESSID',
+                value: (Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)).substring(0, 28),
+                path: "/"
+            })
+                .then(() => {
+                    console.log('Reset PHPSESSID successfully.');
+                    location.reload(); //Refresh the page to auth with the new PHPSESSID
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
         }
         let PostData = {
             "Authentication": {
@@ -1010,7 +1025,17 @@ async function main() {
                             });
                             PopupUL.children[5].addEventListener("click", () => {
                                 clearCredential();
-                                document.cookie = "PHPSESSID=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/"; //This is how you remove a cookie?
+                                GM.cookie.set({
+                                    name: 'PHPSESSID',
+                                    value: (Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)).substring(0, 28),
+                                    path: "/"
+                                })
+                                    .then(() => {
+                                        console.log('Reset PHPSESSID successfully.');
+                                    })
+                                    .catch((error) => {
+                                        console.error(error);
+                                    }); //We can no longer rely of the server to set the cookie for us
                                 location.href = "https://www.xmoj.tech/logout.php";
                             });
                             Array.from(PopupUL.children).forEach(item => {
@@ -1481,6 +1506,8 @@ async function main() {
                         }, {
                             "ID": "RefreshSolution", "Type": "F", "Name": "状态页面结果自动刷新每次只能刷新一个"
                         }, {"ID": "CopyMD", "Type": "A", "Name": "复制题目或题解内容"}, {
+                            "ID": "ProblemSwitcher", "Type": "A", "Name": "比赛题目切换器"
+                        }, {
                             "ID": "OpenAllProblem", "Type": "A", "Name": "比赛题目界面一键打开所有题目"
                         }, {
                             "ID": "CheckCode", "Type": "A", "Name": "提交代码前对代码进行检查", "Children": [{
@@ -1513,7 +1540,7 @@ async function main() {
                         FeedbackCardBody.className = "card-body";
                         let FeedbackCardText = document.createElement("p");
                         FeedbackCardText.className = "card-text";
-                        FeedbackCardText.innerText = "如果您有任何建议或者发现了bug，请前往本项目的GitHub页面并提交issue。提交issue前请先搜索是否有相同的issue，如果有请在该issue下留言。请在issue中尽可能详细地描述您的问题，并且附上您的浏览器版本、操作系统版本、脚本版本、复现步骤等信息。谢谢您支持本项目。";
+                        FeedbackCardText.innerText = "如果您有任何建议或者发现了 bug，请前往本项目的 GitHub 页面并提交 issue。提交 issue 前请先搜索是否有相同的 issue，如果有请在该 issue 下留言。请在 issue 中尽可能详细地描述您的问题，并且附上您的浏览器版本、操作系统版本、脚本版本、复现步骤等信息。谢谢您支持本项目。";
                         FeedbackCardBody.appendChild(FeedbackCardText);
                         let FeedbackCardLink = document.createElement("a");
                         FeedbackCardLink.className = "card-link";
@@ -1617,8 +1644,81 @@ async function main() {
                     }
                 } else if (location.pathname == "/problem.php") {
                     await RenderMathJax();
-                    if (SearchParams.get("cid") != null) {
-                        document.getElementsByTagName("h2")[0].innerHTML += " (" + localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + SearchParams.get("pid") + "-PID") + ")";
+                    if (SearchParams.get("cid") != null && UtilityEnabled("ProblemSwitcher")) {
+                        let pid = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + SearchParams.get("pid") + "-PID");
+                        if (!pid) {
+                            const contestReq = await fetch("https://www.xmoj.tech/contest.php?cid=" + SearchParams.get("cid"));
+                            const res = await contestReq.text();
+                            if (contestReq.status === 200 && res.indexOf("比赛尚未开始或私有，不能查看题目。") === -1) {
+                                const parser = new DOMParser();
+                                const dom = parser.parseFromString(res, "text/html");
+                                const rows = (dom.querySelector("#problemset > tbody")).rows;
+                                for (let i = 0; i < rows.length; i++) {
+                                    let problemIdText = rows[i].children[1].innerText; // Get the text content
+                                    let match = problemIdText.match(/\d+/); // Extract the number
+                                    if (match) {
+                                        let extractedPid = match[0];
+                                        localStorage.setItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + i + "-PID", extractedPid);
+                                    }
+                                }
+                                pid = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + SearchParams.get("pid") + "-PID");
+                            }
+                        }
+                        if (pid) {
+                            document.getElementsByTagName("h2")[0].innerHTML += " (" + pid + ")";
+                        }
+                        let ContestProblemList = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-ProblemList");
+                        if (ContestProblemList == null) {
+                            const contestReq = await fetch("https://www.xmoj.tech/contest.php?cid=" + SearchParams.get("cid"));
+                            const res = await contestReq.text();
+                            if (contestReq.status === 200 && res.indexOf("比赛尚未开始或私有，不能查看题目。") === -1) {
+                                const parser = new DOMParser();
+                                const dom = parser.parseFromString(res, "text/html");
+                                const rows = (dom.querySelector("#problemset > tbody")).rows;
+                                let problemList = [];
+                                for (let i = 0; i < rows.length; i++) {
+                                    problemList.push({
+                                        "title": rows[i].children[2].innerText,
+                                        "url": rows[i].children[2].children[0].href
+                                    });
+                                }
+                                localStorage.setItem("UserScript-Contest-" + SearchParams.get("cid") + "-ProblemList", JSON.stringify(problemList));
+                                ContestProblemList = JSON.stringify(problemList);
+                            }
+                        }
+
+                        let problemSwitcher = document.createElement("div");
+                        problemSwitcher.style.position = "fixed";
+                        problemSwitcher.style.top = "50%";
+                        problemSwitcher.style.left = "0";
+                        problemSwitcher.style.transform = "translateY(-50%)";
+                        problemSwitcher.style.maxHeight = "80vh";
+                        problemSwitcher.style.overflowY = "auto";
+                        if (document.querySelector("html").getAttribute("data-bs-theme") == "dark") {
+                            problemSwitcher.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
+                        } else {
+                            problemSwitcher.style.backgroundColor = "rgba(255, 255, 255, 0.8)";
+                        }
+                        problemSwitcher.style.padding = "10px";
+                        problemSwitcher.style.borderRadius = "0 10px 10px 0";
+                        problemSwitcher.style.display = "flex";
+                        problemSwitcher.style.flexDirection = "column";
+
+                        let problemList = JSON.parse(ContestProblemList);
+                        for (let i = 0; i < problemList.length; i++) {
+                            let buttonText = "";
+                            if (i < 26) {
+                                buttonText = String.fromCharCode(65 + i);
+                            } else {
+                                buttonText = String.fromCharCode(97 + (i - 26));
+                            }
+                            let activeClass = "";
+                            if (problemList[i].url === location.href) {
+                                activeClass = "active";
+                            }
+                            problemSwitcher.innerHTML += `<a href="${problemList[i].url}" title="${problemList[i].title.trim()}" class="btn btn-outline-secondary mb-2 ${activeClass}">${buttonText}</a>`;
+                        }
+                        document.body.appendChild(problemSwitcher);
                     }
                     if (document.querySelector("body > div > div.mt-3 > h2") != null) {
                         document.querySelector("body > div > div.mt-3").innerHTML = "没有此题目或题目对你不可见";
@@ -1627,22 +1727,12 @@ async function main() {
                         }, 1000);
                     } else {
                         let PID = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + SearchParams.get("pid") + "-PID");
-
-                        document.querySelector("body > div > div.mt-3 > center").lastChild.style.marginLeft = "10px";
+                        if (document.querySelector("body > div > div.mt-3 > center").lastElementChild !== null) {
+                            document.querySelector("body > div > div.mt-3 > center").lastElementChild.style.marginLeft = "10px";
+                        }
                         //修复提交按钮
-                        let SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(12)');
-                        if (SubmitLink == null) { //a special type of problem
-                            SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(10)');
-                        }
-                        if (SubmitLink == null) {
-                            SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(11)');
-                        }
-                        if (SubmitLink == null) {
-                            SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(13)');
-                        }
-                        if (SubmitLink == null) {
-                            SubmitLink = document.querySelector('.mt-3 > center:nth-child(1) > a:nth-child(9)');
-                        }
+                        const links = document.querySelectorAll('.mt-3 > center:nth-child(1) > a');
+                        const SubmitLink = Array.from(links).find(a => a.textContent.trim() === '提交');
                         let SubmitButton = document.createElement('button');
                         SubmitButton.id = 'SubmitButton';
                         SubmitButton.className = 'btn btn-outline-secondary';
@@ -1658,8 +1748,7 @@ async function main() {
                         // Remove the button's outer []
                         let str = document.querySelector('.mt-3 > center:nth-child(1)').innerHTML;
                         let target = SubmitButton.outerHTML;
-                        let result = str.replace(new RegExp(`(.?)${target}(.?)`, 'g'), target);
-                        document.querySelector('.mt-3 > center:nth-child(1)').innerHTML = result;
+                        document.querySelector('.mt-3 > center:nth-child(1)').innerHTML = str.replace(new RegExp(`(.?)${target}(.?)`, 'g'), target);
                         document.querySelector('html body.placeholder-glow div.container div.mt-3 center button#SubmitButton.btn.btn-outline-secondary').onclick = function () {
                             window.location.href = SubmitLink.href;
                             console.log(SubmitLink.href);
@@ -2913,8 +3002,17 @@ async function main() {
                                                 for (let i = 0; i < ACCode.length; i++) {
                                                     let CurrentCode = ACCode[i];
                                                     if (CurrentCode != "") {
-                                                        let CurrentQuestionID = CurrentCode.substring(7, 11);
-                                                        CurrentCode = CurrentCode.substring(14);
+                                                        let lineBreakPos = CurrentCode.search(/[\r\n]/);
+                                                        if (lineBreakPos === -1) continue;
+                                                        let headerLine = CurrentCode.slice(0, lineBreakPos);
+                                                        let digitMatch = headerLine.match(/\d+/);
+                                                        if (!digitMatch) continue;
+                                                        let CurrentQuestionID = digitMatch[0];
+                                                        let bodyStart = lineBreakPos + 1;
+                                                        if (CurrentCode[lineBreakPos] === '\r' && CurrentCode[lineBreakPos + 1] === '\n') {
+                                                            bodyStart = lineBreakPos + 2;
+                                                        }
+                                                        CurrentCode = CurrentCode.slice(bodyStart);
                                                         CurrentCode = CurrentCode.replaceAll("\r", "");
                                                         Zip.file(CurrentQuestionID + ".cpp", CurrentCode);
                                                     }
@@ -3444,7 +3542,7 @@ int main()
             break;
         Input.push_back(Data);
     }
-    throw runtime_error("[" + Base64Encode(Input.c_str()) + "]");
+    throw logic_error("[" + Base64Encode(Input.c_str()) + "]");
     return 0;
 }`;
 
