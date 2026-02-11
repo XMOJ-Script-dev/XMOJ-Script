@@ -643,34 +643,11 @@ function HandleNotificationMessage(event) {
                 console.log("WebSocket: Server confirmed connection at timestamp", notification.timestamp);
             }
         } else if (notification.type === 'bbs_mention') {
-            // Fetch full mention details from API to get PostTitle and PageNumber
-            RequestAPI("GetBBSMentionList", {}, (Response) => {
-                if (Response.Success) {
-                    let MentionList = Response.Data.MentionList;
-                    // Find the matching mention by PostID and ReplyID
-                    for (let i = 0; i < MentionList.length; i++) {
-                        if (MentionList[i].PostID == notification.data.PostID &&
-                            MentionList[i].ReplyID == notification.data.ReplyID) {
-                            CreateAndShowBBSMentionToast(MentionList[i]);
-                            break;
-                        }
-                    }
-                }
-            });
+            // Backend now provides all data needed for immediate display
+            CreateAndShowBBSMentionToast(notification.data);
         } else if (notification.type === 'mail_mention') {
-            // Fetch full mail mention details from API
-            RequestAPI("GetMailMentionList", {}, (Response) => {
-                if (Response.Success) {
-                    let MentionList = Response.Data.MentionList;
-                    // Find the matching mention by FromUserID
-                    for (let i = 0; i < MentionList.length; i++) {
-                        if (MentionList[i].FromUserID === notification.data.FromUserID) {
-                            CreateAndShowMailMentionToast(MentionList[i]);
-                            break;
-                        }
-                    }
-                }
-            });
+            // Backend now provides all data needed for immediate display
+            CreateAndShowMailMentionToast(notification.data);
         } else if (notification.type === 'pong') {
             if (UtilityEnabled("DebugMode")) {
                 console.log("WebSocket: Received pong");
