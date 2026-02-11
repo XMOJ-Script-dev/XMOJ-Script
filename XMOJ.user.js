@@ -785,13 +785,16 @@ function CreateAndShowMailMentionToast(mention) {
 }
 
 function PollNotifications() {
+    // Clear toast container once before fetching to prevent race condition
+    if (UtilityEnabled("BBSPopup") || UtilityEnabled("MessagePopup")) {
+        let ToastContainer = document.querySelector(".toast-container");
+        if (ToastContainer) {
+            ToastContainer.innerHTML = "";
+        }
+    }
     if (UtilityEnabled("BBSPopup")) {
         RequestAPI("GetBBSMentionList", {}, (Response) => {
             if (Response.Success) {
-                let ToastContainer = document.querySelector(".toast-container");
-                if (ToastContainer) {
-                    ToastContainer.innerHTML = "";
-                }
                 let MentionList = Response.Data.MentionList;
                 for (let i = 0; i < MentionList.length; i++) {
                     CreateAndShowBBSMentionToast(MentionList[i]);
@@ -802,12 +805,6 @@ function PollNotifications() {
     if (UtilityEnabled("MessagePopup")) {
         RequestAPI("GetMailMentionList", {}, (Response) => {
             if (Response.Success) {
-                if (!UtilityEnabled("BBSPopup")) {
-                    let ToastContainer = document.querySelector(".toast-container");
-                    if (ToastContainer) {
-                        ToastContainer.innerHTML = "";
-                    }
-                }
                 let MentionList = Response.Data.MentionList;
                 for (let i = 0; i < MentionList.length; i++) {
                     CreateAndShowMailMentionToast(MentionList[i]);
@@ -1537,7 +1534,9 @@ async function main() {
 
                 // Handle tab visibility changes - reconnect if connection dropped
                 document.addEventListener('visibilitychange', () => {
-                    if (!document.hidden && NotificationSocket && NotificationSocket.readyState !== WebSocket.OPEN) {
+                    if (!document.hidden && NotificationSocket &&
+                        NotificationSocket.readyState !== WebSocket.OPEN &&
+                        NotificationSocket.readyState !== WebSocket.CONNECTING) {
                         ConnectNotificationSocket();
                     }
                 });
