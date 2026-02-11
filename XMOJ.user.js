@@ -538,6 +538,7 @@ let NotificationSocket = null;
 let NotificationSocketReconnectAttempts = 0;
 let NotificationSocketReconnectDelay = 1000;
 let NotificationSocketPingInterval = null;
+let NotificationSocketReconnectTimer = null;
 
 function GetPHPSESSID() {
     let Session = "";
@@ -553,6 +554,12 @@ function GetPHPSESSID() {
 
 function ConnectNotificationSocket() {
     try {
+        // Clear any pending reconnection timer to prevent duplicate connections
+        if (NotificationSocketReconnectTimer) {
+            clearTimeout(NotificationSocketReconnectTimer);
+            NotificationSocketReconnectTimer = null;
+        }
+
         let Session = GetPHPSESSID();
         if (Session === "") {
             if (UtilityEnabled("DebugMode")) {
@@ -625,7 +632,7 @@ function ReconnectNotificationSocket() {
         console.log(`WebSocket: Reconnecting in ${delay}ms (attempt ${NotificationSocketReconnectAttempts})`);
     }
 
-    setTimeout(() => {
+    NotificationSocketReconnectTimer = setTimeout(() => {
         ConnectNotificationSocket();
     }, delay);
 }
@@ -683,7 +690,7 @@ function CreateAndShowBBSMentionToast(mention) {
     Toast.appendChild(ToastHeader);
     let ToastBody = document.createElement("div");
     ToastBody.classList.add("toast-body");
-    ToastBody.innerHTML = "讨论" + mention.PostTitle + "有新回复";
+    ToastBody.innerHTML = "讨论" + escapeHTML(mention.PostTitle) + "有新回复";
     let ToastFooter = document.createElement("div");
     ToastFooter.classList.add("mt-2", "pt-2", "border-top");
     let ToastDismissButton = document.createElement("button");
@@ -744,7 +751,7 @@ function CreateAndShowMailMentionToast(mention) {
     let ToastUser = document.createElement("span");
     GetUsernameHTML(ToastUser, mention.FromUserID);
     ToastBody.appendChild(ToastUser);
-    ToastBody.innerHTML += "  给你发了一封短消息";
+    ToastBody.appendChild(document.createTextNode("  给你发了一封短消息"));
     let ToastFooter = document.createElement("div");
     ToastFooter.classList.add("mt-2", "pt-2", "border-top");
     let ToastDismissButton = document.createElement("button");
