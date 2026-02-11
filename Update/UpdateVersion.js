@@ -7,6 +7,14 @@ process.env.GITHUB_TOKEN = GithubToken;
 execSync("gh pr checkout " + PRNumber);
 console.info("PR #" + PRNumber + " has been checked out.");
 
+// Check if the last commit was made by github-actions[bot]
+const lastCommitAuthor = execSync("git log -1 --pretty=format:'%an'").toString().trim();
+console.log("Last commit author: " + lastCommitAuthor);
+if (lastCommitAuthor === "github-actions[bot]") {
+    console.log("Last commit was made by github-actions[bot]. Skipping to prevent infinite loop.");
+    process.exit(0);
+}
+
 const JSONFileName = "./Update.json";
 const JSFileName = "./XMOJ.user.js";
 var JSONFileContent = readFileSync(JSONFileName, "utf8");
