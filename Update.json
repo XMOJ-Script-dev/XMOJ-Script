@@ -3321,6 +3321,33 @@
                 }
             ],
             "Notes": "Added a new toggleable \"极简黑白界面风格\" (Minimalist Monochrome UI) setting under Beautify options. Features serif typography, zero border-radius, line-based visual structure, and automatic dark mode support with charcoal tones."
+        },
+        "3.1.0": {
+            "UpdateDate": 1771254908784,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 895,
+                    "Description": "Update to release 2.7.0"
+                },
+                {
+                    "PR": 896,
+                    "Description": "Update to release 2.7.0"
+                },
+                {
+                    "PR": 905,
+                    "Description": "Add WebSocket notification system for real-time BBS and mail mentions"
+                },
+                {
+                    "PR": 906,
+                    "Description": "Add toggleable Minimalist Monochrome UI"
+                },
+                {
+                    "PR": 906,
+                    "Description": "Add toggleable Minimalist Monochrome UI"
+                }
+            ],
+            "Notes": "v3 显然需要在新年第一天发布("
         }
     }
 }
