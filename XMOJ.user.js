@@ -1368,8 +1368,9 @@ async function main() {
                 .table {
                     border-color: var(--mono-gray-300) !important;
                 }
-                .table thead th {
+                thead th, th.header, th.headerSortUp, th.headerSortDown {
                     background-color: var(--mono-black) !important;
+                    background-image: none !important;
                     color: var(--mono-white) !important;
                     border-bottom: none !important;
                     font-family: var(--mono-font-heading) !important;
@@ -1377,12 +1378,15 @@ async function main() {
                     letter-spacing: 0.05em !important;
                     font-size: 0.85rem !important;
                 }
-                .table td, .table th {
+                td, th {
                     border-color: var(--mono-gray-300) !important;
                     text-align: center !important;
                 }
                 .table-striped > tbody > tr:nth-of-type(odd) > * {
                     background-color: var(--mono-gray-100) !important;
+                }
+                table {
+                    margin-top: 16px !important;
                 }
 
                 /* List groups */
@@ -2644,7 +2648,7 @@ async function main() {
                                     Points[SolutionID] = Rows[i].cells[2].children[1].innerText;
                                     Rows[i].cells[2].children[1].remove();
                                 }
-                                Rows[i].cells[2].innerHTML += "<img style=\"margin-left: 10px\" height=\"18\" width=\"18\" src=\"image/loader.gif\">";
+                                Rows[i].cells[2].innerHTML += UtilityEnabled("MonochromeUI") ? "<span class=\"spinner-border spinner-border-sm ms-2\" role=\"status\"></span>" : "<img style=\"margin-left: 10px\" height=\"18\" width=\"18\" src=\"image/loader.gif\">";
                                 setTimeout(() => {
                                     RefreshResult(SolutionID);
                                 }, 0);
@@ -2686,7 +2690,7 @@ async function main() {
                                             setTimeout(() => {
                                                 RefreshResult(SolutionID)
                                             }, 500);
-                                            TempHTML += "<img style=\"margin-left: 5px\" height=\"18\" width=\"18\" src=\"image/loader.gif\">";
+                                            TempHTML += UtilityEnabled("MonochromeUI") ? "<span class=\"spinner-border spinner-border-sm ms-1\" role=\"status\"></span>" : "<img style=\"margin-left: 5px\" height=\"18\" width=\"18\" src=\"image/loader.gif\">";
                                         } else if (ResponseData[0] == 4 && UtilityEnabled("UploadStd")) {
                                             await StdListReady;
                                             if (SearchParams.get("cid") == null) CurrentRow.cells[1].innerText;
@@ -2694,15 +2698,15 @@ async function main() {
                                                 return Element == Number(PID);
                                             }) : undefined;
                                             if (Std != undefined) {
-                                                TempHTML += "✅";
+                                                TempHTML += UtilityEnabled("MonochromeUI") ? "<span style='margin-left:5px;font-weight:600'>[STD]</span>" : "✅";
                                             } else {
                                                 RequestAPI("UploadStd", {
                                                     "ProblemID": Number(PID),
                                                 }, (Result) => {
                                                     if (Result.Success) {
-                                                        CurrentRow.cells[2].innerHTML += "🆗";
+                                                        CurrentRow.cells[2].innerHTML += UtilityEnabled("MonochromeUI") ? "<span style='margin-left:5px;font-weight:600'>[OK]</span>" : "🆗";
                                                     } else {
-                                                        CurrentRow.cells[2].innerHTML += "⚠️";
+                                                        CurrentRow.cells[2].innerHTML += UtilityEnabled("MonochromeUI") ? "<span style='margin-left:5px;font-weight:600'>[ERR]</span>" : "⚠️";
                                                     }
                                                 });
                                             }
