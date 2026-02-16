@@ -1075,7 +1075,7 @@ async function main() {
                     if (UtilityEnabled("MonochromeUI")) {
                         let fontLink = document.createElement("link");
                         fontLink.rel = "stylesheet";
-                        fontLink.href = "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Source+Serif+4:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap";
+                        fontLink.href = "https://fonts.loli.net/css2?family=Playfair+Display:wght@400;700&family=Source+Serif+4:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap";
                         document.head.appendChild(fontLink);
                         let earlyStyle = document.createElement("style");
                         earlyStyle.textContent = `
