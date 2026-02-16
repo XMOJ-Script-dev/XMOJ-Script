@@ -901,16 +901,28 @@ class NavbarStyler {
         try {
             let n = this.navbar;
             n.classList.add('fixed-top', 'container', 'ml-auto');
-            Object.assign(n.style, {
-                position: 'fixed',
-                borderRadius: '0',
-                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
-                margin: '0',
-                maxWidth: '100%',
-                backgroundColor: 'rgba(255, 255, 255, 0)',
-                opacity: '0.75',
-                zIndex: '1000'
-            });
+            if (UtilityEnabled("MonochromeUI")) {
+                Object.assign(n.style, {
+                    position: 'fixed',
+                    borderRadius: '0',
+                    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
+                    margin: '0',
+                    maxWidth: '100%',
+                    backgroundColor: 'rgba(255, 255, 255, 0)',
+                    opacity: '0.75',
+                    zIndex: '1000'
+                });
+            } else {
+                Object.assign(n.style, {
+                    position: 'fixed',
+                    borderRadius: '28px',
+                    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
+                    margin: '16px auto',
+                    backgroundColor: 'rgba(255, 255, 255, 0)',
+                    opacity: '0.75',
+                    zIndex: '1000'
+                });
+            }
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
