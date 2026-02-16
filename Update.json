@@ -3299,6 +3299,17 @@
                 }
             ],
             "Notes": "Adds WebSocket-based real-time notification system for BBS mentions and mail notifications. Notifications now arrive within 1-2 seconds instead of requiring page focus. Includes automatic reconnection with exponential backoff and fallback to polling when WebSocket is unavailable."
+        },
+        "2.7.4": {
+            "UpdateDate": 1771208709626,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 906,
+                    "Description": "Add toggleable Minimalist Monochrome UI"
+                }
+            ],
+            "Notes": "Added a new toggleable \"极简黑白界面风格\" (Minimalist Monochrome UI) setting under Beautify options. Features serif typography, zero border-radius, line-based visual structure, and automatic dark mode support with charcoal tones."
         }
     }
 }
