@@ -5,11 +5,47 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 
 XMOJ-Script is a browser userscript that enhances the XMOJ online judge platform (xmoj.tech). This repository consists of:
-- **Main userscript** (`XMOJ.user.js`): ~5000 line single-file userscript with all features. As this file is very large you should use the xmoj-code-navigator agent to help you whenever possible.
+- **Main userscript** (`XMOJ.user.js`): ~5000 line single-file userscript with all features. **See "Working with XMOJ.user.js" section below for CRITICAL instructions on using the xmoj-code-navigator agent.**
 - **Update/version management scripts** (`Update/`): Automation for version bumping and releases
 - **Metadata and documentation**: `Update.json` tracks version history, README and contributing guides
 
 The `backend/` directory is a git submodule pointing to https://github.com/XMOJ-Script-dev/XMOJ-bbs and should be modified in that repository, not here.
+
+## Working with XMOJ.user.js (CRITICAL)
+
+**IMPORTANT: Due to the large size of XMOJ.user.js (~5000 lines), you MUST use the xmoj-code-navigator agent whenever you need to explore, search, or understand any part of this file.**
+
+### When to use xmoj-code-navigator
+
+Use the Task tool with `subagent_type="xmoj-code-navigator"` for:
+
+- **Finding specific functions or features**: "Where is the auto-refresh functionality implemented?"
+- **Understanding code sections**: "How does the login authentication work?"
+- **Locating code patterns**: "Find all API calls to the backend"
+- **Searching for specific implementations**: "Show me the dark mode toggle implementation"
+- **Verifying if code exists**: "Does XMOJ.user.js have a function for parsing XML?"
+- **ANY exploration task involving XMOJ.user.js**
+
+### Why use this agent
+
+Loading the entire XMOJ.user.js file into context:
+- Wastes context window space
+- Makes responses slower
+- Is unnecessary when you only need specific sections
+
+The xmoj-code-navigator agent efficiently locates and retrieves only the relevant code sections you need.
+
+### Example usage
+
+```
+Instead of: Read tool on XMOJ.user.js (loads entire 5000 lines)
+Use: Task tool with xmoj-code-navigator agent to find specific sections
+```
+
+**Exception**: Only use Read tool on XMOJ.user.js when:
+- You need to edit a specific line number you already know
+- You're making targeted edits and already know the exact location
+- You need to verify a small, specific section (use offset and limit parameters)
 
 ## Development Workflow
 
