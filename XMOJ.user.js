@@ -2705,10 +2705,12 @@ async function main() {
                                             TempHTML += UtilityEnabled("MonochromeUI") ? "<span class=\"spinner-border spinner-border-sm ms-1\" role=\"status\"></span>" : "<img style=\"margin-left: 5px\" height=\"18\" width=\"18\" src=\"image/loader.gif\">";
                                         } else if (ResponseData[0] == 4 && UtilityEnabled("UploadStd")) {
                                             await StdListReady;
+                                            if (!StdList) { /* skip upload if list fetch failed */ }
+                                            else {
                                             if (SearchParams.get("cid") == null) CurrentRow.cells[1].innerText;
-                                            let Std = StdList ? StdList.find((Element) => {
+                                            let Std = StdList.find((Element) => {
                                                 return Element == Number(PID);
-                                            }) : undefined;
+                                            });
                                             if (Std != undefined) {
                                                 TempHTML += UtilityEnabled("MonochromeUI") ? "<span style='margin-left:5px;font-weight:600'>[STD]</span>" : "✅";
                                             } else {
@@ -2721,6 +2723,7 @@ async function main() {
                                                         CurrentRow.cells[2].innerHTML += UtilityEnabled("MonochromeUI") ? "<span style='margin-left:5px;font-weight:600'>[ERR]</span>" : "⚠️";
                                                     }
                                                 });
+                                            }
                                             }
                                         }
                                         CurrentRow.cells[2].innerHTML = TempHTML;
