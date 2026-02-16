@@ -3301,7 +3301,7 @@
             "Notes": "Adds WebSocket-based real-time notification system for BBS mentions and mail notifications. Notifications now arrive within 1-2 seconds instead of requiring page focus. Includes automatic reconnection with exponential backoff and fallback to polling when WebSocket is unavailable."
         },
         "2.7.4": {
-            "UpdateDate": 1771209266374,
+            "UpdateDate": 1771211196807,
             "Prerelease": true,
             "UpdateContents": [
                 {
