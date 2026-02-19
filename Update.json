@@ -3359,6 +3359,17 @@
                 }
             ],
             "Notes": "Fixed a stored XSS vulnerability in discussion thread post titles."
+        },
+        "3.1.2": {
+            "UpdateDate": 1771493127347,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 911,
+                    "Description": "Fix additional XSS vulnerabilities"
+                }
+            ],
+            "Notes": "Fixed additional stored XSS vulnerabilities where user-controlled data was inserted into innerHTML without sanitization."
         }
     }
 }
