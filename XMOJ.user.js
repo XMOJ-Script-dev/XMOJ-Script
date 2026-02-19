@@ -1912,7 +1912,7 @@ async function main() {
                                 let UpdateDataCardListItem = document.createElement("li");
                                 UpdateDataCardList.appendChild(UpdateDataCardListItem);
                                 UpdateDataCardListItem.className = "list-group-item";
-                                UpdateDataCardListItem.innerHTML = "(<a href=\"https://github.com/XMOJ-Script-dev/XMOJ-Script/pull/" + Data.UpdateContents[j].PR + "\" target=\"_blank\">" + "#" + Data.UpdateContents[j].PR + "</a>) " + Data.UpdateContents[j].Description;
+                                UpdateDataCardListItem.innerHTML = "(<a href=\"https://github.com/XMOJ-Script-dev/XMOJ-Script/pull/" + Data.UpdateContents[j].PR + "\" target=\"_blank\">" + "#" + Data.UpdateContents[j].PR + "</a>) " + escapeHTML(Data.UpdateContents[j].Description);
                             }
                             let UpdateDataCardLink = document.createElement("a");
                             UpdateDataCardBody.appendChild(UpdateDataCardLink);
@@ -3418,7 +3418,7 @@ async function main() {
                                         let UpdateDataCardListItem = document.createElement("li");
                                         UpdateDataCardList.appendChild(UpdateDataCardListItem);
                                         UpdateDataCardListItem.className = "list-group-item";
-                                        UpdateDataCardListItem.innerHTML = "(<a href=\"https://github.com/XMOJ-Script-dev/XMOJ-Script/pull/" + Data.UpdateContents[j].PR + "\" target=\"_blank\">" + "#" + Data.UpdateContents[j].PR + "</a>) " + Data.UpdateContents[j].Description;
+                                        UpdateDataCardListItem.innerHTML = "(<a href=\"https://github.com/XMOJ-Script-dev/XMOJ-Script/pull/" + Data.UpdateContents[j].PR + "\" target=\"_blank\">" + "#" + Data.UpdateContents[j].PR + "</a>) " + escapeHTML(Data.UpdateContents[j].Description);
                                     }
                                     let UpdateDataCardLink = document.createElement("a");
                                     UpdateDataCardBody.appendChild(UpdateDataCardLink);
@@ -3709,8 +3709,8 @@ async function main() {
                         let UserInfoElement = document.createElement("div");
                         UserInfoElement.classList.add("col-auto");
                         UserInfoElement.style.lineHeight = "40px";
-                        UserInfoElement.innerHTML += "用户名：" + UserID + "<br>";
-                        UserInfoElement.innerHTML += "昵称：" + UserNick + "<br>";
+                        UserInfoElement.innerHTML += "用户名：" + escapeHTML(UserID) + "<br>";
+                        UserInfoElement.innerHTML += "昵称：" + escapeHTML(UserNick) + "<br>";
                         if (UtilityEnabled("Rating")) {
                             UserInfoElement.innerHTML += "评分：" + ((await GetUserInfo(UserID)).Rating) + "<br>";
                         }
@@ -4858,7 +4858,7 @@ int main()
                                                 TitleLink.classList.add("link-secondary");
                                                 TitleLink.innerHTML = "🔒 ";
                                             }
-                                            TitleLink.innerHTML += Posts[i].Title;
+                                            TitleLink.innerHTML += escapeHTML(Posts[i].Title);
                                             let AuthorCell = document.createElement("td");
                                             Row.appendChild(AuthorCell);
                                             GetUsernameHTML(AuthorCell, Posts[i].UserID);
@@ -5207,7 +5207,7 @@ int main()
                                             PostAuthor.innerHTML = "<span></span>";
                                             GetUsernameHTML(PostAuthor.children[0], ResponseData.Data.UserID);
                                             PostTime.innerHTML = GetRelativeTime(ResponseData.Data.PostTime);
-                                            PostBoard.innerHTML = ResponseData.Data.BoardName;
+                                            PostBoard.innerHTML = escapeHTML(ResponseData.Data.BoardName);
                                             let Replies = ResponseData.Data.Reply;
                                             PostReplies.innerHTML = "";
                                             for (let i = 0; i < Replies.length; i++) {
@@ -5357,7 +5357,7 @@ int main()
                                                     if (Replies[i].EditPerson == Replies[i].UserID) {
                                                         ReplyContentElement.innerHTML += `<span class="text-muted" style="font-size: 12px">最后编辑于${GetRelativeTime(Replies[i].EditTime)}</span>`;
                                                     } else {
-                                                        ReplyContentElement.innerHTML += `<span class="text-muted" style="font-size: 12px">最后被<span class="Usernames">${Replies[i].EditPerson}</span>编辑于${GetRelativeTime(Replies[i].EditTime)}</span>`;
+                                                        ReplyContentElement.innerHTML += `<span class="text-muted" style="font-size: 12px">最后被<span class="Usernames">${escapeHTML(Replies[i].EditPerson)}</span>编辑于${GetRelativeTime(Replies[i].EditTime)}</span>`;
                                                     }
                                                 }
                                                 let ContentEditElement = document.createElement("div");
