@@ -3370,6 +3370,21 @@
                 }
             ],
             "Notes": "Fixed additional stored XSS vulnerabilities where user-controlled data was inserted into innerHTML without sanitization."
+        },
+        "3.2.0": {
+            "UpdateDate": 1771493320789,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 910,
+                    "Description": "Fix XSS in post title rendering"
+                },
+                {
+                    "PR": 911,
+                    "Description": "Fix additional XSS vulnerabilities"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
