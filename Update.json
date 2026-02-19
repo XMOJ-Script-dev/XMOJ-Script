@@ -3348,6 +3348,17 @@
                 }
             ],
             "Notes": "v3 显然需要在新年第一天发布("
+        },
+        "3.1.1": {
+            "UpdateDate": 1771489733913,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 910,
+                    "Description": "Fix XSS in post title rendering"
+                }
+            ],
+            "Notes": "Fixed a stored XSS vulnerability in discussion thread post titles."
         }
     }
 }
