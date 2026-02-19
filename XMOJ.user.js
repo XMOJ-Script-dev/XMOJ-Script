@@ -5202,7 +5202,7 @@ int main()
                                                     Delete.style.display = "";
                                                 }
                                             }
-                                            PostTitle.innerHTML = ResponseData.Data.Title + (ResponseData.Data.ProblemID == 0 ? "" : ` - 题目` + ` <a href="https://www.xmoj.tech/problem.php?id=` + ResponseData.Data.ProblemID + `">` + ResponseData.Data.ProblemID + `</a>`);
+                                            PostTitle.innerHTML = escapeHTML(ResponseData.Data.Title) + (ResponseData.Data.ProblemID == 0 ? "" : ` - 题目` + ` <a href="https://www.xmoj.tech/problem.php?id=` + ResponseData.Data.ProblemID + `">` + ResponseData.Data.ProblemID + `</a>`);
                                             document.title = "讨论" + ThreadID + ": " + ResponseData.Data.Title;
                                             PostAuthor.innerHTML = "<span></span>";
                                             GetUsernameHTML(PostAuthor.children[0], ResponseData.Data.UserID);
