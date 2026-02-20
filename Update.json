@@ -3299,6 +3299,92 @@
                 }
             ],
             "Notes": "Adds WebSocket-based real-time notification system for BBS mentions and mail notifications. Notifications now arrive within 1-2 seconds instead of requiring page focus. Includes automatic reconnection with exponential backoff and fallback to polling when WebSocket is unavailable."
+        },
+        "2.7.4": {
+            "UpdateDate": 1771211196807,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 906,
+                    "Description": "Add toggleable Minimalist Monochrome UI"
+                }
+            ],
+            "Notes": "Added a new toggleable \"极简黑白界面风格\" (Minimalist Monochrome UI) setting under Beautify options. Features serif typography, zero border-radius, line-based visual structure, and automatic dark mode support with charcoal tones."
+        },
+        "3.0.0": {
+            "UpdateDate": 1771211353041,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 906,
+                    "Description": "Add toggleable Minimalist Monochrome UI"
+                }
+            ],
+            "Notes": "Added a new toggleable \"极简黑白界面风格\" (Minimalist Monochrome UI) setting under Beautify options. Features serif typography, zero border-radius, line-based visual structure, and automatic dark mode support with charcoal tones."
+        },
+        "3.1.0": {
+            "UpdateDate": 1771254908784,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 895,
+                    "Description": "Update to release 2.7.0"
+                },
+                {
+                    "PR": 896,
+                    "Description": "Update to release 2.7.0"
+                },
+                {
+                    "PR": 905,
+                    "Description": "Add WebSocket notification system for real-time BBS and mail mentions"
+                },
+                {
+                    "PR": 906,
+                    "Description": "Add toggleable Minimalist Monochrome UI"
+                },
+                {
+                    "PR": 906,
+                    "Description": "Add toggleable Minimalist Monochrome UI"
+                }
+            ],
+            "Notes": "v3 显然需要在新年第一天发布("
+        },
+        "3.1.1": {
+            "UpdateDate": 1771489733913,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 910,
+                    "Description": "Fix XSS in post title rendering"
+                }
+            ],
+            "Notes": "Fixed a stored XSS vulnerability in discussion thread post titles."
+        },
+        "3.1.2": {
+            "UpdateDate": 1771493127347,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 911,
+                    "Description": "Fix additional XSS vulnerabilities"
+                }
+            ],
+            "Notes": "Fixed additional stored XSS vulnerabilities where user-controlled data was inserted into innerHTML without sanitization."
+        },
+        "3.2.0": {
+            "UpdateDate": 1771493320789,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 910,
+                    "Description": "Fix XSS in post title rendering"
+                },
+                {
+                    "PR": 911,
+                    "Description": "Fix additional XSS vulnerabilities"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }

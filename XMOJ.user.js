@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      2.7.3
+// @version      3.2.0
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -901,15 +901,28 @@ class NavbarStyler {
         try {
             let n = this.navbar;
             n.classList.add('fixed-top', 'container', 'ml-auto');
-            Object.assign(n.style, {
-                position: 'fixed',
-                borderRadius: '28px',
-                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
-                margin: '16px auto',
-                backgroundColor: 'rgba(255, 255, 255, 0)',
-                opacity: '0.75',
-                zIndex: '1000'
-            });
+            if (UtilityEnabled("MonochromeUI")) {
+                Object.assign(n.style, {
+                    position: 'fixed',
+                    borderRadius: '0',
+                    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
+                    margin: '0',
+                    maxWidth: '100%',
+                    backgroundColor: 'rgba(255, 255, 255, 0)',
+                    opacity: '0.75',
+                    zIndex: '1000'
+                });
+            } else {
+                Object.assign(n.style, {
+                    position: 'fixed',
+                    borderRadius: '28px',
+                    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
+                    margin: '16px auto',
+                    backgroundColor: 'rgba(255, 255, 255, 0)',
+                    opacity: '0.75',
+                    zIndex: '1000'
+                });
+            }
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
@@ -926,7 +939,11 @@ class NavbarStyler {
                 document.body.appendChild(overlay);
 
                 let style = document.createElement('style');
-                style.textContent = `
+                style.textContent = UtilityEnabled("MonochromeUI") ? `
+                #blur-overlay {
+                    display: none !important;
+                }
+            ` : `
                 #blur-overlay {
                     position: fixed;
                     backdrop-filter: blur(4px);
@@ -1067,6 +1084,32 @@ async function main() {
                     } else {
                         document.querySelector("html").setAttribute("data-bs-theme", "light");
                     }
+                    if (UtilityEnabled("MonochromeUI")) {
+                        let fontLink = document.createElement("link");
+                        fontLink.rel = "stylesheet";
+                        fontLink.href = "https://fonts.loli.net/css2?family=Playfair+Display:wght@400;700&family=Source+Serif+4:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap";
+                        document.head.appendChild(fontLink);
+                        let earlyStyle = document.createElement("style");
+                        earlyStyle.textContent = `
+                            :root {
+                                --mono-black: #000; --mono-white: #fff;
+                                --mono-gray-100: #f5f5f5; --mono-gray-300: #d4d4d4;
+                                --mono-font-heading: 'Playfair Display', Georgia, serif;
+                                --mono-font-body: 'Source Serif 4', 'Source Serif Pro', Georgia, serif;
+                            }
+                            [data-bs-theme='dark'] {
+                                --mono-black: #e5e5e5; --mono-white: #1a1a1a;
+                                --mono-gray-100: #222; --mono-gray-300: #404040;
+                            }
+                            * { border-radius: 0 !important; box-shadow: none !important; }
+                            body { font-family: var(--mono-font-body) !important; background-color: var(--mono-white) !important; color: var(--mono-black) !important; }
+                            h1,h2,h3,h4,h5,h6 { font-family: var(--mono-font-heading) !important; }
+                            .table thead th { background-color: var(--mono-black) !important; color: var(--mono-white) !important; }
+                            .card { border: 2px solid var(--mono-black) !important; }
+                            .card-header { background-color: var(--mono-black) !important; color: var(--mono-white) !important; }
+                        `;
+                        document.head.appendChild(earlyStyle);
+                    }
                     var resources = [{
                         type: 'link',
                         href: 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css',
@@ -1140,6 +1183,382 @@ async function main() {
                 }
                 let Style = document.createElement("style");
                 document.body.appendChild(Style);
+                if (UtilityEnabled("MonochromeUI")) {
+                Style.innerHTML = `
+                /* Fonts loaded via <link> to avoid layout shift */
+
+                :root {
+                    --mono-black: #000;
+                    --mono-white: #fff;
+                    --mono-gray-100: #f5f5f5;
+                    --mono-gray-200: #e5e5e5;
+                    --mono-gray-300: #d4d4d4;
+                    --mono-gray-400: #a3a3a3;
+                    --mono-gray-500: #737373;
+                    --mono-border: 2px solid var(--mono-black);
+                    --mono-border-thin: 1px solid var(--mono-gray-300);
+                    --mono-font-heading: 'Playfair Display', Georgia, serif;
+                    --mono-font-body: 'Source Serif 4', 'Source Serif Pro', Georgia, serif;
+                    --mono-font-mono: 'JetBrains Mono', 'Consolas', monospace;
+                    --mono-transition: 100ms ease;
+                }
+
+                [data-bs-theme='dark'] {
+                    --mono-black: #e5e5e5;
+                    --mono-white: #1a1a1a;
+                    --mono-gray-100: #222;
+                    --mono-gray-200: #2a2a2a;
+                    --mono-gray-300: #404040;
+                    --mono-gray-400: #737373;
+                    --mono-gray-500: #a3a3a3;
+                }
+
+                * {
+                    border-radius: 0 !important;
+                    box-shadow: none !important;
+                }
+
+                body {
+                    font-family: var(--mono-font-body) !important;
+                    color: var(--mono-black) !important;
+                    background-color: var(--mono-white) !important;
+                }
+
+                h1, h2, h3, h4, h5, h6 {
+                    font-family: var(--mono-font-heading) !important;
+                    font-weight: 700 !important;
+                }
+
+                code, pre, .CodeMirror, kbd, samp {
+                    font-family: var(--mono-font-mono) !important;
+                }
+
+                a {
+                    color: var(--mono-black) !important;
+                    text-decoration: none !important;
+                    transition: var(--mono-transition) !important;
+                }
+                .container a:not(.nav-link):not(.btn):not(.dropdown-item):not(.list-group-item):not(.page-link) {
+                    border-bottom: 1px solid var(--mono-gray-400) !important;
+                    padding-bottom: 1px !important;
+                }
+                .container a:not(.nav-link):not(.btn):not(.dropdown-item):not(.list-group-item):not(.page-link):hover {
+                    border-bottom-color: var(--mono-black) !important;
+                }
+
+                blockquote {
+                    border-left: 4px solid var(--mono-black) !important;
+                    padding: 0.5em 1em;
+                }
+
+                /* Navbar */
+                .navbar, nav.navbar {
+                    border-bottom: 4px solid var(--mono-black) !important;
+                    background-color: var(--mono-white) !important;
+                    opacity: 1 !important;
+                }
+                .navbar .nav-link {
+                    color: var(--mono-black) !important;
+                    text-decoration: none !important;
+                    font-family: var(--mono-font-body) !important;
+                    text-transform: uppercase !important;
+                    letter-spacing: 0.05em !important;
+                    font-size: 0.85rem !important;
+                }
+                .navbar .nav-link:hover, .navbar .nav-link.active {
+                    background-color: var(--mono-black) !important;
+                    color: var(--mono-white) !important;
+                }
+
+                /* Buttons */
+                .btn {
+                    border: 2px solid var(--mono-black) !important;
+                    background-color: var(--mono-white) !important;
+                    color: var(--mono-black) !important;
+                    text-transform: uppercase !important;
+                    letter-spacing: 0.1em !important;
+                    font-family: var(--mono-font-body) !important;
+                    font-weight: 600 !important;
+                    transition: var(--mono-transition) !important;
+                }
+                .btn:hover, .btn:focus, .btn:active, .btn.active {
+                    background-color: var(--mono-black) !important;
+                    color: var(--mono-white) !important;
+                    border-color: var(--mono-black) !important;
+                }
+                .btn-primary {
+                    border: 2px solid var(--mono-black) !important;
+                    background-color: var(--mono-black) !important;
+                    color: var(--mono-white) !important;
+                }
+                .btn-primary:hover {
+                    background-color: var(--mono-white) !important;
+                    color: var(--mono-black) !important;
+                }
+                .btn-secondary {
+                    border: 2px solid var(--mono-black) !important;
+                    background-color: var(--mono-white) !important;
+                    color: var(--mono-black) !important;
+                }
+                .btn-secondary:hover {
+                    background-color: var(--mono-black) !important;
+                    color: var(--mono-white) !important;
+                }
+                .btn-success {
+                    background-color: var(--mono-white) !important;
+                    border: 2px solid #52c41a !important;
+                    color: #52c41a !important;
+                }
+                .btn-danger {
+                    background-color: var(--mono-white) !important;
+                    border: 2px solid #fe4c61 !important;
+                    color: #fe4c61 !important;
+                }
+                .btn-warning {
+                    background-color: var(--mono-white) !important;
+                    border: 2px solid #ffa900 !important;
+                    color: #ffa900 !important;
+                }
+                .btn-info {
+                    background-color: var(--mono-white) !important;
+                    border: 2px solid #0dcaf0 !important;
+                    color: #0dcaf0 !important;
+                }
+
+                /* Cards */
+                .card {
+                    border: 2px solid var(--mono-black) !important;
+                    background-color: var(--mono-white) !important;
+                }
+                .card-header {
+                    background-color: var(--mono-black) !important;
+                    color: var(--mono-white) !important;
+                    border-bottom: none !important;
+                    font-family: var(--mono-font-heading) !important;
+                }
+                .card-header * {
+                    color: var(--mono-white) !important;
+                }
+                .card-body {
+                    background-color: var(--mono-white) !important;
+                    color: var(--mono-black) !important;
+                }
+                .card-footer {
+                    border-top: 1px solid var(--mono-gray-300) !important;
+                    background-color: var(--mono-white) !important;
+                }
+
+                /* Modals */
+                .modal-content {
+                    border: 4px solid var(--mono-black) !important;
+                    background-color: var(--mono-white) !important;
+                }
+                .modal-header {
+                    border-bottom: 1px solid var(--mono-gray-300) !important;
+                    background-color: var(--mono-white) !important;
+                }
+                .modal-footer {
+                    border-top: 1px solid var(--mono-gray-300) !important;
+                    background-color: var(--mono-white) !important;
+                }
+                .modal-title {
+                    font-family: var(--mono-font-heading) !important;
+                }
+
+                /* Toasts */
+                .toast {
+                    border: 2px solid var(--mono-black) !important;
+                    background-color: var(--mono-white) !important;
+                }
+                .toast-header {
+                    background-color: var(--mono-gray-100) !important;
+                    color: var(--mono-black) !important;
+                    border-bottom: 1px solid var(--mono-gray-300) !important;
+                }
+
+                /* Tables */
+                .table {
+                    border-color: var(--mono-gray-300) !important;
+                }
+                thead th, th.header, th.headerSortUp, th.headerSortDown {
+                    background-color: var(--mono-black) !important;
+                    background-image: none !important;
+                    color: var(--mono-white) !important;
+                    border-bottom: none !important;
+                    font-family: var(--mono-font-heading) !important;
+                    text-transform: uppercase !important;
+                    letter-spacing: 0.05em !important;
+                    font-size: 0.85rem !important;
+                }
+                td, th {
+                    border-color: var(--mono-gray-300) !important;
+                    text-align: center !important;
+                }
+                .table-striped > tbody > tr:nth-of-type(odd) > * {
+                    background-color: var(--mono-gray-100) !important;
+                }
+                table {
+                    margin-top: 16px !important;
+                }
+
+                /* List groups */
+                .list-group-item {
+                    border: none !important;
+                    border-bottom: 1px solid var(--mono-gray-300) !important;
+                    background-color: var(--mono-white) !important;
+                    color: var(--mono-black) !important;
+                }
+                .list-group-item-success {
+                    border-left: 4px solid #52c41a !important;
+                }
+                .list-group-item-warning {
+                    border-left: 4px solid #ffa900 !important;
+                }
+                .list-group-item-danger {
+                    border-left: 4px solid #fe4c61 !important;
+                }
+
+                /* Dropdowns */
+                .dropdown-menu {
+                    border: 2px solid var(--mono-black) !important;
+                    padding: 0 !important;
+                    background-color: var(--mono-white) !important;
+                }
+                .dropdown-item {
+                    border-bottom: 1px solid var(--mono-gray-200) !important;
+                    color: var(--mono-black) !important;
+                    transition: var(--mono-transition) !important;
+                    text-decoration: none !important;
+                }
+                .dropdown-item:last-child {
+                    border-bottom: none !important;
+                }
+                .dropdown-item:hover, .dropdown-item:focus {
+                    background-color: var(--mono-black) !important;
+                    color: var(--mono-white) !important;
+                }
+
+                /* Forms */
+                .form-control, .form-select {
+                    border: 2px solid var(--mono-black) !important;
+                    background-color: var(--mono-white) !important;
+                    color: var(--mono-black) !important;
+                    font-family: var(--mono-font-body) !important;
+                }
+                .form-control:focus, .form-select:focus {
+                    outline: 2px solid var(--mono-black) !important;
+                    outline-offset: 2px !important;
+                    border-color: var(--mono-black) !important;
+                }
+
+                /* Alerts */
+                .alert {
+                    border: 2px solid var(--mono-black) !important;
+                    background-color: var(--mono-white) !important;
+                    color: var(--mono-black) !important;
+                }
+                .alert-primary {
+                    border-left: 8px solid var(--mono-black) !important;
+                }
+
+                /* Status indicators */
+                .status_y {
+                    background-color: #52c41a !important;
+                    color: #fff !important;
+                    border-color: #52c41a !important;
+                }
+                .status_n {
+                    background-color: #fe4c61 !important;
+                    color: #fff !important;
+                    border-color: #fe4c61 !important;
+                }
+                .status_w {
+                    background-color: #ffa900 !important;
+                    color: #fff !important;
+                    border-color: #ffa900 !important;
+                }
+
+                .test-case:hover {
+                    border: 2px solid var(--mono-black) !important;
+                }
+
+                .software_list {
+                    width: unset !important;
+                }
+                .software_item {
+                    margin: 5px 10px !important;
+                    background-color: var(--mono-gray-100) !important;
+                    border: 1px solid var(--mono-gray-300) !important;
+                }
+                .software_item img {
+                    width: 50px !important;
+                    height: 50px !important;
+                    object-fit: contain !important;
+                }
+                .item-txt {
+                    color: var(--mono-black) !important;
+                }
+                .cnt-row {
+                    justify-content: inherit;
+                    align-items: stretch;
+                    width: 100% !important;
+                    padding: 1rem 0;
+                }
+                .cnt-row-head {
+                    padding: 0.8em 1em;
+                    background-color: var(--mono-black);
+                    color: var(--mono-white);
+                    width: 100%;
+                    font-family: var(--mono-font-heading);
+                }
+                .cnt-row-head * {
+                    color: var(--mono-white) !important;
+                }
+                .cnt-row-body {
+                    padding: 1em;
+                    border: 2px solid var(--mono-black);
+                    border-top: none;
+                }
+
+                /* Scrollbar */
+                ::-webkit-scrollbar {
+                    width: 8px;
+                    height: 8px;
+                }
+                ::-webkit-scrollbar-track {
+                    background: var(--mono-white);
+                }
+                ::-webkit-scrollbar-thumb {
+                    background: var(--mono-black);
+                }
+
+                /* Copy button in inverted headers */
+                .cnt-row-head .copy-btn, .card-header .copy-btn {
+                    border-color: var(--mono-white) !important;
+                    color: var(--mono-white) !important;
+                    background-color: transparent !important;
+                }
+                .cnt-row-head .copy-btn:hover, .card-header .copy-btn:hover {
+                    background-color: var(--mono-white) !important;
+                    color: var(--mono-black) !important;
+                }
+
+                /* Problem switcher responsive */
+                @media (max-width: 768px) {
+                    .problem-switcher-container {
+                        display: none !important;
+                    }
+                }
+
+                /* Contain images */
+                img {
+                    max-width: 100% !important;
+                    height: auto !important;
+                }
+
+                /* Hide blur overlay */
+                #blur-overlay { display: none !important; }`;
+                } else {
                 Style.innerHTML = `
                 nav {
                     border-bottom-left-radius: 5px;
@@ -1196,9 +1615,10 @@ async function main() {
                     border-top: none;
                     border-radius: 0 0 0.3rem 0.3rem;
                 }`;
+                }
                 if (UtilityEnabled("AddAnimation")) {
                     Style.innerHTML += `.status, .test-case {
-                    transition: 0.5s !important;
+                    transition: ${UtilityEnabled("MonochromeUI") ? "100ms ease" : "0.5s"} !important;
                 }`;
                 }
                 if (UtilityEnabled("AddColorText")) {
@@ -1322,7 +1742,7 @@ async function main() {
                             Array.from(PopupUL.children).forEach(item => {
                                 item.style.opacity = 0;
                                 item.style.transform = 'translateY(-16px)';
-                                item.style.transition = 'transform 0.3s ease, opacity 0.5s ease';
+                                item.style.transition = UtilityEnabled("MonochromeUI") ? 'transform 100ms ease, opacity 100ms ease' : 'transform 0.3s ease, opacity 0.5s ease';
                             });
                             let showDropdownItems = () => {
                                 PopupUL.style.display = 'block';
@@ -1333,7 +1753,7 @@ async function main() {
                                     item._timeout = setTimeout(() => {
                                         item.style.opacity = 1;
                                         item.style.transform = 'translateY(2px)';
-                                    }, index * 36);
+                                    }, index * (UtilityEnabled("MonochromeUI") ? 20 : 36));
                                 });
                             };
                             let hideDropdownItems = () => {
@@ -1344,7 +1764,7 @@ async function main() {
                                 });
                                 setTimeout(() => {
                                     PopupUL.style.display = 'none';
-                                }, 100);
+                                }, UtilityEnabled("MonochromeUI") ? 80 : 100);
                             };
                             let toggleDropdownItems = () => {
                                 if (PopupUL.style.display === 'block') {
@@ -1492,7 +1912,7 @@ async function main() {
                                 let UpdateDataCardListItem = document.createElement("li");
                                 UpdateDataCardList.appendChild(UpdateDataCardListItem);
                                 UpdateDataCardListItem.className = "list-group-item";
-                                UpdateDataCardListItem.innerHTML = "(<a href=\"https://github.com/XMOJ-Script-dev/XMOJ-Script/pull/" + Data.UpdateContents[j].PR + "\" target=\"_blank\">" + "#" + Data.UpdateContents[j].PR + "</a>) " + Data.UpdateContents[j].Description;
+                                UpdateDataCardListItem.innerHTML = "(<a href=\"https://github.com/XMOJ-Script-dev/XMOJ-Script/pull/" + Data.UpdateContents[j].PR + "\" target=\"_blank\">" + "#" + Data.UpdateContents[j].PR + "</a>) " + escapeHTML(Data.UpdateContents[j].Description);
                             }
                             let UpdateDataCardLink = document.createElement("a");
                             UpdateDataCardBody.appendChild(UpdateDataCardLink);
@@ -1672,7 +2092,9 @@ async function main() {
                             }, {"ID": "RemoveUseless", "Type": "D", "Name": "删去无法使用的功能*"}, {
                                 "ID": "ReplaceXM",
                                 "Type": "F",
-                                "Name": "将网站中所有“小明”和“我”关键字替换为“高老师”，所有“小红”替换为“徐师娘”，所有“小粉”替换为“彩虹”，所有“下海”、“海上”替换为“上海” (此功能默认关闭)"
+                                "Name": "将网站中所有\"小明\"和\"我\"关键字替换为\"高老师\"，所有\"小红\"替换为\"徐师娘\"，所有\"小粉\"替换为\"彩虹\"，所有\"下海\"、\"海上\"替换为\"上海\" (此功能默认关闭)"
+                            }, {
+                                "ID": "MonochromeUI", "Type": "F", "Name": "极简黑白界面风格"
                             }]
                         }, {
                             "ID": "AutoLogin", "Type": "A", "Name": "在需要登录的界面自动跳转到登录界面"
@@ -1865,6 +2287,7 @@ async function main() {
                         }
 
                         let problemSwitcher = document.createElement("div");
+                        problemSwitcher.classList.add("problem-switcher-container");
                         problemSwitcher.style.position = "fixed";
                         problemSwitcher.style.top = "50%";
                         problemSwitcher.style.left = "0";
@@ -1872,12 +2295,13 @@ async function main() {
                         problemSwitcher.style.maxHeight = "80vh";
                         problemSwitcher.style.overflowY = "auto";
                         if (document.querySelector("html").getAttribute("data-bs-theme") == "dark") {
-                            problemSwitcher.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
+                            problemSwitcher.style.backgroundColor = UtilityEnabled("MonochromeUI") ? "#000" : "rgba(0, 0, 0, 0.8)";
                         } else {
-                            problemSwitcher.style.backgroundColor = "rgba(255, 255, 255, 0.8)";
+                            problemSwitcher.style.backgroundColor = UtilityEnabled("MonochromeUI") ? "#FFF" : "rgba(255, 255, 255, 0.8)";
                         }
                         problemSwitcher.style.padding = "10px";
-                        problemSwitcher.style.borderRadius = "0 10px 10px 0";
+                        problemSwitcher.style.borderRadius = UtilityEnabled("MonochromeUI") ? "0" : "0 10px 10px 0";
+                        if (UtilityEnabled("MonochromeUI")) problemSwitcher.style.borderRight = "4px solid";
                         problemSwitcher.style.display = "flex";
                         problemSwitcher.style.flexDirection = "column";
 
@@ -2124,7 +2548,7 @@ async function main() {
                             ImproveACRateButton.innerText = "提高正确率";
                             ImproveACRateButton.disabled = true;
                             let ACProblems = [];
-                            await fetch("https://www.xmoj.tech/userinfo.php?user=" + CurrentUsername)
+                            fetch("https://www.xmoj.tech/userinfo.php?user=" + CurrentUsername)
                                 .then((Response) => {
                                     return Response.text();
                                 }).then((Response) => {
@@ -2217,13 +2641,13 @@ async function main() {
                         }
 
                         if (UtilityEnabled("RefreshSolution")) {
-                            let StdList;
-                            await new Promise((Resolve) => {
+                            let StdList = null;
+                            let StdListReady = new Promise((Resolve) => {
                                 RequestAPI("GetStdList", {}, async (Result) => {
                                     if (Result.Success) {
                                         StdList = Result.Data.StdList;
-                                        Resolve();
                                     }
+                                    Resolve();
                                 })
                             });
 
@@ -2236,7 +2660,7 @@ async function main() {
                                     Points[SolutionID] = Rows[i].cells[2].children[1].innerText;
                                     Rows[i].cells[2].children[1].remove();
                                 }
-                                Rows[i].cells[2].innerHTML += "<img style=\"margin-left: 10px\" height=\"18\" width=\"18\" src=\"image/loader.gif\">";
+                                Rows[i].cells[2].innerHTML += UtilityEnabled("MonochromeUI") ? "<span class=\"spinner-border spinner-border-sm ms-2\" role=\"status\"></span>" : "<img style=\"margin-left: 10px\" height=\"18\" width=\"18\" src=\"image/loader.gif\">";
                                 setTimeout(() => {
                                     RefreshResult(SolutionID);
                                 }, 0);
@@ -2255,7 +2679,7 @@ async function main() {
                                     .then((Response) => {
                                         return Response.text();
                                     })
-                                    .then((Response) => {
+                                    .then(async (Response) => {
                                         let PID = 0;
                                         if (SearchParams.get("cid") === null) {
                                             PID = localStorage.getItem("UserScript-Solution-" + SolutionID + "-Problem");
@@ -2278,24 +2702,28 @@ async function main() {
                                             setTimeout(() => {
                                                 RefreshResult(SolutionID)
                                             }, 500);
-                                            TempHTML += "<img style=\"margin-left: 5px\" height=\"18\" width=\"18\" src=\"image/loader.gif\">";
+                                            TempHTML += UtilityEnabled("MonochromeUI") ? "<span class=\"spinner-border spinner-border-sm ms-1\" role=\"status\"></span>" : "<img style=\"margin-left: 5px\" height=\"18\" width=\"18\" src=\"image/loader.gif\">";
                                         } else if (ResponseData[0] == 4 && UtilityEnabled("UploadStd")) {
+                                            await StdListReady;
+                                            if (!StdList) { /* skip upload if list fetch failed */ }
+                                            else {
                                             if (SearchParams.get("cid") == null) CurrentRow.cells[1].innerText;
                                             let Std = StdList.find((Element) => {
                                                 return Element == Number(PID);
                                             });
                                             if (Std != undefined) {
-                                                TempHTML += "✅";
+                                                TempHTML += UtilityEnabled("MonochromeUI") ? "<span style='margin-left:5px;font-weight:600'>[STD]</span>" : "✅";
                                             } else {
                                                 RequestAPI("UploadStd", {
                                                     "ProblemID": Number(PID),
                                                 }, (Result) => {
                                                     if (Result.Success) {
-                                                        CurrentRow.cells[2].innerHTML += "🆗";
+                                                        CurrentRow.cells[2].innerHTML += UtilityEnabled("MonochromeUI") ? "<span style='margin-left:5px;font-weight:600'>[OK]</span>" : "🆗";
                                                     } else {
-                                                        CurrentRow.cells[2].innerHTML += "⚠️";
+                                                        CurrentRow.cells[2].innerHTML += UtilityEnabled("MonochromeUI") ? "<span style='margin-left:5px;font-weight:600'>[ERR]</span>" : "⚠️";
                                                     }
                                                 });
+                                            }
                                             }
                                         }
                                         CurrentRow.cells[2].innerHTML = TempHTML;
@@ -2754,7 +3182,7 @@ async function main() {
                         })
                     })();
                     CodeMirrorElement.setSize("100%", "auto");
-                    CodeMirrorElement.getWrapperElement().style.border = "1px solid #ddd";
+                    CodeMirrorElement.getWrapperElement().style.border = UtilityEnabled("MonochromeUI") ? "2px solid var(--mono-black)" : "1px solid #ddd";
 
                     if (SearchParams.get("sid") !== null) {
                         await fetch("https://www.xmoj.tech/getsource.php?id=" + SearchParams.get("sid"))
@@ -2990,7 +3418,7 @@ async function main() {
                                         let UpdateDataCardListItem = document.createElement("li");
                                         UpdateDataCardList.appendChild(UpdateDataCardListItem);
                                         UpdateDataCardListItem.className = "list-group-item";
-                                        UpdateDataCardListItem.innerHTML = "(<a href=\"https://github.com/XMOJ-Script-dev/XMOJ-Script/pull/" + Data.UpdateContents[j].PR + "\" target=\"_blank\">" + "#" + Data.UpdateContents[j].PR + "</a>) " + Data.UpdateContents[j].Description;
+                                        UpdateDataCardListItem.innerHTML = "(<a href=\"https://github.com/XMOJ-Script-dev/XMOJ-Script/pull/" + Data.UpdateContents[j].PR + "\" target=\"_blank\">" + "#" + Data.UpdateContents[j].PR + "</a>) " + escapeHTML(Data.UpdateContents[j].Description);
                                     }
                                     let UpdateDataCardLink = document.createElement("a");
                                     UpdateDataCardBody.appendChild(UpdateDataCardLink);
@@ -3281,8 +3709,8 @@ async function main() {
                         let UserInfoElement = document.createElement("div");
                         UserInfoElement.classList.add("col-auto");
                         UserInfoElement.style.lineHeight = "40px";
-                        UserInfoElement.innerHTML += "用户名：" + UserID + "<br>";
-                        UserInfoElement.innerHTML += "昵称：" + UserNick + "<br>";
+                        UserInfoElement.innerHTML += "用户名：" + escapeHTML(UserID) + "<br>";
+                        UserInfoElement.innerHTML += "昵称：" + escapeHTML(UserNick) + "<br>";
                         if (UtilityEnabled("Rating")) {
                             UserInfoElement.innerHTML += "评分：" + ((await GetUserInfo(UserID)).Rating) + "<br>";
                         }
@@ -4430,7 +4858,7 @@ int main()
                                                 TitleLink.classList.add("link-secondary");
                                                 TitleLink.innerHTML = "🔒 ";
                                             }
-                                            TitleLink.innerHTML += Posts[i].Title;
+                                            TitleLink.innerHTML += escapeHTML(Posts[i].Title);
                                             let AuthorCell = document.createElement("td");
                                             Row.appendChild(AuthorCell);
                                             GetUsernameHTML(AuthorCell, Posts[i].UserID);
@@ -4774,12 +5202,12 @@ int main()
                                                     Delete.style.display = "";
                                                 }
                                             }
-                                            PostTitle.innerHTML = ResponseData.Data.Title + (ResponseData.Data.ProblemID == 0 ? "" : ` - 题目` + ` <a href="https://www.xmoj.tech/problem.php?id=` + ResponseData.Data.ProblemID + `">` + ResponseData.Data.ProblemID + `</a>`);
+                                            PostTitle.innerHTML = escapeHTML(ResponseData.Data.Title) + (ResponseData.Data.ProblemID == 0 ? "" : ` - 题目` + ` <a href="https://www.xmoj.tech/problem.php?id=` + ResponseData.Data.ProblemID + `">` + ResponseData.Data.ProblemID + `</a>`);
                                             document.title = "讨论" + ThreadID + ": " + ResponseData.Data.Title;
                                             PostAuthor.innerHTML = "<span></span>";
                                             GetUsernameHTML(PostAuthor.children[0], ResponseData.Data.UserID);
                                             PostTime.innerHTML = GetRelativeTime(ResponseData.Data.PostTime);
-                                            PostBoard.innerHTML = ResponseData.Data.BoardName;
+                                            PostBoard.innerHTML = escapeHTML(ResponseData.Data.BoardName);
                                             let Replies = ResponseData.Data.Reply;
                                             PostReplies.innerHTML = "";
                                             for (let i = 0; i < Replies.length; i++) {
@@ -4929,7 +5357,7 @@ int main()
                                                     if (Replies[i].EditPerson == Replies[i].UserID) {
                                                         ReplyContentElement.innerHTML += `<span class="text-muted" style="font-size: 12px">最后编辑于${GetRelativeTime(Replies[i].EditTime)}</span>`;
                                                     } else {
-                                                        ReplyContentElement.innerHTML += `<span class="text-muted" style="font-size: 12px">最后被<span class="Usernames">${Replies[i].EditPerson}</span>编辑于${GetRelativeTime(Replies[i].EditTime)}</span>`;
+                                                        ReplyContentElement.innerHTML += `<span class="text-muted" style="font-size: 12px">最后被<span class="Usernames">${escapeHTML(Replies[i].EditPerson)}</span>编辑于${GetRelativeTime(Replies[i].EditTime)}</span>`;
                                                     }
                                                 }
                                                 let ContentEditElement = document.createElement("div");
