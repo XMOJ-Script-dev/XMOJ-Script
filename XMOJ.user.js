@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      3.2.0
+// @version      3.2.1
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -2994,11 +2994,21 @@ async function main() {
                             document.querySelector("#rank").innerText = "比赛暂时还没有排名";
                         } else {
                             document.querySelector("body > div > div.mt-3 > center > h3").innerText = document.querySelector("body > div > div.mt-3 > center > h3").innerText.substring(document.querySelector("body > div > div.mt-3 > center > h3").innerText.indexOf(" -- ") + 4) + "（OI排名）";
-                            document.querySelector("#rank > thead > tr > :nth-child(1)").innerText = "排名";
-                            document.querySelector("#rank > thead > tr > :nth-child(2)").innerText = "用户";
-                            document.querySelector("#rank > thead > tr > :nth-child(3)").innerText = "昵称";
-                            document.querySelector("#rank > thead > tr > :nth-child(4)").innerText = "AC数";
-                            document.querySelector("#rank > thead > tr > :nth-child(5)").innerText = "得分";
+                            let HeaderCells = document.querySelectorAll("#rank > thead > tr > *");
+                            HeaderCells[0].innerText = "排名";
+                            HeaderCells[1].innerText = "用户";
+                            HeaderCells[2].innerText = "昵称";
+                            HeaderCells[3].innerText = "AC数";
+                            HeaderCells[4].innerText = "得分";
+                            for (let j = 0; j < HeaderCells.length; j++) {
+                                HeaderCells[j].removeAttribute("bgcolor");
+                                HeaderCells[j].style.setProperty("background-color", "black", "important");
+                                HeaderCells[j].style.setProperty("color", "white", "important");
+                                let Links = HeaderCells[j].querySelectorAll("a");
+                                for (let k = 0; k < Links.length; k++) {
+                                    Links[k].style.setProperty("color", "white", "important");
+                                }
+                            }
                             let RefreshOIRank = async () => {
                                 await fetch(location.href)
                                     .then((Response) => {
@@ -3009,6 +3019,7 @@ async function main() {
                                         TidyTable(ParsedDocument.getElementById("rank"));
                                         let Temp = ParsedDocument.getElementById("rank").rows;
                                         for (var i = 1; i < Temp.length; i++) {
+                                            Temp[i].style.backgroundColor = "";
                                             let MetalCell = Temp[i].cells[0];
                                             let Metal = document.createElement("span");
                                             Metal.innerText = MetalCell.innerText;
@@ -3018,6 +3029,10 @@ async function main() {
                                             GetUsernameHTML(Temp[i].cells[1], Temp[i].cells[1].innerText);
                                             Temp[i].cells[2].innerHTML = Temp[i].cells[2].innerText;
                                             Temp[i].cells[3].innerHTML = Temp[i].cells[3].innerText;
+                                            for (let j = 0; j < 5 && j < Temp[i].cells.length; j++) {
+                                                Temp[i].cells[j].style.backgroundColor = "";
+                                                Temp[i].cells[j].style.color = "";
+                                            }
                                             for (let j = 5; j < Temp[i].cells.length; j++) {
                                                 let InnerText = Temp[i].cells[j].innerText;
                                                 let BackgroundColor = Temp[i].cells[j].style.backgroundColor;
@@ -3038,7 +3053,7 @@ async function main() {
                                                 } else if (FirstBlood) {
                                                     BackgroundColor = "rgb(127, 127, 255)";
                                                 } else if (Solved) {
-                                                    BackgroundColor = "rgb(0, 255, 0, " + Math.max(1 / 10 * (10 - ErrorCount), 0.2) + ")";
+                                                    BackgroundColor = "rgba(0, 255, 0, " + Math.max(1 / 10 * (10 - ErrorCount), 0.2) + ")";
                                                     if (ErrorCount != 0) {
                                                         InnerText += " (" + (ErrorCount == 5 ? "4+" : ErrorCount) + ")";
                                                     }
@@ -3080,11 +3095,21 @@ async function main() {
                             document.querySelector("body > div > div.mt-3 > center > h3").innerText = document.querySelector("body > div > div.mt-3 > center > h3").innerText.substring(document.querySelector("body > div > div.mt-3 > center > h3").innerText.indexOf(" -- ") + 4) + "（订正排名）";
                             document.querySelector("body > div > div.mt-3 > center > a").remove();
                         }
-                        document.querySelector("#rank > thead > tr > :nth-child(1)").innerText = "排名";
-                        document.querySelector("#rank > thead > tr > :nth-child(2)").innerText = "用户";
-                        document.querySelector("#rank > thead > tr > :nth-child(3)").innerText = "昵称";
-                        document.querySelector("#rank > thead > tr > :nth-child(4)").innerText = "AC数";
-                        document.querySelector("#rank > thead > tr > :nth-child(5)").innerText = "得分";
+                        let HeaderCells = document.querySelectorAll("#rank > thead > tr > *");
+                        HeaderCells[0].innerText = "排名";
+                        HeaderCells[1].innerText = "用户";
+                        HeaderCells[2].innerText = "昵称";
+                        HeaderCells[3].innerText = "AC数";
+                        HeaderCells[4].innerText = "得分";
+                        for (let j = 0; j < HeaderCells.length; j++) {
+                            HeaderCells[j].removeAttribute("bgcolor");
+                            HeaderCells[j].style.setProperty("background-color", "black", "important");
+                            HeaderCells[j].style.setProperty("color", "white", "important");
+                            let Links = HeaderCells[j].querySelectorAll("a");
+                            for (let k = 0; k < Links.length; k++) {
+                                Links[k].style.setProperty("color", "white", "important");
+                            }
+                        }
                         let RefreshCorrectRank = async () => {
                             await fetch(location.href)
                                 .then((Response) => {
@@ -3095,6 +3120,7 @@ async function main() {
                                     TidyTable(ParsedDocument.getElementById("rank"));
                                     let Temp = ParsedDocument.getElementById("rank").rows;
                                     for (var i = 1; i < Temp.length; i++) {
+                                        Temp[i].style.backgroundColor = "";
                                         let MetalCell = Temp[i].cells[0];
                                         let Metal = document.createElement("span");
                                         Metal.innerText = MetalCell.innerText;
@@ -3104,6 +3130,10 @@ async function main() {
                                         GetUsernameHTML(Temp[i].cells[1], Temp[i].cells[1].innerText);
                                         Temp[i].cells[2].innerHTML = Temp[i].cells[2].innerText;
                                         Temp[i].cells[3].innerHTML = Temp[i].cells[3].innerText;
+                                        for (let j = 0; j < 5 && j < Temp[i].cells.length; j++) {
+                                            Temp[i].cells[j].style.backgroundColor = "";
+                                            Temp[i].cells[j].style.color = "";
+                                        }
                                         for (let j = 5; j < Temp[i].cells.length; j++) {
                                             let InnerText = Temp[i].cells[j].innerText;
                                             let BackgroundColor = Temp[i].cells[j].style.backgroundColor;
@@ -3136,6 +3166,7 @@ async function main() {
                                             }
                                             Temp[i].cells[j].innerHTML = InnerText;
                                             Temp[i].cells[j].style.backgroundColor = BackgroundColor;
+                                            Temp[i].cells[j].style.color = (UtilityEnabled("DarkMode") ? "white" : "black");
                                         }
                                     }
                                     document.querySelector("#rank > tbody").innerHTML = ParsedDocument.querySelector("#rank > tbody").innerHTML;
