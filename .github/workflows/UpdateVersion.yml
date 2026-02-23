@@ -26,4 +26,4 @@ jobs:
       - name: Update version
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
-        run: node ./Update/UpdateVersion.js ${{ steps.generate_token.outputs.token }} ${{ github.event.number }} "${{ github.event.pull_request.title }}" "$PR_BODY"
+        run: node ./Update/UpdateVersion.js ${{ steps.generate_token.outputs.token }} ${{ github.event.number }} "${{ github.event.pull_request.title }}" "$PR_BODY" "${{ github.event.action }}"
