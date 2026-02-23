@@ -8,9 +8,14 @@ execSync("gh pr checkout " + PRNumber);
 console.info("PR #" + PRNumber + " has been checked out.");
 
 // Check if the last commit was made by github-actions[bot]
+// Only skip for synchronize events (push-triggered) to prevent infinite loops.
+// For edited events (PR title/body changes), allow metadata updates even when
+// the branch tip is a bot commit.
+const eventAction = String(process.argv[6] || "");
 const lastCommitAuthor = execSync("git log -1 --pretty=format:'%an'").toString().trim();
 console.log("Last commit author: " + lastCommitAuthor);
-if (lastCommitAuthor === "github-actions[bot]") {
+console.log("Event action       : " + eventAction);
+if (lastCommitAuthor === "github-actions[bot]" && eventAction !== "edited") {
     console.log("Last commit was made by github-actions[bot]. Skipping to prevent infinite loop.");
     process.exit(0);
 }
