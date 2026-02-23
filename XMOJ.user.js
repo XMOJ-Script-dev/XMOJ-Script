@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      3.2.1
+// @version      3.2.2
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -650,11 +650,13 @@ function HandleNotificationMessage(event) {
                 console.log("WebSocket: Server confirmed connection at timestamp", notification.timestamp);
             }
         } else if (notification.type === 'bbs_mention') {
-            // Backend now provides all data needed for immediate display
-            CreateAndShowBBSMentionToast(notification.data);
+            if (UtilityEnabled("BBSPopup")) {
+                CreateAndShowBBSMentionToast(notification.data);
+            }
         } else if (notification.type === 'mail_mention') {
-            // Backend now provides all data needed for immediate display
-            CreateAndShowMailMentionToast(notification.data);
+            if (UtilityEnabled("MessagePopup")) {
+                CreateAndShowMailMentionToast(notification.data);
+            }
         } else if (notification.type === 'pong') {
             if (UtilityEnabled("DebugMode")) {
                 console.log("WebSocket: Received pong");
