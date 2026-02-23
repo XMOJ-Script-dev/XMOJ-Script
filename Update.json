@@ -3398,7 +3398,7 @@
             "Notes": "Fix contest ranking table colors in dark mode (contestrank-oi.php and contestrank-correct.php)"
         },
         "3.2.2": {
-            "UpdateDate": 1771848859037,
+            "UpdateDate": 1771848890966,
             "Prerelease": true,
             "UpdateContents": [
                 {
