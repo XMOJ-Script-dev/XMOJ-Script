@@ -14,7 +14,7 @@ jobs:
       pull-requests: write
       contents: write
     runs-on: ubuntu-latest
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'github-actions[bot]'
+    if: github.event.pull_request.head.repo.full_name == github.repository && !endsWith(github.actor, '[bot]')
     steps:
       - name: Generate a token
         id: generate_token
@@ -26,4 +26,4 @@ jobs:
       - name: Update version
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
-        run: node ./Update/UpdateVersion.js ${{ steps.generate_token.outputs.token }} ${{ github.event.number }} "${{ github.event.pull_request.title }}" "$PR_BODY"
+        run: node ./Update/UpdateVersion.js ${{ steps.generate_token.outputs.token }} ${{ github.event.number }} "${{ github.event.pull_request.title }}" "$PR_BODY" "${{ github.event.action }}"
