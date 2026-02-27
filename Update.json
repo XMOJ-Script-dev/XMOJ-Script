@@ -3385,6 +3385,43 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "3.2.1": {
+            "UpdateDate": 1771740586846,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 916,
+                    "Description": "Fix contest ranking table styling for dark mode"
+                }
+            ],
+            "Notes": "Fix contest ranking table colors in dark mode (contestrank-oi.php and contestrank-correct.php)"
+        },
+        "3.2.2": {
+            "UpdateDate": 1771848993140,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 919,
+                    "Description": "Gate WebSocket toast notifications by per-feature popup settings"
+                }
+            ],
+            "Notes": "Fix WebSocket notification toasts ignoring per-feature popup settings (BBSPopup/MessagePopup)."
+        },
+        "3.3.0": {
+            "UpdateDate": 1772197258188,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 916,
+                    "Description": "Fix contest ranking table styling for dark mode"
+                },
+                {
+                    "PR": 919,
+                    "Description": "Gate WebSocket toast notifications by per-feature popup settings"
+                }
+            ],
+            "Notes": "<b>Bug 修复</b><br>\n- 修复了暗色模式下比赛排名表（contestrank-oi.php 和 contestrank-correct.php）颜色显示异常的问题（#916）<br>\n- 修复了 WebSocket 弹窗通知未遵循各功能独立弹窗开关（BBSPopup/MessagePopup）的问题（#919）"
         }
     }
 }
