@@ -5654,6 +5654,10 @@ int main()
                         top: 20px;
                         right: 30px;
                         color: white;
+                        background: none;
+                        border: none;
+                        padding: 0;
+                        line-height: 1;
                         font-size: 40px;
                         font-weight: bold;
                         cursor: pointer;
