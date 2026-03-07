@@ -5792,17 +5792,18 @@ int main()
                 
                 // Apply to all images on the page
                 let ApplyEnlargerToImage = (img) => {
-                    if (!img.classList.contains("xmoj-image-preview") && 
+                    const effectiveSrc = img.currentSrc || img.src;
+                    if (!img.classList.contains("xmoj-image-preview") &&
                         !img.closest(".xmoj-image-modal") &&
-                        img.src && 
-                        !img.src.includes("gravatar") &&
-                        !img.src.includes("cravatar")) {
-                        
+                        effectiveSrc &&
+                        !effectiveSrc.includes("gravatar") &&
+                        !effectiveSrc.includes("cravatar")) {
+
                         img.classList.add("xmoj-image-preview");
                         img.title = "点击放大";
                         img.addEventListener("click", (e) => {
                             e.stopPropagation();
-                            OpenImageModal(img.currentSrc || img.src);
+                            OpenImageModal(effectiveSrc);
                         });
                     }
                 };
