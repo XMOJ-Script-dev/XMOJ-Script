@@ -5800,7 +5800,9 @@ int main()
                         !effectiveSrc.includes("cravatar")) {
 
                         img.classList.add("xmoj-image-preview");
-                        img.title = "点击放大";
+                        if (!img.title) {
+                            img.title = "点击放大";
+                        }
                         img.addEventListener("click", (e) => {
                             e.stopPropagation();
                             OpenImageModal(effectiveSrc);
