@@ -2121,6 +2121,8 @@ async function main() {
                         }, {"ID": "CompareSource", "Type": "A", "Name": "比较代码"}, {
                             "ID": "BBSPopup", "Type": "A", "Name": "讨论提醒"
                         }, {"ID": "MessagePopup", "Type": "A", "Name": "短消息提醒"}, {
+                            "ID": "ImageEnlarger", "Type": "A", "Name": "图片放大功能"
+                        }, {
                             "ID": "DebugMode", "Type": "A", "Name": "调试模式（仅供开发者使用）"
                         }, {
                             "ID": "SuperDebug", "Type": "A", "Name": "本地调试模式（仅供开发者使用) (未经授权的擅自开启将导致大部分功能不可用！)"
@@ -5569,6 +5571,275 @@ int main()
                             }
                         }
                     }
+                }
+            }
+        }
+
+        // Image Enlargement Feature
+        if (UtilityEnabled("ImageEnlarger")) {
+            try {
+                // Add CSS styles for the enlarger
+                let EnlargerStyle = document.createElement("style");
+                EnlargerStyle.textContent = `
+                    .xmoj-image-preview {
+                        cursor: pointer;
+                    }
+                    
+                    .xmoj-image-preview:hover {
+                        opacity: 0.8;
+                        transition: opacity 0.2s ease;
+                    }
+                    
+                    .xmoj-image-preview::after {
+                        content: "点击放大";
+                        position: absolute;
+                        background-color: rgba(0, 0, 0, 0.7);
+                        color: white;
+                        padding: 5px 10px;
+                        border-radius: 3px;
+                        font-size: 12px;
+                        white-space: nowrap;
+                        pointer-events: none;
+                        opacity: 0;
+                        transition: opacity 0.2s ease;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                    }
+                    
+                    .xmoj-image-preview:hover::after {
+                        opacity: 1;
+                    }
+                    
+                    .xmoj-image-modal {
+                        display: none;
+                        position: fixed;
+                        z-index: 2000;
+                        left: 0;
+                        top: 0;
+                        width: 100%;
+                        height: 100%;
+                        background-color: rgba(0, 0, 0, 0.9);
+                    }
+                    
+                    .xmoj-image-modal.show {
+                        display: flex;
+                        flex-direction: column;
+                    }
+                    
+                    .xmoj-image-modal-content {
+                        flex: 1;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        overflow: auto;
+                    }
+                    
+                    .xmoj-image-modal-image {
+                        max-width: 100%;
+                        max-height: 100%;
+                        object-fit: contain;
+                    }
+                    
+                    .xmoj-image-modal-toolbar {
+                        display: flex;
+                        justify-content: center;
+                        gap: 10px;
+                        padding: 15px;
+                        background-color: rgba(0, 0, 0, 0.5);
+                        flex-wrap: wrap;
+                    }
+                    
+                    .xmoj-image-modal-toolbar button {
+                        padding: 8px 16px;
+                        background-color: #0d6efd;
+                        color: white;
+                        border: none;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-size: 14px;
+                        transition: background-color 0.2s ease;
+                    }
+                    
+                    .xmoj-image-modal-toolbar button:hover {
+                        background-color: #0b5ed7;
+                    }
+                    
+                    .xmoj-image-modal-toolbar button:active {
+                        background-color: #0a58ca;
+                    }
+                    
+                    .xmoj-image-modal-close {
+                        position: absolute;
+                        top: 20px;
+                        right: 30px;
+                        color: white;
+                        font-size: 40px;
+                        font-weight: bold;
+                        cursor: pointer;
+                        transition: color 0.2s ease;
+                    }
+                    
+                    .xmoj-image-modal-close:hover {
+                        color: #ccc;
+                    }
+                `;
+                document.head.appendChild(EnlargerStyle);
+                
+                // Create modal element
+                let ImageModal = document.createElement("div");
+                ImageModal.className = "xmoj-image-modal";
+                ImageModal.id = "xmoj-image-modal";
+                
+                let CloseButton = document.createElement("span");
+                CloseButton.className = "xmoj-image-modal-close";
+                CloseButton.innerHTML = "&times;";
+                ImageModal.appendChild(CloseButton);
+                
+                let ModalContent = document.createElement("div");
+                ModalContent.className = "xmoj-image-modal-content";
+                let ModalImage = document.createElement("img");
+                ModalImage.className = "xmoj-image-modal-image";
+                ModalContent.appendChild(ModalImage);
+                ImageModal.appendChild(ModalContent);
+                
+                let Toolbar = document.createElement("div");
+                Toolbar.className = "xmoj-image-modal-toolbar";
+                
+                let ZoomInBtn = document.createElement("button");
+                ZoomInBtn.innerHTML = "放大 (+)";
+                ZoomInBtn.type = "button";
+                Toolbar.appendChild(ZoomInBtn);
+                
+                let ZoomOutBtn = document.createElement("button");
+                ZoomOutBtn.innerHTML = "缩小 (-)";
+                ZoomOutBtn.type = "button";
+                Toolbar.appendChild(ZoomOutBtn);
+                
+                let ResetZoomBtn = document.createElement("button");
+                ResetZoomBtn.innerHTML = "重置大小";
+                ResetZoomBtn.type = "button";
+                Toolbar.appendChild(ResetZoomBtn);
+                
+                let SaveBtn = document.createElement("button");
+                SaveBtn.innerHTML = "保存图片";
+                SaveBtn.type = "button";
+                Toolbar.appendChild(SaveBtn);
+                
+                ImageModal.appendChild(Toolbar);
+                document.body.appendChild(ImageModal);
+                
+                // Zoom level state
+                let CurrentZoom = 1;
+                const ZoomStep = 0.1;
+                const MinZoom = 0.1;
+                const MaxZoom = 5;
+                
+                // Function to update image size
+                let UpdateImageSize = () => {
+                    ModalImage.style.transform = `scale(${CurrentZoom})`;
+                    ModalImage.style.transition = "transform 0.2s ease";
+                };
+                
+                // Function to open modal
+                let OpenImageModal = (imgSrc) => {
+                    CurrentZoom = 1;
+                    ModalImage.src = imgSrc;
+                    ImageModal.classList.add("show");
+                    UpdateImageSize();
+                };
+                
+                // Function to close modal
+                let CloseImageModal = () => {
+                    ImageModal.classList.remove("show");
+                };
+                
+                // Close button click
+                CloseButton.addEventListener("click", CloseImageModal);
+                
+                // Close when clicking outside the image
+                ImageModal.addEventListener("click", (e) => {
+                    if (e.target === ImageModal || e.target === ModalContent) {
+                        CloseImageModal();
+                    }
+                });
+                
+                // Keyboard shortcuts
+                document.addEventListener("keydown", (e) => {
+                    if (ImageModal.classList.contains("show")) {
+                        if (e.key === "Escape") {
+                            CloseImageModal();
+                        } else if (e.key === "+") {
+                            ZoomInBtn.click();
+                        } else if (e.key === "-") {
+                            ZoomOutBtn.click();
+                        }
+                    }
+                });
+                
+                // Zoom controls
+                ZoomInBtn.addEventListener("click", () => {
+                    CurrentZoom = Math.min(CurrentZoom + ZoomStep, MaxZoom);
+                    UpdateImageSize();
+                });
+                
+                ZoomOutBtn.addEventListener("click", () => {
+                    CurrentZoom = Math.max(CurrentZoom - ZoomStep, MinZoom);
+                    UpdateImageSize();
+                });
+                
+                ResetZoomBtn.addEventListener("click", () => {
+                    CurrentZoom = 1;
+                    UpdateImageSize();
+                });
+                
+                // Save/Download image
+                SaveBtn.addEventListener("click", () => {
+                    let Link = document.createElement("a");
+                    Link.href = ModalImage.src;
+                    Link.download = ModalImage.src.split("/").pop() || "image.png";
+                    document.body.appendChild(Link);
+                    Link.click();
+                    document.body.removeChild(Link);
+                });
+                
+                // Apply to all images on the page
+                let ApplyEnlargerToImages = () => {
+                    let Images = document.querySelectorAll("img");
+                    Images.forEach((img) => {
+                        if (!img.classList.contains("xmoj-image-preview") && 
+                            !img.parentElement.classList.contains("xmoj-image-modal") &&
+                            img.src && 
+                            !img.src.includes("gravatar") &&
+                            !img.src.includes("cravatar")) {
+                            
+                            img.classList.add("xmoj-image-preview");
+                            img.style.position = "relative";
+                            img.addEventListener("click", (e) => {
+                                e.stopPropagation();
+                                OpenImageModal(img.src);
+                            });
+                        }
+                    });
+                };
+                
+                // Apply to existing images
+                ApplyEnlargerToImages();
+                
+                // Apply to dynamically added images
+                let Observer = new MutationObserver((mutations) => {
+                    ApplyEnlargerToImages();
+                });
+                
+                Observer.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                });
+                
+            } catch (e) {
+                console.error(e);
+                if (UtilityEnabled("DebugMode")) {
+                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
                 }
             }
         }
