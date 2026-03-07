@@ -5590,26 +5590,6 @@ int main()
                         transition: opacity 0.2s ease;
                     }
                     
-                    .xmoj-image-preview::after {
-                        content: "点击放大";
-                        position: absolute;
-                        background-color: rgba(0, 0, 0, 0.7);
-                        color: white;
-                        padding: 5px 10px;
-                        border-radius: 3px;
-                        font-size: 12px;
-                        white-space: nowrap;
-                        pointer-events: none;
-                        opacity: 0;
-                        transition: opacity 0.2s ease;
-                        top: 50%;
-                        left: 50%;
-                        transform: translate(-50%, -50%);
-                    }
-                    
-                    .xmoj-image-preview:hover::after {
-                        opacity: 1;
-                    }
                     
                     .xmoj-image-modal {
                         display: none;
@@ -5674,6 +5654,10 @@ int main()
                         top: 20px;
                         right: 30px;
                         color: white;
+                        background: none;
+                        border: none;
+                        padding: 0;
+                        line-height: 1;
                         font-size: 40px;
                         font-weight: bold;
                         cursor: pointer;
@@ -5691,8 +5675,11 @@ int main()
                 ImageModal.className = "xmoj-image-modal";
                 ImageModal.id = "xmoj-image-modal";
                 
-                let CloseButton = document.createElement("span");
+                let CloseButton = document.createElement("button");
                 CloseButton.className = "xmoj-image-modal-close";
+                CloseButton.type = "button";
+                CloseButton.setAttribute("aria-label", "关闭图片");
+                CloseButton.title = "关闭图片";
                 CloseButton.innerHTML = "&times;";
                 ImageModal.appendChild(CloseButton);
                 
@@ -5804,23 +5791,27 @@ int main()
                 });
                 
                 // Apply to all images on the page
-                let ApplyEnlargerToImages = () => {
-                    let Images = document.querySelectorAll("img");
-                    Images.forEach((img) => {
-                        if (!img.classList.contains("xmoj-image-preview") && 
-                            !img.parentElement.classList.contains("xmoj-image-modal") &&
-                            img.src && 
-                            !img.src.includes("gravatar") &&
-                            !img.src.includes("cravatar")) {
-                            
-                            img.classList.add("xmoj-image-preview");
-                            img.style.position = "relative";
-                            img.addEventListener("click", (e) => {
-                                e.stopPropagation();
-                                OpenImageModal(img.src);
-                            });
+                let ApplyEnlargerToImage = (img) => {
+                    const effectiveSrc = img.currentSrc || img.src;
+                    if (!img.classList.contains("xmoj-image-preview") &&
+                        !img.closest(".xmoj-image-modal") &&
+                        effectiveSrc &&
+                        !effectiveSrc.includes("gravatar") &&
+                        !effectiveSrc.includes("cravatar")) {
+
+                        img.classList.add("xmoj-image-preview");
+                        if (!img.title) {
+                            img.title = "点击放大";
                         }
-                    });
+                        img.addEventListener("click", (e) => {
+                            e.stopPropagation();
+                            OpenImageModal(effectiveSrc);
+                        });
+                    }
+                };
+
+                let ApplyEnlargerToImages = () => {
+                    document.querySelectorAll("img").forEach(ApplyEnlargerToImage);
                 };
                 
                 // Apply to existing images
@@ -5828,7 +5819,16 @@ int main()
                 
                 // Apply to dynamically added images
                 let Observer = new MutationObserver((mutations) => {
-                    ApplyEnlargerToImages();
+                    mutations.forEach((mutation) => {
+                        mutation.addedNodes.forEach((node) => {
+                            if (node.nodeType !== Node.ELEMENT_NODE) return;
+                            if (node.tagName === "IMG") {
+                                ApplyEnlargerToImage(node);
+                            } else {
+                                node.querySelectorAll("img").forEach(ApplyEnlargerToImage);
+                            }
+                        });
+                    });
                 });
                 
                 Observer.observe(document.body, {
