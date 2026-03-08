@@ -5613,6 +5613,7 @@ int main()
                         align-items: center;
                         justify-content: center;
                         overflow: auto;
+                        position: relative;
                     }
                     
                     .xmoj-image-modal-image {
@@ -5662,10 +5663,45 @@ int main()
                         font-weight: bold;
                         cursor: pointer;
                         transition: color 0.2s ease;
+                        z-index: 1;
                     }
                     
                     .xmoj-image-modal-close:hover {
                         color: #ccc;
+                    }
+                    
+                    .xmoj-image-modal-nav {
+                        position: absolute;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        background: rgba(0, 0, 0, 0.5);
+                        color: white;
+                        border: none;
+                        padding: 20px 12px;
+                        cursor: pointer;
+                        font-size: 28px;
+                        transition: background-color 0.2s ease;
+                        user-select: none;
+                        -webkit-user-select: none;
+                    }
+                    
+                    .xmoj-image-modal-nav:hover {
+                        background: rgba(0, 0, 0, 0.8);
+                    }
+                    
+                    .xmoj-image-modal-nav:disabled {
+                        opacity: 0.3;
+                        cursor: default;
+                    }
+                    
+                    .xmoj-image-modal-nav-prev {
+                        left: 0;
+                        border-radius: 0 4px 4px 0;
+                    }
+                    
+                    .xmoj-image-modal-nav-next {
+                        right: 0;
+                        border-radius: 4px 0 0 4px;
                     }
                 `;
                 document.head.appendChild(EnlargerStyle);
@@ -5685,6 +5721,21 @@ int main()
                 
                 let ModalContent = document.createElement("div");
                 ModalContent.className = "xmoj-image-modal-content";
+                
+                let PrevBtn = document.createElement("button");
+                PrevBtn.className = "xmoj-image-modal-nav xmoj-image-modal-nav-prev";
+                PrevBtn.type = "button";
+                PrevBtn.setAttribute("aria-label", "上一张");
+                PrevBtn.innerHTML = "&#10094;";
+                ModalContent.appendChild(PrevBtn);
+                
+                let NextBtn = document.createElement("button");
+                NextBtn.className = "xmoj-image-modal-nav xmoj-image-modal-nav-next";
+                NextBtn.type = "button";
+                NextBtn.setAttribute("aria-label", "下一张");
+                NextBtn.innerHTML = "&#10095;";
+                ModalContent.appendChild(NextBtn);
+                
                 let ModalImage = document.createElement("img");
                 ModalImage.className = "xmoj-image-modal-image";
                 ModalContent.appendChild(ModalImage);
@@ -5716,11 +5767,15 @@ int main()
                 ImageModal.appendChild(Toolbar);
                 document.body.appendChild(ImageModal);
                 
-                // Zoom level state
+                // Zoom level and navigation state
                 let CurrentZoom = 1;
                 const ZoomStep = 0.1;
                 const MinZoom = 0.1;
                 const MaxZoom = 5;
+                let ImageList = [];
+                let CurrentImageIndex = -1;
+                let TouchStartX = 0;
+                let TouchStartY = 0;
                 
                 // Function to update image size
                 let UpdateImageSize = () => {
@@ -5728,11 +5783,38 @@ int main()
                     ModalImage.style.transition = "transform 0.2s ease";
                 };
                 
-                // Function to open modal
-                let OpenImageModal = (imgSrc) => {
+                // Function to update prev/next button state
+                let UpdateNavButtons = () => {
+                    let HasMultiple = ImageList.length > 1;
+                    PrevBtn.style.display = HasMultiple ? "" : "none";
+                    NextBtn.style.display = HasMultiple ? "" : "none";
+                    PrevBtn.disabled = CurrentImageIndex <= 0;
+                    NextBtn.disabled = CurrentImageIndex >= ImageList.length - 1;
+                };
+                
+                // Function to navigate to a specific image by index
+                let NavigateTo = (index) => {
+                    if (index < 0 || index >= ImageList.length) return;
+                    CurrentImageIndex = index;
                     CurrentZoom = 1;
-                    ModalImage.src = imgSrc;
+                    ModalImage.src = ImageList[CurrentImageIndex];
+                    UpdateNavButtons();
+                    UpdateImageSize();
+                };
+                
+                // Function to open modal
+                let OpenImageModal = (imgElement) => {
+                    let PreviewImages = [...document.querySelectorAll("img.xmoj-image-preview")];
+                    ImageList = PreviewImages.map(img => img.currentSrc || img.src).filter(src => src);
+                    CurrentImageIndex = PreviewImages.indexOf(imgElement);
+                    if (CurrentImageIndex === -1) {
+                        ImageList = [(imgElement.currentSrc || imgElement.src)];
+                        CurrentImageIndex = 0;
+                    }
+                    CurrentZoom = 1;
+                    ModalImage.src = ImageList[CurrentImageIndex];
                     ImageModal.classList.add("show");
+                    UpdateNavButtons();
                     UpdateImageSize();
                 };
                 
@@ -5760,8 +5842,44 @@ int main()
                             ZoomInBtn.click();
                         } else if (e.key === "-") {
                             ZoomOutBtn.click();
+                        } else if (e.key === "ArrowLeft") {
+                            NavigateTo(CurrentImageIndex - 1);
+                        } else if (e.key === "ArrowRight") {
+                            NavigateTo(CurrentImageIndex + 1);
                         }
                     }
+                });
+                
+                // Touch swipe for image navigation
+                ModalContent.addEventListener("touchstart", (e) => {
+                    TouchStartX = e.changedTouches[0].screenX;
+                    TouchStartY = e.changedTouches[0].screenY;
+                }, { passive: true });
+                
+                ModalContent.addEventListener("touchend", (e) => {
+                    let TouchEndX = e.changedTouches[0].screenX;
+                    let TouchEndY = e.changedTouches[0].screenY;
+                    let DeltaX = TouchEndX - TouchStartX;
+                    let DeltaY = TouchEndY - TouchStartY;
+                    const SwipeThreshold = 50;
+                    if (Math.abs(DeltaX) > SwipeThreshold && Math.abs(DeltaX) > Math.abs(DeltaY)) {
+                        if (DeltaX < 0) {
+                            NavigateTo(CurrentImageIndex + 1);
+                        } else {
+                            NavigateTo(CurrentImageIndex - 1);
+                        }
+                    }
+                }, { passive: true });
+                
+                // Navigation button clicks
+                PrevBtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    NavigateTo(CurrentImageIndex - 1);
+                });
+                
+                NextBtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    NavigateTo(CurrentImageIndex + 1);
                 });
                 
                 // Zoom controls
@@ -5780,14 +5898,32 @@ int main()
                     UpdateImageSize();
                 });
                 
-                // Save/Download image
-                SaveBtn.addEventListener("click", () => {
-                    let Link = document.createElement("a");
-                    Link.href = ModalImage.src;
-                    Link.download = ModalImage.src.split("/").pop() || "image.png";
-                    document.body.appendChild(Link);
-                    Link.click();
-                    document.body.removeChild(Link);
+                // Save/Download image using fetch to trigger actual download instead of redirecting
+                SaveBtn.addEventListener("click", async () => {
+                    let src = ModalImage.src;
+                    let filename = src.split("/").pop().split("?")[0] || "image.png";
+                    try {
+                        let response = await fetch(src);
+                        let blob = await response.blob();
+                        saveAs(blob, filename);
+                    } catch (e) {
+                        GM_xmlhttpRequest({
+                            method: "GET",
+                            url: src,
+                            responseType: "blob",
+                            onload: (resp) => {
+                                saveAs(resp.response, filename);
+                            },
+                            onerror: () => {
+                                let Link = document.createElement("a");
+                                Link.href = src;
+                                Link.download = filename;
+                                document.body.appendChild(Link);
+                                Link.click();
+                                document.body.removeChild(Link);
+                            }
+                        });
+                    }
                 });
                 
                 // Apply to all images on the page
@@ -5805,7 +5941,7 @@ int main()
                         }
                         img.addEventListener("click", (e) => {
                             e.stopPropagation();
-                            OpenImageModal(effectiveSrc);
+                            OpenImageModal(img);
                         });
                     }
                 };
