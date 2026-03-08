@@ -5791,7 +5791,9 @@ int main()
                 let UpdateImageSize = () => {
                     ModalImage.style.transform = `translate(${PanX}px, ${PanY}px) scale(${CurrentZoom})`;
                     ModalImage.style.transition = IsDragging ? "none" : "transform 0.2s ease";
-                    ModalImage.style.cursor = CurrentZoom > 1 ? "grab" : "";
+                    let CursorStyle = CurrentZoom > 1 ? "grab" : "";
+                    ModalImage.style.cursor = CursorStyle;
+                    ModalContent.style.cursor = CursorStyle;
                 };
                 
                 // Function to update prev/next button state
@@ -5907,14 +5909,16 @@ int main()
                 }, { passive: true });
                 
                 // Mouse drag to pan when zoomed
-                ModalImage.addEventListener("mousedown", (e) => {
+                ModalContent.addEventListener("mousedown", (e) => {
                     if (CurrentZoom <= 1) return;
+                    if (e.target.tagName.toUpperCase() === "BUTTON") return;
                     IsDragging = true;
                     DragStartX = e.clientX;
                     DragStartY = e.clientY;
                     DragStartPanX = PanX;
                     DragStartPanY = PanY;
                     ModalImage.style.cursor = "grabbing";
+                    ModalContent.style.cursor = "grabbing";
                     e.preventDefault();
                 });
                 
@@ -5928,9 +5932,19 @@ int main()
                 document.addEventListener("mouseup", () => {
                     if (IsDragging) {
                         IsDragging = false;
-                        ModalImage.style.cursor = CurrentZoom > 1 ? "grab" : "";
+                        let CursorStyle = CurrentZoom > 1 ? "grab" : "";
+                        ModalImage.style.cursor = CursorStyle;
+                        ModalContent.style.cursor = CursorStyle;
                     }
                 });
+                
+                // Mouse wheel to zoom in/out
+                ModalContent.addEventListener("wheel", (e) => {
+                    e.preventDefault();
+                    let ZoomDelta = e.deltaY > 0 ? -ZoomStep : ZoomStep;
+                    CurrentZoom = Math.max(MinZoom, Math.min(MaxZoom, CurrentZoom + ZoomDelta));
+                    UpdateImageSize();
+                }, { passive: false });
                 
                 // Navigation button clicks
                 PrevBtn.addEventListener("click", (e) => {
@@ -5961,34 +5975,35 @@ int main()
                     UpdateImageSize();
                 });
                 
-                // Save/Download image using fetch to trigger actual download instead of redirecting
-                SaveBtn.addEventListener("click", async () => {
+                // Save/Download image: fetch via GM_xmlhttpRequest to bypass CORS, then use blob URL for reliable download
+                SaveBtn.addEventListener("click", () => {
                     let src = ModalImage.src;
                     let urlPath = src.split("?")[0];
                     let filename = urlPath.split("/").pop() || "image.png";
-                    try {
-                        let response = await fetch(src);
-                        if (!response.ok) throw new Error("Failed to fetch image");
-                        let blob = await response.blob();
-                        saveAs(blob, filename);
-                    } catch (e) {
-                        GM_xmlhttpRequest({
-                            method: "GET",
-                            url: src,
-                            responseType: "blob",
-                            onload: (resp) => {
-                                saveAs(resp.response, filename);
-                            },
-                            onerror: () => {
-                                let Link = document.createElement("a");
-                                Link.href = src;
-                                Link.download = filename;
-                                document.body.appendChild(Link);
-                                Link.click();
-                                document.body.removeChild(Link);
-                            }
-                        });
-                    }
+                    GM_xmlhttpRequest({
+                        method: "GET",
+                        url: src,
+                        responseType: "blob",
+                        onload: (resp) => {
+                            let BlobUrl = URL.createObjectURL(resp.response);
+                            let Link = document.createElement("a");
+                            Link.href = BlobUrl;
+                            Link.download = filename;
+                            document.body.appendChild(Link);
+                            Link.click();
+                            document.body.removeChild(Link);
+                            setTimeout(() => URL.revokeObjectURL(BlobUrl), 100);
+                        },
+                        onerror: () => {
+                            let Link = document.createElement("a");
+                            Link.href = src;
+                            Link.download = filename;
+                            Link.target = "_blank";
+                            document.body.appendChild(Link);
+                            Link.click();
+                            document.body.removeChild(Link);
+                        }
+                    });
                 });
                 
                 // Apply to all images on the page
