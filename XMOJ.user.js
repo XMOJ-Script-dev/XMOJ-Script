@@ -5612,7 +5612,8 @@ int main()
                         display: flex;
                         align-items: center;
                         justify-content: center;
-                        overflow: auto;
+                        overflow: hidden;
+                        position: relative;
                     }
                     
                     .xmoj-image-modal-image {
@@ -5662,10 +5663,45 @@ int main()
                         font-weight: bold;
                         cursor: pointer;
                         transition: color 0.2s ease;
+                        z-index: 1;
                     }
                     
                     .xmoj-image-modal-close:hover {
                         color: #ccc;
+                    }
+                    
+                    .xmoj-image-modal-nav {
+                        position: absolute;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        background: rgba(0, 0, 0, 0.5);
+                        color: white;
+                        border: none;
+                        padding: 20px 12px;
+                        cursor: pointer;
+                        font-size: 28px;
+                        transition: background-color 0.2s ease;
+                        user-select: none;
+                        -webkit-user-select: none;
+                    }
+                    
+                    .xmoj-image-modal-nav:hover {
+                        background: rgba(0, 0, 0, 0.8);
+                    }
+                    
+                    .xmoj-image-modal-nav:disabled {
+                        opacity: 0.3;
+                        cursor: default;
+                    }
+                    
+                    .xmoj-image-modal-nav-prev {
+                        left: 0;
+                        border-radius: 0 4px 4px 0;
+                    }
+                    
+                    .xmoj-image-modal-nav-next {
+                        right: 0;
+                        border-radius: 4px 0 0 4px;
                     }
                 `;
                 document.head.appendChild(EnlargerStyle);
@@ -5685,6 +5721,21 @@ int main()
                 
                 let ModalContent = document.createElement("div");
                 ModalContent.className = "xmoj-image-modal-content";
+                
+                let PrevBtn = document.createElement("button");
+                PrevBtn.className = "xmoj-image-modal-nav xmoj-image-modal-nav-prev";
+                PrevBtn.type = "button";
+                PrevBtn.setAttribute("aria-label", "上一张");
+                PrevBtn.innerHTML = "&#10094;";
+                ModalContent.appendChild(PrevBtn);
+                
+                let NextBtn = document.createElement("button");
+                NextBtn.className = "xmoj-image-modal-nav xmoj-image-modal-nav-next";
+                NextBtn.type = "button";
+                NextBtn.setAttribute("aria-label", "下一张");
+                NextBtn.innerHTML = "&#10095;";
+                ModalContent.appendChild(NextBtn);
+                
                 let ModalImage = document.createElement("img");
                 ModalImage.className = "xmoj-image-modal-image";
                 ModalContent.appendChild(ModalImage);
@@ -5716,23 +5767,71 @@ int main()
                 ImageModal.appendChild(Toolbar);
                 document.body.appendChild(ImageModal);
                 
-                // Zoom level state
+                // Zoom level and navigation state
                 let CurrentZoom = 1;
                 const ZoomStep = 0.1;
                 const MinZoom = 0.1;
                 const MaxZoom = 5;
+                let ImageList = [];
+                let CurrentImageIndex = -1;
+                let PanX = 0;
+                let PanY = 0;
+                let IsDragging = false;
+                let DragStartX = 0;
+                let DragStartY = 0;
+                let DragStartPanX = 0;
+                let DragStartPanY = 0;
+                let IsTouchPanning = false;
+                let TouchStartX = 0;
+                let TouchStartY = 0;
+                let TouchPanStartPanX = 0;
+                let TouchPanStartPanY = 0;
                 
-                // Function to update image size
+                // Function to update image transform (zoom + pan)
                 let UpdateImageSize = () => {
-                    ModalImage.style.transform = `scale(${CurrentZoom})`;
-                    ModalImage.style.transition = "transform 0.2s ease";
+                    ModalImage.style.transform = `translate(${PanX}px, ${PanY}px) scale(${CurrentZoom})`;
+                    ModalImage.style.transition = IsDragging ? "none" : "transform 0.2s ease";
+                    let CursorStyle = CurrentZoom > 1 ? "grab" : "";
+                    ModalImage.style.cursor = CursorStyle;
+                    ModalContent.style.cursor = CursorStyle;
+                };
+                
+                // Function to update prev/next button state
+                let UpdateNavButtons = () => {
+                    let HasMultiple = ImageList.length > 1;
+                    PrevBtn.style.display = HasMultiple ? "" : "none";
+                    NextBtn.style.display = HasMultiple ? "" : "none";
+                    PrevBtn.disabled = CurrentImageIndex <= 0;
+                    NextBtn.disabled = CurrentImageIndex >= ImageList.length - 1;
+                };
+                
+                // Function to navigate to a specific image by index
+                let NavigateTo = (index) => {
+                    if (index < 0 || index >= ImageList.length) return;
+                    CurrentImageIndex = index;
+                    CurrentZoom = 1;
+                    PanX = 0;
+                    PanY = 0;
+                    ModalImage.src = ImageList[CurrentImageIndex];
+                    UpdateNavButtons();
+                    UpdateImageSize();
                 };
                 
                 // Function to open modal
-                let OpenImageModal = (imgSrc) => {
+                let OpenImageModal = (imgElement) => {
+                    let PreviewImages = [...document.querySelectorAll("img.xmoj-image-preview")];
+                    ImageList = PreviewImages.map(img => img.currentSrc || img.src).filter(src => src);
+                    CurrentImageIndex = PreviewImages.indexOf(imgElement);
+                    if (CurrentImageIndex === -1) {
+                        ImageList = [(imgElement.currentSrc || imgElement.src)];
+                        CurrentImageIndex = 0;
+                    }
                     CurrentZoom = 1;
-                    ModalImage.src = imgSrc;
+                    PanX = 0;
+                    PanY = 0;
+                    ModalImage.src = ImageList[CurrentImageIndex];
                     ImageModal.classList.add("show");
+                    UpdateNavButtons();
                     UpdateImageSize();
                 };
                 
@@ -5760,8 +5859,102 @@ int main()
                             ZoomInBtn.click();
                         } else if (e.key === "-") {
                             ZoomOutBtn.click();
+                        } else if (e.key === "ArrowLeft") {
+                            NavigateTo(CurrentImageIndex - 1);
+                        } else if (e.key === "ArrowRight") {
+                            NavigateTo(CurrentImageIndex + 1);
                         }
                     }
+                });
+                
+                // Touch events: pan when zoomed, swipe to navigate when at zoom level 1
+                ModalContent.addEventListener("touchstart", (e) => {
+                    if (e.touches.length !== 1) return;
+                    TouchStartX = e.touches[0].clientX;
+                    TouchStartY = e.touches[0].clientY;
+                    if (CurrentZoom > 1) {
+                        IsTouchPanning = true;
+                        TouchPanStartPanX = PanX;
+                        TouchPanStartPanY = PanY;
+                    } else {
+                        IsTouchPanning = false;
+                    }
+                }, { passive: true });
+                
+                ModalContent.addEventListener("touchmove", (e) => {
+                    if (!IsTouchPanning || e.touches.length !== 1) return;
+                    PanX = TouchPanStartPanX + (e.touches[0].clientX - TouchStartX);
+                    PanY = TouchPanStartPanY + (e.touches[0].clientY - TouchStartY);
+                    UpdateImageSize();
+                    e.preventDefault();
+                }, { passive: false });
+                
+                ModalContent.addEventListener("touchend", (e) => {
+                    if (IsTouchPanning) {
+                        IsTouchPanning = false;
+                        return;
+                    }
+                    let TouchEndX = e.changedTouches[0].clientX;
+                    let TouchEndY = e.changedTouches[0].clientY;
+                    let DeltaX = TouchEndX - TouchStartX;
+                    let DeltaY = TouchEndY - TouchStartY;
+                    const SwipeThreshold = 50;
+                    if (Math.abs(DeltaX) > SwipeThreshold && Math.abs(DeltaX) > Math.abs(DeltaY)) {
+                        if (DeltaX < 0) {
+                            NavigateTo(CurrentImageIndex + 1);
+                        } else {
+                            NavigateTo(CurrentImageIndex - 1);
+                        }
+                    }
+                }, { passive: true });
+                
+                // Mouse drag to pan when zoomed
+                ModalContent.addEventListener("mousedown", (e) => {
+                    if (CurrentZoom <= 1) return;
+                    if (e.target.tagName.toUpperCase() === "BUTTON") return;
+                    IsDragging = true;
+                    DragStartX = e.clientX;
+                    DragStartY = e.clientY;
+                    DragStartPanX = PanX;
+                    DragStartPanY = PanY;
+                    ModalImage.style.cursor = "grabbing";
+                    ModalContent.style.cursor = "grabbing";
+                    e.preventDefault();
+                });
+                
+                document.addEventListener("mousemove", (e) => {
+                    if (!IsDragging) return;
+                    PanX = DragStartPanX + (e.clientX - DragStartX);
+                    PanY = DragStartPanY + (e.clientY - DragStartY);
+                    UpdateImageSize();
+                });
+                
+                document.addEventListener("mouseup", () => {
+                    if (IsDragging) {
+                        IsDragging = false;
+                        let CursorStyle = CurrentZoom > 1 ? "grab" : "";
+                        ModalImage.style.cursor = CursorStyle;
+                        ModalContent.style.cursor = CursorStyle;
+                    }
+                });
+                
+                // Mouse wheel to zoom in/out
+                ModalContent.addEventListener("wheel", (e) => {
+                    e.preventDefault();
+                    let ZoomDelta = e.deltaY > 0 ? -ZoomStep : ZoomStep;
+                    CurrentZoom = Math.max(MinZoom, Math.min(MaxZoom, CurrentZoom + ZoomDelta));
+                    UpdateImageSize();
+                }, { passive: false });
+                
+                // Navigation button clicks
+                PrevBtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    NavigateTo(CurrentImageIndex - 1);
+                });
+                
+                NextBtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    NavigateTo(CurrentImageIndex + 1);
                 });
                 
                 // Zoom controls
@@ -5777,17 +5970,40 @@ int main()
                 
                 ResetZoomBtn.addEventListener("click", () => {
                     CurrentZoom = 1;
+                    PanX = 0;
+                    PanY = 0;
                     UpdateImageSize();
                 });
                 
-                // Save/Download image
+                // Save/Download image: fetch via GM_xmlhttpRequest to bypass CORS, then use blob URL for reliable download
                 SaveBtn.addEventListener("click", () => {
-                    let Link = document.createElement("a");
-                    Link.href = ModalImage.src;
-                    Link.download = ModalImage.src.split("/").pop() || "image.png";
-                    document.body.appendChild(Link);
-                    Link.click();
-                    document.body.removeChild(Link);
+                    let src = ModalImage.src;
+                    let urlPath = src.split("?")[0];
+                    let filename = urlPath.split("/").pop() || "image.png";
+                    GM_xmlhttpRequest({
+                        method: "GET",
+                        url: src,
+                        responseType: "blob",
+                        onload: (resp) => {
+                            let BlobUrl = URL.createObjectURL(resp.response);
+                            let Link = document.createElement("a");
+                            Link.href = BlobUrl;
+                            Link.download = filename;
+                            document.body.appendChild(Link);
+                            Link.click();
+                            document.body.removeChild(Link);
+                            setTimeout(() => URL.revokeObjectURL(BlobUrl), 100);
+                        },
+                        onerror: () => {
+                            let Link = document.createElement("a");
+                            Link.href = src;
+                            Link.download = filename;
+                            Link.target = "_blank";
+                            document.body.appendChild(Link);
+                            Link.click();
+                            document.body.removeChild(Link);
+                        }
+                    });
                 });
                 
                 // Apply to all images on the page
@@ -5805,7 +6021,7 @@ int main()
                         }
                         img.addEventListener("click", (e) => {
                             e.stopPropagation();
-                            OpenImageModal(effectiveSrc);
+                            OpenImageModal(img);
                         });
                     }
                 };
