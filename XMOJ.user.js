@@ -5612,7 +5612,7 @@ int main()
                         display: flex;
                         align-items: center;
                         justify-content: center;
-                        overflow: auto;
+                        overflow: hidden;
                         position: relative;
                     }
                     
@@ -5774,13 +5774,24 @@ int main()
                 const MaxZoom = 5;
                 let ImageList = [];
                 let CurrentImageIndex = -1;
+                let PanX = 0;
+                let PanY = 0;
+                let IsDragging = false;
+                let DragStartX = 0;
+                let DragStartY = 0;
+                let DragStartPanX = 0;
+                let DragStartPanY = 0;
+                let IsTouchPanning = false;
                 let TouchStartX = 0;
                 let TouchStartY = 0;
+                let TouchPanStartPanX = 0;
+                let TouchPanStartPanY = 0;
                 
-                // Function to update image size
+                // Function to update image transform (zoom + pan)
                 let UpdateImageSize = () => {
-                    ModalImage.style.transform = `scale(${CurrentZoom})`;
-                    ModalImage.style.transition = "transform 0.2s ease";
+                    ModalImage.style.transform = `translate(${PanX}px, ${PanY}px) scale(${CurrentZoom})`;
+                    ModalImage.style.transition = IsDragging ? "none" : "transform 0.2s ease";
+                    ModalImage.style.cursor = CurrentZoom > 1 ? "grab" : "";
                 };
                 
                 // Function to update prev/next button state
@@ -5797,6 +5808,8 @@ int main()
                     if (index < 0 || index >= ImageList.length) return;
                     CurrentImageIndex = index;
                     CurrentZoom = 1;
+                    PanX = 0;
+                    PanY = 0;
                     ModalImage.src = ImageList[CurrentImageIndex];
                     UpdateNavButtons();
                     UpdateImageSize();
@@ -5812,6 +5825,8 @@ int main()
                         CurrentImageIndex = 0;
                     }
                     CurrentZoom = 1;
+                    PanX = 0;
+                    PanY = 0;
                     ModalImage.src = ImageList[CurrentImageIndex];
                     ImageModal.classList.add("show");
                     UpdateNavButtons();
@@ -5850,15 +5865,35 @@ int main()
                     }
                 });
                 
-                // Touch swipe for image navigation
+                // Touch events: pan when zoomed, swipe to navigate when at zoom level 1
                 ModalContent.addEventListener("touchstart", (e) => {
-                    TouchStartX = e.changedTouches[0].screenX;
-                    TouchStartY = e.changedTouches[0].screenY;
+                    if (e.touches.length !== 1) return;
+                    TouchStartX = e.touches[0].clientX;
+                    TouchStartY = e.touches[0].clientY;
+                    if (CurrentZoom > 1) {
+                        IsTouchPanning = true;
+                        TouchPanStartPanX = PanX;
+                        TouchPanStartPanY = PanY;
+                    } else {
+                        IsTouchPanning = false;
+                    }
                 }, { passive: true });
                 
+                ModalContent.addEventListener("touchmove", (e) => {
+                    if (!IsTouchPanning || e.touches.length !== 1) return;
+                    PanX = TouchPanStartPanX + (e.touches[0].clientX - TouchStartX);
+                    PanY = TouchPanStartPanY + (e.touches[0].clientY - TouchStartY);
+                    UpdateImageSize();
+                    e.preventDefault();
+                }, { passive: false });
+                
                 ModalContent.addEventListener("touchend", (e) => {
-                    let TouchEndX = e.changedTouches[0].screenX;
-                    let TouchEndY = e.changedTouches[0].screenY;
+                    if (IsTouchPanning) {
+                        IsTouchPanning = false;
+                        return;
+                    }
+                    let TouchEndX = e.changedTouches[0].clientX;
+                    let TouchEndY = e.changedTouches[0].clientY;
                     let DeltaX = TouchEndX - TouchStartX;
                     let DeltaY = TouchEndY - TouchStartY;
                     const SwipeThreshold = 50;
@@ -5870,6 +5905,32 @@ int main()
                         }
                     }
                 }, { passive: true });
+                
+                // Mouse drag to pan when zoomed
+                ModalImage.addEventListener("mousedown", (e) => {
+                    if (CurrentZoom <= 1) return;
+                    IsDragging = true;
+                    DragStartX = e.clientX;
+                    DragStartY = e.clientY;
+                    DragStartPanX = PanX;
+                    DragStartPanY = PanY;
+                    ModalImage.style.cursor = "grabbing";
+                    e.preventDefault();
+                });
+                
+                document.addEventListener("mousemove", (e) => {
+                    if (!IsDragging) return;
+                    PanX = DragStartPanX + (e.clientX - DragStartX);
+                    PanY = DragStartPanY + (e.clientY - DragStartY);
+                    UpdateImageSize();
+                });
+                
+                document.addEventListener("mouseup", () => {
+                    if (IsDragging) {
+                        IsDragging = false;
+                        ModalImage.style.cursor = CurrentZoom > 1 ? "grab" : "";
+                    }
+                });
                 
                 // Navigation button clicks
                 PrevBtn.addEventListener("click", (e) => {
@@ -5895,15 +5956,19 @@ int main()
                 
                 ResetZoomBtn.addEventListener("click", () => {
                     CurrentZoom = 1;
+                    PanX = 0;
+                    PanY = 0;
                     UpdateImageSize();
                 });
                 
                 // Save/Download image using fetch to trigger actual download instead of redirecting
                 SaveBtn.addEventListener("click", async () => {
                     let src = ModalImage.src;
-                    let filename = src.split("/").pop().split("?")[0] || "image.png";
+                    let urlPath = src.split("?")[0];
+                    let filename = urlPath.split("/").pop() || "image.png";
                     try {
                         let response = await fetch(src);
+                        if (!response.ok) throw new Error("Failed to fetch image");
                         let blob = await response.blob();
                         saveAs(blob, filename);
                     } catch (e) {
