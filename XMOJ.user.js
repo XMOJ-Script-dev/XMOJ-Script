@@ -487,12 +487,12 @@ let RequestAPI = (Action, Data, CallBack) => {
                 path: "/"
             })
                 .then(() => {
-                    console.log('Reset PHPSESSID successfully.');
-                    location.reload(); //Refresh the page to auth with the new PHPSESSID
-                })
+                console.log('Reset PHPSESSID successfully.');
+                location.reload(); //Refresh the page to auth with the new PHPSESSID
+            })
                 .catch((error) => {
-                    console.error(error);
-                });
+                console.error(error);
+            });
         }
         let PostData = {
             "Authentication": {
@@ -1186,7 +1186,7 @@ async function main() {
                 let Style = document.createElement("style");
                 document.body.appendChild(Style);
                 if (UtilityEnabled("MonochromeUI")) {
-                Style.innerHTML = `
+                    Style.innerHTML = `
                 /* Fonts loaded via <link> to avoid layout shift */
 
                 :root {
@@ -1561,7 +1561,7 @@ async function main() {
                 /* Hide blur overlay */
                 #blur-overlay { display: none !important; }`;
                 } else {
-                Style.innerHTML = `
+                    Style.innerHTML = `
                 nav {
                     border-bottom-left-radius: 5px;
                     border-bottom-right-radius: 5px;
@@ -1734,11 +1734,11 @@ async function main() {
                                     path: "/"
                                 })
                                     .then(() => {
-                                        console.log('Reset PHPSESSID successfully.');
-                                    })
+                                    console.log('Reset PHPSESSID successfully.');
+                                })
                                     .catch((error) => {
-                                        console.error(error);
-                                    }); //We can no longer rely of the server to set the cookie for us
+                                    console.error(error);
+                                }); //We can no longer rely of the server to set the cookie for us
                                 location.href = "https://www.xmoj.tech/logout.php";
                             });
                             Array.from(PopupUL.children).forEach(item => {
@@ -1808,21 +1808,21 @@ async function main() {
                 }, 100);
                 fetch(ServerURL + "/Update.json", {cache: "no-cache"})
                     .then((Response) => {
-                        return Response.json();
-                    })
+                    return Response.json();
+                })
                     .then((Response) => {
-                        let CurrentVersion = GM_info.script.version;
-                        let LatestVersion;
-                        for (let i = Object.keys(Response.UpdateHistory).length - 1; i >= 0; i--) {
-                            let VersionInfo = Object.keys(Response.UpdateHistory)[i];
-                            if (UtilityEnabled("DebugMode") || Response.UpdateHistory[VersionInfo].Prerelease == false) {
-                                LatestVersion = VersionInfo;
-                                break;
-                            }
+                    let CurrentVersion = GM_info.script.version;
+                    let LatestVersion;
+                    for (let i = Object.keys(Response.UpdateHistory).length - 1; i >= 0; i--) {
+                        let VersionInfo = Object.keys(Response.UpdateHistory)[i];
+                        if (UtilityEnabled("DebugMode") || Response.UpdateHistory[VersionInfo].Prerelease == false) {
+                            LatestVersion = VersionInfo;
+                            break;
                         }
-                        if (compareVersions(CurrentVersion, LatestVersion)) {
-                            let UpdateDiv = document.createElement("div");
-                            UpdateDiv.innerHTML = `
+                    }
+                    if (compareVersions(CurrentVersion, LatestVersion)) {
+                        let UpdateDiv = document.createElement("div");
+                        UpdateDiv.innerHTML = `
                             <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
                                 <div>
                                     XMOJ用户脚本发现新版本${LatestVersion}，当前版本${CurrentVersion}，点击
@@ -1831,100 +1831,100 @@ async function main() {
                                 </div>
                                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                             </div>`;
-                            if (UtilityEnabled("NewTopBar")) {
-                                UpdateDiv.style.position = 'fixed';
-                                UpdateDiv.style.top = '72px';
-                                UpdateDiv.style.left = '50%';
-                                UpdateDiv.style.transform = 'translateX(-50%)';
-                                UpdateDiv.style.zIndex = '1001';
-                                let spacer = document.createElement("div");
-                                spacer.style.height = '48px';
-                                document.body.insertBefore(spacer, document.body.firstChild);
-                                UpdateDiv.querySelector(".btn-close").addEventListener("click", function () {
-                                    document.body.removeChild(spacer);
-                                });
-                            }
-                            document.body.appendChild(UpdateDiv);
-                            document.querySelector("body > div").insertBefore(UpdateDiv, document.querySelector("body > div > div.mt-3"));
+                        if (UtilityEnabled("NewTopBar")) {
+                            UpdateDiv.style.position = 'fixed';
+                            UpdateDiv.style.top = '72px';
+                            UpdateDiv.style.left = '50%';
+                            UpdateDiv.style.transform = 'translateX(-50%)';
+                            UpdateDiv.style.zIndex = '1001';
+                            let spacer = document.createElement("div");
+                            spacer.style.height = '48px';
+                            document.body.insertBefore(spacer, document.body.firstChild);
+                            UpdateDiv.querySelector(".btn-close").addEventListener("click", function () {
+                                document.body.removeChild(spacer);
+                            });
                         }
-                        if (localStorage.getItem("UserScript-Update-LastVersion") != GM_info.script.version) {
-                            localStorage.setItem("UserScript-Update-LastVersion", GM_info.script.version);
-                            let UpdateDiv = document.createElement("div");
-                            document.querySelector("body").appendChild(UpdateDiv);
-                            UpdateDiv.className = "modal fade";
-                            UpdateDiv.id = "UpdateModal";
-                            UpdateDiv.tabIndex = -1;
-                            let UpdateDialog = document.createElement("div");
-                            UpdateDiv.appendChild(UpdateDialog);
-                            UpdateDialog.className = "modal-dialog";
-                            let UpdateContent = document.createElement("div");
-                            UpdateDialog.appendChild(UpdateContent);
-                            UpdateContent.className = "modal-content";
-                            let UpdateHeader = document.createElement("div");
-                            UpdateContent.appendChild(UpdateHeader);
-                            UpdateHeader.className = "modal-header";
-                            let UpdateTitle = document.createElement("h5");
-                            UpdateHeader.appendChild(UpdateTitle);
-                            UpdateTitle.className = "modal-title";
-                            UpdateTitle.innerText = "更新日志";
-                            let UpdateCloseButton = document.createElement("button");
-                            UpdateHeader.appendChild(UpdateCloseButton);
-                            UpdateCloseButton.type = "button";
-                            UpdateCloseButton.className = "btn-close";
-                            UpdateCloseButton.setAttribute("data-bs-dismiss", "modal");
-                            let UpdateBody = document.createElement("div");
-                            UpdateContent.appendChild(UpdateBody);
-                            UpdateBody.className = "modal-body";
-                            let UpdateFooter = document.createElement("div");
-                            UpdateContent.appendChild(UpdateFooter);
-                            UpdateFooter.className = "modal-footer";
-                            let UpdateButton = document.createElement("button");
-                            UpdateFooter.appendChild(UpdateButton);
-                            UpdateButton.type = "button";
-                            UpdateButton.className = "btn btn-secondary";
-                            UpdateButton.setAttribute("data-bs-dismiss", "modal");
-                            UpdateButton.innerText = "关闭";
-                            let Version = Object.keys(Response.UpdateHistory)[Object.keys(Response.UpdateHistory).length - 1]
-                            let Data = Response.UpdateHistory[Version];
-                            let UpdateDataCard = document.createElement("div");
-                            UpdateBody.appendChild(UpdateDataCard);
-                            UpdateDataCard.className = "card mb-3";
-                            let UpdateDataCardBody = document.createElement("div");
-                            UpdateDataCard.appendChild(UpdateDataCardBody);
-                            UpdateDataCardBody.className = "card-body";
-                            let UpdateDataCardTitle = document.createElement("h5");
-                            UpdateDataCardBody.appendChild(UpdateDataCardTitle);
-                            UpdateDataCardTitle.className = "card-title";
-                            UpdateDataCardTitle.innerText = Version;
-                            let UpdateDataCardSubtitle = document.createElement("h6");
-                            UpdateDataCardBody.appendChild(UpdateDataCardSubtitle);
-                            UpdateDataCardSubtitle.className = "card-subtitle mb-2 text-muted";
-                            UpdateDataCardSubtitle.innerHTML = GetRelativeTime(Data.UpdateDate);
-                            let UpdateDataCardText = document.createElement("p");
-                            UpdateDataCardBody.appendChild(UpdateDataCardText);
-                            UpdateDataCardText.className = "card-text";
-                            //release notes
-                            if (Data.Notes != undefined) {
-                                UpdateDataCardText.innerHTML = Data.Notes;
-                            }
-                            let UpdateDataCardList = document.createElement("ul");
-                            UpdateDataCardText.appendChild(UpdateDataCardList);
-                            UpdateDataCardList.className = "list-group list-group-flush";
-                            for (let j = 0; j < Data.UpdateContents.length; j++) {
-                                let UpdateDataCardListItem = document.createElement("li");
-                                UpdateDataCardList.appendChild(UpdateDataCardListItem);
-                                UpdateDataCardListItem.className = "list-group-item";
-                                UpdateDataCardListItem.innerHTML = "(<a href=\"https://github.com/XMOJ-Script-dev/XMOJ-Script/pull/" + Data.UpdateContents[j].PR + "\" target=\"_blank\">" + "#" + Data.UpdateContents[j].PR + "</a>) " + escapeHTML(Data.UpdateContents[j].Description);
-                            }
-                            let UpdateDataCardLink = document.createElement("a");
-                            UpdateDataCardBody.appendChild(UpdateDataCardLink);
-                            UpdateDataCardLink.className = "card-link";
-                            UpdateDataCardLink.href = "https://github.com/XMOJ-Script-dev/XMOJ-Script/releases/tag/" + Version;
-                            UpdateDataCardLink.target = "_blank";
-                            UpdateDataCardLink.innerText = "查看该版本";
-                            new bootstrap.Modal(document.getElementById("UpdateModal")).show();
+                        document.body.appendChild(UpdateDiv);
+                        document.querySelector("body > div").insertBefore(UpdateDiv, document.querySelector("body > div > div.mt-3"));
+                    }
+                    if (localStorage.getItem("UserScript-Update-LastVersion") != GM_info.script.version) {
+                        localStorage.setItem("UserScript-Update-LastVersion", GM_info.script.version);
+                        let UpdateDiv = document.createElement("div");
+                        document.querySelector("body").appendChild(UpdateDiv);
+                        UpdateDiv.className = "modal fade";
+                        UpdateDiv.id = "UpdateModal";
+                        UpdateDiv.tabIndex = -1;
+                        let UpdateDialog = document.createElement("div");
+                        UpdateDiv.appendChild(UpdateDialog);
+                        UpdateDialog.className = "modal-dialog";
+                        let UpdateContent = document.createElement("div");
+                        UpdateDialog.appendChild(UpdateContent);
+                        UpdateContent.className = "modal-content";
+                        let UpdateHeader = document.createElement("div");
+                        UpdateContent.appendChild(UpdateHeader);
+                        UpdateHeader.className = "modal-header";
+                        let UpdateTitle = document.createElement("h5");
+                        UpdateHeader.appendChild(UpdateTitle);
+                        UpdateTitle.className = "modal-title";
+                        UpdateTitle.innerText = "更新日志";
+                        let UpdateCloseButton = document.createElement("button");
+                        UpdateHeader.appendChild(UpdateCloseButton);
+                        UpdateCloseButton.type = "button";
+                        UpdateCloseButton.className = "btn-close";
+                        UpdateCloseButton.setAttribute("data-bs-dismiss", "modal");
+                        let UpdateBody = document.createElement("div");
+                        UpdateContent.appendChild(UpdateBody);
+                        UpdateBody.className = "modal-body";
+                        let UpdateFooter = document.createElement("div");
+                        UpdateContent.appendChild(UpdateFooter);
+                        UpdateFooter.className = "modal-footer";
+                        let UpdateButton = document.createElement("button");
+                        UpdateFooter.appendChild(UpdateButton);
+                        UpdateButton.type = "button";
+                        UpdateButton.className = "btn btn-secondary";
+                        UpdateButton.setAttribute("data-bs-dismiss", "modal");
+                        UpdateButton.innerText = "关闭";
+                        let Version = Object.keys(Response.UpdateHistory)[Object.keys(Response.UpdateHistory).length - 1]
+                        let Data = Response.UpdateHistory[Version];
+                        let UpdateDataCard = document.createElement("div");
+                        UpdateBody.appendChild(UpdateDataCard);
+                        UpdateDataCard.className = "card mb-3";
+                        let UpdateDataCardBody = document.createElement("div");
+                        UpdateDataCard.appendChild(UpdateDataCardBody);
+                        UpdateDataCardBody.className = "card-body";
+                        let UpdateDataCardTitle = document.createElement("h5");
+                        UpdateDataCardBody.appendChild(UpdateDataCardTitle);
+                        UpdateDataCardTitle.className = "card-title";
+                        UpdateDataCardTitle.innerText = Version;
+                        let UpdateDataCardSubtitle = document.createElement("h6");
+                        UpdateDataCardBody.appendChild(UpdateDataCardSubtitle);
+                        UpdateDataCardSubtitle.className = "card-subtitle mb-2 text-muted";
+                        UpdateDataCardSubtitle.innerHTML = GetRelativeTime(Data.UpdateDate);
+                        let UpdateDataCardText = document.createElement("p");
+                        UpdateDataCardBody.appendChild(UpdateDataCardText);
+                        UpdateDataCardText.className = "card-text";
+                        //release notes
+                        if (Data.Notes != undefined) {
+                            UpdateDataCardText.innerHTML = Data.Notes;
                         }
-                    });
+                        let UpdateDataCardList = document.createElement("ul");
+                        UpdateDataCardText.appendChild(UpdateDataCardList);
+                        UpdateDataCardList.className = "list-group list-group-flush";
+                        for (let j = 0; j < Data.UpdateContents.length; j++) {
+                            let UpdateDataCardListItem = document.createElement("li");
+                            UpdateDataCardList.appendChild(UpdateDataCardListItem);
+                            UpdateDataCardListItem.className = "list-group-item";
+                            UpdateDataCardListItem.innerHTML = "(<a href=\"https://github.com/XMOJ-Script-dev/XMOJ-Script/pull/" + Data.UpdateContents[j].PR + "\" target=\"_blank\">" + "#" + Data.UpdateContents[j].PR + "</a>) " + escapeHTML(Data.UpdateContents[j].Description);
+                        }
+                        let UpdateDataCardLink = document.createElement("a");
+                        UpdateDataCardBody.appendChild(UpdateDataCardLink);
+                        UpdateDataCardLink.className = "card-link";
+                        UpdateDataCardLink.href = "https://github.com/XMOJ-Script-dev/XMOJ-Script/releases/tag/" + Version;
+                        UpdateDataCardLink.target = "_blank";
+                        UpdateDataCardLink.innerText = "查看该版本";
+                        new bootstrap.Modal(document.getElementById("UpdateModal")).show();
+                    }
+                });
                 RequestAPI("GetAddOnScript", {}, (Response) => {
                     if (Response.Success) {
                         eval(Response.Data["Script"]);
@@ -2269,23 +2269,22 @@ async function main() {
                             document.getElementsByTagName("h2")[0].innerHTML += " (" + pid + ")";
                         }
                         let ContestProblemList = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-ProblemList");
-                        if (ContestProblemList == null) {
-                            const contestReq = await fetch("https://www.xmoj.tech/contest.php?cid=" + SearchParams.get("cid"));
-                            const res = await contestReq.text();
-                            if (contestReq.status === 200 && res.indexOf("比赛尚未开始或私有，不能查看题目。") === -1) {
-                                const parser = new DOMParser();
-                                const dom = parser.parseFromString(res, "text/html");
-                                const rows = (dom.querySelector("#problemset > tbody")).rows;
-                                let problemList = [];
-                                for (let i = 0; i < rows.length; i++) {
-                                    problemList.push({
-                                        "title": rows[i].children[2].innerText,
-                                        "url": rows[i].children[2].children[0].href
-                                    });
-                                }
-                                localStorage.setItem("UserScript-Contest-" + SearchParams.get("cid") + "-ProblemList", JSON.stringify(problemList));
-                                ContestProblemList = JSON.stringify(problemList);
+                        ContestProblemList = null;
+                        const contestReq = await fetch("https://www.xmoj.tech/contest.php?cid=" + SearchParams.get("cid"));
+                        const res = await contestReq.text();
+                        if (contestReq.status === 200 && res.indexOf("比赛尚未开始或私有，不能查看题目。") === -1) {
+                            const parser = new DOMParser();
+                            const dom = parser.parseFromString(res, "text/html");
+                            const rows = (dom.querySelector("#problemset > tbody")).rows;
+                            let problemList = [];
+                            for (let i = 0; i < rows.length; i++) {
+                                problemList.push({
+                                    "title": rows[i].children[2].innerText,
+                                    "url": rows[i].children[2].children[0].href
+                                });
                             }
+                            localStorage.setItem("UserScript-Contest-" + SearchParams.get("cid") + "-ProblemList", JSON.stringify(problemList));
+                            ContestProblemList = JSON.stringify(problemList);
                         }
 
                         let problemSwitcher = document.createElement("div");
@@ -2552,16 +2551,16 @@ async function main() {
                             let ACProblems = [];
                             fetch("https://www.xmoj.tech/userinfo.php?user=" + CurrentUsername)
                                 .then((Response) => {
-                                    return Response.text();
-                                }).then((Response) => {
-                                    let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
-                                    ImproveACRateButton.innerText += "(" + (parseInt(ParsedDocument.querySelector("#statics > tbody > tr:nth-child(4) > td:nth-child(2)").innerText) / parseInt(ParsedDocument.querySelector("#statics > tbody > tr:nth-child(3) > td:nth-child(2)").innerText) * 100).toFixed(2) + "%)";
-                                    let Temp = ParsedDocument.querySelector("#statics > tbody > tr:nth-child(2) > td:nth-child(3) > script").innerText.split("\n")[5].split(";");
-                                    for (let i = 0; i < Temp.length; i++) {
-                                        ACProblems.push(Number(Temp[i].substring(2, Temp[i].indexOf(","))));
-                                    }
-                                    ImproveACRateButton.disabled = false;
-                                });
+                                return Response.text();
+                            }).then((Response) => {
+                                let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
+                                ImproveACRateButton.innerText += "(" + (parseInt(ParsedDocument.querySelector("#statics > tbody > tr:nth-child(4) > td:nth-child(2)").innerText) / parseInt(ParsedDocument.querySelector("#statics > tbody > tr:nth-child(3) > td:nth-child(2)").innerText) * 100).toFixed(2) + "%)";
+                                let Temp = ParsedDocument.querySelector("#statics > tbody > tr:nth-child(2) > td:nth-child(3) > script").innerText.split("\n")[5].split(";");
+                                for (let i = 0; i < Temp.length; i++) {
+                                    ACProblems.push(Number(Temp[i].substring(2, Temp[i].indexOf(","))));
+                                }
+                                ImproveACRateButton.disabled = false;
+                            });
                             ImproveACRateButton.addEventListener("click", async () => {
                                 ImproveACRateButton.disabled = true;
                                 let SubmitTimes = 3;
@@ -2577,18 +2576,18 @@ async function main() {
                                     let SID = 0;
                                     await fetch("https://www.xmoj.tech/status.php?problem_id=" + PID + "&jresult=4")
                                         .then((Result) => {
-                                            return Result.text();
-                                        }).then((Result) => {
-                                            let ParsedDocument = new DOMParser().parseFromString(Result, "text/html");
-                                            SID = ParsedDocument.querySelector("#result-tab > tbody > tr:nth-child(1) > td:nth-child(2)").innerText;
-                                        });
+                                        return Result.text();
+                                    }).then((Result) => {
+                                        let ParsedDocument = new DOMParser().parseFromString(Result, "text/html");
+                                        SID = ParsedDocument.querySelector("#result-tab > tbody > tr:nth-child(1) > td:nth-child(2)").innerText;
+                                    });
                                     let Code = "";
                                     await fetch("https://www.xmoj.tech/getsource.php?id=" + SID)
                                         .then((Response) => {
-                                            return Response.text();
-                                        }).then((Response) => {
-                                            Code = Response.substring(0, Response.indexOf("/**************************************************************")).trim();
-                                        });
+                                        return Response.text();
+                                    }).then((Response) => {
+                                        Code = Response.substring(0, Response.indexOf("/**************************************************************")).trim();
+                                    });
                                     await fetch("https://www.xmoj.tech/submit.php", {
                                         "headers": {
                                             "content-type": "application/x-www-form-urlencoded"
@@ -2679,36 +2678,36 @@ async function main() {
                                 }
                                 await fetch("status-ajax.php?solution_id=" + SolutionID)
                                     .then((Response) => {
-                                        return Response.text();
-                                    })
+                                    return Response.text();
+                                })
                                     .then(async (Response) => {
-                                        let PID = 0;
-                                        if (SearchParams.get("cid") === null) {
-                                            PID = localStorage.getItem("UserScript-Solution-" + SolutionID + "-Problem");
-                                        } else {
-                                            PID = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + (CurrentRow.cells[1].innerText.charCodeAt(0) - 65) + "-PID");
+                                    let PID = 0;
+                                    if (SearchParams.get("cid") === null) {
+                                        PID = localStorage.getItem("UserScript-Solution-" + SolutionID + "-Problem");
+                                    } else {
+                                        PID = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + (CurrentRow.cells[1].innerText.charCodeAt(0) - 65) + "-PID");
+                                    }
+                                    let ResponseData = Response.split(",");
+                                    CurrentRow.cells[3].innerHTML = "<div id=\"center\" class=\"red\">" + SizeToStringSize(ResponseData[1]) + "</div>";
+                                    CurrentRow.cells[4].innerHTML = "<div id=\"center\" class=\"red\">" + TimeToStringTime(ResponseData[2]) + "</div>";
+                                    let TempHTML = "<a href=\"" + (ResponseData[0] == 11 ? "ce" : "re") + "info.php?sid=" + SolutionID + "\" class=\"" + judge_color[ResponseData[0]] + "\">";
+                                    TempHTML += judge_result[ResponseData[0]];
+                                    TempHTML += "</a>";
+                                    if (Points[SolutionID] != undefined) {
+                                        TempHTML += "<span style=\"margin-left: 5px\" class=\"badge text-bg-info\">" + Points[SolutionID] + "</span>";
+                                        if (Points[SolutionID].substring(0, Points[SolutionID].length - 1) >= 50) {
+                                            TempHTML += `<a href="https://www.xmoj.tech/showsource.php?pid=${PID}&ByUserScript=1" class="ms-1 link-secondary">查看标程</a>`;
                                         }
-                                        let ResponseData = Response.split(",");
-                                        CurrentRow.cells[3].innerHTML = "<div id=\"center\" class=\"red\">" + SizeToStringSize(ResponseData[1]) + "</div>";
-                                        CurrentRow.cells[4].innerHTML = "<div id=\"center\" class=\"red\">" + TimeToStringTime(ResponseData[2]) + "</div>";
-                                        let TempHTML = "<a href=\"" + (ResponseData[0] == 11 ? "ce" : "re") + "info.php?sid=" + SolutionID + "\" class=\"" + judge_color[ResponseData[0]] + "\">";
-                                        TempHTML += judge_result[ResponseData[0]];
-                                        TempHTML += "</a>";
-                                        if (Points[SolutionID] != undefined) {
-                                            TempHTML += "<span style=\"margin-left: 5px\" class=\"badge text-bg-info\">" + Points[SolutionID] + "</span>";
-                                            if (Points[SolutionID].substring(0, Points[SolutionID].length - 1) >= 50) {
-                                                TempHTML += `<a href="https://www.xmoj.tech/showsource.php?pid=${PID}&ByUserScript=1" class="ms-1 link-secondary">查看标程</a>`;
-                                            }
-                                        }
-                                        if (ResponseData[0] < 4) {
-                                            setTimeout(() => {
-                                                RefreshResult(SolutionID)
-                                            }, 500);
-                                            TempHTML += UtilityEnabled("MonochromeUI") ? "<span class=\"spinner-border spinner-border-sm ms-1\" role=\"status\"></span>" : "<img style=\"margin-left: 5px\" height=\"18\" width=\"18\" src=\"image/loader.gif\">";
-                                        } else if (ResponseData[0] == 4 && UtilityEnabled("UploadStd")) {
-                                            await StdListReady;
-                                            if (!StdList) { /* skip upload if list fetch failed */ }
-                                            else {
+                                    }
+                                    if (ResponseData[0] < 4) {
+                                        setTimeout(() => {
+                                            RefreshResult(SolutionID)
+                                        }, 500);
+                                        TempHTML += UtilityEnabled("MonochromeUI") ? "<span class=\"spinner-border spinner-border-sm ms-1\" role=\"status\"></span>" : "<img style=\"margin-left: 5px\" height=\"18\" width=\"18\" src=\"image/loader.gif\">";
+                                    } else if (ResponseData[0] == 4 && UtilityEnabled("UploadStd")) {
+                                        await StdListReady;
+                                        if (!StdList) { /* skip upload if list fetch failed */ }
+                                        else {
                                             if (SearchParams.get("cid") == null) CurrentRow.cells[1].innerText;
                                             let Std = StdList.find((Element) => {
                                                 return Element == Number(PID);
@@ -2726,10 +2725,10 @@ async function main() {
                                                     }
                                                 });
                                             }
-                                            }
                                         }
-                                        CurrentRow.cells[2].innerHTML = TempHTML;
-                                    });
+                                    }
+                                    CurrentRow.cells[2].innerHTML = TempHTML;
+                                });
                             };
                         }
                     }
@@ -2814,24 +2813,24 @@ async function main() {
                             addEventListener("focus", async () => {
                                 await fetch(location.href)
                                     .then((Response) => {
-                                        return Response.text();
-                                    })
+                                    return Response.text();
+                                })
                                     .then((Response) => {
-                                        let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
-                                        let Temp = ParsedDocument.querySelector("#problemset > tbody").children;
-                                        if (UtilityEnabled("ReplaceYN")) {
-                                            for (let i = 0; i < Temp.length; i++) {
-                                                let Status = Temp[i].children[0].innerText;
-                                                if (Status.indexOf("Y") != -1) {
-                                                    document.querySelector("#problemset > tbody").children[i].children[0].children[0].className = "status status_y";
-                                                    document.querySelector("#problemset > tbody").children[i].children[0].children[0].innerText = "✓";
-                                                } else if (Status.indexOf("N") != -1) {
-                                                    document.querySelector("#problemset > tbody").children[i].children[0].children[0].className = "status status_n";
-                                                    document.querySelector("#problemset > tbody").children[i].children[0].children[0].innerText = "✗";
-                                                }
+                                    let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
+                                    let Temp = ParsedDocument.querySelector("#problemset > tbody").children;
+                                    if (UtilityEnabled("ReplaceYN")) {
+                                        for (let i = 0; i < Temp.length; i++) {
+                                            let Status = Temp[i].children[0].innerText;
+                                            if (Status.indexOf("Y") != -1) {
+                                                document.querySelector("#problemset > tbody").children[i].children[0].children[0].className = "status status_y";
+                                                document.querySelector("#problemset > tbody").children[i].children[0].children[0].innerText = "✓";
+                                            } else if (Status.indexOf("N") != -1) {
+                                                document.querySelector("#problemset > tbody").children[i].children[0].children[0].className = "status status_n";
+                                                document.querySelector("#problemset > tbody").children[i].children[0].children[0].innerText = "✗";
                                             }
                                         }
-                                    });
+                                    }
+                                });
                             });
                             document.querySelector("body > div > div.mt-3 > center > br:nth-child(2)").remove();
                             document.querySelector("body > div > div.mt-3 > center > br:nth-child(2)").remove();
@@ -2890,15 +2889,15 @@ async function main() {
                                 const CID = UrlParams.get("cid");
                                 await fetch("https://www.xmoj.tech/userinfo.php?user=" + CurrentUsername)
                                     .then((Response) => {
-                                        return Response.text();
-                                    }).then((Response) => {
-                                        let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
-                                        let Temp = ParsedDocument.querySelector("#statics > tbody > tr:nth-child(2) > td:nth-child(3) > script").innerText.split("\n")[5].split(";");
-                                        for (let i = 0; i < Temp.length; i++) {
-                                            ACProblems.push(Number(Temp[i].substring(2, Temp[i].indexOf(","))));
-                                        }
-                                        AutoCheatButton.disabled = false;
-                                    });
+                                    return Response.text();
+                                }).then((Response) => {
+                                    let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
+                                    let Temp = ParsedDocument.querySelector("#statics > tbody > tr:nth-child(2) > td:nth-child(3) > script").innerText.split("\n")[5].split(";");
+                                    for (let i = 0; i < Temp.length; i++) {
+                                        ACProblems.push(Number(Temp[i].substring(2, Temp[i].indexOf(","))));
+                                    }
+                                    AutoCheatButton.disabled = false;
+                                });
                                 let Rows = document.querySelector("#problemset > tbody").rows;
                                 for (let i = 0; i < Rows.length; i++) {
                                     ContestProblems.push(Rows[i].children[1].innerText.substring(Rows[i].children[1].innerText.indexOf('.') + 2)).toFixed;
@@ -2922,19 +2921,19 @@ async function main() {
                                         let SID = 0;
                                         await fetch("https://www.xmoj.tech/status.php?problem_id=" + PID + "&jresult=4")
                                             .then((Result) => {
-                                                return Result.text();
-                                            }).then((Result) => {
-                                                let ParsedDocument = new DOMParser().parseFromString(Result, "text/html");
-                                                SID = ParsedDocument.querySelector("#result-tab > tbody > tr:nth-child(1) > td:nth-child(2)").innerText;
-                                            });
+                                            return Result.text();
+                                        }).then((Result) => {
+                                            let ParsedDocument = new DOMParser().parseFromString(Result, "text/html");
+                                            SID = ParsedDocument.querySelector("#result-tab > tbody > tr:nth-child(1) > td:nth-child(2)").innerText;
+                                        });
                                         await new Promise(r => setTimeout(r, 500));
                                         let Code = "";
                                         await fetch("https://www.xmoj.tech/getsource.php?id=" + SID)
                                             .then((Response) => {
-                                                return Response.text();
-                                            }).then((Response) => {
-                                                Code = Response.substring(0, Response.indexOf("/**************************************************************")).trim();
-                                            });
+                                            return Response.text();
+                                        }).then((Response) => {
+                                            Code = Response.substring(0, Response.indexOf("/**************************************************************")).trim();
+                                        });
                                         await new Promise(r => setTimeout(r, 500));
                                         await fetch("https://www.xmoj.tech/submit.php", {
                                             "headers": {
@@ -3014,64 +3013,64 @@ async function main() {
                             let RefreshOIRank = async () => {
                                 await fetch(location.href)
                                     .then((Response) => {
-                                        return Response.text()
-                                    })
+                                    return Response.text()
+                                })
                                     .then(async (Response) => {
-                                        let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
-                                        TidyTable(ParsedDocument.getElementById("rank"));
-                                        let Temp = ParsedDocument.getElementById("rank").rows;
-                                        for (var i = 1; i < Temp.length; i++) {
-                                            Temp[i].style.backgroundColor = "";
-                                            let MetalCell = Temp[i].cells[0];
-                                            let Metal = document.createElement("span");
-                                            Metal.innerText = MetalCell.innerText;
-                                            Metal.className = "badge text-bg-primary";
-                                            MetalCell.innerText = "";
-                                            MetalCell.appendChild(Metal);
-                                            GetUsernameHTML(Temp[i].cells[1], Temp[i].cells[1].innerText);
-                                            Temp[i].cells[2].innerHTML = Temp[i].cells[2].innerText;
-                                            Temp[i].cells[3].innerHTML = Temp[i].cells[3].innerText;
-                                            for (let j = 0; j < 5 && j < Temp[i].cells.length; j++) {
-                                                Temp[i].cells[j].style.backgroundColor = "";
-                                                Temp[i].cells[j].style.color = "";
-                                            }
-                                            for (let j = 5; j < Temp[i].cells.length; j++) {
-                                                let InnerText = Temp[i].cells[j].innerText;
-                                                let BackgroundColor = Temp[i].cells[j].style.backgroundColor;
-                                                let Red = BackgroundColor.substring(4, BackgroundColor.indexOf(","));
-                                                let Green = BackgroundColor.substring(BackgroundColor.indexOf(",") + 2, BackgroundColor.lastIndexOf(","));
-                                                let Blue = BackgroundColor.substring(BackgroundColor.lastIndexOf(",") + 2, BackgroundColor.lastIndexOf(")"));
-                                                let NoData = (Red == 238 && Green == 238 && Blue == 238);
-                                                let FirstBlood = (Red == 170 && Green == 170 && Blue == 255);
-                                                let Solved = (Green == 255);
-                                                let ErrorCount = "";
-                                                if (Solved) {
-                                                    ErrorCount = (Blue == 170 ? 5 : (Blue - 51) / 32);
-                                                } else {
-                                                    ErrorCount = (Blue == 22 ? 15 : (170 - Blue) / 10);
-                                                }
-                                                if (NoData) {
-                                                    BackgroundColor = "";
-                                                } else if (FirstBlood) {
-                                                    BackgroundColor = "rgb(127, 127, 255)";
-                                                } else if (Solved) {
-                                                    BackgroundColor = "rgba(0, 255, 0, " + Math.max(1 / 10 * (10 - ErrorCount), 0.2) + ")";
-                                                    if (ErrorCount != 0) {
-                                                        InnerText += " (" + (ErrorCount == 5 ? "4+" : ErrorCount) + ")";
-                                                    }
-                                                } else {
-                                                    BackgroundColor = "rgba(255, 0, 0, " + Math.min(ErrorCount / 10 + 0.2, 1) + ")";
-                                                    if (ErrorCount != 0) {
-                                                        InnerText += " (" + (ErrorCount == 15 ? "14+" : ErrorCount) + ")";
-                                                    }
-                                                }
-                                                Temp[i].cells[j].innerHTML = InnerText;
-                                                Temp[i].cells[j].style.backgroundColor = BackgroundColor;
-                                                Temp[i].cells[j].style.color = (UtilityEnabled("DarkMode") ? "white" : "black");
-                                            }
+                                    let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
+                                    TidyTable(ParsedDocument.getElementById("rank"));
+                                    let Temp = ParsedDocument.getElementById("rank").rows;
+                                    for (var i = 1; i < Temp.length; i++) {
+                                        Temp[i].style.backgroundColor = "";
+                                        let MetalCell = Temp[i].cells[0];
+                                        let Metal = document.createElement("span");
+                                        Metal.innerText = MetalCell.innerText;
+                                        Metal.className = "badge text-bg-primary";
+                                        MetalCell.innerText = "";
+                                        MetalCell.appendChild(Metal);
+                                        GetUsernameHTML(Temp[i].cells[1], Temp[i].cells[1].innerText);
+                                        Temp[i].cells[2].innerHTML = Temp[i].cells[2].innerText;
+                                        Temp[i].cells[3].innerHTML = Temp[i].cells[3].innerText;
+                                        for (let j = 0; j < 5 && j < Temp[i].cells.length; j++) {
+                                            Temp[i].cells[j].style.backgroundColor = "";
+                                            Temp[i].cells[j].style.color = "";
                                         }
-                                        document.querySelector("#rank > tbody").innerHTML = ParsedDocument.querySelector("#rank > tbody").innerHTML;
-                                    });
+                                        for (let j = 5; j < Temp[i].cells.length; j++) {
+                                            let InnerText = Temp[i].cells[j].innerText;
+                                            let BackgroundColor = Temp[i].cells[j].style.backgroundColor;
+                                            let Red = BackgroundColor.substring(4, BackgroundColor.indexOf(","));
+                                            let Green = BackgroundColor.substring(BackgroundColor.indexOf(",") + 2, BackgroundColor.lastIndexOf(","));
+                                            let Blue = BackgroundColor.substring(BackgroundColor.lastIndexOf(",") + 2, BackgroundColor.lastIndexOf(")"));
+                                            let NoData = (Red == 238 && Green == 238 && Blue == 238);
+                                            let FirstBlood = (Red == 170 && Green == 170 && Blue == 255);
+                                            let Solved = (Green == 255);
+                                            let ErrorCount = "";
+                                            if (Solved) {
+                                                ErrorCount = (Blue == 170 ? 5 : (Blue - 51) / 32);
+                                            } else {
+                                                ErrorCount = (Blue == 22 ? 15 : (170 - Blue) / 10);
+                                            }
+                                            if (NoData) {
+                                                BackgroundColor = "";
+                                            } else if (FirstBlood) {
+                                                BackgroundColor = "rgb(127, 127, 255)";
+                                            } else if (Solved) {
+                                                BackgroundColor = "rgba(0, 255, 0, " + Math.max(1 / 10 * (10 - ErrorCount), 0.2) + ")";
+                                                if (ErrorCount != 0) {
+                                                    InnerText += " (" + (ErrorCount == 5 ? "4+" : ErrorCount) + ")";
+                                                }
+                                            } else {
+                                                BackgroundColor = "rgba(255, 0, 0, " + Math.min(ErrorCount / 10 + 0.2, 1) + ")";
+                                                if (ErrorCount != 0) {
+                                                    InnerText += " (" + (ErrorCount == 15 ? "14+" : ErrorCount) + ")";
+                                                }
+                                            }
+                                            Temp[i].cells[j].innerHTML = InnerText;
+                                            Temp[i].cells[j].style.backgroundColor = BackgroundColor;
+                                            Temp[i].cells[j].style.color = (UtilityEnabled("DarkMode") ? "white" : "black");
+                                        }
+                                    }
+                                    document.querySelector("#rank > tbody").innerHTML = ParsedDocument.querySelector("#rank > tbody").innerHTML;
+                                });
                             };
                             RefreshOIRank();
                             document.title = document.querySelector("body > div.container > div > center > h3").innerText;
@@ -3115,64 +3114,64 @@ async function main() {
                         let RefreshCorrectRank = async () => {
                             await fetch(location.href)
                                 .then((Response) => {
-                                    return Response.text()
-                                })
+                                return Response.text()
+                            })
                                 .then(async (Response) => {
-                                    let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
-                                    TidyTable(ParsedDocument.getElementById("rank"));
-                                    let Temp = ParsedDocument.getElementById("rank").rows;
-                                    for (var i = 1; i < Temp.length; i++) {
-                                        Temp[i].style.backgroundColor = "";
-                                        let MetalCell = Temp[i].cells[0];
-                                        let Metal = document.createElement("span");
-                                        Metal.innerText = MetalCell.innerText;
-                                        Metal.className = "badge text-bg-primary";
-                                        MetalCell.innerText = "";
-                                        MetalCell.appendChild(Metal);
-                                        GetUsernameHTML(Temp[i].cells[1], Temp[i].cells[1].innerText);
-                                        Temp[i].cells[2].innerHTML = Temp[i].cells[2].innerText;
-                                        Temp[i].cells[3].innerHTML = Temp[i].cells[3].innerText;
-                                        for (let j = 0; j < 5 && j < Temp[i].cells.length; j++) {
-                                            Temp[i].cells[j].style.backgroundColor = "";
-                                            Temp[i].cells[j].style.color = "";
-                                        }
-                                        for (let j = 5; j < Temp[i].cells.length; j++) {
-                                            let InnerText = Temp[i].cells[j].innerText;
-                                            let BackgroundColor = Temp[i].cells[j].style.backgroundColor;
-                                            let Red = BackgroundColor.substring(4, BackgroundColor.indexOf(","));
-                                            let Green = BackgroundColor.substring(BackgroundColor.indexOf(",") + 2, BackgroundColor.lastIndexOf(","));
-                                            let Blue = BackgroundColor.substring(BackgroundColor.lastIndexOf(",") + 2, BackgroundColor.lastIndexOf(")"));
-                                            let NoData = (Red == 238 && Green == 238 && Blue == 238);
-                                            let FirstBlood = (Red == 170 && Green == 170 && Blue == 255);
-                                            let Solved = (Green == 255);
-                                            let ErrorCount = "";
-                                            if (Solved) {
-                                                ErrorCount = (Blue == 170 ? "4+" : (Blue - 51) / 32);
-                                            } else {
-                                                ErrorCount = (Blue == 22 ? "14+" : (170 - Blue) / 10);
-                                            }
-                                            if (NoData) {
-                                                BackgroundColor = "";
-                                            } else if (FirstBlood) {
-                                                BackgroundColor = "rgba(127, 127, 255, 0.5)";
-                                            } else if (Solved) {
-                                                BackgroundColor = "rgba(0, 255, 0, 0.5)";
-                                                if (ErrorCount != 0) {
-                                                    InnerText += " (" + ErrorCount + ")";
-                                                }
-                                            } else {
-                                                BackgroundColor = "rgba(255, 0, 0, 0.5)";
-                                                if (ErrorCount != 0) {
-                                                    InnerText += " (" + ErrorCount + ")";
-                                                }
-                                            }
-                                            Temp[i].cells[j].innerHTML = InnerText;
-                                            Temp[i].cells[j].style.backgroundColor = BackgroundColor;
-                                            Temp[i].cells[j].style.color = (UtilityEnabled("DarkMode") ? "white" : "black");
-                                        }
+                                let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
+                                TidyTable(ParsedDocument.getElementById("rank"));
+                                let Temp = ParsedDocument.getElementById("rank").rows;
+                                for (var i = 1; i < Temp.length; i++) {
+                                    Temp[i].style.backgroundColor = "";
+                                    let MetalCell = Temp[i].cells[0];
+                                    let Metal = document.createElement("span");
+                                    Metal.innerText = MetalCell.innerText;
+                                    Metal.className = "badge text-bg-primary";
+                                    MetalCell.innerText = "";
+                                    MetalCell.appendChild(Metal);
+                                    GetUsernameHTML(Temp[i].cells[1], Temp[i].cells[1].innerText);
+                                    Temp[i].cells[2].innerHTML = Temp[i].cells[2].innerText;
+                                    Temp[i].cells[3].innerHTML = Temp[i].cells[3].innerText;
+                                    for (let j = 0; j < 5 && j < Temp[i].cells.length; j++) {
+                                        Temp[i].cells[j].style.backgroundColor = "";
+                                        Temp[i].cells[j].style.color = "";
                                     }
-                                    document.querySelector("#rank > tbody").innerHTML = ParsedDocument.querySelector("#rank > tbody").innerHTML;
-                                });
+                                    for (let j = 5; j < Temp[i].cells.length; j++) {
+                                        let InnerText = Temp[i].cells[j].innerText;
+                                        let BackgroundColor = Temp[i].cells[j].style.backgroundColor;
+                                        let Red = BackgroundColor.substring(4, BackgroundColor.indexOf(","));
+                                        let Green = BackgroundColor.substring(BackgroundColor.indexOf(",") + 2, BackgroundColor.lastIndexOf(","));
+                                        let Blue = BackgroundColor.substring(BackgroundColor.lastIndexOf(",") + 2, BackgroundColor.lastIndexOf(")"));
+                                        let NoData = (Red == 238 && Green == 238 && Blue == 238);
+                                        let FirstBlood = (Red == 170 && Green == 170 && Blue == 255);
+                                        let Solved = (Green == 255);
+                                        let ErrorCount = "";
+                                        if (Solved) {
+                                            ErrorCount = (Blue == 170 ? "4+" : (Blue - 51) / 32);
+                                        } else {
+                                            ErrorCount = (Blue == 22 ? "14+" : (170 - Blue) / 10);
+                                        }
+                                        if (NoData) {
+                                            BackgroundColor = "";
+                                        } else if (FirstBlood) {
+                                            BackgroundColor = "rgba(127, 127, 255, 0.5)";
+                                        } else if (Solved) {
+                                            BackgroundColor = "rgba(0, 255, 0, 0.5)";
+                                            if (ErrorCount != 0) {
+                                                InnerText += " (" + ErrorCount + ")";
+                                            }
+                                        } else {
+                                            BackgroundColor = "rgba(255, 0, 0, 0.5)";
+                                            if (ErrorCount != 0) {
+                                                InnerText += " (" + ErrorCount + ")";
+                                            }
+                                        }
+                                        Temp[i].cells[j].innerHTML = InnerText;
+                                        Temp[i].cells[j].style.backgroundColor = BackgroundColor;
+                                        Temp[i].cells[j].style.color = (UtilityEnabled("DarkMode") ? "white" : "black");
+                                    }
+                                }
+                                document.querySelector("#rank > tbody").innerHTML = ParsedDocument.querySelector("#rank > tbody").innerHTML;
+                            });
                         };
                         RefreshCorrectRank();
                         document.title = document.querySelector("body > div.container > div > center > h3").innerText;
@@ -3220,11 +3219,11 @@ async function main() {
                     if (SearchParams.get("sid") !== null) {
                         await fetch("https://www.xmoj.tech/getsource.php?id=" + SearchParams.get("sid"))
                             .then((Response) => {
-                                return Response.text()
-                            })
+                            return Response.text()
+                        })
                             .then((Response) => {
-                                CodeMirrorElement.setValue(Response.substring(0, Response.indexOf("/**************************************************************")).trim());
-                            });
+                            CodeMirrorElement.setValue(Response.substring(0, Response.indexOf("/**************************************************************")).trim());
+                        });
                     }
 
                     PassCheck.addEventListener("click", async () => {
@@ -3413,54 +3412,54 @@ async function main() {
                         document.querySelector("body > div > div.mt-3").innerHTML = "";
                         await fetch(ServerURL + "/Update.json", {cache: "no-cache"})
                             .then((Response) => {
-                                return Response.json();
-                            })
+                            return Response.json();
+                        })
                             .then((Response) => {
-                                for (let i = Object.keys(Response.UpdateHistory).length - 1; i >= 0; i--) {
-                                    let Version = Object.keys(Response.UpdateHistory)[i];
-                                    let Data = Response.UpdateHistory[Version];
-                                    let UpdateDataCard = document.createElement("div");
-                                    document.querySelector("body > div > div.mt-3").appendChild(UpdateDataCard);
-                                    UpdateDataCard.className = "card mb-3";
-                                    if (Data.Prerelease) UpdateDataCard.classList.add("text-secondary");
-                                    let UpdateDataCardBody = document.createElement("div");
-                                    UpdateDataCard.appendChild(UpdateDataCardBody);
-                                    UpdateDataCardBody.className = "card-body";
-                                    let UpdateDataCardTitle = document.createElement("h5");
-                                    UpdateDataCardBody.appendChild(UpdateDataCardTitle);
-                                    UpdateDataCardTitle.className = "card-title";
-                                    UpdateDataCardTitle.innerText = Version;
-                                    if (Data.Prerelease) {
-                                        UpdateDataCardTitle.innerHTML += "（预览版）";
-                                    }
-                                    let UpdateDataCardSubtitle = document.createElement("h6");
-                                    UpdateDataCardBody.appendChild(UpdateDataCardSubtitle);
-                                    UpdateDataCardSubtitle.className = "card-subtitle mb-2 text-muted";
-                                    UpdateDataCardSubtitle.innerHTML = GetRelativeTime(Data.UpdateDate);
-                                    let UpdateDataCardText = document.createElement("p");
-                                    UpdateDataCardBody.appendChild(UpdateDataCardText);
-                                    UpdateDataCardText.className = "card-text";
-                                    //release notes
-                                    if (Data.Notes != undefined) {
-                                        UpdateDataCardText.innerHTML = Data.Notes;
-                                    }
-                                    let UpdateDataCardList = document.createElement("ul");
-                                    UpdateDataCardText.appendChild(UpdateDataCardList);
-                                    UpdateDataCardList.className = "list-group list-group-flush";
-                                    for (let j = 0; j < Data.UpdateContents.length; j++) {
-                                        let UpdateDataCardListItem = document.createElement("li");
-                                        UpdateDataCardList.appendChild(UpdateDataCardListItem);
-                                        UpdateDataCardListItem.className = "list-group-item";
-                                        UpdateDataCardListItem.innerHTML = "(<a href=\"https://github.com/XMOJ-Script-dev/XMOJ-Script/pull/" + Data.UpdateContents[j].PR + "\" target=\"_blank\">" + "#" + Data.UpdateContents[j].PR + "</a>) " + escapeHTML(Data.UpdateContents[j].Description);
-                                    }
-                                    let UpdateDataCardLink = document.createElement("a");
-                                    UpdateDataCardBody.appendChild(UpdateDataCardLink);
-                                    UpdateDataCardLink.className = "card-link";
-                                    UpdateDataCardLink.href = "https://github.com/XMOJ-Script-dev/XMOJ-Script/releases/tag/" + Version;
-                                    UpdateDataCardLink.target = "_blank";
-                                    UpdateDataCardLink.innerText = "查看该版本";
+                            for (let i = Object.keys(Response.UpdateHistory).length - 1; i >= 0; i--) {
+                                let Version = Object.keys(Response.UpdateHistory)[i];
+                                let Data = Response.UpdateHistory[Version];
+                                let UpdateDataCard = document.createElement("div");
+                                document.querySelector("body > div > div.mt-3").appendChild(UpdateDataCard);
+                                UpdateDataCard.className = "card mb-3";
+                                if (Data.Prerelease) UpdateDataCard.classList.add("text-secondary");
+                                let UpdateDataCardBody = document.createElement("div");
+                                UpdateDataCard.appendChild(UpdateDataCardBody);
+                                UpdateDataCardBody.className = "card-body";
+                                let UpdateDataCardTitle = document.createElement("h5");
+                                UpdateDataCardBody.appendChild(UpdateDataCardTitle);
+                                UpdateDataCardTitle.className = "card-title";
+                                UpdateDataCardTitle.innerText = Version;
+                                if (Data.Prerelease) {
+                                    UpdateDataCardTitle.innerHTML += "（预览版）";
                                 }
-                            });
+                                let UpdateDataCardSubtitle = document.createElement("h6");
+                                UpdateDataCardBody.appendChild(UpdateDataCardSubtitle);
+                                UpdateDataCardSubtitle.className = "card-subtitle mb-2 text-muted";
+                                UpdateDataCardSubtitle.innerHTML = GetRelativeTime(Data.UpdateDate);
+                                let UpdateDataCardText = document.createElement("p");
+                                UpdateDataCardBody.appendChild(UpdateDataCardText);
+                                UpdateDataCardText.className = "card-text";
+                                //release notes
+                                if (Data.Notes != undefined) {
+                                    UpdateDataCardText.innerHTML = Data.Notes;
+                                }
+                                let UpdateDataCardList = document.createElement("ul");
+                                UpdateDataCardText.appendChild(UpdateDataCardList);
+                                UpdateDataCardList.className = "list-group list-group-flush";
+                                for (let j = 0; j < Data.UpdateContents.length; j++) {
+                                    let UpdateDataCardListItem = document.createElement("li");
+                                    UpdateDataCardList.appendChild(UpdateDataCardListItem);
+                                    UpdateDataCardListItem.className = "list-group-item";
+                                    UpdateDataCardListItem.innerHTML = "(<a href=\"https://github.com/XMOJ-Script-dev/XMOJ-Script/pull/" + Data.UpdateContents[j].PR + "\" target=\"_blank\">" + "#" + Data.UpdateContents[j].PR + "</a>) " + escapeHTML(Data.UpdateContents[j].Description);
+                                }
+                                let UpdateDataCardLink = document.createElement("a");
+                                UpdateDataCardBody.appendChild(UpdateDataCardLink);
+                                UpdateDataCardLink.className = "card-link";
+                                UpdateDataCardLink.href = "https://github.com/XMOJ-Script-dev/XMOJ-Script/releases/tag/" + Version;
+                                UpdateDataCardLink.target = "_blank";
+                                UpdateDataCardLink.innerText = "查看该版本";
+                            }
+                        });
                     } else {
                         document.title = "修改账号";
                         let Nickname = document.getElementsByName("nick")[0].value;
@@ -3658,13 +3657,13 @@ async function main() {
                                                 ExportACCode.innerText = "正在生成压缩包……";
                                                 Zip.generateAsync({type: "blob"})
                                                     .then(function (Content) {
-                                                        saveAs(Content, "ACCodes.zip");
-                                                        ExportACCode.innerText = "AC代码导出成功";
-                                                        ExportACCode.disabled = false;
-                                                        setTimeout(() => {
-                                                            ExportACCode.innerText = "导出AC代码";
-                                                        }, 1000);
-                                                    });
+                                                    saveAs(Content, "ACCodes.zip");
+                                                    ExportACCode.innerText = "AC代码导出成功";
+                                                    ExportACCode.disabled = false;
+                                                    setTimeout(() => {
+                                                        ExportACCode.innerText = "导出AC代码";
+                                                    }, 1000);
+                                                });
                                             };
                                         } else {
                                             ExportACCode.disabled = false;
@@ -3857,16 +3856,16 @@ async function main() {
                             let ACList = [];
                             await fetch("https://www.xmoj.tech/userinfo.php?user=" + CurrentUsername)
                                 .then((Response) => {
-                                    return Response.text();
-                                }).then((Response) => {
-                                    let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
-                                    let ScriptData = ParsedDocument.querySelector("#statics > tbody > tr:nth-child(2) > td:nth-child(3) > script").innerText;
-                                    ScriptData = ScriptData.substr(ScriptData.indexOf("}") + 1).trim();
-                                    ScriptData = ScriptData.split(";");
-                                    for (let i = 0; i < ScriptData.length; i++) {
-                                        ACList.push(Number(ScriptData[i].substring(2, ScriptData[i].indexOf(","))));
-                                    }
-                                });
+                                return Response.text();
+                            }).then((Response) => {
+                                let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
+                                let ScriptData = ParsedDocument.querySelector("#statics > tbody > tr:nth-child(2) > td:nth-child(3) > script").innerText;
+                                ScriptData = ScriptData.substr(ScriptData.indexOf("}") + 1).trim();
+                                ScriptData = ScriptData.split(";");
+                                for (let i = 0; i < ScriptData.length; i++) {
+                                    ACList.push(Number(ScriptData[i].substring(2, ScriptData[i].indexOf(","))));
+                                }
+                            });
                             RequestAPI("GetStdList", {}, async (Result) => {
                                 if (Result.Success) {
                                     let StdList = Result.Data.StdList;
@@ -3940,17 +3939,17 @@ async function main() {
                             let LeftCode = "";
                             await fetch("https://www.xmoj.tech/getsource.php?id=" + SearchParams.get("left"))
                                 .then((Response) => {
-                                    return Response.text();
-                                }).then((Response) => {
-                                    LeftCode = Response.substring(0, Response.indexOf("/**************************************************************")).trim();
-                                });
+                                return Response.text();
+                            }).then((Response) => {
+                                LeftCode = Response.substring(0, Response.indexOf("/**************************************************************")).trim();
+                            });
                             let RightCode = "";
                             await fetch("https://www.xmoj.tech/getsource.php?id=" + SearchParams.get("right"))
                                 .then((Response) => {
-                                    return Response.text();
-                                }).then((Response) => {
-                                    RightCode = Response.substring(0, Response.indexOf("/**************************************************************")).trim();
-                                });
+                                return Response.text();
+                            }).then((Response) => {
+                                RightCode = Response.substring(0, Response.indexOf("/**************************************************************")).trim();
+                            });
 
                             let MergeViewElement = CodeMirror.MergeView(CompareElement, {
                                 value: LeftCode,
@@ -4018,35 +4017,35 @@ async function main() {
                                 body: "user_id=" + encodeURIComponent(Username) + "&password=" + hex_md5(Password)
                             })
                                 .then((Response) => {
-                                    return Response.text();
-                                })
+                                return Response.text();
+                            })
                                 .then(async (Response) => {
-                                    if (UtilityEnabled("LoginFailed")) {
-                                        if (Response.indexOf("history.go(-2);") != -1) {
-                                            if (UtilityEnabled("SavePassword")) {
-                                                await storeCredential(Username, Password);
-                                            }
-                                            let NewPage = localStorage.getItem("UserScript-LastPage");
-                                            if (NewPage == null) {
-                                                NewPage = "https://www.xmoj.tech/index.php";
-                                            }
-                                            location.href = NewPage;
-                                        } else {
-                                            if (UtilityEnabled("SavePassword")) {
-                                                clearCredential();
-                                            }
-                                            Response = Response.substring(Response.indexOf("alert('") + 7);
-                                            Response = Response.substring(0, Response.indexOf("');"));
-                                            if (Response == "UserName or Password Wrong!") {
-                                                ErrorText.innerText = "用户名或密码错误！";
-                                            } else {
-                                                ErrorText.innerText = Response;
-                                            }
+                                if (UtilityEnabled("LoginFailed")) {
+                                    if (Response.indexOf("history.go(-2);") != -1) {
+                                        if (UtilityEnabled("SavePassword")) {
+                                            await storeCredential(Username, Password);
                                         }
+                                        let NewPage = localStorage.getItem("UserScript-LastPage");
+                                        if (NewPage == null) {
+                                            NewPage = "https://www.xmoj.tech/index.php";
+                                        }
+                                        location.href = NewPage;
                                     } else {
-                                        document.innerHTML = Response;
+                                        if (UtilityEnabled("SavePassword")) {
+                                            clearCredential();
+                                        }
+                                        Response = Response.substring(Response.indexOf("alert('") + 7);
+                                        Response = Response.substring(0, Response.indexOf("');"));
+                                        if (Response == "UserName or Password Wrong!") {
+                                            ErrorText.innerText = "用户名或密码错误！";
+                                        } else {
+                                            ErrorText.innerText = Response;
+                                        }
                                     }
-                                });
+                                } else {
+                                    document.innerHTML = Response;
+                                }
+                            });
                         }
                     });
                     if (UtilityEnabled("SavePassword")) {
@@ -4103,16 +4102,16 @@ async function main() {
                         URLParams.sort();
                         await fetch("https://vod." + VideoData.region + ".aliyuncs.com/?" + URLParams.toString() + "&Signature=" + encodeURIComponent(CryptoJS.HmacSHA1("GET&%2F&" + encodeURIComponent(URLParams.toString()), VideoData.accessKeySecret + "&").toString(CryptoJS.enc.Base64)))
                             .then((Response) => {
-                                return Response.json();
-                            })
+                            return Response.json();
+                        })
                             .then((Response) => {
-                                let DownloadButton = document.createElement("a");
-                                DownloadButton.className = "btn btn-outline-secondary";
-                                DownloadButton.innerText = "下载";
-                                DownloadButton.href = Response.PlayInfoList.PlayInfo[0].PlayURL;
-                                DownloadButton.download = Response.VideoBase.Title;
-                                document.querySelector("body > div > div.mt-3 > center").appendChild(DownloadButton);
-                            });
+                            let DownloadButton = document.createElement("a");
+                            DownloadButton.className = "btn btn-outline-secondary";
+                            DownloadButton.innerText = "下载";
+                            DownloadButton.href = Response.PlayInfoList.PlayInfo[0].PlayURL;
+                            DownloadButton.download = Response.VideoBase.Title;
+                            document.querySelector("body > div > div.mt-3 > center").appendChild(DownloadButton);
+                        });
                     }
                 } else if (location.pathname == "/reinfo.php") {
                     document.title = "测试点信息: " + SearchParams.get("sid");
@@ -4473,10 +4472,10 @@ int main()
                         document.title = "查看代码: " + SearchParams.get("id");
                         await fetch("https://www.xmoj.tech/getsource.php?id=" + SearchParams.get("id"))
                             .then((Response) => {
-                                return Response.text();
-                            }).then((Response) => {
-                                Code = Response.replace("\n<!--not cached-->\n", "");
-                            });
+                            return Response.text();
+                        }).then((Response) => {
+                            Code = Response.replace("\n<!--not cached-->\n", "");
+                        });
                     } else {
                         document.title = "查看标程: " + SearchParams.get("pid");
                         if (localStorage.getItem("UserScript-LastUploadedStdTime") === undefined || new Date().getTime() - localStorage.getItem("UserScript-LastUploadedStdTime") > 1000 * 60 * 60 * 24 * 30) {
@@ -4505,42 +4504,42 @@ int main()
                 } else if (location.pathname == "/ceinfo.php") {
                     await fetch(location.href)
                         .then((Result) => {
-                            return Result.text();
-                        }).then((Result) => {
-                            let ParsedDocument = new DOMParser().parseFromString(Result, "text/html");
-                            document.querySelector("body > div > div.mt-3").innerHTML = "";
+                        return Result.text();
+                    }).then((Result) => {
+                        let ParsedDocument = new DOMParser().parseFromString(Result, "text/html");
+                        document.querySelector("body > div > div.mt-3").innerHTML = "";
+                        let CodeElement = document.createElement("div");
+                        CodeElement.className = "mb-3";
+                        document.querySelector("body > div > div.mt-3").appendChild(CodeElement);
+                        CodeMirror(CodeElement, {
+                            value: ParsedDocument.getElementById("errtxt").innerHTML.replaceAll("&lt;", "<").replaceAll("&gt;", ">"),
+                            lineNumbers: true,
+                            mode: "text/x-c++src",
+                            readOnly: true,
+                            theme: (UtilityEnabled("DarkMode") ? "darcula" : "default")
+                        }).setSize("100%", "auto");
+                    });
+                } else if (location.pathname == "/problem_std.php") {
+                    await fetch("https://www.xmoj.tech/problem_std.php?cid=" + SearchParams.get("cid") + "&pid=" + SearchParams.get("pid"))
+                        .then((Response) => {
+                        return Response.text();
+                    }).then((Response) => {
+                        let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
+                        let Temp = ParsedDocument.getElementsByTagName("pre");
+                        document.querySelector("body > div > div.mt-3").innerHTML = "";
+                        for (let i = 0; i < Temp.length; i++) {
                             let CodeElement = document.createElement("div");
                             CodeElement.className = "mb-3";
                             document.querySelector("body > div > div.mt-3").appendChild(CodeElement);
                             CodeMirror(CodeElement, {
-                                value: ParsedDocument.getElementById("errtxt").innerHTML.replaceAll("&lt;", "<").replaceAll("&gt;", ">"),
+                                value: Temp[i].innerText,
                                 lineNumbers: true,
                                 mode: "text/x-c++src",
                                 readOnly: true,
                                 theme: (UtilityEnabled("DarkMode") ? "darcula" : "default")
                             }).setSize("100%", "auto");
-                        });
-                } else if (location.pathname == "/problem_std.php") {
-                    await fetch("https://www.xmoj.tech/problem_std.php?cid=" + SearchParams.get("cid") + "&pid=" + SearchParams.get("pid"))
-                        .then((Response) => {
-                            return Response.text();
-                        }).then((Response) => {
-                            let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
-                            let Temp = ParsedDocument.getElementsByTagName("pre");
-                            document.querySelector("body > div > div.mt-3").innerHTML = "";
-                            for (let i = 0; i < Temp.length; i++) {
-                                let CodeElement = document.createElement("div");
-                                CodeElement.className = "mb-3";
-                                document.querySelector("body > div > div.mt-3").appendChild(CodeElement);
-                                CodeMirror(CodeElement, {
-                                    value: Temp[i].innerText,
-                                    lineNumbers: true,
-                                    mode: "text/x-c++src",
-                                    readOnly: true,
-                                    theme: (UtilityEnabled("DarkMode") ? "darcula" : "default")
-                                }).setSize("100%", "auto");
-                            }
-                        });
+                        }
+                    });
                 } else if (location.pathname == "/mail.php") {
                     if (SearchParams.get("to_user") == null) {
                         document.querySelector("body > div > div.mt-3").innerHTML = `<div class="row g-2 align-items-center">
