@@ -533,6 +533,29 @@ let RequestAPI = (Action, Data, CallBack) => {
     }
 };
 
+unsafeWindow.GetContestProblemList = async function(RefreshList) {
+    try {
+        const contestReq = await fetch("https://www.xmoj.tech/contest.php?cid=" + SearchParams.get("cid"));
+        const res = await contestReq.text();
+        if (contestReq.status === 200 && res.indexOf("比赛尚未开始或私有，不能查看题目。") === -1) {
+            const parser = new DOMParser();
+            const dom = parser.parseFromString(res, "text/html");
+            const rows = (dom.querySelector("#problemset > tbody")).rows;
+            let problemList = [];
+            for (let i = 0; i < rows.length; i++) {
+                problemList.push({
+                    "title": rows[i].children[2].innerText,
+                    "url": rows[i].children[2].children[0].href
+                });
+            }
+            localStorage.setItem("UserScript-Contest-" + SearchParams.get("cid") + "-ProblemList", JSON.stringify(problemList));
+            if (RefreshList) location.reload();
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
+
 // WebSocket Notification System
 let NotificationSocket = null;
 let NotificationSocketReconnectAttempts = 0;
@@ -2270,22 +2293,8 @@ async function main() {
                         }
                         let ContestProblemList = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-ProblemList");
                         if (ContestProblemList == null) {
-                            const contestReq = await fetch("https://www.xmoj.tech/contest.php?cid=" + SearchParams.get("cid"));
-                            const res = await contestReq.text();
-                            if (contestReq.status === 200 && res.indexOf("比赛尚未开始或私有，不能查看题目。") === -1) {
-                                const parser = new DOMParser();
-                                const dom = parser.parseFromString(res, "text/html");
-                                const rows = (dom.querySelector("#problemset > tbody")).rows;
-                                let problemList = [];
-                                for (let i = 0; i < rows.length; i++) {
-                                    problemList.push({
-                                        "title": rows[i].children[2].innerText,
-                                        "url": rows[i].children[2].children[0].href
-                                    });
-                                }
-                                localStorage.setItem("UserScript-Contest-" + SearchParams.get("cid") + "-ProblemList", JSON.stringify(problemList));
-                                ContestProblemList = JSON.stringify(problemList);
-                            }
+                            unsafeWindow.GetContestProblemList(false);
+                            ContestProblemList = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-ProblemList");
                         }
 
                         let problemSwitcher = document.createElement("div");
@@ -2308,6 +2317,7 @@ async function main() {
                         problemSwitcher.style.flexDirection = "column";
 
                         let problemList = JSON.parse(ContestProblemList);
+                        problemSwitcher.innerHTML += `<a href="javascript:void(0)" onclick="GetContestProblemList(true)" title="刷新列表" class="mb-2" style="text-align: center;" active>刷新</a>`;
                         for (let i = 0; i < problemList.length; i++) {
                             let buttonText = "";
                             if (i < 26) {
