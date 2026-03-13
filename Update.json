@@ -3433,6 +3433,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "3.3.2": {
+            "UpdateDate": 1773416860439,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 933,
+                    "Description": "Fix problem switcher not update"
+                }
+            ],
+            "Notes": "Fix ProblemSwitcher Not Update"
         }
     }
 }
