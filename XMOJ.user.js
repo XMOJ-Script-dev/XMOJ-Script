@@ -2295,7 +2295,7 @@ async function main() {
                         }
                         let ContestProblemList = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-ProblemList");
                         if (ContestProblemList == null) {
-                            unsafeWindow.GetContestProblemList(false);
+                            await unsafeWindow.GetContestProblemList(false);
                             ContestProblemList = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-ProblemList");
                         }
 
