@@ -2323,24 +2323,29 @@ async function main() {
                             }
                             problemSwitcher.innerHTML += `<a href="${problemList[i].url}" title="${problemList[i].title.trim()}" class="btn btn-outline-secondary mb-2 ${activeClass}">${buttonText}</a>`;
                         }
+                        let refreshCid = SearchParams.get("cid");
                         let refreshBtn = document.createElement("a");
                         refreshBtn.title = "刷新缓存";
                         refreshBtn.classList.add("btn", "btn-outline-secondary", "mt-2");
                         refreshBtn.innerHTML = "↻";
                         refreshBtn.href = "#";
-                        refreshBtn.addEventListener("click", function(e) {
-                            e.preventDefault();
-                            let cid = SearchParams.get("cid");
-                            let keysToRemove = [];
-                            for (let k = 0; k < localStorage.length; k++) {
-                                let key = localStorage.key(k);
-                                if (key && key.startsWith("UserScript-Contest-" + cid + "-")) {
-                                    keysToRemove.push(key);
+                        if (refreshCid) {
+                            refreshBtn.addEventListener("click", function(e) {
+                                e.preventDefault();
+                                let prefix = "UserScript-Contest-" + refreshCid + "-";
+                                let keysToRemove = [];
+                                for (let k = 0; k < localStorage.length; k++) {
+                                    let key = localStorage.key(k);
+                                    if (key && key.startsWith(prefix)) {
+                                        keysToRemove.push(key);
+                                    }
                                 }
-                            }
-                            keysToRemove.forEach(k => localStorage.removeItem(k));
-                            location.reload();
-                        });
+                                keysToRemove.forEach(k => localStorage.removeItem(k));
+                                location.reload();
+                            });
+                        } else {
+                            refreshBtn.style.display = "none";
+                        }
                         problemSwitcher.appendChild(refreshBtn);
                         document.body.appendChild(problemSwitcher);
                     }
