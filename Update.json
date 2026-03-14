@@ -3433,6 +3433,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "3.3.2": {
+            "UpdateDate": 1773497073852,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 934,
+                    "Description": "feat: add refresh button to ProblemSwitcher"
+                }
+            ],
+            "Notes": "Added a refresh button (↻) to the ProblemSwitcher panel. Clicking it invalidates the cached contest problem list and reloads the page, useful when contest problems are updated mid-contest."
         }
     }
 }
