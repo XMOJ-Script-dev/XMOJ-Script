@@ -1574,6 +1574,9 @@ async function main() {
                         display: none !important;
                     }
                 }
+                .refreshList {
+                    cursor: pointer;
+                }
 
                 /* Contain images */
                 img {
@@ -1639,6 +1642,11 @@ async function main() {
                     border: 1px solid var(--bs-secondary-bg);
                     border-top: none;
                     border-radius: 0 0 0.3rem 0.3rem;
+                }
+                .refreshList {
+                    cursor: pointer;
+                    color: #6c757d;
+                    text-decoration: none;
                 }`;
                 }
                 if (UtilityEnabled("AddAnimation")) {
@@ -2319,7 +2327,7 @@ async function main() {
                         problemSwitcher.style.flexDirection = "column";
 
                         let problemList = JSON.parse(ContestProblemList);
-                        problemSwitcher.innerHTML += `<a href="javascript:void(0)" onclick="GetContestProblemList(true)" title="刷新列表" class="mb-2" style="text-align: center;" active>刷新</a>`;
+                        problemSwitcher.innerHTML += `<a onclick="GetContestProblemList(true)" title="刷新列表" class="refreshList mb-2" style="text-align: center;" active>刷新</a>`;
                         for (let i = 0; i < problemList.length; i++) {
                             let buttonText = "";
                             if (i < 26) {
