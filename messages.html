@@ -549,8 +549,9 @@ async function loadThread() {
             return;
         }
         tbody.innerHTML = mails.map(function(m) {
-            var isUnread = !m.IsRead && m.FromUser !== currentUser.username;
-            return '<tr class="' + (isUnread ? 'table-primary' : '') + '">' +
+            var isUnread = !m.IsRead;
+            var isHighlight = isUnread && m.FromUser !== currentUser.username;
+            return '<tr class="' + (isHighlight ? 'table-primary' : '') + '">' +
                 '<td class="text-nowrap">' + userLink(m.FromUser) + '</td>' +
                 '<td class="msg-bubble-cell">' + renderMarkdown(m.Content) + '</td>' +
                 '<td class="text-nowrap text-body-secondary small">' + formatTime(m.SendTime) + '</td>' +
