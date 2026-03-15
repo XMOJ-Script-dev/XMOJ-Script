@@ -489,7 +489,7 @@ async function apiCall(action, data) {
 // ── Mail List ──────────────────────────────────────────────────────────────
 async function loadMailList() {
     var tbody = document.getElementById('list-tbody');
-    tbody.innerHTML = '<tr id="list-loading-row"><td colspan="3" class="text-center text-body-secondary py-4">' +
+    tbody.innerHTML = '<tr id="list-loading-row"><td colspan="4" class="text-center text-body-secondary py-4">' +
         '<span class="spinner-border spinner-border-sm me-2"></span>加载中…</td></tr>';
     try {
         var result = await apiCall('GetMailList', {});
