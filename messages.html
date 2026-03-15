@@ -19,6 +19,13 @@
         .user-info-btn:hover { text-decoration: underline; }
         #img-modal .modal-body { cursor: zoom-out; }
         #thread-compose { resize: none; overflow-y: hidden; }
+        /* Bootstrap 5.3.3 does not ship dark-mode overrides for .table-primary;
+           supply them here using Bootstrap's own semantic color tokens. */
+        [data-bs-theme="dark"] .table-primary {
+            --bs-table-color: var(--bs-primary-text-emphasis);
+            --bs-table-bg: var(--bs-primary-bg-subtle);
+            --bs-table-border-color: var(--bs-primary-border-subtle);
+        }
     </style>
     <script>
         (function() {
@@ -306,6 +313,24 @@
     </div>
 </div>
 
+<!-- ==================== USER INFO MODAL ==================== -->
+<div class="modal fade" id="user-info-modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="user-info-modal-title">用户信息</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="user-info-modal-body"></div>
+            <div class="modal-footer">
+                <a id="user-info-profile-link" href="#" target="_blank" rel="noopener"
+                   class="btn btn-primary">查看完整资料</a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- ==================== IMAGE VIEWER MODAL ==================== -->
 <div class="modal fade" id="img-modal" tabindex="-1">
     <div class="modal-dialog modal-xl modal-dialog-centered">
@@ -352,10 +377,11 @@ let refreshTimer   = null;
 let isFirstLoad    = true;
 
 // ── Bootstrap instances ────────────────────────────────────────────────────
-const toastEl    = document.getElementById('app-toast');
-const toastBS    = new bootstrap.Toast(toastEl, { delay: 3500 });
-const imgModalEl = document.getElementById('img-modal');
-const imgModalBS = new bootstrap.Modal(imgModalEl);
+const toastEl        = document.getElementById('app-toast');
+const toastBS        = new bootstrap.Toast(toastEl, { delay: 3500 });
+const imgModalEl     = document.getElementById('img-modal');
+const imgModalBS     = new bootstrap.Modal(imgModalEl);
+const userInfoModalBS = new bootstrap.Modal(document.getElementById('user-info-modal'));
 
 // ── Utility ────────────────────────────────────────────────────────────────
 function showToast(msg, type) {
@@ -401,7 +427,7 @@ function stripMarkdown(md) {
 
 function formatTime(ts) {
     if (!ts) return '';
-    var d = new Date(ts * 1000);
+    var d = new Date(ts);
     var now = new Date();
     var pad = function(n) { return String(n).padStart(2, '0'); };
     if (d.toDateString() === now.toDateString()) {
@@ -412,46 +438,81 @@ function formatTime(ts) {
     return datePart + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
 }
 
-// Popover state for user info buttons
-var _activePopoverBtn = null;
-
 function userSpan(username) {
     return '<button type="button" class="btn btn-link p-0 user-info-btn" ' +
            'data-username="' + escapeHtml(username) + '">' +
            escapeHtml(username) + '</button>';
 }
 
+async function showUserInfo(username) {
+    var title = document.getElementById('user-info-modal-title');
+    var body = document.getElementById('user-info-modal-body');
+    var profileLink = document.getElementById('user-info-profile-link');
+    var profileUrl = XMOJ_BASE + '/userinfo.php?user=' + encodeURIComponent(username);
+
+    title.textContent = username;
+    profileLink.href = profileUrl;
+    body.innerHTML = '<div class="text-center py-3"><span class="spinner-border spinner-border-sm me-2"></span>加载中…</div>';
+    userInfoModalBS.show();
+
+    try {
+        var res = await fetch(profileUrl);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        var html = await res.text();
+
+        if (html.indexOf('No such User!') !== -1) {
+            body.innerHTML = '<p class="text-body-secondary mb-0">用户不存在。</p>';
+            return;
+        }
+
+        var doc = new DOMParser().parseFromString(html, 'text/html');
+
+        var captionEl = doc.querySelector('#statics > caption');
+        var nickname = '';
+        if (captionEl) {
+            // Caption text format: "UserID--Nickname"
+            var parts = captionEl.textContent.trim().split('--');
+            if (parts.length > 1) nickname = parts[1].trim();
+        }
+
+        var submitEl = doc.querySelector('#statics > tbody > tr:nth-child(3) > td:nth-child(2)');
+        var acceptEl = doc.querySelector('#statics > tbody > tr:nth-child(4) > td:nth-child(2)');
+        var submitCount = submitEl ? (parseInt(submitEl.textContent.trim()) || 0) : 0;
+        var acceptCount = acceptEl ? (parseInt(acceptEl.textContent.trim()) || 0) : 0;
+        var rating = submitCount > 0 ? ((acceptCount / submitCount) * 1000).toFixed(1) : '—';
+
+        var tbodyRows = doc.querySelectorAll('#statics > tbody > tr');
+        var email = '';
+        if (tbodyRows.length > 0) {
+            var lastCells = tbodyRows[tbodyRows.length - 1].querySelectorAll('td');
+            if (lastCells.length >= 2) email = lastCells[1].textContent.trim();
+        }
+
+        var rows = [];
+        if (nickname) rows.push(['昵称', escapeHtml(nickname)]);
+        rows.push(['评分', escapeHtml(acceptCount + ' / ' + submitCount) +
+            ' <span class="text-body-secondary small ms-1">(' + escapeHtml(String(rating)) + ')</span>']);
+        if (email) rows.push(['邮箱', '<a href="mailto:' + escapeHtml(email) + '">' + escapeHtml(email) + '</a>']);
+
+        body.innerHTML = '<dl class="row mb-0">' +
+            rows.map(function(r) {
+                return '<dt class="col-4 text-truncate">' + r[0] + '</dt>' +
+                       '<dd class="col-8 mb-2">' + r[1] + '</dd>';
+            }).join('') +
+            '</dl>';
+    } catch (e) {
+        body.innerHTML = '<p class="text-body-secondary mb-0">无法加载用户信息，请直接访问资料页面。</p>';
+    }
+}
+
 function initUserButtons(container) {
     container.querySelectorAll('.user-info-btn').forEach(function(btn) {
-        var username = btn.dataset.username;
-        var popover = new bootstrap.Popover(btn, {
-            trigger: 'click',
-            html: true,
-            placement: 'top',
-            title: '<strong>' + escapeHtml(username) + '</strong>',
-            content: '<a href="' + XMOJ_BASE + '/userinfo.php?user=' + encodeURIComponent(username) +
-                     '" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary w-100">查看用户资料</a>',
-        });
-        btn.addEventListener('show.bs.popover', function() {
-            if (_activePopoverBtn && _activePopoverBtn !== btn) {
-                var prev = bootstrap.Popover.getInstance(_activePopoverBtn);
-                if (prev) prev.hide();
-            }
-            _activePopoverBtn = btn;
-        });
-        btn.addEventListener('hidden.bs.popover', function() {
-            if (_activePopoverBtn === btn) _activePopoverBtn = null;
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            showUserInfo(btn.dataset.username);
         });
     });
 }
-
-// Close active popover when clicking outside
-document.addEventListener('click', function(e) {
-    if (_activePopoverBtn && !_activePopoverBtn.contains(e.target) && !e.target.closest('.popover')) {
-        var inst = bootstrap.Popover.getInstance(_activePopoverBtn);
-        if (inst) inst.hide();
-    }
-});
 
 // ── Theme ──────────────────────────────────────────────────────────────────
 function initTheme() {
@@ -553,7 +614,7 @@ async function loadMailList() {
         initUserButtons(tbody);
         tbody.querySelectorAll('tr[data-user]').forEach(function(row) {
             row.addEventListener('click', function(e) {
-                if (e.target.closest('.user-info-btn') || e.target.closest('.popover')) return;
+                if (e.target.closest('.user-info-btn')) return;
                 openThread(row.dataset.user);
             });
         });
