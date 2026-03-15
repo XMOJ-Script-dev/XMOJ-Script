@@ -229,6 +229,12 @@
         </div>
     </div>
 
+    <!-- Search contacts -->
+    <div class="mb-2">
+        <input type="search" class="form-control form-control-sm" id="list-search"
+               placeholder="搜索联系人…" autocomplete="off" autocapitalize="none">
+    </div>
+
     <!-- Compose new message -->
     <div class="collapse mb-3" id="compose-panel">
         <div class="card card-body border-0 shadow-sm">
@@ -375,6 +381,7 @@ let currentUser    = null;   // { username, phpsessid }
 let currentThread  = null;   // other user's username
 let refreshTimer   = null;
 let isFirstLoad    = true;
+let mailListCache  = [];     // last fetched mail list (for local search)
 
 // ── Bootstrap instances ────────────────────────────────────────────────────
 const toastEl        = document.getElementById('app-toast');
@@ -591,6 +598,38 @@ async function apiCall(action, data) {
 }
 
 // ── Mail List ──────────────────────────────────────────────────────────────
+function renderMailList(query) {
+    var tbody = document.getElementById('list-tbody');
+    var q = query ? query.trim().toLowerCase() : '';
+    var list = q
+        ? mailListCache.filter(function(item) { return item.OtherUser.toLowerCase().indexOf(q) !== -1; })
+        : mailListCache;
+    if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="text-center text-body-secondary py-4">' +
+            (q ? '未找到匹配的联系人' : '暂无消息') + '</td></tr>';
+        return;
+    }
+    tbody.innerHTML = list.map(function(item) {
+        var hasUnread = item.UnreadCount > 0;
+        var preview = stripMarkdown(item.LastsMessage);
+        if (preview.length > PREVIEW_LEN) preview = preview.slice(0, PREVIEW_LEN) + '…';
+        return '<tr class="' + (hasUnread ? 'table-primary' : '') + '" data-user="' + escapeHtml(item.OtherUser) + '" style="cursor:pointer;">' +
+            '<td>' + userSpan(item.OtherUser) +
+            (hasUnread ? ' <span class="badge text-bg-danger ms-1">' + item.UnreadCount + '</span>' : '') +
+            '</td>' +
+            '<td class="text-body-secondary small">' + escapeHtml(preview) + '</td>' +
+            '<td class="text-nowrap text-body-secondary small">' + formatTime(item.SendTime) + '</td>' +
+            '</tr>';
+    }).join('');
+    initUserButtons(tbody);
+    tbody.querySelectorAll('tr[data-user]').forEach(function(row) {
+        row.addEventListener('click', function(e) {
+            if (e.target.closest('.user-info-btn')) return;
+            openThread(row.dataset.user);
+        });
+    });
+}
+
 async function loadMailList() {
     var tbody = document.getElementById('list-tbody');
     tbody.innerHTML = '<tr id="list-loading-row"><td colspan="3" class="text-center text-body-secondary py-4">' +
@@ -598,29 +637,13 @@ async function loadMailList() {
     try {
         var result = await apiCall('GetMailList', {});
         var list = result && result.Data && result.Data.MailList;
-        if (!list || list.length === 0) {
+        mailListCache = list || [];
+        if (mailListCache.length === 0) {
             tbody.innerHTML = '<tr><td colspan="3" class="text-center text-body-secondary py-4">暂无消息</td></tr>';
             return;
         }
-        tbody.innerHTML = list.map(function(item) {
-            var hasUnread = item.UnreadCount > 0;
-            var preview = stripMarkdown(item.LastsMessage);
-            if (preview.length > PREVIEW_LEN) preview = preview.slice(0, PREVIEW_LEN) + '…';
-            return '<tr class="' + (hasUnread ? 'table-primary' : '') + '" data-user="' + escapeHtml(item.OtherUser) + '" style="cursor:pointer;">' +
-                '<td>' + userSpan(item.OtherUser) +
-                (hasUnread ? ' <span class="badge text-bg-danger ms-1">' + item.UnreadCount + '</span>' : '') +
-                '</td>' +
-                '<td class="text-body-secondary small">' + escapeHtml(preview) + '</td>' +
-                '<td class="text-nowrap text-body-secondary small">' + formatTime(item.SendTime) + '</td>' +
-                '</tr>';
-        }).join('');
-        initUserButtons(tbody);
-        tbody.querySelectorAll('tr[data-user]').forEach(function(row) {
-            row.addEventListener('click', function(e) {
-                if (e.target.closest('.user-info-btn')) return;
-                openThread(row.dataset.user);
-            });
-        });
+        var searchEl = document.getElementById('list-search');
+        renderMailList(searchEl ? searchEl.value : '');
     } catch (err) {
         tbody.innerHTML = '<tr><td colspan="3" class="text-center text-danger py-4">加载失败：' + escapeHtml(err.message) + '</td></tr>';
         showToast('加载消息列表失败：' + err.message, 'danger');
@@ -854,6 +877,10 @@ document.getElementById('btn-manual-login').addEventListener('click', function()
 document.getElementById('btn-logout').addEventListener('click', logout);
 
 document.getElementById('btn-refresh-list').addEventListener('click', loadMailList);
+
+document.getElementById('list-search').addEventListener('input', function() {
+    renderMailList(this.value);
+});
 
 document.getElementById('btn-compose-send').addEventListener('click', sendCompose);
 
