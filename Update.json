@@ -3466,6 +3466,17 @@
                 }
             ],
             "Notes": "修复了未开启「极简黑白界面风格」时，比赛排行榜表头仍显示为黑白样式的问题 (#932)"
+        },
+        "3.3.5": {
+            "UpdateDate": 1773559861504,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 948,
+                    "Description": "Remove problem translate button"
+                }
+            ],
+            "Notes": ""
         }
     }
 }
