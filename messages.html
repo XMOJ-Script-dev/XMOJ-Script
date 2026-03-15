@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XMOJ 短消息</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/marked/9.1.6/marked.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <style>
+        body {
+            padding-top: 60px;
+            background-color: #f8f9fa;
+        }
+
+        .msg-bubble-self {
+            background-color: #0d6efd;
+            color: #fff;
+            border-radius: 18px 18px 4px 18px;
+            padding: 8px 14px;
+            max-width: 75%;
+            word-break: break-word;
+        }
+
+        .msg-bubble-other {
+            background-color: #e9ecef;
+            color: #212529;
+            border-radius: 18px 18px 18px 4px;
+            padding: 8px 14px;
+            max-width: 75%;
+            word-break: break-word;
+        }
+
+        .msg-bubble-self .msg-content p:last-child,
+        .msg-bubble-other .msg-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        .msg-bubble-self .msg-content img,
+        .msg-bubble-other .msg-content img {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: block;
+            margin-top: 4px;
+        }
+
+        .msg-bubble-self a {
+            color: #cfe2ff;
+        }
+
+        .msg-bubble-other a {
+            color: #0d6efd;
+        }
+
+        .msg-bubble-self code {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            padding: 1px 4px;
+            color: #fff;
+        }
+
+        .msg-bubble-other code {
+            background: rgba(0, 0, 0, 0.08);
+            border-radius: 4px;
+            padding: 1px 4px;
+        }
+
+        .msg-bubble-self pre {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            padding: 8px;
+            color: #fff;
+            margin-bottom: 0;
+        }
+
+        .msg-bubble-other pre {
+            background: rgba(0, 0, 0, 0.06);
+            border-radius: 6px;
+            padding: 8px;
+            margin-bottom: 0;
+        }
+
+        .thread-messages {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-bottom: 8px;
+            min-height: 100px;
+            overflow-y: auto;
+            max-height: calc(100dvh - 280px);
+        }
+
+        .compose-area {
+            position: sticky;
+            bottom: 0;
+            background: #fff;
+            border-top: 1px solid #dee2e6;
+            padding: 10px 0 6px;
+        }
+
+        .unread-badge {
+            font-size: 0.7em;
+        }
+
+        .nav-brand-img {
+            height: 28px;
+        }
+
+        #screen-login .card {
+            border: none;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .bookmarklet-link {
+            word-break: break-all;
+        }
+
+        .list-group-item-action:hover {
+            background-color: #f0f4ff;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Top Navbar -->
+    <nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top border-bottom"
+        style="z-index: 1030;">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="index.html">
+                <img src="XMOJ.png" class="nav-brand-img">
+                XMOJ 短消息
+                <span class="badge bg-warning text-dark" style="font-size:0.65em;">Alpha</span>
+            </a>
+            <div class="ms-auto d-flex align-items-center gap-2">
+                <span id="nav-username" class="text-muted small" style="display:none;"></span>
+                <button id="nav-logout" class="btn btn-sm btn-outline-danger" style="display:none;"
+                    onclick="logout()">退出登录</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ======================== LOGIN SCREEN ======================== -->
+    <div id="screen-login" class="container py-4" style="display:none;">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-7 col-lg-5">
+                <h4 class="mb-4 fw-bold">登录 XMOJ 短消息</h4>
+
+                <ul class="nav nav-tabs mb-0" id="login-tabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="tab-bm-btn" data-bs-toggle="tab"
+                            data-bs-target="#tab-bookmarklet" type="button" role="tab">
+                            书签登录 <span class="badge bg-success ms-1">推荐</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tab-manual-btn" data-bs-toggle="tab"
+                            data-bs-target="#tab-manual" type="button" role="tab">
+                            手动输入
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <!-- Bookmarklet Tab -->
+                    <div class="tab-pane fade show active" id="tab-bookmarklet" role="tabpanel">
+                        <div class="card rounded-top-0">
+                            <div class="card-body">
+                                <p class="text-muted mb-3">
+                                    通过授权书签一键登录，无需手动查找 Cookie。
+                                </p>
+
+                                <div class="alert alert-info py-2 mb-3">
+                                    <strong>使用步骤：</strong>
+                                    <ol class="mb-0 mt-1 ps-3">
+                                        <li>确保已在
+                                            <a href="https://www.xmoj.tech/loginpage.php" target="_blank">xmoj.tech</a>
+                                            上登录
+                                        </li>
+                                        <li>
+                                            将下方的"授权书签"拖到浏览器书签栏
+                                            <br>
+                                            <small class="text-muted">
+                                                iOS/iPadOS 用户：长按链接 → 添加书签，然后编辑书签将地址替换为下方代码
+                                            </small>
+                                        </li>
+                                        <li>在 xmoj.tech 的任意页面点击该书签</li>
+                                        <li>自动跳转回本页完成授权 ✓</li>
+                                    </ol>
+                                </div>
+
+                                <div class="mb-3 text-center">
+                                    <a id="bookmarklet-link" href="#" class="btn btn-primary btn-lg">
+                                        🔖 XMOJ 短消息 授权
+                                    </a>
+                                    <div class="text-muted small mt-2">↑ 将此链接拖到书签栏</div>
+                                </div>
+
+                                <div class="mb-2">
+                                    <label class="form-label text-muted small mb-1">
+                                        书签代码（iOS 用户：复制后粘贴为书签地址）
+                                    </label>
+                                    <div class="input-group input-group-sm">
+                                        <textarea id="bookmarklet-code" class="form-control font-monospace"
+                                            rows="3" readonly
+                                            style="font-size:0.7em;resize:none;"></textarea>
+                                        <button class="btn btn-outline-secondary" type="button"
+                                            onclick="copyBookmarklet()">复制</button>
+                                    </div>
+                                </div>
+
+                                <hr class="my-3">
+                                <p class="text-center text-muted small mb-0">
+                                    没有账号？
+                                    <a href="https://www.xmoj.tech/register.php" target="_blank">
+                                        前往 xmoj.tech 注册
+                                    </a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Manual Tab -->
+                    <div class="tab-pane fade" id="tab-manual" role="tabpanel">
+                        <div class="card rounded-top-0">
+                            <div class="card-body">
+                                <p class="text-muted mb-3">
+                                    手动输入您的用户名和 PHPSESSID（适用于高级用户）。
+                                </p>
+
+                                <div class="mb-3">
+                                    <label class="form-label" for="manual-username">用户名</label>
+                                    <input type="text" id="manual-username" class="form-control"
+                                        placeholder="XMOJ 用户名" autocomplete="username"
+                                        autocapitalize="none" autocorrect="off">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label" for="manual-phpsessid">PHPSESSID</label>
+                                    <input type="text" id="manual-phpsessid"
+                                        class="form-control font-monospace"
+                                        placeholder="粘贴 Cookie 中的 PHPSESSID"
+                                        autocomplete="off" autocapitalize="none" autocorrect="off">
+                                    <div class="form-text">
+                                        在 xmoj.tech 的浏览器开发者工具 →「应用」→「Cookie」中找到
+                                        <code>PHPSESSID</code> 的值。
+                                    </div>
+                                </div>
+
+                                <button class="btn btn-primary w-100" onclick="manualLogin()">
+                                    登录
+                                </button>
+
+                                <div id="manual-error" class="alert alert-danger mt-2 py-2"
+                                    style="display:none;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================== MAIL LIST SCREEN ======================== -->
+    <div id="screen-list" class="container py-3" style="display:none;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0 fw-bold">📬 收件箱</h5>
+            <button class="btn btn-primary btn-sm" onclick="toggleNewMessage()">
+                ✉️ 新消息
+            </button>
+        </div>
+
+        <!-- New message compose panel -->
+        <div id="new-msg-panel" class="card mb-3" style="display:none;">
+            <div class="card-body py-3">
+                <h6 class="card-title mb-3">发送新消息</h6>
+                <div class="mb-2">
+                    <input type="text" id="new-msg-to" class="form-control form-control-sm"
+                        placeholder="收件人用户名" autocapitalize="none" autocorrect="off">
+                </div>
+                <div class="mb-2">
+                    <textarea id="new-msg-body" class="form-control form-control-sm" rows="3"
+                        placeholder="消息内容（支持 Markdown）"></textarea>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary btn-sm" onclick="sendNewMessage()">发送</button>
+                    <button class="btn btn-outline-secondary btn-sm"
+                        onclick="toggleNewMessage()">取消</button>
+                </div>
+                <div id="new-msg-error" class="alert alert-danger mt-2 py-2 mb-0"
+                    style="display:none;"></div>
+            </div>
+        </div>
+
+        <!-- List states -->
+        <div id="list-loading" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">加载中...</span>
+            </div>
+        </div>
+        <div id="list-error" class="alert alert-danger" style="display:none;"></div>
+        <div id="list-empty" class="text-center text-muted py-5" style="display:none;">
+            <div class="fs-1">💌</div>
+            <div>暂无消息，点击「新消息」开始对话</div>
+        </div>
+        <div id="list-container" class="list-group" style="display:none;"></div>
+    </div>
+
+    <!-- ======================== THREAD SCREEN ======================== -->
+    <div id="screen-thread" class="container-fluid py-2 px-2 px-md-3" style="display:none;">
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <button class="btn btn-outline-secondary btn-sm" onclick="showList()">← 返回</button>
+            <h5 class="mb-0 fw-bold flex-grow-1 text-truncate" id="thread-title">对话</h5>
+            <button class="btn btn-sm btn-outline-primary" onclick="loadThread()" title="刷新">↻</button>
+        </div>
+
+        <!-- Thread states -->
+        <div id="thread-loading" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">加载中...</span>
+            </div>
+        </div>
+        <div id="thread-error" class="alert alert-danger" style="display:none;"></div>
+
+        <div id="thread-messages" class="thread-messages"></div>
+
+        <!-- Compose area -->
+        <div class="compose-area" id="compose-area">
+            <div class="mb-2">
+                <textarea id="msg-input" class="form-control" rows="3"
+                    placeholder="输入消息（支持 Markdown，可粘贴图片）"
+                    onkeydown="handleInputKeydown(event)"></textarea>
+            </div>
+            <div class="d-flex align-items-center justify-content-between">
+                <label class="btn btn-outline-secondary btn-sm mb-0" for="img-file-input"
+                    title="上传图片">
+                    📎 图片
+                    <input type="file" id="img-file-input" accept="image/*"
+                        style="display:none;" onchange="handleFileUpload(event)">
+                </label>
+                <div class="d-flex gap-2">
+                    <span id="upload-indicator" class="text-muted small align-self-center"
+                        style="display:none;">上传中…</span>
+                    <button class="btn btn-primary btn-sm" onclick="sendMessage()">发送</button>
+                </div>
+            </div>
+            <div id="send-error" class="alert alert-danger mt-2 py-2 mb-0"
+                style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- Toast notifications -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 2000;">
+        <div id="main-toast" class="toast align-items-center" role="alert" aria-live="assertive">
+            <div class="d-flex">
+                <div class="toast-body" id="toast-body"></div>
+                <button type="button" class="btn-close me-2 m-auto"
+                    data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image viewer modal -->
+    <div class="modal fade" id="img-viewer-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content bg-transparent border-0">
+                <div class="modal-body p-1 text-center"
+                    onclick="bootstrap.Modal.getInstance(document.getElementById('img-viewer-modal')).hide()">
+                    <img id="img-viewer-src" src="" class="img-fluid rounded"
+                        style="max-height:90dvh; cursor:zoom-out;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        'use strict';
+
+        // ═══════════════════════════════════════════════════
+        //  CONSTANTS
+        // ═══════════════════════════════════════════════════
+        const API_BASE = 'https://api.xmoj-bbs.me/';
+        const XMOJ_URL = 'https://www.xmoj.tech/';
+        // WebUI version sent to the API as a client identifier (independent of the userscript version)
+        const WEBUI_VERSION = '1.0.0';
+        const STORAGE_USER = 'xmoj-msg-username';
+        const STORAGE_SESSION = 'xmoj-msg-phpsessid';
+        const SCROLL_BOTTOM_THRESHOLD = 60; // px — treat user as "at bottom" within this margin
+        const THREAD_REFRESH_INTERVAL_MS = 10000; // 10 s auto-refresh for open threads
+
+        // ═══════════════════════════════════════════════════
+        //  STATE
+        // ═══════════════════════════════════════════════════
+        let currentUser = null;   // { username, phpsessid }
+        let currentThread = null; // string (other user)
+        let refreshTimer = null;
+
+        // ═══════════════════════════════════════════════════
+        //  SESSION MANAGEMENT
+        // ═══════════════════════════════════════════════════
+        function saveSession(username, phpsessid) {
+            localStorage.setItem(STORAGE_USER, username);
+            localStorage.setItem(STORAGE_SESSION, phpsessid);
+            currentUser = { username, phpsessid };
+            updateNavbar();
+        }
+
+        function loadSession() {
+            const username = localStorage.getItem(STORAGE_USER);
+            const phpsessid = localStorage.getItem(STORAGE_SESSION);
+            if (username && phpsessid) {
+                currentUser = { username, phpsessid };
+                updateNavbar();
+                return true;
+            }
+            return false;
+        }
+
+        function logout() {
+            localStorage.removeItem(STORAGE_USER);
+            localStorage.removeItem(STORAGE_SESSION);
+            currentUser = null;
+            currentThread = null;
+            stopAutoRefresh();
+            updateNavbar();
+            showScreen('screen-login');
+        }
+
+        function updateNavbar() {
+            const el = document.getElementById('nav-username');
+            const btn = document.getElementById('nav-logout');
+            if (currentUser) {
+                el.textContent = currentUser.username;
+                el.style.display = '';
+                btn.style.display = '';
+            } else {
+                el.style.display = 'none';
+                btn.style.display = 'none';
+            }
+        }
+
+        // ═══════════════════════════════════════════════════
+        //  SCREEN MANAGEMENT
+        // ═══════════════════════════════════════════════════
+        function showScreen(id) {
+            ['screen-login', 'screen-list', 'screen-thread'].forEach(s => {
+                document.getElementById(s).style.display = (s === id) ? '' : 'none';
+            });
+        }
+
+        // ═══════════════════════════════════════════════════
+        //  API
+        // ═══════════════════════════════════════════════════
+        async function apiCall(action, data) {
+            if (!currentUser) throw new Error('未登录');
+            const body = JSON.stringify({
+                Authentication: {
+                    SessionID: currentUser.phpsessid,
+                    Username: currentUser.username
+                },
+                Data: data,
+                Version: WEBUI_VERSION
+            });
+            const response = await fetch(API_BASE + action, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-cache',
+                    'XMOJ-UserID': currentUser.username,
+                    'XMOJ-Script-Version': WEBUI_VERSION
+                },
+                body
+            });
+            if (!response.ok) {
+                throw new Error('服务器返回 HTTP ' + response.status);
+            }
+            return response.json();
+        }
+
+        function isAuthError(result) {
+            if (!result.Success && result.Message) {
+                const msg = result.Message.toLowerCase();
+                return msg.includes('session') || msg.includes('auth')
+                    || msg.includes('login') || msg.includes('unauthorized')
+                    || msg.includes('invalid');
+            }
+            return false;
+        }
+
+        // ═══════════════════════════════════════════════════
+        //  HELPERS
+        // ═══════════════════════════════════════════════════
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function formatRelativeTime(ts) {
+            if (!ts) return '';
+            const diff = Math.floor((Date.now() - Number(ts)) / 1000);
+            if (diff < 60) return '刚刚';
+            if (diff < 3600) return Math.floor(diff / 60) + ' 分钟前';
+            if (diff < 86400) return Math.floor(diff / 3600) + ' 小时前';
+            if (diff < 86400 * 7) return Math.floor(diff / 86400) + ' 天前';
+            return new Date(Number(ts)).toLocaleDateString('zh-CN');
+        }
+
+        function renderMarkdown(content) {
+            if (!content) return '';
+            const html = marked.parse(String(content));
+            return DOMPurify.sanitize(html, {
+                ADD_ATTR: ['target', 'rel'],
+                ALLOWED_TAGS: [
+                    'p', 'br', 'strong', 'em', 'del', 'code', 'pre',
+                    'ul', 'ol', 'li', 'a', 'img', 'blockquote',
+                    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+                    'hr', 'table', 'thead', 'tbody', 'tr', 'th', 'td'
+                ],
+                // Only allow safe URL schemes in href/src to prevent data: URI XSS
+                ALLOWED_URI_REGEXP: /^(?:https?|ftp):\/\//i
+            });
+        }
+
+        function stripMarkdown(content) {
+            if (!content) return '';
+            return String(content)
+                .replace(/!\[.*?\]\(.*?\)/g, '[图片]')
+                .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+                .replace(/[*_`#>]/g, '')
+                .trim();
+        }
+
+        function showToast(msg) {
+            document.getElementById('toast-body').textContent = msg;
+            bootstrap.Toast.getOrCreateInstance(
+                document.getElementById('main-toast'),
+                { delay: 3000 }
+            ).show();
+        }
+
+        function stopAutoRefresh() {
+            if (refreshTimer) {
+                clearInterval(refreshTimer);
+                refreshTimer = null;
+            }
+        }
+
+        // ═══════════════════════════════════════════════════
+        //  LOGIN
+        // ═══════════════════════════════════════════════════
+        function generateBookmarklet() {
+            const returnUrl = window.location.origin + window.location.pathname;
+            // Build the bookmarklet as a compact function
+            const code = `javascript:(function(){`
+                + `if(!location.hostname.match(/xmoj\\.tech|116\\.62\\.212\\.172/)){`
+                + `alert('\\u8bf7\\u5728 xmoj.tech \\u4e0a\\u4f7f\\u7528\\u6b64\\u4e66\\u7b3e\\uff01');return;}`
+                + `var m=document.cookie.match(/(?:^|;\\s*)PHPSESSID=([^;]+)/);`
+                + `if(!m){alert('\\u8bf7\\u5148\\u767b\\u5f55 xmoj.tech\\uff01');return;}`
+                + `var p=m[1];`
+                + `var el=document.querySelector('#profile');`
+                + `var u=el?el.innerText.replace(/[^a-zA-Z0-9]/g,''):'';`
+                + `if(!u)u=prompt('\\u8bf7\\u8f93\\u5165\\u60a8\\u7684 XMOJ \\u7528\\u6237\\u540d:')||'';`
+                + `if(!u)return;`
+                + `location.href='${returnUrl}#session='+encodeURIComponent(u)+':'+encodeURIComponent(p);`
+                + `})()`;
+            return code;
+        }
+
+        function copyBookmarklet() {
+            const code = document.getElementById('bookmarklet-code').value;
+            navigator.clipboard.writeText(code)
+                .then(() => showToast('已复制到剪贴板'))
+                .catch(() => showToast('复制失败，请手动选中并复制'));
+        }
+
+        function manualLogin() {
+            const username = (document.getElementById('manual-username').value || '').trim();
+            const phpsessid = (document.getElementById('manual-phpsessid').value || '').trim();
+            const errEl = document.getElementById('manual-error');
+
+            if (!username) {
+                errEl.textContent = '请输入用户名';
+                errEl.style.display = '';
+                return;
+            }
+            if (!phpsessid) {
+                errEl.textContent = '请输入 PHPSESSID';
+                errEl.style.display = '';
+                return;
+            }
+            errEl.style.display = 'none';
+            saveSession(username, phpsessid);
+            showList();
+        }
+
+        // ═══════════════════════════════════════════════════
+        //  MAIL LIST
+        // ═══════════════════════════════════════════════════
+        function showList() {
+            stopAutoRefresh();
+            currentThread = null;
+            showScreen('screen-list');
+            document.getElementById('new-msg-panel').style.display = 'none';
+            loadMailList();
+        }
+
+        async function loadMailList() {
+            const loading = document.getElementById('list-loading');
+            const errEl = document.getElementById('list-error');
+            const emptyEl = document.getElementById('list-empty');
+            const container = document.getElementById('list-container');
+
+            loading.style.display = '';
+            errEl.style.display = 'none';
+            emptyEl.style.display = 'none';
+            container.style.display = 'none';
+
+            try {
+                const result = await apiCall('GetMailList', {});
+                loading.style.display = 'none';
+
+                if (!result.Success) {
+                    if (isAuthError(result)) {
+                        logout();
+                        showToast('会话已过期，请重新登录');
+                        return;
+                    }
+                    errEl.textContent = result.Message || '加载收件箱失败';
+                    errEl.style.display = '';
+                    return;
+                }
+
+                const list = (result.Data && result.Data.MailList) || [];
+                if (list.length === 0) {
+                    emptyEl.style.display = '';
+                } else {
+                    container.innerHTML = '';
+                    list.forEach(item => {
+                        const a = document.createElement('a');
+                        a.href = '#';
+                        a.className = 'list-group-item list-group-item-action py-3';
+                        a.addEventListener('click', e => {
+                            e.preventDefault();
+                            openThread(item.OtherUser);
+                        });
+
+                        const preview = stripMarkdown(item.LastsMessage);
+                        const previewShort = preview.length > 60
+                            ? preview.substring(0, 60) + '…'
+                            : preview;
+                        const unreadBadge = item.UnreadCount > 0
+                            ? `<span class="badge bg-danger unread-badge ms-1">${item.UnreadCount}</span>`
+                            : '';
+
+                        a.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="fw-semibold">
+                                    ${escapeHtml(item.OtherUser)}${unreadBadge}
+                                </div>
+                                <small class="text-muted text-nowrap ms-2">
+                                    ${formatRelativeTime(item.SendTime)}
+                                </small>
+                            </div>
+                            <small class="text-muted">${escapeHtml(previewShort)}</small>
+                        `;
+                        container.appendChild(a);
+                    });
+                    container.style.display = '';
+                }
+            } catch (err) {
+                loading.style.display = 'none';
+                errEl.innerHTML = `连接失败：${escapeHtml(err.message)}`
+                    + `<br><small class="text-muted">请确认已登录，且 API 服务正常。</small>`;
+                errEl.style.display = '';
+            }
+        }
+
+        function toggleNewMessage() {
+            const panel = document.getElementById('new-msg-panel');
+            const isHidden = panel.style.display === 'none';
+            panel.style.display = isHidden ? '' : 'none';
+            if (isHidden) {
+                document.getElementById('new-msg-to').focus();
+            } else {
+                document.getElementById('new-msg-to').value = '';
+                document.getElementById('new-msg-body').value = '';
+                document.getElementById('new-msg-error').style.display = 'none';
+            }
+        }
+
+        async function sendNewMessage() {
+            const toUser = (document.getElementById('new-msg-to').value || '').trim();
+            const content = (document.getElementById('new-msg-body').value || '').trim();
+            const errEl = document.getElementById('new-msg-error');
+
+            if (!toUser) { errEl.textContent = '请输入收件人用户名'; errEl.style.display = ''; return; }
+            if (!content) { errEl.textContent = '请输入消息内容'; errEl.style.display = ''; return; }
+            errEl.style.display = 'none';
+
+            try {
+                const result = await apiCall('SendMail', { ToUser: toUser, Content: content });
+                if (result.Success) {
+                    toggleNewMessage();
+                    openThread(toUser);
+                } else {
+                    errEl.textContent = result.Message || '发送失败';
+                    errEl.style.display = '';
+                }
+            } catch (err) {
+                errEl.textContent = '发送失败：' + err.message;
+                errEl.style.display = '';
+            }
+        }
+
+        // ═══════════════════════════════════════════════════
+        //  THREAD
+        // ═══════════════════════════════════════════════════
+        async function openThread(otherUser) {
+            stopAutoRefresh();
+            currentThread = otherUser;
+            showScreen('screen-thread');
+            document.getElementById('thread-title').textContent = '与 ' + otherUser + ' 的对话';
+            document.getElementById('msg-input').value = '';
+            document.getElementById('send-error').style.display = 'none';
+
+            // Mark as read (non-critical)
+            apiCall('ReadUserMailMention', { UserID: otherUser }).catch(() => {});
+
+            await loadThread();
+
+            // Auto-refresh every THREAD_REFRESH_INTERVAL_MS
+            refreshTimer = setInterval(loadThread, THREAD_REFRESH_INTERVAL_MS);
+        }
+
+        async function loadThread() {
+            if (!currentThread) return;
+
+            const loading = document.getElementById('thread-loading');
+            const errEl = document.getElementById('thread-error');
+            const messagesEl = document.getElementById('thread-messages');
+
+            // Only show full spinner on first load
+            const isFirstLoad = messagesEl.children.length === 0;
+            if (isFirstLoad) {
+                loading.style.display = '';
+            }
+            errEl.style.display = 'none';
+
+            try {
+                const result = await apiCall('GetMail', { OtherUser: currentThread });
+                loading.style.display = 'none';
+
+                if (!result.Success) {
+                    if (isAuthError(result)) {
+                        stopAutoRefresh();
+                        logout();
+                        showToast('会话已过期，请重新登录');
+                        return;
+                    }
+                    errEl.textContent = result.Message || '加载消息失败';
+                    errEl.style.display = '';
+                    return;
+                }
+
+                const mails = (result.Data && result.Data.Mail) || [];
+                const wasAtBottom = messagesEl.scrollHeight - messagesEl.scrollTop
+                    <= messagesEl.clientHeight + SCROLL_BOTTOM_THRESHOLD;
+
+                // Build new content
+                messagesEl.innerHTML = '';
+                mails.forEach(msg => {
+                    const isSelf = msg.FromUser === currentUser.username;
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'd-flex ' + (isSelf ? 'justify-content-end' : 'justify-content-start');
+
+                    const bubble = document.createElement('div');
+                    bubble.className = isSelf ? 'msg-bubble-self' : 'msg-bubble-other';
+
+                    const contentEl = document.createElement('div');
+                    contentEl.className = 'msg-content';
+                    contentEl.innerHTML = renderMarkdown(msg.Content);
+
+                    // Make images clickable
+                    contentEl.querySelectorAll('img').forEach(img => {
+                        img.addEventListener('click', () => viewImage(img.src));
+                        img.setAttribute('loading', 'lazy');
+                    });
+
+                    // Open links in new tab
+                    contentEl.querySelectorAll('a').forEach(a => {
+                        a.setAttribute('target', '_blank');
+                        a.setAttribute('rel', 'noopener noreferrer');
+                    });
+
+                    const timeEl = document.createElement('div');
+                    timeEl.style.cssText = 'font-size:0.7em;margin-top:4px;opacity:0.7;';
+                    timeEl.textContent = formatRelativeTime(msg.SendTime);
+
+                    bubble.appendChild(contentEl);
+                    bubble.appendChild(timeEl);
+                    wrapper.appendChild(bubble);
+                    messagesEl.appendChild(wrapper);
+                });
+
+                if (isFirstLoad || wasAtBottom) {
+                    messagesEl.scrollTop = messagesEl.scrollHeight;
+                }
+            } catch (err) {
+                loading.style.display = 'none';
+                errEl.innerHTML = `连接失败：${escapeHtml(err.message)}`;
+                errEl.style.display = '';
+            }
+        }
+
+        // ═══════════════════════════════════════════════════
+        //  SEND MESSAGE
+        // ═══════════════════════════════════════════════════
+        function handleInputKeydown(e) {
+            // Ctrl+Enter or Cmd+Enter to send
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                sendMessage();
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('msg-input');
+            const errEl = document.getElementById('send-error');
+            const content = (input.value || '').trim();
+
+            if (!content || !currentThread) return;
+            errEl.style.display = 'none';
+
+            try {
+                const result = await apiCall('SendMail', { ToUser: currentThread, Content: content });
+                if (result.Success) {
+                    input.value = '';
+                    await loadThread();
+                } else {
+                    errEl.textContent = result.Message || '发送失败';
+                    errEl.style.display = '';
+                }
+            } catch (err) {
+                errEl.textContent = '发送失败：' + err.message;
+                errEl.style.display = '';
+            }
+        }
+
+        // ═══════════════════════════════════════════════════
+        //  IMAGE UPLOAD
+        // ═══════════════════════════════════════════════════
+        async function uploadImageData(base64DataUrl) {
+            const indicator = document.getElementById('upload-indicator');
+            indicator.style.display = '';
+            try {
+                const result = await apiCall('UploadImage', { Image: base64DataUrl });
+                indicator.style.display = 'none';
+                if (result.Success) {
+                    return `https://assets.xmoj-bbs.me/GetImage?ImageID=${result.Data.ImageID}`;
+                } else {
+                    showToast('图片上传失败：' + (result.Message || '未知错误'));
+                    return null;
+                }
+            } catch (err) {
+                indicator.style.display = 'none';
+                showToast('图片上传失败：' + err.message);
+                return null;
+            }
+        }
+
+        let _uploadCounter = 0;
+
+        async function insertImageIntoInput(file) {
+            const input = document.getElementById('msg-input');
+            const selStart = input.selectionStart;
+            const selEnd = input.selectionEnd;
+            const before = input.value.substring(0, selStart);
+            const after = input.value.substring(selEnd);
+            // Use a unique placeholder per upload so concurrent uploads don't overwrite each other
+            const uid = ++_uploadCounter;
+            const placeholder = `![上传中…_${uid}]()`;
+
+            input.value = before + placeholder + after;
+            input.setSelectionRange(selStart, selStart + placeholder.length);
+
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = async () => {
+                const url = await uploadImageData(reader.result);
+                const replacement = url ? `![图片](${url})` : '';
+                input.value = input.value.replace(placeholder, replacement);
+            };
+        }
+
+        function handleFileUpload(e) {
+            const file = e.target.files && e.target.files[0];
+            if (file) insertImageIntoInput(file);
+            e.target.value = '';
+        }
+
+        function viewImage(src) {
+            document.getElementById('img-viewer-src').src = src;
+            bootstrap.Modal.getOrCreateInstance(
+                document.getElementById('img-viewer-modal')
+            ).show();
+        }
+
+        // ═══════════════════════════════════════════════════
+        //  INITIALIZATION
+        // ═══════════════════════════════════════════════════
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set up paste-to-upload on the message input
+            const msgInput = document.getElementById('msg-input');
+            msgInput.addEventListener('paste', e => {
+                const items = (e.clipboardData || {}).items || [];
+                for (let i = 0; i < items.length; i++) {
+                    if (items[i].type.startsWith('image/')) {
+                        e.preventDefault();
+                        insertImageIntoInput(items[i].getAsFile());
+                        break;
+                    }
+                }
+            });
+
+            // Generate bookmarklet
+            const bmCode = generateBookmarklet();
+            document.getElementById('bookmarklet-link').href = bmCode;
+            document.getElementById('bookmarklet-code').value = bmCode;
+
+            // Check for session data in URL hash (from bookmarklet redirect)
+            const hash = window.location.hash;
+            if (hash.startsWith('#session=')) {
+                const payload = hash.substring(9);
+                const colonIdx = payload.indexOf(':');
+                if (colonIdx > 0) {
+                    try {
+                        const username = decodeURIComponent(payload.substring(0, colonIdx));
+                        const phpsessid = decodeURIComponent(payload.substring(colonIdx + 1));
+                        if (username && phpsessid) {
+                            saveSession(username, phpsessid);
+                            // Remove hash from URL to avoid accidental sharing of session ID
+                            history.replaceState(null, '', window.location.pathname
+                                + window.location.search);
+                            const params = new URLSearchParams(window.location.search);
+                            const toUser = params.get('to_user');
+                            toUser ? openThread(toUser) : showList();
+                            return;
+                        }
+                    } catch (e) {
+                        // Fall through to normal login
+                    }
+                }
+            }
+
+            // Try to restore session from localStorage
+            if (loadSession()) {
+                const params = new URLSearchParams(window.location.search);
+                const toUser = params.get('to_user');
+                toUser ? openThread(toUser) : showList();
+            } else {
+                showScreen('screen-login');
+            }
+        });
+    </script>
+</body>
+
+</html>
