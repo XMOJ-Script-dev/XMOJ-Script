@@ -2526,10 +2526,11 @@ async function main() {
                         document.title = "提交状态";
                         document.querySelector("body > script:nth-child(5)").remove();
                         if (UtilityEnabled("NewBootstrap")) {
-                            const params = new URLSearchParams(window.location.search);
-                            const CurrentProblemId = params.get('problem_id');
-                            const CurrentLanguage = params.get('language');
-                            const CurrentJresult = params.get('jresult');
+                            const params = new URL(location.href).searchParams;
+                            let nonDigitPattern = /D/;
+                            let CurrentProblemId = isNaN(params.get("problem_id")) ? "" : params.get("problem_id");
+                            let CurrentLanguage = isNaN(params.get("language")) || params.get("language") < -1 || params.get("language") > 2 ? "-1" : params.get("language");
+                            let CurrentJresult = isNaN(params.get("jresult")) || params.get("jresult") < -1 || params.get("jresult") > 11 ? "-1" : params.get("jresult");
 
                             document.querySelector("#simform").outerHTML = `<form id="simform" class="justify-content-center form-inline row g-2" action="status.php" method="get" style="padding-bottom: 7px;">
                     <input class="form-control" type="text" size="4" name="user_id" value="${CurrentUsername} "style="display: none;">
