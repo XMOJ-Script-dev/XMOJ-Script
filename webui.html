@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>XMOJ 短消息 WebUI（实验）</title>
   <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://cdn.bootcdn.net/ajax/libs/blueimp-md5/2.19.0/js/md5.min.js"></script>
+  <script src="./vendor/blueimp-md5-2.19.0.min.js"></script>
   <style>
     body { background: #f7f8fa; }
     .message-list { max-height: 60vh; overflow: auto; }
@@ -37,11 +37,11 @@
           <input id="password" type="password" class="form-control" autocomplete="current-password" />
         </div>
         <div class="col-md-3">
-          <label class="form-label" for="sessionId">PHPSESSID（自动获取失败时可手动填）</label>
+          <label class="form-label" for="sessionId">PHPSESSID（请手动填写）</label>
           <input id="sessionId" class="form-control" />
         </div>
         <div class="col-md-3 d-flex gap-2">
-          <button id="loginBtn" class="btn btn-primary">登录并获取会话</button>
+          <button id="loginBtn" class="btn btn-primary">登录并检查状态</button>
           <button id="saveSessionBtn" class="btn btn-outline-secondary">使用当前会话</button>
           <button id="clearBtn" class="btn btn-outline-danger">清除</button>
         </div>
@@ -90,9 +90,15 @@
 </div>
 
 <script>
-const API_BASE = 'https://api.xmoj-bbs.me/';
-const LOGIN_URL = 'https://www.xmoj.tech/login.php';
-const STORAGE_KEY = 'xmoj-webui-session';
+const APP_CONFIG = {
+  apiBase: 'https://api.xmoj-bbs.me/',
+  loginUrl: 'https://www.xmoj.tech/login.php',
+  storageKey: 'xmoj-webui-session',
+  version: 'webui-0.1.1',
+  assetsBase: 'https://assets.xmoj-bbs.me/GetImage?ImageID=',
+  maxPasteImageSize: 5 * 1024 * 1024,
+  allowedPasteImageTypes: ['image/png', 'image/jpeg']
+};
 
 const state = {
   username: '',
@@ -129,7 +135,7 @@ function setSendStatus(msg, isError = false) {
 }
 
 function persistSession() {
-  sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
+  sessionStorage.setItem(APP_CONFIG.storageKey, JSON.stringify({
     username: state.username,
     sessionId: state.sessionId
   }));
@@ -137,7 +143,7 @@ function persistSession() {
 
 function loadSession() {
   try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
+    const raw = sessionStorage.getItem(APP_CONFIG.storageKey);
     if (!raw) return;
     const parsed = JSON.parse(raw);
     if (parsed.username && parsed.sessionId) {
@@ -148,7 +154,7 @@ function loadSession() {
       setStatus('已恢复当前标签页会话。');
     }
   } catch (_) {
-    sessionStorage.removeItem(STORAGE_KEY);
+    sessionStorage.removeItem(APP_CONFIG.storageKey);
   }
 }
 
@@ -156,7 +162,7 @@ function clearAll() {
   state.username = '';
   state.sessionId = '';
   state.selectedUser = '';
-  sessionStorage.removeItem(STORAGE_KEY);
+  sessionStorage.removeItem(APP_CONFIG.storageKey);
   el.password.value = '';
   el.username.value = '';
   el.sessionId.value = '';
@@ -178,16 +184,16 @@ async function apiRequest(action, data) {
       Username: state.username
     },
     Data: data,
-    Version: 'webui-0.1.0',
+    Version: APP_CONFIG.version,
     DebugMode: false
   };
-  const response = await fetch(API_BASE + action, {
+  const response = await fetch(APP_CONFIG.apiBase + action, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Cache-Control': 'no-cache',
       'XMOJ-UserID': state.username,
-      'XMOJ-Script-Version': 'webui-0.1.0'
+      'XMOJ-Script-Version': APP_CONFIG.version
     },
     body: JSON.stringify(payload)
   });
@@ -250,11 +256,11 @@ async function refreshMessages() {
 
   await apiRequest('ReadUserMailMention', { UserID: String(state.selectedUser) });
 
-  const data = await apiRequest('GetMail', { UserID: String(state.selectedUser) });
+  const data = await apiRequest('GetMail', { OtherUser: String(state.selectedUser) });
   if (!data.Success) {
     throw new Error(data.Message || '获取消息失败');
   }
-  const list = data.Data?.Mails || [];
+  const list = data.Data?.Mail || [];
   el.messageList.innerHTML = '';
   if (list.length === 0) {
     el.messageList.innerHTML = '<div class="text-muted">暂无消息</div>';
@@ -274,6 +280,19 @@ async function refreshMessages() {
 
 async function uploadImageFromPaste(file) {
   return new Promise((resolve, reject) => {
+    if (!file || !file.type || !file.type.startsWith('image/')) {
+      reject(new Error('不支持的图片类型'));
+      return;
+    }
+    if (!APP_CONFIG.allowedPasteImageTypes.includes(file.type)) {
+      reject(new Error('仅支持 PNG 和 JPEG 图片'));
+      return;
+    }
+    if (file.size > APP_CONFIG.maxPasteImageSize) {
+      reject(new Error('图片过大，请上传不超过 5MB 的图片'));
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = async () => {
       try {
@@ -282,7 +301,7 @@ async function uploadImageFromPaste(file) {
           reject(new Error(result.Message || '上传失败'));
           return;
         }
-        resolve(`https://assets.xmoj-bbs.me/GetImage?ImageID=${result.Data.ImageID}`);
+        resolve(`${APP_CONFIG.assetsBase}${result.Data.ImageID}`);
       } catch (error) {
         reject(error);
       }
@@ -298,40 +317,28 @@ async function loginAndGetSession() {
   if (!username || !password) {
     throw new Error('用户名或密码不能为空。');
   }
-  setStatus('正在登录并尝试获取 PHPSESSID...');
+  setStatus('正在登录并检查账号密码...');
 
   const body = new URLSearchParams();
   body.set('user_id', username);
   body.set('password', md5(password));
 
-  const response = await fetch(LOGIN_URL, {
+  const response = await fetch(APP_CONFIG.loginUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: body.toString(),
     credentials: 'include'
   });
   const text = await response.text();
-  const setCookie = response.headers.get('set-cookie') || '';
-  let sessionId = '';
+  const loginLooksSuccessful = text.includes('history.go(-2);');
 
-  const match = setCookie.match(/PHPSESSID=([^;]+)/i);
-  if (match) {
-    sessionId = match[1];
-  }
-
-  if (!sessionId) {
-    const hint = text.includes('history.go(-2);')
-      ? '登录可能成功，但浏览器跨域策略阻止读取 Cookie。请在右侧手动填写 PHPSESSID。'
-      : '登录失败，请检查用户名和密码。';
-    throw new Error(hint);
+  el.password.value = '';
+  if (!loginLooksSuccessful) {
+    throw new Error('登录失败，请检查用户名和密码。');
   }
 
   state.username = username;
-  state.sessionId = sessionId;
-  el.sessionId.value = sessionId;
-  el.password.value = '';
-  persistSession();
-  setStatus('登录成功，会话已更新。');
+  setStatus('登录请求已发送。由于浏览器安全策略，无法自动读取 PHPSESSID，请手动填写后点击“使用当前会话”。');
 }
 
 el.loginBtn.addEventListener('click', async () => {
