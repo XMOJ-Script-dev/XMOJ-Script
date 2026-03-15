@@ -548,7 +548,7 @@ async function loadThread() {
             tbody.innerHTML = '<tr><td colspan="4" class="text-center text-body-secondary py-4">暂无消息</td></tr>';
             return;
         }
-        tbody.innerHTML = mails.map(function(m) {
+        tbody.innerHTML = mails.slice().reverse().map(function(m) {
             var isUnread = !m.IsRead;
             var isHighlight = isUnread && m.FromUser !== currentUser.username;
             return '<tr class="' + (isHighlight ? 'table-primary' : '') + '">' +
@@ -727,6 +727,15 @@ document.querySelectorAll('#loginTabs .nav-link').forEach(function(btn) {
         document.getElementById('tab-manual').style.display = tab === 'manual' ? '' : 'none';
     });
 });
+// On desktop (precise pointer + hover) default to bookmarklet tab; mobile defaults to session tab
+(function() {
+    var isDesktop = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    var defaultTab = isDesktop ? 'bookmarklet' : 'manual';
+    document.querySelectorAll('#loginTabs .nav-link').forEach(function(b) { b.classList.remove('active'); });
+    document.querySelector('#loginTabs [data-tab="' + defaultTab + '"]').classList.add('active');
+    document.getElementById('tab-bookmarklet').style.display = defaultTab === 'bookmarklet' ? '' : 'none';
+    document.getElementById('tab-manual').style.display = defaultTab === 'manual' ? '' : 'none';
+}());
 
 // ── Event Wiring ───────────────────────────────────────────────────────────
 document.getElementById('btn-manual-login').addEventListener('click', function() {
