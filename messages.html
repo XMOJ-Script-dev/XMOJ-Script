@@ -451,6 +451,54 @@ function userSpan(username) {
            escapeHtml(username) + '</button>';
 }
 
+function loadBadgesForContainer(container) {
+    // Group buttons by username in a single DOM pass
+    var byUsername = new Map();
+    container.querySelectorAll('.user-info-btn').forEach(function(btn) {
+        var u = btn.dataset.username;
+        if (!u) return;
+        if (!byUsername.has(u)) byUsername.set(u, []);
+        byUsername.get(u).push(btn);
+    });
+    byUsername.forEach(function(btns, u) {
+        getUserBadge(u).then(function(badge) {
+            if (!badge || !badge.Content) return;
+            btns.forEach(function(b) {
+                // Avoid duplicates on re-render
+                if (b.nextElementSibling && b.nextElementSibling.classList.contains('user-badge')) return;
+                var span = document.createElement('span');
+                span.className = 'badge ms-1 user-badge';
+                span.style.backgroundColor = badge.BackgroundColor;
+                span.style.color = badge.Color;
+                span.textContent = badge.Content;
+                b.insertAdjacentElement('afterend', span);
+            });
+        }).catch(function() {});
+    });
+}
+
+async function getUserBadge(username) {
+    var BADGE_TTL = 1000 * 60 * 60 * 24; // 24 h, matching XMOJ.user.js
+    var prefix = 'UserScript-User-' + username + '-Badge-';
+    var lastUpdate = localStorage.getItem(prefix + 'LastUpdateTime');
+    if (lastUpdate && (Date.now() - parseInt(lastUpdate)) < BADGE_TTL) {
+        return {
+            BackgroundColor: localStorage.getItem(prefix + 'BackgroundColor') || '',
+            Color: localStorage.getItem(prefix + 'Color') || '',
+            Content: localStorage.getItem(prefix + 'Content') || ''
+        };
+    }
+    var result = await apiCall('GetBadge', { UserID: username });
+    var badge = (result && result.Success && result.Data)
+        ? result.Data
+        : { BackgroundColor: '', Color: '', Content: '' };
+    localStorage.setItem(prefix + 'BackgroundColor', badge.BackgroundColor || '');
+    localStorage.setItem(prefix + 'Color', badge.Color || '');
+    localStorage.setItem(prefix + 'Content', badge.Content || '');
+    localStorage.setItem(prefix + 'LastUpdateTime', String(Date.now()));
+    return badge;
+}
+
 async function showUserInfo(username) {
     var title = document.getElementById('user-info-modal-title');
     var body = document.getElementById('user-info-modal-body');
@@ -462,57 +510,68 @@ async function showUserInfo(username) {
     body.innerHTML = '<div class="text-center py-3"><span class="spinner-border spinner-border-sm me-2"></span>加载中…</div>';
     userInfoModalBS.show();
 
-    try {
-        var res = await fetch(profileUrl, {
-            referrer: XMOJ_BASE + '/',
-            credentials: 'include'
-        });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        var html = await res.text();
+    var results = await Promise.allSettled([
+        fetch(profileUrl, { referrer: XMOJ_BASE + '/', credentials: 'include' })
+            .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); }),
+        getUserBadge(username)
+    ]);
 
-        if (html.indexOf('No such User!') !== -1) {
-            body.innerHTML = '<p class="text-body-secondary mb-0">用户不存在。</p>';
-            return;
-        }
-
-        var doc = new DOMParser().parseFromString(html, 'text/html');
-
-        var captionEl = doc.querySelector('#statics > caption');
-        var nickname = '';
-        if (captionEl) {
-            // Caption text format: "UserID--Nickname"
-            var parts = captionEl.textContent.trim().split('--');
-            if (parts.length > 1) nickname = parts[1].trim();
-        }
-
-        var submitEl = doc.querySelector('#statics > tbody > tr:nth-child(3) > td:nth-child(2)');
-        var acceptEl = doc.querySelector('#statics > tbody > tr:nth-child(4) > td:nth-child(2)');
-        var submitCount = submitEl ? (parseInt(submitEl.textContent.trim()) || 0) : 0;
-        var acceptCount = acceptEl ? (parseInt(acceptEl.textContent.trim()) || 0) : 0;
-        var rating = submitCount > 0 ? ((acceptCount / submitCount) * 1000).toFixed(1) : '—';
-
-        var tbodyRows = doc.querySelectorAll('#statics > tbody > tr');
-        var email = '';
-        if (tbodyRows.length > 0) {
-            var lastCells = tbodyRows[tbodyRows.length - 1].querySelectorAll('td');
-            if (lastCells.length >= 2) email = lastCells[1].textContent.trim();
-        }
-
-        var rows = [];
-        if (nickname) rows.push(['昵称', escapeHtml(nickname)]);
-        rows.push(['评分', escapeHtml(acceptCount + ' / ' + submitCount) +
-            ' <span class="text-body-secondary small ms-1">(' + escapeHtml(String(rating)) + ')</span>']);
-        if (email) rows.push(['邮箱', '<a href="mailto:' + escapeHtml(email) + '">' + escapeHtml(email) + '</a>']);
-
-        body.innerHTML = '<dl class="row mb-0">' +
-            rows.map(function(r) {
-                return '<dt class="col-4 text-truncate">' + r[0] + '</dt>' +
-                       '<dd class="col-8 mb-2">' + r[1] + '</dd>';
-            }).join('') +
-            '</dl>';
-    } catch (e) {
-        body.innerHTML = '<p class="text-body-secondary mb-0">无法加载用户信息，请直接访问资料页面。</p>';
+    // ── Badge (render into title) ───────────────────────────────────────────
+    var badge = results[1].status === 'fulfilled' ? results[1].value : null;
+    if (badge && badge.Content) {
+        title.innerHTML = escapeHtml(username) +
+            ' <span class="badge ms-2" style="background-color:' + escapeHtml(badge.BackgroundColor) +
+            ';color:' + escapeHtml(badge.Color) + '">' + escapeHtml(badge.Content) + '</span>';
     }
+
+    // ── Profile (render into body) ──────────────────────────────────────────
+    if (results[0].status === 'rejected') {
+        body.innerHTML = '<p class="text-body-secondary mb-0">无法加载用户信息，请直接访问资料页面。</p>';
+        return;
+    }
+
+    var html = results[0].value;
+
+    if (html.indexOf('No such User!') !== -1) {
+        body.innerHTML = '<p class="text-body-secondary mb-0">用户不存在。</p>';
+        return;
+    }
+
+    var doc = new DOMParser().parseFromString(html, 'text/html');
+
+    var captionEl = doc.querySelector('#statics > caption');
+    var nickname = '';
+    if (captionEl) {
+        // Caption text format: "UserID--Nickname"
+        var parts = captionEl.textContent.trim().split('--');
+        if (parts.length > 1) nickname = parts[1].trim();
+    }
+
+    var submitEl = doc.querySelector('#statics > tbody > tr:nth-child(3) > td:nth-child(2)');
+    var acceptEl = doc.querySelector('#statics > tbody > tr:nth-child(4) > td:nth-child(2)');
+    var submitCount = submitEl ? (parseInt(submitEl.textContent.trim()) || 0) : 0;
+    var acceptCount = acceptEl ? (parseInt(acceptEl.textContent.trim()) || 0) : 0;
+    var rating = submitCount > 0 ? ((acceptCount / submitCount) * 1000).toFixed(1) : '—';
+
+    var tbodyRows = doc.querySelectorAll('#statics > tbody > tr');
+    var email = '';
+    if (tbodyRows.length > 0) {
+        var lastCells = tbodyRows[tbodyRows.length - 1].querySelectorAll('td');
+        if (lastCells.length >= 2) email = lastCells[1].textContent.trim();
+    }
+
+    var rows = [];
+    if (nickname) rows.push(['昵称', escapeHtml(nickname)]);
+    rows.push(['评分', escapeHtml(acceptCount + ' / ' + submitCount) +
+        ' <span class="text-body-secondary small ms-1">(' + escapeHtml(String(rating)) + ')</span>']);
+    if (email) rows.push(['邮箱', '<a href="mailto:' + escapeHtml(email) + '">' + escapeHtml(email) + '</a>']);
+
+    body.innerHTML = '<dl class="row mb-0">' +
+        rows.map(function(r) {
+            return '<dt class="col-4 text-truncate">' + r[0] + '</dt>' +
+                   '<dd class="col-8 mb-2">' + r[1] + '</dd>';
+        }).join('') +
+        '</dl>';
 }
 
 function initUserButtons(container) {
@@ -622,6 +681,7 @@ function renderMailList(query) {
             '</tr>';
     }).join('');
     initUserButtons(tbody);
+    loadBadgesForContainer(tbody);
     tbody.querySelectorAll('tr[data-user]').forEach(function(row) {
         row.addEventListener('click', function(e) {
             if (e.target.closest('.user-info-btn')) return;
@@ -690,6 +750,7 @@ async function loadThread() {
                 '</tr>';
         }).join('');
         initUserButtons(tbody);
+        loadBadgesForContainer(tbody);
         // Make images clickable to zoom
         tbody.querySelectorAll('img').forEach(function(img) {
             img.title = '点击放大';
@@ -697,6 +758,12 @@ async function loadThread() {
                 document.getElementById('img-modal-src').src = img.src;
                 imgModalBS.show();
             });
+            // Re-scroll after each image loads so the bottom stays in view
+            if (atBottom) {
+                img.addEventListener('load', function() {
+                    scrollEl.scrollTop = scrollEl.scrollHeight;
+                });
+            }
         });
         // Make links open in new tab
         tbody.querySelectorAll('a').forEach(function(a) {
@@ -704,7 +771,11 @@ async function loadThread() {
             a.setAttribute('rel', 'noopener noreferrer');
         });
         if (atBottom) {
-            scrollEl.scrollTop = scrollEl.scrollHeight;
+            // Use requestAnimationFrame so the browser has finished laying out
+            // the new rows before we read scrollHeight
+            requestAnimationFrame(function() {
+                scrollEl.scrollTop = scrollEl.scrollHeight;
+            });
         }
         isFirstLoad = false;
     } catch (err) {
@@ -887,7 +958,9 @@ document.getElementById('btn-compose-send').addEventListener('click', sendCompos
 document.getElementById('btn-back').addEventListener('click', function() {
     stopRefresh();
     currentThread = null;
+    document.getElementById('list-search').value = '';
     showScreen('screen-list');
+    renderMailList('');
     loadMailList();
 });
 
