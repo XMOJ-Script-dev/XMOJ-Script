@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>XMOJ 短消息 WebUI（实验）</title>
+  <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.bootcdn.net/ajax/libs/blueimp-md5/2.19.0/js/md5.min.js"></script>
+  <style>
+    body { background: #f7f8fa; }
+    .message-list { max-height: 60vh; overflow: auto; }
+    .message-bubble { border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; white-space: pre-wrap; word-break: break-word; }
+    .message-in { background: #fff; border: 1px solid #e6eaf0; }
+    .message-out { background: #d9fdd3; border: 1px solid #b9e6b2; }
+    .message-meta { font-size: 12px; color: #6c757d; }
+    .conversation-item { cursor: pointer; }
+    .conversation-item.active { background: #ebf2ff; }
+    .safe-note { font-size: 13px; color: #6c757d; }
+    .image-preview { max-width: 320px; border-radius: 8px; display: block; margin-top: 6px; }
+  </style>
+</head>
+<body>
+<div class="container py-4">
+  <h1 class="h3 mb-3">XMOJ 短消息 WebUI（实验）</h1>
+  <p class="safe-note mb-3">为了兼顾安全与可维护性：密码仅用于登录请求，不落盘；会话仅存储在 <code>sessionStorage</code>；支持手动清除会话。</p>
+
+  <div class="card mb-3">
+    <div class="card-body">
+      <h2 class="h5">1) 登录 / 会话</h2>
+      <div class="row g-2 align-items-end">
+        <div class="col-md-3">
+          <label class="form-label" for="username">用户名（学号）</label>
+          <input id="username" class="form-control" autocomplete="username" />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label" for="password">密码</label>
+          <input id="password" type="password" class="form-control" autocomplete="current-password" />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label" for="sessionId">PHPSESSID（自动获取失败时可手动填）</label>
+          <input id="sessionId" class="form-control" />
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+          <button id="loginBtn" class="btn btn-primary">登录并获取会话</button>
+          <button id="saveSessionBtn" class="btn btn-outline-secondary">使用当前会话</button>
+          <button id="clearBtn" class="btn btn-outline-danger">清除</button>
+        </div>
+      </div>
+      <div id="loginStatus" class="mt-2 text-muted"></div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-lg-4">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h2 class="h5 mb-0">2) 会话列表</h2>
+            <button id="refreshListBtn" class="btn btn-sm btn-outline-primary">刷新</button>
+          </div>
+          <div id="conversationList" class="list-group message-list"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-8">
+      <div class="card mb-3">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h2 class="h5 mb-0">3) 对话内容</h2>
+            <button id="refreshMessageBtn" class="btn btn-sm btn-outline-primary">刷新</button>
+          </div>
+          <div id="currentTarget" class="text-muted mb-2">请先选择一个会话。</div>
+          <div id="messageList" class="message-list"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <h2 class="h5">4) 发送消息 / 图片</h2>
+          <div class="mb-2">
+            <textarea id="messageInput" class="form-control" rows="4" placeholder="输入消息。粘贴截图会自动上传并插入图片 Markdown。"></textarea>
+          </div>
+          <div class="d-flex gap-2 align-items-center">
+            <button id="sendBtn" class="btn btn-success">发送</button>
+            <span id="sendStatus" class="text-muted"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_BASE = 'https://api.xmoj-bbs.me/';
+const LOGIN_URL = 'https://www.xmoj.tech/login.php';
+const STORAGE_KEY = 'xmoj-webui-session';
+
+const state = {
+  username: '',
+  sessionId: '',
+  selectedUser: ''
+};
+
+const el = {
+  username: document.getElementById('username'),
+  password: document.getElementById('password'),
+  sessionId: document.getElementById('sessionId'),
+  loginBtn: document.getElementById('loginBtn'),
+  saveSessionBtn: document.getElementById('saveSessionBtn'),
+  clearBtn: document.getElementById('clearBtn'),
+  loginStatus: document.getElementById('loginStatus'),
+  refreshListBtn: document.getElementById('refreshListBtn'),
+  conversationList: document.getElementById('conversationList'),
+  refreshMessageBtn: document.getElementById('refreshMessageBtn'),
+  currentTarget: document.getElementById('currentTarget'),
+  messageList: document.getElementById('messageList'),
+  messageInput: document.getElementById('messageInput'),
+  sendBtn: document.getElementById('sendBtn'),
+  sendStatus: document.getElementById('sendStatus')
+};
+
+function setStatus(msg, isError = false) {
+  el.loginStatus.className = isError ? 'mt-2 text-danger' : 'mt-2 text-muted';
+  el.loginStatus.textContent = msg;
+}
+
+function setSendStatus(msg, isError = false) {
+  el.sendStatus.className = isError ? 'text-danger' : 'text-muted';
+  el.sendStatus.textContent = msg;
+}
+
+function persistSession() {
+  sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
+    username: state.username,
+    sessionId: state.sessionId
+  }));
+}
+
+function loadSession() {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    if (parsed.username && parsed.sessionId) {
+      state.username = parsed.username;
+      state.sessionId = parsed.sessionId;
+      el.username.value = state.username;
+      el.sessionId.value = state.sessionId;
+      setStatus('已恢复当前标签页会话。');
+    }
+  } catch (_) {
+    sessionStorage.removeItem(STORAGE_KEY);
+  }
+}
+
+function clearAll() {
+  state.username = '';
+  state.sessionId = '';
+  state.selectedUser = '';
+  sessionStorage.removeItem(STORAGE_KEY);
+  el.password.value = '';
+  el.username.value = '';
+  el.sessionId.value = '';
+  el.messageInput.value = '';
+  el.conversationList.innerHTML = '';
+  el.messageList.innerHTML = '';
+  el.currentTarget.textContent = '请先选择一个会话。';
+  setStatus('会话已清除。');
+  setSendStatus('');
+}
+
+async function apiRequest(action, data) {
+  if (!state.sessionId || !state.username) {
+    throw new Error('请先登录或填写用户名 + PHPSESSID。');
+  }
+  const payload = {
+    Authentication: {
+      SessionID: state.sessionId,
+      Username: state.username
+    },
+    Data: data,
+    Version: 'webui-0.1.0',
+    DebugMode: false
+  };
+  const response = await fetch(API_BASE + action, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache',
+      'XMOJ-UserID': state.username,
+      'XMOJ-Script-Version': 'webui-0.1.0'
+    },
+    body: JSON.stringify(payload)
+  });
+  if (!response.ok) {
+    throw new Error('API 请求失败：HTTP ' + response.status);
+  }
+  return response.json();
+}
+
+function formatTime(ts) {
+  const d = new Date(ts);
+  if (Number.isNaN(d.getTime())) return String(ts || '');
+  return d.toLocaleString();
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function renderContent(content) {
+  const escaped = escapeHtml(content || '');
+  return escaped.replace(/!\[.*?\]\((https?:\/\/[^)]+)\)/g, '<img class="image-preview" src="$1" alt="image" loading="lazy">');
+}
+
+async function refreshConversationList() {
+  setStatus('正在刷新会话列表...');
+  const data = await apiRequest('GetMailList', {});
+  if (!data.Success) {
+    throw new Error(data.Message || '获取会话列表失败');
+  }
+  const list = data.Data?.MailList || [];
+  el.conversationList.innerHTML = '';
+  if (list.length === 0) {
+    el.conversationList.innerHTML = '<div class="text-muted">暂无会话</div>';
+  }
+  list.forEach(item => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'list-group-item list-group-item-action conversation-item';
+    if (item.OtherUser === state.selectedUser) btn.classList.add('active');
+    const unread = item.UnreadCount ? `<span class="badge text-bg-danger ms-1">${item.UnreadCount}</span>` : '';
+    btn.innerHTML = `<div class="fw-semibold">${escapeHtml(item.OtherUser)}${unread}</div>
+      <div class="small text-muted text-truncate">${escapeHtml((item.LastsMessage || '').replace(/!\[.*?\]\(.*?\)/g, '[image]'))}</div>
+      <div class="small text-muted">${formatTime(item.SendTime)}</div>`;
+    btn.addEventListener('click', async () => {
+      state.selectedUser = item.OtherUser;
+      await refreshConversationList();
+      await refreshMessages();
+    });
+    el.conversationList.appendChild(btn);
+  });
+  setStatus('会话列表已更新。');
+}
+
+async function refreshMessages() {
+  if (!state.selectedUser) return;
+  el.currentTarget.textContent = `当前会话：${state.selectedUser}`;
+
+  await apiRequest('ReadUserMailMention', { UserID: String(state.selectedUser) });
+
+  const data = await apiRequest('GetMail', { UserID: String(state.selectedUser) });
+  if (!data.Success) {
+    throw new Error(data.Message || '获取消息失败');
+  }
+  const list = data.Data?.Mails || [];
+  el.messageList.innerHTML = '';
+  if (list.length === 0) {
+    el.messageList.innerHTML = '<div class="text-muted">暂无消息</div>';
+    return;
+  }
+  list.forEach(item => {
+    const wrap = document.createElement('div');
+    const isOut = item.FromUser === state.username;
+    wrap.className = `message-bubble ${isOut ? 'message-out' : 'message-in'}`;
+    wrap.innerHTML = `
+      <div class="message-meta">${escapeHtml(item.FromUser)} → ${escapeHtml(item.ToUser)} · ${formatTime(item.SendTime)} · ${item.IsRead ? '已读' : '未读'}</div>
+      <div>${renderContent(item.Content || '')}</div>
+    `;
+    el.messageList.appendChild(wrap);
+  });
+}
+
+async function uploadImageFromPaste(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const result = await apiRequest('UploadImage', { Image: reader.result });
+        if (!result.Success) {
+          reject(new Error(result.Message || '上传失败'));
+          return;
+        }
+        resolve(`https://assets.xmoj-bbs.me/GetImage?ImageID=${result.Data.ImageID}`);
+      } catch (error) {
+        reject(error);
+      }
+    };
+    reader.onerror = () => reject(new Error('读取图片失败'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function loginAndGetSession() {
+  const username = el.username.value.trim();
+  const password = el.password.value;
+  if (!username || !password) {
+    throw new Error('用户名或密码不能为空。');
+  }
+  setStatus('正在登录并尝试获取 PHPSESSID...');
+
+  const body = new URLSearchParams();
+  body.set('user_id', username);
+  body.set('password', md5(password));
+
+  const response = await fetch(LOGIN_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: body.toString(),
+    credentials: 'include'
+  });
+  const text = await response.text();
+  const setCookie = response.headers.get('set-cookie') || '';
+  let sessionId = '';
+
+  const match = setCookie.match(/PHPSESSID=([^;]+)/i);
+  if (match) {
+    sessionId = match[1];
+  }
+
+  if (!sessionId) {
+    const hint = text.includes('history.go(-2);')
+      ? '登录可能成功，但浏览器跨域策略阻止读取 Cookie。请在右侧手动填写 PHPSESSID。'
+      : '登录失败，请检查用户名和密码。';
+    throw new Error(hint);
+  }
+
+  state.username = username;
+  state.sessionId = sessionId;
+  el.sessionId.value = sessionId;
+  el.password.value = '';
+  persistSession();
+  setStatus('登录成功，会话已更新。');
+}
+
+el.loginBtn.addEventListener('click', async () => {
+  try {
+    await loginAndGetSession();
+    await refreshConversationList();
+  } catch (error) {
+    setStatus(error.message, true);
+  }
+});
+
+el.saveSessionBtn.addEventListener('click', async () => {
+  try {
+    const username = el.username.value.trim();
+    const sessionId = el.sessionId.value.trim();
+    if (!username || !sessionId) {
+      throw new Error('请填写用户名和 PHPSESSID。');
+    }
+    state.username = username;
+    state.sessionId = sessionId;
+    persistSession();
+    setStatus('会话已保存。');
+    await refreshConversationList();
+  } catch (error) {
+    setStatus(error.message, true);
+  }
+});
+
+el.clearBtn.addEventListener('click', clearAll);
+
+el.refreshListBtn.addEventListener('click', async () => {
+  try {
+    await refreshConversationList();
+  } catch (error) {
+    setStatus(error.message, true);
+  }
+});
+
+el.refreshMessageBtn.addEventListener('click', async () => {
+  try {
+    await refreshMessages();
+  } catch (error) {
+    setStatus(error.message, true);
+  }
+});
+
+el.sendBtn.addEventListener('click', async () => {
+  try {
+    if (!state.selectedUser) throw new Error('请先选择会话对象。');
+    const content = el.messageInput.value.trim();
+    if (!content) throw new Error('消息不能为空。');
+    setSendStatus('发送中...');
+    const result = await apiRequest('SendMail', {
+      ToUser: String(state.selectedUser),
+      Content: String(content)
+    });
+    if (!result.Success) throw new Error(result.Message || '发送失败');
+    el.messageInput.value = '';
+    setSendStatus('发送成功。');
+    await refreshMessages();
+    await refreshConversationList();
+  } catch (error) {
+    setSendStatus(error.message, true);
+  }
+});
+
+el.messageInput.addEventListener('paste', async (event) => {
+  const items = event.clipboardData?.items || [];
+  for (const item of items) {
+    if (item.type.includes('image')) {
+      event.preventDefault();
+      try {
+        setSendStatus('正在上传图片...');
+        const url = await uploadImageFromPaste(item.getAsFile());
+        const cursor = el.messageInput.selectionStart;
+        const text = el.messageInput.value;
+        const markdown = `![](${url})`;
+        el.messageInput.value = text.slice(0, cursor) + markdown + text.slice(el.messageInput.selectionEnd);
+        setSendStatus('图片上传成功，已插入消息。');
+      } catch (error) {
+        setSendStatus(error.message, true);
+      }
+      break;
+    }
+  }
+});
+
+loadSession();
+</script>
+</body>
+</html>

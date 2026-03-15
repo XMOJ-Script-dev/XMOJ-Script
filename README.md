@@ -71,6 +71,14 @@
 请参考 [官网介绍](https://www.xmoj-bbs.me) 。
 如果您无法打开该网站，请前往[这里](https://scriptcat.org/zh-CN/script-show-page/1500/)安装。
 
+### 实验功能：短消息 WebUI
+
+仓库中新增了一个实验页面 `webui.html`，用于在不安装用户脚本时访问短消息相关能力（拉取会话、查看消息、发送消息、粘贴上传图片）。
+
+- 登录方式：支持输入用户名/密码后尝试获取 `PHPSESSID`，也支持直接粘贴 `PHPSESSID`。
+- 安全策略：密码仅用于发起登录请求，不会保存；会话信息仅存储在当前标签页的 `sessionStorage`，可一键清除。
+- 维护策略：API 调用格式与现有脚本中的 `RequestAPI` 保持一致，便于后续复用和统一维护。
+
 ### 贡献
 您想为我们的脚本添砖加瓦吗？快加入我们，为小明的OJ用户创造更美好的环境！（具体要求参见Code Of Conduct）
 
@@ -103,6 +111,5 @@
 <!-- prettier-ignore-end -->
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
-
 
 
