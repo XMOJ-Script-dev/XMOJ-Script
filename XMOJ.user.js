@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      3.3.3
+// @version      3.3.2
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -2526,23 +2526,16 @@ async function main() {
                         document.title = "提交状态";
                         document.querySelector("body > script:nth-child(5)").remove();
                         if (UtilityEnabled("NewBootstrap")) {
-                            const url = window.location.href;
-                            const paramsRegex = /[?&]([^=#]+)=([^&#]*)/g;
-                            let match;
-                            let CurrentProblemId, CurrentLanguage, CurrentJresult;
-                            while ((match = paramsRegex.exec(url)) !== null) {
-                                const [_, key, value] = match;
-                                if (key == 'problem_id') CurrentProblemId = value;
-                                if (key == 'language') CurrentLanguage = value;
-                                if (key == 'jresult') CurrentJresult = value;
-                            }
-                            console.log(CurrentProblemId + '\n' + CurrentLanguage + '\n' + CurrentJresult);
+                            const params = new URLSearchParams(window.location.search);
+                            const CurrentProblemId = params.get('problem_id');
+                            const CurrentLanguage = params.get('language');
+                            const CurrentJresult = params.get('jresult');
 
                             document.querySelector("#simform").outerHTML = `<form id="simform" class="justify-content-center form-inline row g-2" action="status.php" method="get" style="padding-bottom: 7px;">
                     <input class="form-control" type="text" size="4" name="user_id" value="${CurrentUsername} "style="display: none;">
                 <div class="col-md-1">
                     <label for="problem_id" class="form-label">题目编号</label>
-                    <input type="text" class="form-control" id="problem_id" name="problem_id" size="4" value="${CurrentProblemId}">
+                    <input type="text" class="form-control" id="problem_id" name="problem_id" size="4">
                 </div>
                 <div class="col-md-1">
                     <label for="language" class="form-label">语言</label>
@@ -2574,7 +2567,9 @@ async function main() {
                     <button type="submit" class="btn btn-primary">查找</button>
                 </div><div id="csrf"></div></form>`;
 
-                            var selectElement = document.getElementById('language');
+                            var selectElement = document.getElementById('problem_id');
+                            selectElement.value = CurrentProblemId;
+                            selectElement = document.getElementById('language');
                             selectElement.value = CurrentLanguage;
                             selectElement = document.getElementById('jresult');
                             selectElement.value = CurrentJresult;
