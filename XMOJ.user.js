@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      3.3.3
+// @version      3.3.4
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -3043,13 +3043,15 @@ async function main() {
                             HeaderCells[2].innerText = "昵称";
                             HeaderCells[3].innerText = "AC数";
                             HeaderCells[4].innerText = "得分";
-                            for (let j = 0; j < HeaderCells.length; j++) {
-                                HeaderCells[j].removeAttribute("bgcolor");
-                                HeaderCells[j].style.setProperty("background-color", "black", "important");
-                                HeaderCells[j].style.setProperty("color", "white", "important");
-                                let Links = HeaderCells[j].querySelectorAll("a");
-                                for (let k = 0; k < Links.length; k++) {
-                                    Links[k].style.setProperty("color", "white", "important");
+                            if (UtilityEnabled("MonochromeUI")) {
+                                for (let j = 0; j < HeaderCells.length; j++) {
+                                    HeaderCells[j].removeAttribute("bgcolor");
+                                    HeaderCells[j].style.setProperty("background-color", "black", "important");
+                                    HeaderCells[j].style.setProperty("color", "white", "important");
+                                    let Links = HeaderCells[j].querySelectorAll("a");
+                                    for (let k = 0; k < Links.length; k++) {
+                                        Links[k].style.setProperty("color", "white", "important");
+                                    }
                                 }
                             }
                             let RefreshOIRank = async () => {
@@ -3062,7 +3064,9 @@ async function main() {
                                         TidyTable(ParsedDocument.getElementById("rank"));
                                         let Temp = ParsedDocument.getElementById("rank").rows;
                                         for (var i = 1; i < Temp.length; i++) {
-                                            Temp[i].style.backgroundColor = "";
+                                            if (UtilityEnabled("MonochromeUI")) {
+                                                Temp[i].style.backgroundColor = "";
+                                            }
                                             let MetalCell = Temp[i].cells[0];
                                             let Metal = document.createElement("span");
                                             Metal.innerText = MetalCell.innerText;
@@ -3072,9 +3076,11 @@ async function main() {
                                             GetUsernameHTML(Temp[i].cells[1], Temp[i].cells[1].innerText);
                                             Temp[i].cells[2].innerHTML = Temp[i].cells[2].innerText;
                                             Temp[i].cells[3].innerHTML = Temp[i].cells[3].innerText;
-                                            for (let j = 0; j < 5 && j < Temp[i].cells.length; j++) {
-                                                Temp[i].cells[j].style.backgroundColor = "";
-                                                Temp[i].cells[j].style.color = "";
+                                            if (UtilityEnabled("MonochromeUI")) {
+                                                for (let j = 0; j < 5 && j < Temp[i].cells.length; j++) {
+                                                    Temp[i].cells[j].style.backgroundColor = "";
+                                                    Temp[i].cells[j].style.color = "";
+                                                }
                                             }
                                             for (let j = 5; j < Temp[i].cells.length; j++) {
                                                 let InnerText = Temp[i].cells[j].innerText;
@@ -3144,13 +3150,15 @@ async function main() {
                         HeaderCells[2].innerText = "昵称";
                         HeaderCells[3].innerText = "AC数";
                         HeaderCells[4].innerText = "得分";
-                        for (let j = 0; j < HeaderCells.length; j++) {
-                            HeaderCells[j].removeAttribute("bgcolor");
-                            HeaderCells[j].style.setProperty("background-color", "black", "important");
-                            HeaderCells[j].style.setProperty("color", "white", "important");
-                            let Links = HeaderCells[j].querySelectorAll("a");
-                            for (let k = 0; k < Links.length; k++) {
-                                Links[k].style.setProperty("color", "white", "important");
+                        if (UtilityEnabled("MonochromeUI")) {
+                            for (let j = 0; j < HeaderCells.length; j++) {
+                                HeaderCells[j].removeAttribute("bgcolor");
+                                HeaderCells[j].style.setProperty("background-color", "black", "important");
+                                HeaderCells[j].style.setProperty("color", "white", "important");
+                                let Links = HeaderCells[j].querySelectorAll("a");
+                                for (let k = 0; k < Links.length; k++) {
+                                    Links[k].style.setProperty("color", "white", "important");
+                                }
                             }
                         }
                         let RefreshCorrectRank = async () => {
@@ -3163,7 +3171,9 @@ async function main() {
                                     TidyTable(ParsedDocument.getElementById("rank"));
                                     let Temp = ParsedDocument.getElementById("rank").rows;
                                     for (var i = 1; i < Temp.length; i++) {
-                                        Temp[i].style.backgroundColor = "";
+                                        if (UtilityEnabled("MonochromeUI")) {
+                                            Temp[i].style.backgroundColor = "";
+                                        }
                                         let MetalCell = Temp[i].cells[0];
                                         let Metal = document.createElement("span");
                                         Metal.innerText = MetalCell.innerText;
@@ -3173,9 +3183,11 @@ async function main() {
                                         GetUsernameHTML(Temp[i].cells[1], Temp[i].cells[1].innerText);
                                         Temp[i].cells[2].innerHTML = Temp[i].cells[2].innerText;
                                         Temp[i].cells[3].innerHTML = Temp[i].cells[3].innerText;
-                                        for (let j = 0; j < 5 && j < Temp[i].cells.length; j++) {
-                                            Temp[i].cells[j].style.backgroundColor = "";
-                                            Temp[i].cells[j].style.color = "";
+                                        if (UtilityEnabled("MonochromeUI")) {
+                                            for (let j = 0; j < 5 && j < Temp[i].cells.length; j++) {
+                                                Temp[i].cells[j].style.backgroundColor = "";
+                                                Temp[i].cells[j].style.color = "";
+                                            }
                                         }
                                         for (let j = 5; j < Temp[i].cells.length; j++) {
                                             let InnerText = Temp[i].cells[j].innerText;
