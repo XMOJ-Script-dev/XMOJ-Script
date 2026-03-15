@@ -476,7 +476,8 @@ async function apiCall(action, data) {
         body: JSON.stringify({
             Authentication: { SessionID: currentUser.phpsessid, Username: currentUser.username },
             Data: data,
-            Version: WEBUI_VERSION
+            Version: WEBUI_VERSION,
+            DebugMode: false
         })
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
