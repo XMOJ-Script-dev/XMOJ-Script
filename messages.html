@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>短消息 WebUI — XMOJ-Script</title>
+    <link rel="icon" href="favicon.ico">
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { padding-top: 56px; }
+        #thread-messages { max-height: 60vh; overflow-y: auto; }
+        #thread-messages img { max-width: 100%; max-height: 300px; object-fit: contain; cursor: pointer; }
+        .compose-sticky { position: sticky; bottom: 0; background: var(--bs-body-bg); border-top: 1px solid var(--bs-border-color); padding: 0.75rem 0; }
+        .msg-bubble-cell { word-break: break-word; max-width: 60vw; }
+        #upload-indicator { font-size: 0.8em; }
+        .bookmarklet-link { cursor: grab; }
+    </style>
+    <script>
+        (function() {
+            var t = localStorage.getItem('xmoj-msg-theme') || 'auto';
+            document.documentElement.setAttribute('data-bs-theme',
+                t === 'auto'
+                    ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+                    : t);
+        })();
+    </script>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top">
+    <div class="container">
+        <a class="navbar-brand fw-semibold" href="index.html">XMOJ-Script</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navMain">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link active" href="messages.html">短消息 WebUI</a>
+                </li>
+            </ul>
+            <div class="d-flex align-items-center gap-2">
+                <span id="nav-username" class="text-body-secondary small"></span>
+                <button class="btn btn-outline-secondary btn-sm" id="btn-theme" title="切换主题">&#9788;</button>
+                <button class="btn btn-outline-danger btn-sm d-none" id="btn-logout">退出登录</button>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- ==================== SCREEN: LOGIN ==================== -->
+<div id="screen-login" class="container py-4" style="max-width:480px;">
+    <h4 class="mb-3">登录</h4>
+    <p class="text-body-secondary small">短消息 WebUI 让您无需安装用户脚本即可收发 XMOJ 站内短消息，适用于 iOS/iPadOS 等不支持用户脚本的设备。</p>
+
+    <ul class="nav nav-tabs mb-3" id="loginTabs">
+        <li class="nav-item">
+            <button class="nav-link active" data-tab="bookmarklet">书签登录（推荐）</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-tab="manual">手动输入</button>
+        </li>
+    </ul>
+
+    <!-- Tab: Bookmarklet -->
+    <div id="tab-bookmarklet">
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body">
+                <h6 class="card-title">第一步：添加书签</h6>
+                <p class="card-text small text-body-secondary">将下方链接拖动到浏览器书签栏，或复制代码手动新建书签。</p>
+                <div class="d-flex gap-2 align-items-start flex-wrap">
+                    <a id="bookmarklet-link" href="#" class="btn btn-outline-primary bookmarklet-link"
+                       onclick="return false;" draggable="true">&#128278; 登录到短消息 WebUI</a>
+                    <button class="btn btn-outline-secondary btn-sm" id="btn-copy-bookmarklet">复制代码</button>
+                </div>
+            </div>
+        </div>
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h6 class="card-title">第二步：在 XMOJ 上使用书签</h6>
+                <ol class="small text-body-secondary mb-0">
+                    <li>前往 <a href="https://www.xmoj.tech" target="_blank">xmoj.tech</a> 并登录。</li>
+                    <li>点击刚才添加的书签。</li>
+                    <li>页面会自动跳转回此处并完成登录。</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab: Manual -->
+    <div id="tab-manual" style="display:none;">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <p class="small text-body-secondary">在 xmoj.tech 登录后，从 Cookie 中获取 PHPSESSID（可用浏览器开发者工具查看）。</p>
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control" id="input-username" placeholder="用户名">
+                    <label for="input-username">用户名</label>
+                </div>
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control font-monospace" id="input-phpsessid" placeholder="PHPSESSID">
+                    <label for="input-phpsessid">PHPSESSID</label>
+                </div>
+                <button class="btn btn-primary w-100" id="btn-manual-login">登录</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== SCREEN: MAIL LIST ==================== -->
+<div id="screen-list" class="container py-3" style="display:none;">
+    <div class="d-flex align-items-center justify-content-between mb-2">
+        <h5 class="mb-0">收件箱</h5>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary btn-sm" id="btn-refresh-list" title="刷新">&#8635;</button>
+            <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#compose-panel">&#43; 新消息</button>
+        </div>
+    </div>
+
+    <!-- Compose new message -->
+    <div class="collapse mb-3" id="compose-panel">
+        <div class="card card-body border-0 shadow-sm">
+            <div class="form-floating mb-2">
+                <input type="text" class="form-control" id="compose-to" placeholder="收件人">
+                <label for="compose-to">收件人用户名</label>
+            </div>
+            <div class="form-floating mb-2">
+                <textarea class="form-control" id="compose-body" placeholder="消息内容" style="height:80px;"></textarea>
+                <label for="compose-body">消息内容</label>
+            </div>
+            <button class="btn btn-primary" id="btn-compose-send">发送</button>
+        </div>
+    </div>
+
+    <!-- Mail list table -->
+    <div class="table-responsive">
+        <table class="table table-hover table-borderless align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>用户</th>
+                    <th>最新消息</th>
+                    <th class="text-nowrap">时间</th>
+                </tr>
+            </thead>
+            <tbody id="list-tbody">
+                <tr id="list-loading-row">
+                    <td colspan="3" class="text-center text-body-secondary py-4">
+                        <span class="spinner-border spinner-border-sm me-2"></span>加载中…
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ==================== SCREEN: THREAD ==================== -->
+<div id="screen-thread" class="container py-3" style="display:none;">
+    <div class="d-flex align-items-center gap-2 mb-3">
+        <button class="btn btn-outline-secondary btn-sm" id="btn-back">&#8592; 返回</button>
+        <h5 class="mb-0 flex-grow-1" id="thread-title">与 … 的对话</h5>
+        <button class="btn btn-outline-secondary btn-sm" id="btn-refresh-thread" title="刷新">&#8635;</button>
+    </div>
+
+    <!-- Messages table -->
+    <div id="thread-messages" class="mb-2">
+        <table class="table table-hover table-borderless align-top">
+            <thead class="table-light">
+                <tr>
+                    <th class="text-nowrap">发送者</th>
+                    <th>内容</th>
+                    <th class="text-nowrap">时间</th>
+                    <th class="text-nowrap">状态</th>
+                </tr>
+            </thead>
+            <tbody id="thread-tbody">
+                <tr id="thread-loading-row">
+                    <td colspan="4" class="text-center text-body-secondary py-4">
+                        <span class="spinner-border spinner-border-sm me-2"></span>加载中…
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Compose area -->
+    <div class="compose-sticky">
+        <div class="d-flex gap-2 align-items-end">
+            <div class="flex-grow-1">
+                <textarea class="form-control" id="thread-compose" rows="2"
+                          placeholder="输入消息… (Ctrl+Enter 发送)"></textarea>
+                <div id="upload-indicator" class="text-body-secondary mt-1" style="min-height:1.2em;"></div>
+            </div>
+            <div class="d-flex flex-column gap-1">
+                <button class="btn btn-outline-secondary btn-sm" id="btn-upload-image" title="上传图片">&#128247;</button>
+                <button class="btn btn-primary" id="btn-thread-send">
+                    <span id="send-spinner" class="spinner-border spinner-border-sm d-none me-1"></span>发送
+                </button>
+            </div>
+        </div>
+        <input type="file" id="file-input" accept="image/png,image/jpeg" style="display:none;">
+    </div>
+</div>
+
+<!-- ==================== IMAGE VIEWER MODAL ==================== -->
+<div class="modal fade" id="img-modal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content bg-transparent border-0">
+            <div class="modal-body p-0 text-center">
+                <img id="img-modal-src" src="" alt="" class="img-fluid" style="cursor:pointer; max-height:90vh;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== TOAST ==================== -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index:9999;">
+    <div id="app-toast" class="toast align-items-center border-0" role="alert">
+        <div class="d-flex">
+            <div class="toast-body" id="toast-body">消息</div>
+            <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+<script>
+'use strict';
+
+// ── Constants ──────────────────────────────────────────────────────────────
+const API_BASE          = 'https://api.xmoj-bbs.me/';
+const ASSET_BASE        = 'https://assets.xmoj-bbs.me/GetImage?ImageID=';
+const XMOJ_BASE        = 'https://www.xmoj.tech';
+const WEBUI_VERSION     = 'webui-1.0.0';
+const STORAGE_USER      = 'xmoj-msg-username';
+const STORAGE_SESSION   = 'xmoj-msg-phpsessid';
+const THREAD_REFRESH_MS = 10000;
+const SCROLL_THRESHOLD  = 80;
+const MAX_IMAGE_BYTES   = 5 * 1024 * 1024;
+const PREVIEW_LEN       = 60;
+
+// ── State ──────────────────────────────────────────────────────────────────
+let currentUser    = null;   // { username, phpsessid }
+let currentThread  = null;   // other user's username
+let refreshTimer   = null;
+let isFirstLoad    = true;
+
+// ── Bootstrap instances ────────────────────────────────────────────────────
+const toastEl    = document.getElementById('app-toast');
+const toastBS    = new bootstrap.Toast(toastEl, { delay: 3500 });
+const imgModalEl = document.getElementById('img-modal');
+const imgModalBS = new bootstrap.Modal(imgModalEl);
+
+// ── Utility ────────────────────────────────────────────────────────────────
+function showToast(msg, type) {
+    const body = document.getElementById('toast-body');
+    body.textContent = msg;
+    toastEl.className = 'toast align-items-center border-0 text-bg-' + (type || 'secondary');
+    toastBS.show();
+}
+
+function showScreen(id) {
+    ['screen-login', 'screen-list', 'screen-thread'].forEach(function(s) {
+        document.getElementById(s).style.display = s === id ? '' : 'none';
+    });
+}
+
+function escapeHtml(s) {
+    return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+function renderMarkdown(md) {
+    var html = marked.parse(String(md || ''));
+    return DOMPurify.sanitize(html, {
+        ALLOWED_TAGS: ['p','br','strong','em','del','code','pre','blockquote',
+                       'ul','ol','li','a','img','h1','h2','h3','h4','h5','h6','table',
+                       'thead','tbody','tr','th','td','hr','span'],
+        ALLOWED_ATTR: ['href','src','alt','title','class','target','rel'],
+        FORCE_BODY: true,
+        ADD_ATTR: ['target'],
+        FORBID_SCRIPT: true,
+    });
+}
+
+function stripMarkdown(md) {
+    return String(md || '').replace(/!\[.*?\]\(.*?\)/g, '[图片]')
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+        .replace(/[*_`#>~]/g, '')
+        .replace(/\s+/g, ' ').trim();
+}
+
+function formatTime(ts) {
+    if (!ts) return '';
+    var d = new Date(ts * 1000);
+    var now = new Date();
+    var pad = function(n) { return String(n).padStart(2, '0'); };
+    if (d.toDateString() === now.toDateString()) {
+        return pad(d.getHours()) + ':' + pad(d.getMinutes());
+    }
+    return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+
+function userLink(username) {
+    return '<a href="' + XMOJ_BASE + '/userinfo.php?user=' + encodeURIComponent(username) +
+           '" target="_blank" rel="noopener">' + escapeHtml(username) + '</a>';
+}
+
+// ── Theme ──────────────────────────────────────────────────────────────────
+function initTheme() {
+    var t = localStorage.getItem('xmoj-msg-theme') || 'auto';
+    applyTheme(t);
+}
+
+function applyTheme(t) {
+    var resolved = t === 'auto'
+        ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+        : t;
+    document.documentElement.setAttribute('data-bs-theme', resolved);
+    localStorage.setItem('xmoj-msg-theme', t);
+    document.getElementById('btn-theme').title = '当前：' + (t === 'auto' ? '自动' : t === 'dark' ? '深色' : '浅色');
+}
+
+document.getElementById('btn-theme').addEventListener('click', function() {
+    var order = ['auto', 'dark', 'light'];
+    var cur = localStorage.getItem('xmoj-msg-theme') || 'auto';
+    var next = order[(order.indexOf(cur) + 1) % order.length];
+    applyTheme(next);
+});
+
+// ── Session ────────────────────────────────────────────────────────────────
+function saveSession(username, phpsessid) {
+    localStorage.setItem(STORAGE_USER, username);
+    localStorage.setItem(STORAGE_SESSION, phpsessid);
+    currentUser = { username: username, phpsessid: phpsessid };
+}
+
+function loadSession() {
+    var u = localStorage.getItem(STORAGE_USER);
+    var s = localStorage.getItem(STORAGE_SESSION);
+    if (u && s) {
+        currentUser = { username: u, phpsessid: s };
+        return true;
+    }
+    return false;
+}
+
+function logout() {
+    localStorage.removeItem(STORAGE_USER);
+    localStorage.removeItem(STORAGE_SESSION);
+    currentUser = null;
+    currentThread = null;
+    stopRefresh();
+    document.getElementById('nav-username').textContent = '';
+    document.getElementById('btn-logout').classList.add('d-none');
+    showScreen('screen-login');
+}
+
+function onLoggedIn() {
+    document.getElementById('nav-username').textContent = currentUser.username;
+    document.getElementById('btn-logout').classList.remove('d-none');
+    loadMailList();
+    showScreen('screen-list');
+}
+
+// ── API ────────────────────────────────────────────────────────────────────
+async function apiCall(action, data) {
+    var res = await fetch(API_BASE + action, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            Authentication: { SessionID: currentUser.phpsessid, Username: currentUser.username },
+            Data: data,
+            Version: WEBUI_VERSION
+        })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+}
+
+// ── Mail List ──────────────────────────────────────────────────────────────
+async function loadMailList() {
+    var tbody = document.getElementById('list-tbody');
+    tbody.innerHTML = '<tr id="list-loading-row"><td colspan="3" class="text-center text-body-secondary py-4">' +
+        '<span class="spinner-border spinner-border-sm me-2"></span>加载中…</td></tr>';
+    try {
+        var result = await apiCall('GetMailList', {});
+        var list = result && result.Data && result.Data.MailList;
+        if (!list || list.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" class="text-center text-body-secondary py-4">暂无消息</td></tr>';
+            return;
+        }
+        tbody.innerHTML = list.map(function(item) {
+            var hasUnread = item.UnreadCount > 0;
+            var preview = stripMarkdown(item.LastsMessage);
+            if (preview.length > PREVIEW_LEN) preview = preview.slice(0, PREVIEW_LEN) + '…';
+            return '<tr class="' + (hasUnread ? 'table-primary' : '') + '" data-user="' + escapeHtml(item.OtherUser) + '" style="cursor:pointer;">' +
+                '<td>' + userLink(item.OtherUser) +
+                (hasUnread ? ' <span class="badge text-bg-danger ms-1">' + item.UnreadCount + '</span>' : '') +
+                '</td>' +
+                '<td class="text-body-secondary small">' + escapeHtml(preview) + '</td>' +
+                '<td class="text-nowrap text-body-secondary small">' + formatTime(item.SendTime) + '</td>' +
+                '</tr>';
+        }).join('');
+        tbody.querySelectorAll('tr[data-user]').forEach(function(row) {
+            row.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') return;
+                openThread(row.dataset.user);
+            });
+        });
+    } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="3" class="text-center text-danger py-4">加载失败：' + escapeHtml(err.message) + '</td></tr>';
+        showToast('加载消息列表失败：' + err.message, 'danger');
+    }
+}
+
+// ── Thread ─────────────────────────────────────────────────────────────────
+function openThread(otherUser) {
+    currentThread = otherUser;
+    isFirstLoad = true;
+    document.getElementById('thread-title').textContent = '与 ' + otherUser + ' 的对话';
+    document.getElementById('thread-tbody').innerHTML =
+        '<tr id="thread-loading-row"><td colspan="4" class="text-center text-body-secondary py-4">' +
+        '<span class="spinner-border spinner-border-sm me-2"></span>加载中…</td></tr>';
+    showScreen('screen-thread');
+    loadThread();
+    startRefresh();
+    // Mark as read (fire-and-forget)
+    apiCall('ReadUserMailMention', { UserID: otherUser }).catch(function() {});
+}
+
+async function loadThread() {
+    if (!currentThread) return;
+    var scrollEl = document.getElementById('thread-messages');
+    var atBottom = isFirstLoad ||
+        (scrollEl.scrollHeight - scrollEl.scrollTop - scrollEl.clientHeight < SCROLL_THRESHOLD);
+    try {
+        var result = await apiCall('GetMail', { OtherUser: currentThread });
+        var mails = result && result.Data && result.Data.Mail;
+        var tbody = document.getElementById('thread-tbody');
+        if (!mails || mails.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-body-secondary py-4">暂无消息</td></tr>';
+            return;
+        }
+        tbody.innerHTML = mails.map(function(m) {
+            var isUnread = !m.IsRead && m.FromUser !== currentUser.username;
+            return '<tr class="' + (isUnread ? 'table-primary' : '') + '">' +
+                '<td class="text-nowrap">' + userLink(m.FromUser) + '</td>' +
+                '<td class="msg-bubble-cell">' + renderMarkdown(m.Content) + '</td>' +
+                '<td class="text-nowrap text-body-secondary small">' + formatTime(m.SendTime) + '</td>' +
+                '<td class="text-nowrap small">' + (isUnread ? '<span class="badge text-bg-warning">未读</span>' : '<span class="text-body-secondary">已读</span>') + '</td>' +
+                '</tr>';
+        }).join('');
+        // Make images clickable
+        tbody.querySelectorAll('img').forEach(function(img) {
+            img.addEventListener('click', function() {
+                document.getElementById('img-modal-src').src = img.src;
+                imgModalBS.show();
+            });
+        });
+        // Make links open in new tab
+        tbody.querySelectorAll('a').forEach(function(a) {
+            a.setAttribute('target', '_blank');
+            a.setAttribute('rel', 'noopener noreferrer');
+        });
+        if (atBottom) {
+            scrollEl.scrollTop = scrollEl.scrollHeight;
+        }
+        isFirstLoad = false;
+    } catch (err) {
+        showToast('加载消息失败：' + err.message, 'danger');
+    }
+}
+
+// ── Send Message ───────────────────────────────────────────────────────────
+async function sendMessage() {
+    var textarea = document.getElementById('thread-compose');
+    var btn = document.getElementById('btn-thread-send');
+    var spinner = document.getElementById('send-spinner');
+    var content = textarea.value.trim();
+    if (!content) return;
+    btn.disabled = true;
+    spinner.classList.remove('d-none');
+    try {
+        await apiCall('SendMail', { ToUser: currentThread, Content: content });
+        textarea.value = '';
+        await loadThread();
+    } catch (err) {
+        showToast('发送失败：' + err.message, 'danger');
+    } finally {
+        btn.disabled = false;
+        spinner.classList.add('d-none');
+    }
+}
+
+// ── Compose (from list) ────────────────────────────────────────────────────
+async function sendCompose() {
+    var toInput = document.getElementById('compose-to');
+    var bodyInput = document.getElementById('compose-body');
+    var btn = document.getElementById('btn-compose-send');
+    var to = toInput.value.trim();
+    var content = bodyInput.value.trim();
+    if (!to || !content) { showToast('请填写收件人和消息内容', 'warning'); return; }
+    btn.disabled = true;
+    btn.textContent = '发送中…';
+    try {
+        await apiCall('SendMail', { ToUser: to, Content: content });
+        toInput.value = '';
+        bodyInput.value = '';
+        bootstrap.Collapse.getInstance(document.getElementById('compose-panel')).hide();
+        showToast('发送成功', 'success');
+        await loadMailList();
+    } catch (err) {
+        showToast('发送失败：' + err.message, 'danger');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '发送';
+    }
+}
+
+// ── Image Upload ───────────────────────────────────────────────────────────
+function setUploadIndicator(msg) {
+    document.getElementById('upload-indicator').textContent = msg;
+}
+
+async function uploadImageData(dataUrl) {
+    var textarea = document.getElementById('thread-compose');
+    var placeholder = '![上传中…]()';
+    textarea.value += '\n' + placeholder;
+    setUploadIndicator('图片上传中…');
+    try {
+        var result = await apiCall('UploadImage', { Image: dataUrl });
+        var imageId = result && result.Data && result.Data.ImageID;
+        if (!imageId) throw new Error('未获取到 ImageID');
+        var mdImg = '![图片](' + ASSET_BASE + imageId + ')';
+        textarea.value = textarea.value.replace(placeholder, mdImg);
+        setUploadIndicator('');
+        showToast('图片上传成功', 'success');
+    } catch (err) {
+        textarea.value = textarea.value.replace('\n' + placeholder, '');
+        setUploadIndicator('');
+        showToast('图片上传失败：' + err.message, 'danger');
+    }
+}
+
+function handleImageFile(file) {
+    if (!file) return;
+    if (!['image/png', 'image/jpeg'].includes(file.type)) {
+        showToast('仅支持 PNG 和 JPEG 图片', 'warning');
+        return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+        showToast('图片大小不能超过 5 MB', 'warning');
+        return;
+    }
+    var reader = new FileReader();
+    reader.onload = function(e) { uploadImageData(e.target.result); };
+    reader.readAsDataURL(file);
+}
+
+// ── Auto Refresh ───────────────────────────────────────────────────────────
+function startRefresh() {
+    stopRefresh();
+    refreshTimer = setInterval(loadThread, THREAD_REFRESH_MS);
+}
+
+function stopRefresh() {
+    if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
+}
+
+// ── Bookmarklet ────────────────────────────────────────────────────────────
+function generateBookmarklet() {
+    var dest = location.origin + location.pathname;
+    // The bookmarklet reads cookie + username from XMOJ and redirects here
+    var code = '(function(){' +
+        'var m=document.cookie.match(/PHPSESSID=([^;]+)/);' +
+        'var s=m?m[1]:"";' +
+        'var el=document.querySelector("#profile a")||document.querySelector("#profile");' +
+        'var n=el?el.textContent.trim():"";' +
+        'if(!s||!n){alert("请先登录 XMOJ！");}' +
+        'else{location.href=' + JSON.stringify(dest) + '+"#session="+encodeURIComponent(n)+":"+encodeURIComponent(s);}' +
+        '})();';
+    return 'javascript:' + code;
+}
+
+function initBookmarklet() {
+    var link = document.getElementById('bookmarklet-link');
+    var code = generateBookmarklet();
+    link.href = code;
+    document.getElementById('btn-copy-bookmarklet').addEventListener('click', function() {
+        navigator.clipboard.writeText(code).then(function() {
+            showToast('已复制到剪贴板', 'success');
+        }).catch(function() {
+            showToast('复制失败，请手动复制', 'warning');
+        });
+    });
+}
+
+function checkSessionHash() {
+    var hash = location.hash;
+    if (!hash.startsWith('#session=')) return false;
+    var val = decodeURIComponent(hash.slice('#session='.length));
+    var idx = val.indexOf(':');
+    if (idx < 1) return false;
+    var username = val.slice(0, idx);
+    var phpsessid = val.slice(idx + 1);
+    if (!username || !phpsessid) return false;
+    saveSession(username, phpsessid);
+    history.replaceState(null, '', location.pathname);
+    return true;
+}
+
+// ── Login Tabs ─────────────────────────────────────────────────────────────
+document.querySelectorAll('#loginTabs .nav-link').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('#loginTabs .nav-link').forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        var tab = btn.dataset.tab;
+        document.getElementById('tab-bookmarklet').style.display = tab === 'bookmarklet' ? '' : 'none';
+        document.getElementById('tab-manual').style.display = tab === 'manual' ? '' : 'none';
+    });
+});
+
+// ── Event Wiring ───────────────────────────────────────────────────────────
+document.getElementById('btn-manual-login').addEventListener('click', function() {
+    var username = document.getElementById('input-username').value.trim();
+    var phpsessid = document.getElementById('input-phpsessid').value.trim();
+    if (!username || !phpsessid) { showToast('请填写用户名和 PHPSESSID', 'warning'); return; }
+    saveSession(username, phpsessid);
+    onLoggedIn();
+});
+
+document.getElementById('btn-logout').addEventListener('click', logout);
+
+document.getElementById('btn-refresh-list').addEventListener('click', loadMailList);
+
+document.getElementById('btn-compose-send').addEventListener('click', sendCompose);
+
+document.getElementById('btn-back').addEventListener('click', function() {
+    stopRefresh();
+    currentThread = null;
+    showScreen('screen-list');
+    loadMailList();
+});
+
+document.getElementById('btn-refresh-thread').addEventListener('click', loadThread);
+
+document.getElementById('btn-thread-send').addEventListener('click', sendMessage);
+
+document.getElementById('thread-compose').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && e.ctrlKey) { e.preventDefault(); sendMessage(); }
+});
+
+document.getElementById('btn-upload-image').addEventListener('click', function() {
+    document.getElementById('file-input').click();
+});
+
+document.getElementById('file-input').addEventListener('change', function(e) {
+    handleImageFile(e.target.files[0]);
+    e.target.value = '';
+});
+
+document.getElementById('thread-compose').addEventListener('paste', function(e) {
+    var items = e.clipboardData && e.clipboardData.items;
+    if (!items) return;
+    for (var i = 0; i < items.length; i++) {
+        if (items[i].type.startsWith('image/')) {
+            e.preventDefault();
+            handleImageFile(items[i].getAsFile());
+            return;
+        }
+    }
+});
+
+document.getElementById('img-modal-src').addEventListener('click', function() {
+    imgModalBS.hide();
+});
+
+// Pause auto-refresh when tab is hidden
+document.addEventListener('visibilitychange', function() {
+    if (document.hidden) { stopRefresh(); }
+    else if (currentThread) { loadThread(); startRefresh(); }
+});
+
+// ── Boot ───────────────────────────────────────────────────────────────────
+(function init() {
+    initTheme();
+    initBookmarklet();
+
+    // Check for bookmarklet redirect
+    if (checkSessionHash()) {
+        onLoggedIn();
+        return;
+    }
+
+    if (loadSession()) {
+        onLoggedIn();
+    } else {
+        showScreen('screen-login');
+    }
+})();
+</script>
+</body>
+</html>
