@@ -3444,6 +3444,17 @@
                 }
             ],
             "Notes": "Fix ProblemSwitcher Not Update"
+        },
+        "3.3.3": {
+            "UpdateDate": 1773550684270,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 937,
+                    "Description": "Display status.php Query Content"
+                }
+            ],
+            "Notes": "Display status.php query content."
         }
     }
 }
