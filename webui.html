@@ -22,7 +22,8 @@
 <body>
 <div class="container py-4">
   <h1 class="h3 mb-3">XMOJ 短消息 WebUI（实验）</h1>
-  <p class="safe-note mb-3">为了兼顾安全与可维护性：密码仅用于登录请求，不落盘；会话仅存储在 <code>sessionStorage</code>；支持手动清除会话。</p>
+  <p class="safe-note mb-2">密码仅用于单次登录请求，不落盘；会话仅保存在当前标签页的 <code>sessionStorage</code>，可手动清除。</p>
+  <div id="modeBanner" class="alert alert-info py-2">正在检测运行模式...</div>
 
   <div class="card mb-3">
     <div class="card-body">
@@ -37,11 +38,11 @@
           <input id="password" type="password" class="form-control" autocomplete="current-password" />
         </div>
         <div class="col-md-3">
-          <label class="form-label" for="sessionId">PHPSESSID（自动获取失败时可手动填）</label>
+          <label class="form-label" for="sessionId">PHPSESSID（可手动填）</label>
           <input id="sessionId" class="form-control" />
         </div>
         <div class="col-md-3 d-flex gap-2">
-          <button id="loginBtn" class="btn btn-primary">登录并获取会话</button>
+          <button id="loginBtn" class="btn btn-primary">账号密码登录</button>
           <button id="saveSessionBtn" class="btn btn-outline-secondary">使用当前会话</button>
           <button id="clearBtn" class="btn btn-outline-danger">清除</button>
         </div>
@@ -91,16 +92,17 @@
 
 <script>
 const API_BASE = 'https://api.xmoj-bbs.me/';
-const LOGIN_URL = 'https://www.xmoj.tech/login.php';
 const STORAGE_KEY = 'xmoj-webui-session';
 
 const state = {
   username: '',
   sessionId: '',
-  selectedUser: ''
+  selectedUser: '',
+  mode: 'direct'
 };
 
 const el = {
+  modeBanner: document.getElementById('modeBanner'),
   username: document.getElementById('username'),
   password: document.getElementById('password'),
   sessionId: document.getElementById('sessionId'),
@@ -122,36 +124,33 @@ function setStatus(msg, isError = false) {
   el.loginStatus.className = isError ? 'mt-2 text-danger' : 'mt-2 text-muted';
   el.loginStatus.textContent = msg;
 }
-
 function setSendStatus(msg, isError = false) {
   el.sendStatus.className = isError ? 'text-danger' : 'text-muted';
   el.sendStatus.textContent = msg;
 }
-
-function persistSession() {
-  sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
-    username: state.username,
-    sessionId: state.sessionId
-  }));
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }
 
+function persistSession() {
+  sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ username: state.username, sessionId: state.sessionId }));
+}
 function loadSession() {
   try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
-    const parsed = JSON.parse(raw);
+    const parsed = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '{}');
     if (parsed.username && parsed.sessionId) {
       state.username = parsed.username;
       state.sessionId = parsed.sessionId;
-      el.username.value = state.username;
-      el.sessionId.value = state.sessionId;
+      el.username.value = parsed.username;
+      el.sessionId.value = parsed.sessionId;
       setStatus('已恢复当前标签页会话。');
     }
-  } catch (_) {
+  } catch {
     sessionStorage.removeItem(STORAGE_KEY);
   }
 }
-
 function clearAll() {
   state.username = '';
   state.sessionId = '';
@@ -168,47 +167,91 @@ function clearAll() {
   setSendStatus('');
 }
 
-async function apiRequest(action, data) {
-  if (!state.sessionId || !state.username) {
-    throw new Error('请先登录或填写用户名 + PHPSESSID。');
-  }
-  const payload = {
-    Authentication: {
-      SessionID: state.sessionId,
-      Username: state.username
-    },
+function apiPayload(data) {
+  return {
+    Authentication: { SessionID: state.sessionId, Username: state.username },
     Data: data,
-    Version: 'webui-0.1.0',
+    Version: 'webui-0.2.0',
     DebugMode: false
   };
-  const response = await fetch(API_BASE + action, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Cache-Control': 'no-cache',
-      'XMOJ-UserID': state.username,
-      'XMOJ-Script-Version': 'webui-0.1.0'
-    },
-    body: JSON.stringify(payload)
-  });
-  if (!response.ok) {
-    throw new Error('API 请求失败：HTTP ' + response.status);
+}
+
+async function detectMode() {
+  try {
+    const res = await fetch('/__webui/health', { cache: 'no-store' });
+    if (!res.ok) throw new Error('health not ok');
+    state.mode = 'proxy';
+    el.modeBanner.className = 'alert alert-success py-2';
+    el.modeBanner.innerHTML = '当前为 <b>代理模式</b>：已启用同源后端代理，可直接用账号密码登录并稳定调用 API。';
+    el.loginBtn.disabled = false;
+  } catch {
+    state.mode = 'direct';
+    el.modeBanner.className = 'alert alert-warning py-2';
+    el.modeBanner.innerHTML = '当前为 <b>直连模式</b>：受浏览器跨域限制，账号密码登录可能不可用。建议运行 <code>node tools/webui-proxy.mjs</code> 后从本地地址访问。';
   }
-  return response.json();
+}
+
+async function requestAction(action, data) {
+  if (!state.username || !state.sessionId) throw new Error('请先设置用户名与 PHPSESSID。');
+
+  if (state.mode === 'proxy') {
+    const res = await fetch(`/__webui/api/${action}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(apiPayload(data))
+    });
+    if (!res.ok) throw new Error('代理请求失败：HTTP ' + res.status);
+    return res.json();
+  }
+
+  const res = await fetch(API_BASE + action, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(apiPayload(data))
+  });
+  if (!res.ok) throw new Error('API 请求失败：HTTP ' + res.status);
+  return res.json();
+}
+
+async function loginByPassword() {
+  const username = el.username.value.trim();
+  const password = el.password.value;
+  if (!username || !password) throw new Error('用户名或密码不能为空。');
+
+  if (state.mode === 'proxy') {
+    const res = await fetch('/__webui/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const result = await res.json();
+    if (!res.ok || !result.success) throw new Error(result.message || '登录失败。');
+    state.username = result.username;
+    state.sessionId = result.sessionId;
+    el.username.value = state.username;
+    el.sessionId.value = state.sessionId;
+    el.password.value = '';
+    persistSession();
+    setStatus('登录成功，会话已更新。');
+    return;
+  }
+
+  const params = new URLSearchParams();
+  params.set('user_id', username);
+  params.set('password', md5(password));
+  await fetch('https://www.xmoj.tech/login.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: params.toString(),
+    credentials: 'include'
+  });
+  throw new Error('直连模式下浏览器无法读取跨域 Set-Cookie，请手动填写 PHPSESSID，或改用代理模式。');
 }
 
 function formatTime(ts) {
   const d = new Date(ts);
-  if (Number.isNaN(d.getTime())) return String(ts || '');
-  return d.toLocaleString();
+  return Number.isNaN(d.getTime()) ? String(ts || '') : d.toLocaleString();
 }
-
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
-
 function renderContent(content) {
   const escaped = escapeHtml(content || '');
   return escaped.replace(/!\[.*?\]\((https?:\/\/[^)]+)\)/g, '<img class="image-preview" src="$1" alt="image" loading="lazy">');
@@ -216,11 +259,9 @@ function renderContent(content) {
 
 async function refreshConversationList() {
   setStatus('正在刷新会话列表...');
-  const data = await apiRequest('GetMailList', {});
-  if (!data.Success) {
-    throw new Error(data.Message || '获取会话列表失败');
-  }
-  const list = data.Data?.MailList || [];
+  const result = await requestAction('GetMailList', {});
+  if (!result.Success) throw new Error(result.Message || '获取会话列表失败');
+  const list = result.Data?.MailList || [];
   el.conversationList.innerHTML = '';
   if (list.length === 0) {
     el.conversationList.innerHTML = '<div class="text-muted">暂无会话</div>';
@@ -247,109 +288,51 @@ async function refreshConversationList() {
 async function refreshMessages() {
   if (!state.selectedUser) return;
   el.currentTarget.textContent = `当前会话：${state.selectedUser}`;
+  await requestAction('ReadUserMailMention', { UserID: String(state.selectedUser) });
+  const result = await requestAction('GetMail', { UserID: String(state.selectedUser) });
+  if (!result.Success) throw new Error(result.Message || '获取消息失败');
 
-  await apiRequest('ReadUserMailMention', { UserID: String(state.selectedUser) });
-
-  const data = await apiRequest('GetMail', { UserID: String(state.selectedUser) });
-  if (!data.Success) {
-    throw new Error(data.Message || '获取消息失败');
-  }
-  const list = data.Data?.Mails || [];
+  const list = result.Data?.Mails || [];
   el.messageList.innerHTML = '';
   if (list.length === 0) {
     el.messageList.innerHTML = '<div class="text-muted">暂无消息</div>';
     return;
   }
+
   list.forEach(item => {
     const wrap = document.createElement('div');
     const isOut = item.FromUser === state.username;
     wrap.className = `message-bubble ${isOut ? 'message-out' : 'message-in'}`;
-    wrap.innerHTML = `
-      <div class="message-meta">${escapeHtml(item.FromUser)} → ${escapeHtml(item.ToUser)} · ${formatTime(item.SendTime)} · ${item.IsRead ? '已读' : '未读'}</div>
-      <div>${renderContent(item.Content || '')}</div>
-    `;
+    wrap.innerHTML = `<div class="message-meta">${escapeHtml(item.FromUser)} → ${escapeHtml(item.ToUser)} · ${formatTime(item.SendTime)} · ${item.IsRead ? '已读' : '未读'}</div><div>${renderContent(item.Content || '')}</div>`;
     el.messageList.appendChild(wrap);
   });
 }
 
-async function uploadImageFromPaste(file) {
-  return new Promise((resolve, reject) => {
+async function uploadImage(file) {
+  const data = await new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = async () => {
-      try {
-        const result = await apiRequest('UploadImage', { Image: reader.result });
-        if (!result.Success) {
-          reject(new Error(result.Message || '上传失败'));
-          return;
-        }
-        resolve(`https://assets.xmoj-bbs.me/GetImage?ImageID=${result.Data.ImageID}`);
-      } catch (error) {
-        reject(error);
-      }
-    };
+    reader.onload = () => resolve(reader.result);
     reader.onerror = () => reject(new Error('读取图片失败'));
     reader.readAsDataURL(file);
   });
-}
-
-async function loginAndGetSession() {
-  const username = el.username.value.trim();
-  const password = el.password.value;
-  if (!username || !password) {
-    throw new Error('用户名或密码不能为空。');
-  }
-  setStatus('正在登录并尝试获取 PHPSESSID...');
-
-  const body = new URLSearchParams();
-  body.set('user_id', username);
-  body.set('password', md5(password));
-
-  const response = await fetch(LOGIN_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: body.toString(),
-    credentials: 'include'
-  });
-  const text = await response.text();
-  const setCookie = response.headers.get('set-cookie') || '';
-  let sessionId = '';
-
-  const match = setCookie.match(/PHPSESSID=([^;]+)/i);
-  if (match) {
-    sessionId = match[1];
-  }
-
-  if (!sessionId) {
-    const hint = text.includes('history.go(-2);')
-      ? '登录可能成功，但浏览器跨域策略阻止读取 Cookie。请在右侧手动填写 PHPSESSID。'
-      : '登录失败，请检查用户名和密码。';
-    throw new Error(hint);
-  }
-
-  state.username = username;
-  state.sessionId = sessionId;
-  el.sessionId.value = sessionId;
-  el.password.value = '';
-  persistSession();
-  setStatus('登录成功，会话已更新。');
+  const result = await requestAction('UploadImage', { Image: data });
+  if (!result.Success) throw new Error(result.Message || '上传失败');
+  return `https://assets.xmoj-bbs.me/GetImage?ImageID=${result.Data.ImageID}`;
 }
 
 el.loginBtn.addEventListener('click', async () => {
   try {
-    await loginAndGetSession();
+    await loginByPassword();
     await refreshConversationList();
   } catch (error) {
     setStatus(error.message, true);
   }
 });
-
 el.saveSessionBtn.addEventListener('click', async () => {
   try {
     const username = el.username.value.trim();
     const sessionId = el.sessionId.value.trim();
-    if (!username || !sessionId) {
-      throw new Error('请填写用户名和 PHPSESSID。');
-    }
+    if (!username || !sessionId) throw new Error('请填写用户名和 PHPSESSID。');
     state.username = username;
     state.sessionId = sessionId;
     persistSession();
@@ -359,35 +342,20 @@ el.saveSessionBtn.addEventListener('click', async () => {
     setStatus(error.message, true);
   }
 });
-
 el.clearBtn.addEventListener('click', clearAll);
-
 el.refreshListBtn.addEventListener('click', async () => {
-  try {
-    await refreshConversationList();
-  } catch (error) {
-    setStatus(error.message, true);
-  }
+  try { await refreshConversationList(); } catch (error) { setStatus(error.message, true); }
 });
-
 el.refreshMessageBtn.addEventListener('click', async () => {
-  try {
-    await refreshMessages();
-  } catch (error) {
-    setStatus(error.message, true);
-  }
+  try { await refreshMessages(); } catch (error) { setStatus(error.message, true); }
 });
-
 el.sendBtn.addEventListener('click', async () => {
   try {
     if (!state.selectedUser) throw new Error('请先选择会话对象。');
     const content = el.messageInput.value.trim();
     if (!content) throw new Error('消息不能为空。');
     setSendStatus('发送中...');
-    const result = await apiRequest('SendMail', {
-      ToUser: String(state.selectedUser),
-      Content: String(content)
-    });
+    const result = await requestAction('SendMail', { ToUser: String(state.selectedUser), Content: String(content) });
     if (!result.Success) throw new Error(result.Message || '发送失败');
     el.messageInput.value = '';
     setSendStatus('发送成功。');
@@ -405,11 +373,10 @@ el.messageInput.addEventListener('paste', async (event) => {
       event.preventDefault();
       try {
         setSendStatus('正在上传图片...');
-        const url = await uploadImageFromPaste(item.getAsFile());
-        const cursor = el.messageInput.selectionStart;
-        const text = el.messageInput.value;
-        const markdown = `![](${url})`;
-        el.messageInput.value = text.slice(0, cursor) + markdown + text.slice(el.messageInput.selectionEnd);
+        const imageUrl = await uploadImage(item.getAsFile());
+        const before = el.messageInput.value.slice(0, el.messageInput.selectionStart);
+        const after = el.messageInput.value.slice(el.messageInput.selectionEnd);
+        el.messageInput.value = `${before}![](${imageUrl})${after}`;
         setSendStatus('图片上传成功，已插入消息。');
       } catch (error) {
         setSendStatus(error.message, true);
@@ -419,7 +386,10 @@ el.messageInput.addEventListener('paste', async (event) => {
   }
 });
 
-loadSession();
+(async () => {
+  await detectMode();
+  loadSession();
+})();
 </script>
 </body>
 </html>
