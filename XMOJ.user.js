@@ -440,9 +440,7 @@ let UtilityEnabled = (Name) => {
         return localStorage.getItem("UserScript-Setting-" + Name) == "true";
     } catch (e) {
         console.error(e);
-        if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
-        }
+        return false; // Cannot call UtilityEnabled recursively here
     }
 };
 let storeCredential = async (username, password) => {
@@ -945,9 +943,13 @@ if (UtilityEnabled("AutoLogin") && document.querySelector("body > a:nth-child(1)
 }
 
 let SearchParams = new URLSearchParams(location.search);
-let ServerURL = (UtilityEnabled("DebugMode") ? "https://ghpages.xmoj-bbs.me/" : "https://www.xmoj-bbs.me")
+let ServerURL = (UtilityEnabled("DebugMode") ? "https://ghpages.xmoj-bbs.me/" : "https://www.xmoj-bbs.me");
 if (document.querySelector("#profile") === null) {
-    location.href = "https://www.xmoj.tech/loginpage.php";
+    // Do not redirect when running on xmoj-bbs.me/messages.html (no xmoj.tech DOM).
+    if (!/(?:^|\.)xmoj-bbs\.me$/.test(location.hostname)) {
+        location.href = "https://www.xmoj.tech/loginpage.php";
+    }
+    return;
 }
 let CurrentUsername = document.querySelector("#profile").innerText;
 CurrentUsername = CurrentUsername.replaceAll(/[^a-zA-Z0-9]/g, "");
@@ -4881,7 +4883,7 @@ int main()
                                                 "Image": Reader.result
                                             }, (ResponseData) => {
                                                 if (ResponseData.Success) {
-                                                    Content.value = Before + `![](https://assets.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
+                                                    Content.value = Before + `![](https://api.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
                                                     Content.dispatchEvent(new Event("input"));
                                                 } else {
                                                     Content.value = Before + `![上传失败！` + ResponseData.Message + `]()` + After;
@@ -5137,7 +5139,7 @@ int main()
                                                     "Image": Reader.result
                                                 }, (ResponseData) => {
                                                     if (ResponseData.Success) {
-                                                        ContentElement.value = Before + `![](https://assets.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
+                                                        ContentElement.value = Before + `![](https://api.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
                                                         ContentElement.dispatchEvent(new Event("input"));
                                                     } else {
                                                         ContentElement.value = Before + `![上传失败！]()` + After;
@@ -5145,8 +5147,7 @@ int main()
                                                     }
                                                 });
                                             };
-                                        }
-                                    }
+                                        }                                    }
                                 }
                             });
                             SubmitElement.addEventListener("click", async () => {
@@ -5310,7 +5311,7 @@ int main()
                                                         "Image": Reader.result
                                                     }, (ResponseData) => {
                                                         if (ResponseData.Success) {
-                                                            ContentElement.value = Before + `![](https://assets.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
+                                                            ContentElement.value = Before + `![](https://api.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
                                                             ContentElement.dispatchEvent(new Event("input"));
                                                         } else {
                                                             ContentElement.value = Before + `![上传失败！]()` + After;
@@ -5568,7 +5569,7 @@ int main()
                                                                         "Image": Reader.result
                                                                     }, (ResponseData) => {
                                                                         if (ResponseData.Success) {
-                                                                            ContentEditor.value = Before + `![](https://assets.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
+                                                                            ContentEditor.value = Before + `![](https://api.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
                                                                             ContentEditor.dispatchEvent(new Event("input"));
                                                                         } else {
                                                                             ContentEditor.value = Before + `![上传失败！]()` + After;

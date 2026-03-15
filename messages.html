@@ -510,8 +510,9 @@
                     SessionID: currentUser.phpsessid,
                     Username:  currentUser.username
                 },
-                Data:    data,
-                Version: WEBUI_VERSION
+                Data:      data,
+                Version:   WEBUI_VERSION,
+                DebugMode: false
             });
             const response = await fetch(API_BASE + action, {
                 method:  'POST',
