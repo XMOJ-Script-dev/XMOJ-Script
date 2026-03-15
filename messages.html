@@ -407,7 +407,9 @@ function formatTime(ts) {
     if (d.toDateString() === now.toDateString()) {
         return pad(d.getHours()) + ':' + pad(d.getMinutes());
     }
-    return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+    var datePart = (d.getFullYear() !== now.getFullYear() ? d.getFullYear() + '/' : '') +
+        (d.getMonth() + 1) + '/' + d.getDate();
+    return datePart + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
 }
 
 // Popover state for user info buttons
