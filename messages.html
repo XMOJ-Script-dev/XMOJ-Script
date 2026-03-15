@@ -10,11 +10,15 @@
     <style>
         body { padding-top: 56px; }
         #thread-messages { max-height: 60vh; overflow-y: auto; }
-        #thread-messages img { max-width: 100%; max-height: 300px; object-fit: contain; cursor: pointer; }
+        #thread-messages img { max-width: 100%; max-height: 300px; object-fit: contain; cursor: zoom-in; }
         .compose-sticky { position: sticky; bottom: 0; background: var(--bs-body-bg); border-top: 1px solid var(--bs-border-color); padding: 0.75rem 0; }
         .msg-bubble-cell { word-break: break-word; max-width: 60vw; }
         #upload-indicator { font-size: 0.8em; }
         .bookmarklet-link { cursor: grab; }
+        .user-info-btn { font-size: inherit; vertical-align: baseline; text-decoration: none; }
+        .user-info-btn:hover { text-decoration: underline; }
+        #img-modal .modal-body { cursor: zoom-out; }
+        #thread-compose { resize: none; overflow-y: hidden; }
     </style>
     <script>
         (function() {
@@ -406,10 +410,46 @@ function formatTime(ts) {
     return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
 }
 
-function userLink(username) {
-    return '<a href="' + XMOJ_BASE + '/userinfo.php?user=' + encodeURIComponent(username) +
-           '" target="_blank" rel="noopener">' + escapeHtml(username) + '</a>';
+// Popover state for user info buttons
+var _activePopoverBtn = null;
+
+function userSpan(username) {
+    return '<button type="button" class="btn btn-link p-0 user-info-btn" ' +
+           'data-username="' + escapeHtml(username) + '">' +
+           escapeHtml(username) + '</button>';
 }
+
+function initUserButtons(container) {
+    container.querySelectorAll('.user-info-btn').forEach(function(btn) {
+        var username = btn.dataset.username;
+        var popover = new bootstrap.Popover(btn, {
+            trigger: 'click',
+            html: true,
+            placement: 'top',
+            title: '<strong>' + escapeHtml(username) + '</strong>',
+            content: '<a href="' + XMOJ_BASE + '/userinfo.php?user=' + encodeURIComponent(username) +
+                     '" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary w-100">查看用户资料</a>',
+        });
+        btn.addEventListener('show.bs.popover', function() {
+            if (_activePopoverBtn && _activePopoverBtn !== btn) {
+                var prev = bootstrap.Popover.getInstance(_activePopoverBtn);
+                if (prev) prev.hide();
+            }
+            _activePopoverBtn = btn;
+        });
+        btn.addEventListener('hidden.bs.popover', function() {
+            if (_activePopoverBtn === btn) _activePopoverBtn = null;
+        });
+    });
+}
+
+// Close active popover when clicking outside
+document.addEventListener('click', function(e) {
+    if (_activePopoverBtn && !_activePopoverBtn.contains(e.target) && !e.target.closest('.popover')) {
+        var inst = bootstrap.Popover.getInstance(_activePopoverBtn);
+        if (inst) inst.hide();
+    }
+});
 
 // ── Theme ──────────────────────────────────────────────────────────────────
 function initTheme() {
@@ -501,16 +541,17 @@ async function loadMailList() {
             var preview = stripMarkdown(item.LastsMessage);
             if (preview.length > PREVIEW_LEN) preview = preview.slice(0, PREVIEW_LEN) + '…';
             return '<tr class="' + (hasUnread ? 'table-primary' : '') + '" data-user="' + escapeHtml(item.OtherUser) + '" style="cursor:pointer;">' +
-                '<td>' + userLink(item.OtherUser) +
+                '<td>' + userSpan(item.OtherUser) +
                 (hasUnread ? ' <span class="badge text-bg-danger ms-1">' + item.UnreadCount + '</span>' : '') +
                 '</td>' +
                 '<td class="text-body-secondary small">' + escapeHtml(preview) + '</td>' +
                 '<td class="text-nowrap text-body-secondary small">' + formatTime(item.SendTime) + '</td>' +
                 '</tr>';
         }).join('');
+        initUserButtons(tbody);
         tbody.querySelectorAll('tr[data-user]').forEach(function(row) {
             row.addEventListener('click', function(e) {
-                if (e.target.tagName === 'A') return;
+                if (e.target.closest('.user-info-btn') || e.target.closest('.popover')) return;
                 openThread(row.dataset.user);
             });
         });
@@ -553,14 +594,16 @@ async function loadThread() {
             var isUnread = !m.IsRead;
             var isHighlight = isUnread && m.FromUser !== currentUser.username;
             return '<tr class="' + (isHighlight ? 'table-primary' : '') + '">' +
-                '<td class="text-nowrap">' + userLink(m.FromUser) + '</td>' +
+                '<td class="text-nowrap">' + userSpan(m.FromUser) + '</td>' +
                 '<td class="msg-bubble-cell">' + renderMarkdown(m.Content) + '</td>' +
                 '<td class="text-nowrap text-body-secondary small">' + formatTime(m.SendTime) + '</td>' +
                 '<td class="text-nowrap small">' + (isUnread ? '<span class="badge text-bg-warning">未读</span>' : '<span class="text-body-secondary">已读</span>') + '</td>' +
                 '</tr>';
         }).join('');
-        // Make images clickable
+        initUserButtons(tbody);
+        // Make images clickable to zoom
         tbody.querySelectorAll('img').forEach(function(img) {
+            img.title = '点击放大';
             img.addEventListener('click', function() {
                 document.getElementById('img-modal-src').src = img.src;
                 imgModalBS.show();
@@ -719,13 +762,17 @@ function checkSessionHash() {
 }
 
 // ── Login Tabs ─────────────────────────────────────────────────────────────
+function setLoginTab(tab) {
+    document.querySelectorAll('#loginTabs .nav-link').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.tab === tab);
+    });
+    document.getElementById('tab-bookmarklet').style.display = tab === 'bookmarklet' ? '' : 'none';
+    document.getElementById('tab-manual').style.display = tab === 'manual' ? '' : 'none';
+}
+
 document.querySelectorAll('#loginTabs .nav-link').forEach(function(btn) {
     btn.addEventListener('click', function() {
-        document.querySelectorAll('#loginTabs .nav-link').forEach(function(b) { b.classList.remove('active'); });
-        btn.classList.add('active');
-        var tab = btn.dataset.tab;
-        document.getElementById('tab-bookmarklet').style.display = tab === 'bookmarklet' ? '' : 'none';
-        document.getElementById('tab-manual').style.display = tab === 'manual' ? '' : 'none';
+        setLoginTab(btn.dataset.tab);
     });
 });
 
@@ -780,6 +827,32 @@ document.getElementById('thread-compose').addEventListener('paste', function(e) 
     }
 });
 
+// Auto-resize textarea as user types
+(function() {
+    var ta = document.getElementById('thread-compose');
+    function autoResize() {
+        ta.style.height = 'auto';
+        ta.style.height = Math.min(ta.scrollHeight, 200) + 'px';
+    }
+    ta.addEventListener('input', autoResize);
+    autoResize();
+})();
+
+// Global paste handler: upload image from clipboard when in thread view
+document.addEventListener('paste', function(e) {
+    if (document.getElementById('screen-thread').style.display === 'none') return;
+    if (e.defaultPrevented) return; // already handled by local handler
+    var items = e.clipboardData && e.clipboardData.items;
+    if (!items) return;
+    for (var i = 0; i < items.length; i++) {
+        if (items[i].type.startsWith('image/')) {
+            e.preventDefault();
+            handleImageFile(items[i].getAsFile());
+            return;
+        }
+    }
+});
+
 document.getElementById('img-modal-src').addEventListener('click', function() {
     imgModalBS.hide();
 });
@@ -794,6 +867,12 @@ document.addEventListener('visibilitychange', function() {
 (function init() {
     initTheme();
     initBookmarklet();
+
+    // Set default login tab: bookmarklet on desktop, session login on mobile
+    var isDesktop = window.matchMedia
+        ? window.matchMedia('(pointer: fine)').matches
+        : (!('ontouchstart' in window) && window.innerWidth >= 1024);
+    setLoginTab(isDesktop ? 'bookmarklet' : 'manual');
 
     // Check for bookmarklet redirect
     if (checkSessionHash()) {
