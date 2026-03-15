@@ -2526,16 +2526,28 @@ async function main() {
                         document.title = "提交状态";
                         document.querySelector("body > script:nth-child(5)").remove();
                         if (UtilityEnabled("NewBootstrap")) {
+                            const url = window.location.href;
+                            const paramsRegex = /[?&]([^=#]+)=([^&#]*)/g;
+                            let match;
+                            let CurrentProblemId, CurrentLanguage, CurrentJresult;
+                            while ((match = paramsRegex.exec(url)) !== null) {
+                                const [_, key, value] = match;
+                                if (key == 'problem_id') CurrentProblemId = value;
+                                if (key == 'language') CurrentLanguage = value;
+                                if (key == 'jresult') CurrentJresult = value;
+                            }
+                            console.log(CurrentProblemId + '\n' + CurrentLanguage + '\n' + CurrentJresult);
+
                             document.querySelector("#simform").outerHTML = `<form id="simform" class="justify-content-center form-inline row g-2" action="status.php" method="get" style="padding-bottom: 7px;">
                     <input class="form-control" type="text" size="4" name="user_id" value="${CurrentUsername} "style="display: none;">
                 <div class="col-md-1">
                     <label for="problem_id" class="form-label">题目编号</label>
-                    <input type="text" class="form-control" id="problem_id" name="problem_id" size="4">
+                    <input type="text" class="form-control" id="problem_id" name="problem_id" size="4" value="${CurrentProblemId}">
                 </div>
                 <div class="col-md-1">
                     <label for="language" class="form-label">语言</label>
                     <select id="language" name="language" class="form-select">
-                        <option value="-1" selected="">全部</option>
+                        <option value="-1">全部</option>
                         <option value="0">C</option>
                         <option value="1">C++</option>
                         <option value="2">Pascal</option>
@@ -2543,7 +2555,7 @@ async function main() {
                 </div><div class="col-md-1">
                     <label for="jresult" class="form-label">结果</label>
                     <select id="jresult" name="jresult" class="form-select">
-                        <option value="-1" selected="">全部</option>
+                        <option value="-1">全部</option>
                         <option value="4">正确</option>
                         <option value="5">格式错误</option>
                         <option value="6">答案错误</option>
@@ -2561,6 +2573,11 @@ async function main() {
                 <div class="col-md-1">
                     <button type="submit" class="btn btn-primary">查找</button>
                 </div><div id="csrf"></div></form>`;
+
+                            var selectElement = document.getElementById('language');
+                            selectElement.value = CurrentLanguage;
+                            selectElement = document.getElementById('jresult');
+                            selectElement.value = CurrentJresult;
                         }
 
                         if (UtilityEnabled("ImproveACRate")) {
@@ -3298,8 +3315,8 @@ async function main() {
                                     }
                                     ErrorElement.style.display = "block";
                                     ErrorMessage.style.color = "red";
-                                    ErrorMessage.innerText = "比赛已结束, 正在尝试像题目 " + rPID + " 提交";
-                                    console.log("比赛已结束, 正在尝试像题目 " + rPID + " 提交");
+                                    ErrorMessage.innerText = "比赛已结束, 正在尝试向题目 " + rPID + " 提交";
+                                    console.log("比赛已结束, 正在尝试向题目 " + rPID + " 提交");
                                     let o2Switch = "&enable_O2=on";
                                     if (!document.querySelector("#enable_O2").checked) o2Switch = "";
                                     await fetch("https://www.xmoj.tech/submit.php", {
@@ -5602,13 +5619,13 @@ int main()
                     .xmoj-image-preview {
                         cursor: pointer;
                     }
-                    
+
                     .xmoj-image-preview:hover {
                         opacity: 0.8;
                         transition: opacity 0.2s ease;
                     }
-                    
-                    
+
+
                     .xmoj-image-modal {
                         display: none;
                         position: fixed;
@@ -5619,12 +5636,12 @@ int main()
                         height: 100%;
                         background-color: rgba(0, 0, 0, 0.9);
                     }
-                    
+
                     .xmoj-image-modal.show {
                         display: flex;
                         flex-direction: column;
                     }
-                    
+
                     .xmoj-image-modal-content {
                         flex: 1;
                         display: flex;
@@ -5633,13 +5650,13 @@ int main()
                         overflow: hidden;
                         position: relative;
                     }
-                    
+
                     .xmoj-image-modal-image {
                         max-width: 100%;
                         max-height: 100%;
                         object-fit: contain;
                     }
-                    
+
                     .xmoj-image-modal-toolbar {
                         display: flex;
                         justify-content: center;
@@ -5648,7 +5665,7 @@ int main()
                         background-color: rgba(0, 0, 0, 0.5);
                         flex-wrap: wrap;
                     }
-                    
+
                     .xmoj-image-modal-toolbar button {
                         padding: 8px 16px;
                         background-color: #0d6efd;
@@ -5659,15 +5676,15 @@ int main()
                         font-size: 14px;
                         transition: background-color 0.2s ease;
                     }
-                    
+
                     .xmoj-image-modal-toolbar button:hover {
                         background-color: #0b5ed7;
                     }
-                    
+
                     .xmoj-image-modal-toolbar button:active {
                         background-color: #0a58ca;
                     }
-                    
+
                     .xmoj-image-modal-close {
                         position: absolute;
                         top: 20px;
@@ -5683,11 +5700,11 @@ int main()
                         transition: color 0.2s ease;
                         z-index: 1;
                     }
-                    
+
                     .xmoj-image-modal-close:hover {
                         color: #ccc;
                     }
-                    
+
                     .xmoj-image-modal-nav {
                         position: absolute;
                         top: 50%;
@@ -5702,33 +5719,33 @@ int main()
                         user-select: none;
                         -webkit-user-select: none;
                     }
-                    
+
                     .xmoj-image-modal-nav:hover {
                         background: rgba(0, 0, 0, 0.8);
                     }
-                    
+
                     .xmoj-image-modal-nav:disabled {
                         opacity: 0.3;
                         cursor: default;
                     }
-                    
+
                     .xmoj-image-modal-nav-prev {
                         left: 0;
                         border-radius: 0 4px 4px 0;
                     }
-                    
+
                     .xmoj-image-modal-nav-next {
                         right: 0;
                         border-radius: 4px 0 0 4px;
                     }
                 `;
                 document.head.appendChild(EnlargerStyle);
-                
+
                 // Create modal element
                 let ImageModal = document.createElement("div");
                 ImageModal.className = "xmoj-image-modal";
                 ImageModal.id = "xmoj-image-modal";
-                
+
                 let CloseButton = document.createElement("button");
                 CloseButton.className = "xmoj-image-modal-close";
                 CloseButton.type = "button";
@@ -5736,55 +5753,55 @@ int main()
                 CloseButton.title = "关闭图片";
                 CloseButton.innerHTML = "&times;";
                 ImageModal.appendChild(CloseButton);
-                
+
                 let ModalContent = document.createElement("div");
                 ModalContent.className = "xmoj-image-modal-content";
-                
+
                 let PrevBtn = document.createElement("button");
                 PrevBtn.className = "xmoj-image-modal-nav xmoj-image-modal-nav-prev";
                 PrevBtn.type = "button";
                 PrevBtn.setAttribute("aria-label", "上一张");
                 PrevBtn.innerHTML = "&#10094;";
                 ModalContent.appendChild(PrevBtn);
-                
+
                 let NextBtn = document.createElement("button");
                 NextBtn.className = "xmoj-image-modal-nav xmoj-image-modal-nav-next";
                 NextBtn.type = "button";
                 NextBtn.setAttribute("aria-label", "下一张");
                 NextBtn.innerHTML = "&#10095;";
                 ModalContent.appendChild(NextBtn);
-                
+
                 let ModalImage = document.createElement("img");
                 ModalImage.className = "xmoj-image-modal-image";
                 ModalContent.appendChild(ModalImage);
                 ImageModal.appendChild(ModalContent);
-                
+
                 let Toolbar = document.createElement("div");
                 Toolbar.className = "xmoj-image-modal-toolbar";
-                
+
                 let ZoomInBtn = document.createElement("button");
                 ZoomInBtn.innerHTML = "放大 (+)";
                 ZoomInBtn.type = "button";
                 Toolbar.appendChild(ZoomInBtn);
-                
+
                 let ZoomOutBtn = document.createElement("button");
                 ZoomOutBtn.innerHTML = "缩小 (-)";
                 ZoomOutBtn.type = "button";
                 Toolbar.appendChild(ZoomOutBtn);
-                
+
                 let ResetZoomBtn = document.createElement("button");
                 ResetZoomBtn.innerHTML = "重置大小";
                 ResetZoomBtn.type = "button";
                 Toolbar.appendChild(ResetZoomBtn);
-                
+
                 let SaveBtn = document.createElement("button");
                 SaveBtn.innerHTML = "保存图片";
                 SaveBtn.type = "button";
                 Toolbar.appendChild(SaveBtn);
-                
+
                 ImageModal.appendChild(Toolbar);
                 document.body.appendChild(ImageModal);
-                
+
                 // Zoom level and navigation state
                 let CurrentZoom = 1;
                 const ZoomStep = 0.1;
@@ -5804,7 +5821,7 @@ int main()
                 let TouchStartY = 0;
                 let TouchPanStartPanX = 0;
                 let TouchPanStartPanY = 0;
-                
+
                 // Function to update image transform (zoom + pan)
                 let UpdateImageSize = () => {
                     ModalImage.style.transform = `translate(${PanX}px, ${PanY}px) scale(${CurrentZoom})`;
@@ -5813,7 +5830,7 @@ int main()
                     ModalImage.style.cursor = CursorStyle;
                     ModalContent.style.cursor = CursorStyle;
                 };
-                
+
                 // Function to update prev/next button state
                 let UpdateNavButtons = () => {
                     let HasMultiple = ImageList.length > 1;
@@ -5822,7 +5839,7 @@ int main()
                     PrevBtn.disabled = CurrentImageIndex <= 0;
                     NextBtn.disabled = CurrentImageIndex >= ImageList.length - 1;
                 };
-                
+
                 // Function to navigate to a specific image by index
                 let NavigateTo = (index) => {
                     if (index < 0 || index >= ImageList.length) return;
@@ -5834,7 +5851,7 @@ int main()
                     UpdateNavButtons();
                     UpdateImageSize();
                 };
-                
+
                 // Function to open modal
                 let OpenImageModal = (imgElement) => {
                     let PreviewImages = [...document.querySelectorAll("img.xmoj-image-preview")];
@@ -5852,22 +5869,22 @@ int main()
                     UpdateNavButtons();
                     UpdateImageSize();
                 };
-                
+
                 // Function to close modal
                 let CloseImageModal = () => {
                     ImageModal.classList.remove("show");
                 };
-                
+
                 // Close button click
                 CloseButton.addEventListener("click", CloseImageModal);
-                
+
                 // Close when clicking outside the image
                 ImageModal.addEventListener("click", (e) => {
                     if (e.target === ImageModal || e.target === ModalContent) {
                         CloseImageModal();
                     }
                 });
-                
+
                 // Keyboard shortcuts
                 document.addEventListener("keydown", (e) => {
                     if (ImageModal.classList.contains("show")) {
@@ -5884,7 +5901,7 @@ int main()
                         }
                     }
                 });
-                
+
                 // Touch events: pan when zoomed, swipe to navigate when at zoom level 1
                 ModalContent.addEventListener("touchstart", (e) => {
                     if (e.touches.length !== 1) return;
@@ -5898,7 +5915,7 @@ int main()
                         IsTouchPanning = false;
                     }
                 }, { passive: true });
-                
+
                 ModalContent.addEventListener("touchmove", (e) => {
                     if (!IsTouchPanning || e.touches.length !== 1) return;
                     PanX = TouchPanStartPanX + (e.touches[0].clientX - TouchStartX);
@@ -5906,7 +5923,7 @@ int main()
                     UpdateImageSize();
                     e.preventDefault();
                 }, { passive: false });
-                
+
                 ModalContent.addEventListener("touchend", (e) => {
                     if (IsTouchPanning) {
                         IsTouchPanning = false;
@@ -5925,7 +5942,7 @@ int main()
                         }
                     }
                 }, { passive: true });
-                
+
                 // Mouse drag to pan when zoomed
                 ModalContent.addEventListener("mousedown", (e) => {
                     if (CurrentZoom <= 1) return;
@@ -5939,14 +5956,14 @@ int main()
                     ModalContent.style.cursor = "grabbing";
                     e.preventDefault();
                 });
-                
+
                 document.addEventListener("mousemove", (e) => {
                     if (!IsDragging) return;
                     PanX = DragStartPanX + (e.clientX - DragStartX);
                     PanY = DragStartPanY + (e.clientY - DragStartY);
                     UpdateImageSize();
                 });
-                
+
                 document.addEventListener("mouseup", () => {
                     if (IsDragging) {
                         IsDragging = false;
@@ -5955,7 +5972,7 @@ int main()
                         ModalContent.style.cursor = CursorStyle;
                     }
                 });
-                
+
                 // Mouse wheel to zoom in/out
                 ModalContent.addEventListener("wheel", (e) => {
                     e.preventDefault();
@@ -5963,36 +5980,36 @@ int main()
                     CurrentZoom = Math.max(MinZoom, Math.min(MaxZoom, CurrentZoom + ZoomDelta));
                     UpdateImageSize();
                 }, { passive: false });
-                
+
                 // Navigation button clicks
                 PrevBtn.addEventListener("click", (e) => {
                     e.stopPropagation();
                     NavigateTo(CurrentImageIndex - 1);
                 });
-                
+
                 NextBtn.addEventListener("click", (e) => {
                     e.stopPropagation();
                     NavigateTo(CurrentImageIndex + 1);
                 });
-                
+
                 // Zoom controls
                 ZoomInBtn.addEventListener("click", () => {
                     CurrentZoom = Math.min(CurrentZoom + ZoomStep, MaxZoom);
                     UpdateImageSize();
                 });
-                
+
                 ZoomOutBtn.addEventListener("click", () => {
                     CurrentZoom = Math.max(CurrentZoom - ZoomStep, MinZoom);
                     UpdateImageSize();
                 });
-                
+
                 ResetZoomBtn.addEventListener("click", () => {
                     CurrentZoom = 1;
                     PanX = 0;
                     PanY = 0;
                     UpdateImageSize();
                 });
-                
+
                 // Save/Download image: fetch via GM_xmlhttpRequest to bypass CORS, then use blob URL for reliable download
                 SaveBtn.addEventListener("click", () => {
                     let src = ModalImage.src;
@@ -6023,7 +6040,7 @@ int main()
                         }
                     });
                 });
-                
+
                 // Apply to all images on the page
                 let ApplyEnlargerToImage = (img) => {
                     const effectiveSrc = img.currentSrc || img.src;
@@ -6047,10 +6064,10 @@ int main()
                 let ApplyEnlargerToImages = () => {
                     document.querySelectorAll("img").forEach(ApplyEnlargerToImage);
                 };
-                
+
                 // Apply to existing images
                 ApplyEnlargerToImages();
-                
+
                 // Apply to dynamically added images
                 let Observer = new MutationObserver((mutations) => {
                     mutations.forEach((mutation) => {
@@ -6064,12 +6081,12 @@ int main()
                         });
                     });
                 });
-                
+
                 Observer.observe(document.body, {
                     childList: true,
                     subtree: true
                 });
-                
+
             } catch (e) {
                 console.error(e);
                 if (UtilityEnabled("DebugMode")) {
