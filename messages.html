@@ -51,25 +51,142 @@
 </nav>
 
 <!-- ==================== SCREEN: LOGIN ==================== -->
-<div id="screen-login" class="container py-4" style="max-width:480px;">
-    <h4 class="mb-3">登录</h4>
-    <p class="text-body-secondary small">短消息 WebUI 让您无需安装用户脚本即可收发 XMOJ 站内短消息，适用于 iOS/iPadOS 等不支持用户脚本的设备。</p>
+<div id="screen-login" class="container py-4" style="max-width:520px;">
+    <h4 class="mb-1">登录</h4>
+    <p class="text-body-secondary small mb-3">无需安装用户脚本，在任意浏览器（包括 iOS Safari）收发 XMOJ 站内短消息。</p>
 
     <ul class="nav nav-tabs mb-3" id="loginTabs">
         <li class="nav-item">
-            <button class="nav-link active" data-tab="bookmarklet">书签登录（推荐）</button>
+            <button class="nav-link active" data-tab="manual">会话登录</button>
         </li>
         <li class="nav-item">
-            <button class="nav-link" data-tab="manual">手动输入</button>
+            <button class="nav-link" data-tab="bookmarklet">书签登录（桌面端）</button>
         </li>
     </ul>
 
-    <!-- Tab: Bookmarklet -->
-    <div id="tab-bookmarklet">
+    <!-- Tab: Manual (default) -->
+    <div id="tab-manual">
+        <p class="small text-body-secondary">
+            先在 <a href="https://www.xmoj.tech" target="_blank" rel="noopener">xmoj.tech</a> 完成登录，
+            再按下方说明找到您的用户名和会话 ID（PHPSESSID）并填入。
+        </p>
+
+        <!-- How-to accordion -->
+        <div class="accordion mb-3" id="howto-accordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed small py-2" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#howto-chrome">
+                        Chrome / Edge / 其他 Chromium 浏览器
+                    </button>
+                </h2>
+                <div id="howto-chrome" class="accordion-collapse collapse" data-bs-parent="#howto-accordion">
+                    <div class="accordion-body small">
+                        <ol class="mb-0 ps-3">
+                            <li>打开 <a href="https://www.xmoj.tech" target="_blank" rel="noopener">xmoj.tech</a> 并登录。</li>
+                            <li>按 <kbd>F12</kbd> 打开开发者工具。</li>
+                            <li>切换到"应用"（Application）标签页。</li>
+                            <li>左侧展开"Cookie" → 点击 <code>https://www.xmoj.tech</code>。</li>
+                            <li>在列表中找到 <code>PHPSESSID</code>，复制其"值"列。</li>
+                            <li>用户名可在页面右上角个人信息处查看。</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed small py-2" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#howto-firefox">
+                        Firefox
+                    </button>
+                </h2>
+                <div id="howto-firefox" class="accordion-collapse collapse" data-bs-parent="#howto-accordion">
+                    <div class="accordion-body small">
+                        <ol class="mb-0 ps-3">
+                            <li>打开 <a href="https://www.xmoj.tech" target="_blank" rel="noopener">xmoj.tech</a> 并登录。</li>
+                            <li>按 <kbd>F12</kbd> 打开开发者工具。</li>
+                            <li>切换到"存储"（Storage）标签页。</li>
+                            <li>左侧展开"Cookie" → 点击 <code>https://www.xmoj.tech</code>。</li>
+                            <li>在列表中找到 <code>PHPSESSID</code>，复制其"值"列。</li>
+                            <li>用户名可在页面右上角个人信息处查看。</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed small py-2" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#howto-safari-mac">
+                        Safari（macOS）
+                    </button>
+                </h2>
+                <div id="howto-safari-mac" class="accordion-collapse collapse" data-bs-parent="#howto-accordion">
+                    <div class="accordion-body small">
+                        <ol class="mb-0 ps-3">
+                            <li>在菜单栏选择"Safari" → "偏好设置" → "高级"，勾选"在菜单栏中显示开发菜单"。</li>
+                            <li>打开 <a href="https://www.xmoj.tech" target="_blank" rel="noopener">xmoj.tech</a> 并登录。</li>
+                            <li>菜单栏选择"开发" → "显示 Web 检查器"。</li>
+                            <li>切换到"存储"标签页 → "Cookie" → 找到 <code>PHPSESSID</code>。</li>
+                            <li>用户名可在页面右上角个人信息处查看。</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed small py-2" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#howto-ios">
+                        iOS / iPadOS Safari
+                    </button>
+                </h2>
+                <div id="howto-ios" class="accordion-collapse collapse" data-bs-parent="#howto-accordion">
+                    <div class="accordion-body small">
+                        <p class="mb-2">iOS Safari 不提供直接查看 Cookie 的界面。有以下两种方法：</p>
+                        <p class="fw-semibold mb-1">方法一：使用桌面端获取后手动输入</p>
+                        <ol class="mb-2 ps-3">
+                            <li>在桌面浏览器（Chrome/Firefox/Safari）中按上方说明找到 PHPSESSID。</li>
+                            <li>将值记录下来，在此处手动填入。</li>
+                        </ol>
+                        <p class="fw-semibold mb-1">方法二：连接 Mac 使用 Safari Web 检查器</p>
+                        <ol class="mb-0 ps-3">
+                            <li>在 iOS 设置 → Safari → 高级 中，打开"Web 检查器"。</li>
+                            <li>用数据线将设备连接到 Mac。</li>
+                            <li>在 Mac 的 Safari → 开发菜单中找到您的设备和 xmoj.tech。</li>
+                            <li>在存储标签页中找到 <code>PHPSESSID</code>。</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control" id="input-username" placeholder="用户名"
+                           autocomplete="username" autocapitalize="none">
+                    <label for="input-username">用户名</label>
+                </div>
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control font-monospace" id="input-phpsessid"
+                           placeholder="PHPSESSID" autocomplete="off" autocapitalize="none">
+                    <label for="input-phpsessid">PHPSESSID（会话 ID）</label>
+                </div>
+                <button class="btn btn-primary w-100" id="btn-manual-login">登录</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab: Bookmarklet (desktop only) -->
+    <div id="tab-bookmarklet" style="display:none;">
+        <div class="alert alert-info small py-2">
+            书签登录仅适用于桌面浏览器（Chrome/Firefox/Edge），移动端请使用"会话登录"。
+        </div>
         <div class="card border-0 shadow-sm mb-3">
             <div class="card-body">
                 <h6 class="card-title">第一步：添加书签</h6>
-                <p class="card-text small text-body-secondary">将下方链接拖动到浏览器书签栏，或复制代码手动新建书签。</p>
+                <p class="card-text small text-body-secondary">
+                    将下方按钮<strong>拖动到书签栏</strong>，或点击"复制代码"后手动新建书签并粘贴为网址。
+                </p>
                 <div class="d-flex gap-2 align-items-start flex-wrap">
                     <a id="bookmarklet-link" href="#" class="btn btn-outline-primary bookmarklet-link"
                        onclick="return false;" draggable="true">&#128278; 登录到短消息 WebUI</a>
@@ -79,30 +196,12 @@
         </div>
         <div class="card border-0 shadow-sm">
             <div class="card-body">
-                <h6 class="card-title">第二步：在 XMOJ 上使用书签</h6>
+                <h6 class="card-title">第二步：在 XMOJ 上点击书签</h6>
                 <ol class="small text-body-secondary mb-0">
-                    <li>前往 <a href="https://www.xmoj.tech" target="_blank">xmoj.tech</a> 并登录。</li>
+                    <li>前往 <a href="https://www.xmoj.tech" target="_blank" rel="noopener">xmoj.tech</a> 并登录。</li>
                     <li>点击刚才添加的书签。</li>
                     <li>页面会自动跳转回此处并完成登录。</li>
                 </ol>
-            </div>
-        </div>
-    </div>
-
-    <!-- Tab: Manual -->
-    <div id="tab-manual" style="display:none;">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <p class="small text-body-secondary">在 xmoj.tech 登录后，从 Cookie 中获取 PHPSESSID（可用浏览器开发者工具查看）。</p>
-                <div class="form-floating mb-3">
-                    <input type="text" class="form-control" id="input-username" placeholder="用户名">
-                    <label for="input-username">用户名</label>
-                </div>
-                <div class="form-floating mb-3">
-                    <input type="text" class="form-control font-monospace" id="input-phpsessid" placeholder="PHPSESSID">
-                    <label for="input-phpsessid">PHPSESSID</label>
-                </div>
-                <button class="btn btn-primary w-100" id="btn-manual-login">登录</button>
             </div>
         </div>
     </div>
