@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
     <meta charset="UTF-8">
     <link rel="icon" href="favicon.ico">
@@ -10,13 +9,112 @@
     <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.bootcdn.net/ajax/libs/marked/9.1.6/marked.min.js"></script>
     <script src="https://cdn.bootcdn.net/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoad" defer></script>
     <style>
+        /* ── Reset ───────────────────────────────────────── */
+        html, body { height: 100%; }
         body {
-            padding-top: 60px;
-            background-color: #f8f9fa;
+            padding-top: 56px;
+            background: #f8f9fa;
         }
 
+        /* ── Split-pane app layout ───────────────────────── */
+        #screen-app {
+            height: calc(100dvh - 56px);
+            overflow: hidden;
+        }
+        .app-layout {
+            display: flex;
+            height: 100%;
+            overflow: hidden;
+        }
+        .app-sidebar {
+            width: 300px;
+            min-width: 240px;
+            flex-shrink: 0;
+            border-right: 1px solid #dee2e6;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .sidebar-header {
+            padding: 10px 12px;
+            border-bottom: 1px solid #dee2e6;
+            flex-shrink: 0;
+        }
+        .sidebar-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .app-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            overflow: hidden;
+            background: #fff;
+        }
+        .thread-header {
+            padding: 10px 16px;
+            border-bottom: 1px solid #dee2e6;
+            flex-shrink: 0;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        #thread-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .compose-area {
+            flex-shrink: 0;
+            border-top: 1px solid #dee2e6;
+            padding: 10px 16px 12px;
+            background: #fff;
+        }
+        .thread-loading-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .thread-welcome {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            gap: 8px;
+            user-select: none;
+        }
+
+        /* ── Mobile ──────────────────────────────────────── */
+        @media (max-width: 767.98px) {
+            .app-layout { position: relative; }
+            .app-sidebar {
+                width: 100%;
+                position: absolute;
+                inset: 0;
+                z-index: 1;
+            }
+            .app-main {
+                width: 100%;
+                position: absolute;
+                inset: 0;
+                z-index: 2;
+                transform: translateX(100%);
+                transition: transform 0.2s ease;
+            }
+            .thread-active .app-main { transform: translateX(0); }
+        }
+
+        /* ── Message bubbles ─────────────────────────────── */
         .msg-bubble-self {
             background-color: #0d6efd;
             color: #fff;
@@ -25,7 +123,6 @@
             max-width: 75%;
             word-break: break-word;
         }
-
         .msg-bubble-other {
             background-color: #e9ecef;
             color: #212529;
@@ -34,12 +131,8 @@
             max-width: 75%;
             word-break: break-word;
         }
-
         .msg-bubble-self .msg-content p:last-child,
-        .msg-bubble-other .msg-content p:last-child {
-            margin-bottom: 0;
-        }
-
+        .msg-bubble-other .msg-content p:last-child { margin-bottom: 0; }
         .msg-bubble-self .msg-content img,
         .msg-bubble-other .msg-content img {
             max-width: 200px;
@@ -49,93 +142,34 @@
             display: block;
             margin-top: 4px;
         }
+        .msg-bubble-self  a    { color: #cfe2ff; }
+        .msg-bubble-other a    { color: #0d6efd; }
+        .msg-bubble-self  code { background: rgba(255,255,255,.2); border-radius:4px; padding:1px 4px; color:#fff; }
+        .msg-bubble-other code { background: rgba(0,0,0,.08); border-radius:4px; padding:1px 4px; }
+        .msg-bubble-self  pre  { background: rgba(255,255,255,.15); border-radius:6px; padding:8px; color:#fff; margin-bottom:0; }
+        .msg-bubble-other pre  { background: rgba(0,0,0,.06); border-radius:6px; padding:8px; margin-bottom:0; }
 
-        .msg-bubble-self a {
-            color: #cfe2ff;
-        }
+        /* ── List items ──────────────────────────────────── */
+        .conv-item { cursor: pointer; }
+        .conv-item:hover    { background: #f0f4ff !important; }
+        .conv-item.is-active { background: #e8f0fe !important; border-left: 3px solid #0d6efd; }
 
-        .msg-bubble-other a {
-            color: #0d6efd;
-        }
-
-        .msg-bubble-self code {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
-            padding: 1px 4px;
-            color: #fff;
-        }
-
-        .msg-bubble-other code {
-            background: rgba(0, 0, 0, 0.08);
-            border-radius: 4px;
-            padding: 1px 4px;
-        }
-
-        .msg-bubble-self pre {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 6px;
-            padding: 8px;
-            color: #fff;
-            margin-bottom: 0;
-        }
-
-        .msg-bubble-other pre {
-            background: rgba(0, 0, 0, 0.06);
-            border-radius: 6px;
-            padding: 8px;
-            margin-bottom: 0;
-        }
-
-        .thread-messages {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            padding-bottom: 8px;
-            min-height: 100px;
-            overflow-y: auto;
-            max-height: calc(100dvh - 280px);
-        }
-
-        .compose-area {
-            position: sticky;
-            bottom: 0;
-            background: #fff;
-            border-top: 1px solid #dee2e6;
-            padding: 10px 0 6px;
-        }
-
-        .unread-badge {
-            font-size: 0.7em;
-        }
-
-        .nav-brand-img {
-            height: 28px;
-        }
-
-        #screen-login .card {
-            border: none;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        }
-
-        .bookmarklet-link {
-            word-break: break-all;
-        }
-
-        .list-group-item-action:hover {
-            background-color: #f0f4ff;
-        }
+        /* ── Misc ────────────────────────────────────────── */
+        .unread-badge  { font-size: .7em; }
+        .nav-brand-img { height: 28px; }
+        #screen-login .card { border: none; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+        .bookmarklet-link   { word-break: break-all; }
     </style>
 </head>
-
 <body>
-    <!-- Top Navbar -->
-    <nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top border-bottom"
-        style="z-index: 1030;">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top border-bottom" style="z-index:1030;">
         <div class="container-fluid">
             <a class="navbar-brand d-flex align-items-center gap-2" href="index.html">
-                <img src="XMOJ.png" class="nav-brand-img">
+                <img src="XMOJ.png" class="nav-brand-img" alt="">
                 XMOJ 短消息
-                <span class="badge bg-warning text-dark" style="font-size:0.65em;">Alpha</span>
+                <span class="badge bg-warning text-dark" style="font-size:.65em;">Alpha</span>
             </a>
             <div class="ms-auto d-flex align-items-center gap-2">
                 <span id="nav-username" class="text-muted small" style="display:none;"></span>
@@ -145,99 +179,59 @@
         </div>
     </nav>
 
-    <!-- ======================== LOGIN SCREEN ======================== -->
+    <!-- Login Screen -->
     <div id="screen-login" class="container py-4" style="display:none;">
         <div class="row justify-content-center">
             <div class="col-12 col-md-7 col-lg-5">
                 <h4 class="mb-4 fw-bold">登录 XMOJ 短消息</h4>
-
-                <ul class="nav nav-tabs mb-0" id="login-tabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="tab-bm-btn" data-bs-toggle="tab"
-                            data-bs-target="#tab-bookmarklet" type="button" role="tab">
+                <ul class="nav nav-tabs mb-0" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active" data-bs-toggle="tab"
+                            data-bs-target="#tab-bookmarklet" type="button">
                             书签登录 <span class="badge bg-success ms-1">推荐</span>
                         </button>
                     </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="tab-manual-btn" data-bs-toggle="tab"
-                            data-bs-target="#tab-manual" type="button" role="tab">
-                            手动输入
-                        </button>
+                    <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="tab"
+                            data-bs-target="#tab-manual" type="button">手动输入</button>
                     </li>
                 </ul>
-
                 <div class="tab-content">
-                    <!-- Bookmarklet Tab -->
+                    <!-- Bookmarklet tab -->
                     <div class="tab-pane fade show active" id="tab-bookmarklet" role="tabpanel">
                         <div class="card rounded-top-0">
                             <div class="card-body">
-                                <p class="text-muted mb-3">
-                                    通过授权书签一键登录，无需手动查找 Cookie。
-                                </p>
-
-                                <div class="alert alert-info py-2 mb-3">
-                                    <strong>使用步骤：</strong>
-                                    <ol class="mb-0 mt-1 ps-3">
-                                        <li>确保已在
-                                            <a href="https://www.xmoj.tech/loginpage.php" target="_blank">xmoj.tech</a>
-                                            上登录
-                                        </li>
-                                        <li>
-                                            将下方的"授权书签"拖到浏览器书签栏
-                                            <br>
-                                            <small class="text-muted">
-                                                iOS/iPadOS 用户：长按链接 → 添加书签，然后编辑书签将地址替换为下方代码
-                                            </small>
-                                        </li>
-                                        <li>在 xmoj.tech 的任意页面点击该书签</li>
-                                        <li>自动跳转回本页完成授权 ✓</li>
-                                    </ol>
+                                <p class="text-muted mb-3">通过授权书签一键登录，无需手动查找 Cookie。</p>
+                                <ol class="mb-3">
+                                    <li>将下方链接<strong>拖拽</strong>到浏览器书签栏（或复制后手动添加）。</li>
+                                    <li>在 <a href="https://www.xmoj.tech/" target="_blank" rel="noopener">xmoj.tech</a> 上<strong>先完成登录</strong>。</li>
+                                    <li>点击该书签，自动跳转回本页面并完成登录。</li>
+                                </ol>
+                                <div class="d-flex gap-2 align-items-center mb-2">
+                                    <a id="bookmarklet-link" href="#"
+                                        class="btn btn-outline-primary btn-sm"
+                                        onclick="return false;">🔖 XMOJ 一键登录</a>
+                                    <button class="btn btn-outline-secondary btn-sm"
+                                        onclick="copyBookmarklet()">复制代码</button>
                                 </div>
-
-                                <div class="mb-3 text-center">
-                                    <a id="bookmarklet-link" href="#" class="btn btn-primary btn-lg">
-                                        🔖 XMOJ 短消息 授权
-                                    </a>
-                                    <div class="text-muted small mt-2">↑ 将此链接拖到书签栏</div>
+                                <textarea id="bookmarklet-code"
+                                    class="form-control form-control-sm font-monospace bookmarklet-link"
+                                    rows="3" readonly style="font-size:.72em;resize:none;"></textarea>
+                                <div class="form-text mt-1">
+                                    iOS / iPadOS：在 Safari 书签管理中新建书签，将 URL 替换为上方代码。
                                 </div>
-
-                                <div class="mb-2">
-                                    <label class="form-label text-muted small mb-1">
-                                        书签代码（iOS 用户：复制后粘贴为书签地址）
-                                    </label>
-                                    <div class="input-group input-group-sm">
-                                        <textarea id="bookmarklet-code" class="form-control font-monospace"
-                                            rows="3" readonly
-                                            style="font-size:0.7em;resize:none;"></textarea>
-                                        <button class="btn btn-outline-secondary" type="button"
-                                            onclick="copyBookmarklet()">复制</button>
-                                    </div>
-                                </div>
-
-                                <hr class="my-3">
-                                <p class="text-center text-muted small mb-0">
-                                    没有账号？
-                                    <a href="https://www.xmoj.tech/register.php" target="_blank">
-                                        前往 xmoj.tech 注册
-                                    </a>
-                                </p>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Manual Tab -->
+                    <!-- Manual tab -->
                     <div class="tab-pane fade" id="tab-manual" role="tabpanel">
                         <div class="card rounded-top-0">
                             <div class="card-body">
-                                <p class="text-muted mb-3">
-                                    手动输入您的用户名和 PHPSESSID（适用于高级用户）。
-                                </p>
-
                                 <div class="mb-3">
                                     <label class="form-label" for="manual-username">用户名</label>
                                     <input type="text" id="manual-username" class="form-control"
-                                        placeholder="XMOJ 用户名" autocomplete="username"
-                                        autocapitalize="none" autocorrect="off">
+                                        placeholder="XMOJ 用户名"
+                                        autocomplete="username" autocapitalize="none" autocorrect="off">
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label" for="manual-phpsessid">PHPSESSID</label>
@@ -250,17 +244,7 @@
                                         <code>PHPSESSID</code> 的值。
                                     </div>
                                 </div>
-
-                                <button class="btn btn-primary w-100" id="manual-login-btn"
-                                    onclick="manualLogin()" disabled>
-                                    登录
-                                </button>
-                                <div class="cf-turnstile mt-3 d-flex justify-content-center"
-                                    data-sitekey="0x4AAAAAAALBT58IhyDViNmv"
-                                    data-callback="onTurnstileSuccess"
-                                    data-expired-callback="onTurnstileExpired"
-                                    data-error-callback="onTurnstileError"></div>
-
+                                <button class="btn btn-primary w-100" onclick="manualLogin()">登录</button>
                                 <div id="manual-error" class="alert alert-danger mt-2 py-2"
                                     style="display:none;"></div>
                             </div>
@@ -271,96 +255,123 @@
         </div>
     </div>
 
-    <!-- ======================== MAIL LIST SCREEN ======================== -->
-    <div id="screen-list" class="container py-3" style="display:none;">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0 fw-bold">📬 收件箱</h5>
-            <button class="btn btn-primary btn-sm" onclick="toggleNewMessage()">
-                ✉️ 新消息
-            </button>
-        </div>
+    <!-- App Screen (split-pane) -->
+    <div id="screen-app" style="display:none;">
+        <div class="app-layout" id="app-layout">
 
-        <!-- New message compose panel -->
-        <div id="new-msg-panel" class="card mb-3" style="display:none;">
-            <div class="card-body py-3">
-                <h6 class="card-title mb-3">发送新消息</h6>
-                <div class="mb-2">
-                    <input type="text" id="new-msg-to" class="form-control form-control-sm"
-                        placeholder="收件人用户名" autocapitalize="none" autocorrect="off">
+            <!-- LEFT: conversation list -->
+            <div class="app-sidebar">
+                <div class="sidebar-header d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold">📬 收件箱</span>
+                    <div class="d-flex gap-1">
+                        <button class="btn btn-outline-secondary btn-sm"
+                            onclick="loadMailList()" title="刷新列表">&#8635;</button>
+                        <button class="btn btn-primary btn-sm"
+                            onclick="toggleNewMessage()">✉️ 新消息</button>
+                    </div>
                 </div>
-                <div class="mb-2">
-                    <textarea id="new-msg-body" class="form-control form-control-sm" rows="3"
-                        placeholder="消息内容（支持 Markdown）"></textarea>
-                </div>
-                <div class="d-flex gap-2">
-                    <button class="btn btn-primary btn-sm" id="new-msg-send-btn" onclick="sendNewMessage()">发送</button>
-                    <button class="btn btn-outline-secondary btn-sm"
-                        onclick="toggleNewMessage()">取消</button>
-                </div>
-                <div id="new-msg-error" class="alert alert-danger mt-2 py-2 mb-0"
-                    style="display:none;"></div>
-            </div>
-        </div>
 
-        <!-- List states -->
-        <div id="list-loading" class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">加载中...</span>
+                <!-- New message panel -->
+                <div id="new-msg-panel" class="border-bottom p-2" style="display:none;">
+                    <div class="mb-2">
+                        <input type="text" id="new-msg-to" class="form-control form-control-sm"
+                            placeholder="收件人用户名"
+                            autocapitalize="none" autocorrect="off">
+                    </div>
+                    <div class="mb-2">
+                        <textarea id="new-msg-body" class="form-control form-control-sm" rows="3"
+                            placeholder="消息内容（支持 Markdown）"></textarea>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary btn-sm" id="new-msg-send-btn"
+                            onclick="sendNewMessage()">发送</button>
+                        <button class="btn btn-outline-secondary btn-sm"
+                            onclick="toggleNewMessage()">取消</button>
+                    </div>
+                    <div id="new-msg-error" class="alert alert-danger mt-2 py-2 mb-0"
+                        style="display:none;"></div>
+                </div>
+
+                <!-- List content -->
+                <div class="sidebar-list">
+                    <div id="list-loading" class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">加载中...</span>
+                        </div>
+                    </div>
+                    <div id="list-error" class="alert alert-danger m-2" style="display:none;"></div>
+                    <div id="list-empty" class="text-center text-muted py-5" style="display:none;">
+                        <div class="fs-1">💌</div>
+                        <div>暂无消息</div>
+                        <div class="small mt-1">点击「新消息」开始对话</div>
+                    </div>
+                    <div id="list-container" class="list-group list-group-flush"
+                        style="display:none;"></div>
+                </div>
             </div>
+
+            <!-- RIGHT: thread view -->
+            <div class="app-main">
+                <!-- Thread header -->
+                <div class="thread-header" id="thread-header" style="display:none;">
+                    <button class="btn btn-outline-secondary btn-sm d-md-none"
+                        onclick="backToList()">&#8592; 返回</button>
+                    <span class="fw-semibold flex-grow-1 text-truncate" id="thread-title">对话</span>
+                    <button class="btn btn-sm btn-outline-primary"
+                        onclick="loadThread()" title="刷新">&#8635;</button>
+                </div>
+
+                <!-- Thread loading state -->
+                <div class="thread-loading-area" id="thread-loading" style="display:none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">加载中...</span>
+                    </div>
+                </div>
+
+                <!-- Thread error state -->
+                <div id="thread-error" class="alert alert-danger m-3" style="display:none;"></div>
+
+                <!-- Messages -->
+                <div id="thread-messages" style="display:none;"></div>
+
+                <!-- Compose area -->
+                <div class="compose-area" id="compose-area" style="display:none;">
+                    <div class="mb-2">
+                        <textarea id="msg-input" class="form-control" rows="3"
+                            placeholder="输入消息（支持 Markdown，Ctrl+Enter 发送，可粘贴图片）"
+                            onkeydown="handleInputKeydown(event)"></textarea>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <label class="btn btn-outline-secondary btn-sm mb-0"
+                            for="img-file-input" title="上传图片">
+                            📎 图片
+                            <input type="file" id="img-file-input" accept="image/*"
+                                style="display:none;" onchange="handleFileUpload(event)">
+                        </label>
+                        <div class="d-flex gap-2 align-items-center">
+                            <span id="upload-indicator" class="text-muted small"
+                                style="display:none;">上传中…</span>
+                            <button class="btn btn-primary btn-sm" id="send-btn"
+                                onclick="sendMessage()">发送</button>
+                        </div>
+                    </div>
+                    <div id="send-error" class="alert alert-danger mt-2 py-2 mb-0"
+                        style="display:none;"></div>
+                </div>
+
+                <!-- Welcome state -->
+                <div class="thread-welcome" id="thread-welcome">
+                    <div style="font-size:3rem;">💬</div>
+                    <div>从左侧选择一个对话</div>
+                    <div class="small">或点击「新消息」发起对话</div>
+                </div>
+            </div>
+
         </div>
-        <div id="list-error" class="alert alert-danger" style="display:none;"></div>
-        <div id="list-empty" class="text-center text-muted py-5" style="display:none;">
-            <div class="fs-1">💌</div>
-            <div>暂无消息，点击「新消息」开始对话</div>
-        </div>
-        <div id="list-container" class="list-group" style="display:none;"></div>
     </div>
 
-    <!-- ======================== THREAD SCREEN ======================== -->
-    <div id="screen-thread" class="container-fluid py-2 px-2 px-md-3" style="display:none;">
-        <div class="d-flex align-items-center gap-2 mb-2">
-            <button class="btn btn-outline-secondary btn-sm" onclick="showList()">← 返回</button>
-            <h5 class="mb-0 fw-bold flex-grow-1 text-truncate" id="thread-title">对话</h5>
-            <button class="btn btn-sm btn-outline-primary" onclick="loadThread()" title="刷新">↻</button>
-        </div>
-
-        <!-- Thread states -->
-        <div id="thread-loading" class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">加载中...</span>
-            </div>
-        </div>
-        <div id="thread-error" class="alert alert-danger" style="display:none;"></div>
-
-        <div id="thread-messages" class="thread-messages"></div>
-
-        <!-- Compose area -->
-        <div class="compose-area" id="compose-area">
-            <div class="mb-2">
-                <textarea id="msg-input" class="form-control" rows="3"
-                    placeholder="输入消息（支持 Markdown，可粘贴图片）"
-                    onkeydown="handleInputKeydown(event)"></textarea>
-            </div>
-            <div class="d-flex align-items-center justify-content-between">
-                <label class="btn btn-outline-secondary btn-sm mb-0" for="img-file-input"
-                    title="上传图片">
-                    📎 图片
-                    <input type="file" id="img-file-input" accept="image/*"
-                        style="display:none;" onchange="handleFileUpload(event)">
-                </label>
-                <div class="d-flex gap-2">
-                    <span id="upload-indicator" class="text-muted small align-self-center"
-                        style="display:none;">上传中…</span>
-                    <button class="btn btn-primary btn-sm" id="send-btn" onclick="sendMessage()">发送</button>
-                </div>
-            </div>
-            <div id="send-error" class="alert alert-danger mt-2 py-2 mb-0"
-                style="display:none;"></div>
-        </div>
-    </div>
-
-    <!-- Toast notifications -->
-    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 2000;">
+    <!-- Toast -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index:2000;">
         <div id="main-toast" class="toast align-items-center" role="alert" aria-live="assertive">
             <div class="d-flex">
                 <div class="toast-body" id="toast-body"></div>
@@ -374,10 +385,9 @@
     <div class="modal fade" id="img-viewer-modal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-xl">
             <div class="modal-content bg-transparent border-0">
-                <div class="modal-body p-1 text-center"
-                    onclick="bootstrap.Modal.getInstance(document.getElementById('img-viewer-modal')).hide()">
+                <div class="modal-body p-0 text-center">
                     <img id="img-viewer-src" src="" class="img-fluid rounded"
-                        style="max-height:90dvh; cursor:zoom-out;">
+                        style="max-height:85vh;" alt="">
                 </div>
             </div>
         </div>
@@ -386,44 +396,43 @@
     <script>
         'use strict';
 
-        // ═══════════════════════════════════════════════════
+        // =========================================================
         //  CONSTANTS
-        // ═══════════════════════════════════════════════════
-        const API_BASE = 'https://api.xmoj-bbs.me/';
-        const XMOJ_URL = 'https://www.xmoj.tech/';
-        // WebUI version sent to the API as a client identifier (independent of the userscript version)
+        // =========================================================
+        // All API calls go through the same-origin Cloudflare Pages Function
+        // at /api-proxy/ which forwards to https://api.xmoj-bbs.me/ server-side,
+        // eliminating CORS issues from any deployment domain.
+        const API_BASE = '/api-proxy/';
         const WEBUI_VERSION = '1.0.0';
-        const STORAGE_USER = 'xmoj-msg-username';
+        const STORAGE_USER    = 'xmoj-msg-username';
         const STORAGE_SESSION = 'xmoj-msg-phpsessid';
-        const SCROLL_BOTTOM_THRESHOLD = 60; // px — treat user as "at bottom" within this margin
-        const THREAD_REFRESH_INTERVAL_MS = 10000; // 10 s auto-refresh for open threads
-        // Cloudflare Turnstile site key (shared with userscript)
-        const TURNSTILE_SITE_KEY = '0x4AAAAAAALBT58IhyDViNmv';
-        // Client-side rate limiting for SendMail
-        const RATE_LIMIT_MAX = 5;         // max messages per window
-        const RATE_LIMIT_WINDOW_MS = 60000; // 60 s rolling window
+        const SCROLL_BOTTOM_THRESHOLD    = 60;    // px
+        const THREAD_REFRESH_INTERVAL_MS = 10000; // 10 s
+        const LIST_REFRESH_INTERVAL_MS   = 30000; // 30 s background list refresh
+        const RATE_LIMIT_MAX             = 5;
+        const RATE_LIMIT_WINDOW_MS       = 60000; // 60 s
 
-        // ═══════════════════════════════════════════════════
+        // =========================================================
         //  STATE
-        // ═══════════════════════════════════════════════════
-        let currentUser = null;   // { username, phpsessid }
-        let currentThread = null; // string (other user)
-        let refreshTimer = null;
-        let turnstileOk = false;  // Cloudflare Turnstile challenge passed (or fell back)
-        let sendTimestamps = [];  // rolling timestamps for rate limiting
+        // =========================================================
+        let currentUser   = null;
+        let currentThread = null;
+        let threadRefreshTimer = null;
+        let listRefreshTimer   = null;
+        let sendTimestamps     = [];
 
-        // ═══════════════════════════════════════════════════
-        //  SESSION MANAGEMENT
-        // ═══════════════════════════════════════════════════
+        // =========================================================
+        //  SESSION
+        // =========================================================
         function saveSession(username, phpsessid) {
-            localStorage.setItem(STORAGE_USER, username);
+            localStorage.setItem(STORAGE_USER,    username);
             localStorage.setItem(STORAGE_SESSION, phpsessid);
             currentUser = { username, phpsessid };
             updateNavbar();
         }
 
         function loadSession() {
-            const username = localStorage.getItem(STORAGE_USER);
+            const username  = localStorage.getItem(STORAGE_USER);
             const phpsessid = localStorage.getItem(STORAGE_SESSION);
             if (username && phpsessid) {
                 currentUser = { username, phpsessid };
@@ -436,92 +445,114 @@
         function logout() {
             localStorage.removeItem(STORAGE_USER);
             localStorage.removeItem(STORAGE_SESSION);
-            currentUser = null;
+            currentUser   = null;
             currentThread = null;
-            stopAutoRefresh();
+            stopAllTimers();
             updateNavbar();
-            showScreen('screen-login');
+            showLoginScreen();
         }
 
         function updateNavbar() {
-            const el = document.getElementById('nav-username');
+            const el  = document.getElementById('nav-username');
             const btn = document.getElementById('nav-logout');
             if (currentUser) {
-                el.textContent = currentUser.username;
-                el.style.display = '';
+                el.textContent    = currentUser.username;
+                el.style.display  = '';
                 btn.style.display = '';
             } else {
-                el.style.display = 'none';
+                el.style.display  = 'none';
                 btn.style.display = 'none';
             }
         }
 
-        // ═══════════════════════════════════════════════════
-        //  SCREEN MANAGEMENT
-        // ═══════════════════════════════════════════════════
-        function showScreen(id) {
-            ['screen-login', 'screen-list', 'screen-thread'].forEach(s => {
-                document.getElementById(s).style.display = (s === id) ? '' : 'none';
-            });
+        // =========================================================
+        //  SCREEN / PANE MANAGEMENT
+        // =========================================================
+        function showLoginScreen() {
+            document.getElementById('screen-login').style.display = '';
+            document.getElementById('screen-app').style.display   = 'none';
         }
 
-        // ═══════════════════════════════════════════════════
+        function showAppScreen() {
+            document.getElementById('screen-login').style.display = 'none';
+            document.getElementById('screen-app').style.display   = '';
+        }
+
+        function showThreadPane() {
+            document.getElementById('app-layout').classList.add('thread-active');
+        }
+
+        function backToList() {
+            document.getElementById('app-layout').classList.remove('thread-active');
+        }
+
+        function setThreadVisible(visible) {
+            document.getElementById('thread-header').style.display   = visible ? '' : 'none';
+            document.getElementById('thread-messages').style.display  = visible ? '' : 'none';
+            document.getElementById('compose-area').style.display     = visible ? '' : 'none';
+            document.getElementById('thread-welcome').style.display   = visible ? 'none' : '';
+            document.getElementById('thread-loading').style.display   = 'none';
+            document.getElementById('thread-error').style.display     = 'none';
+        }
+
+        function stopAllTimers() {
+            if (threadRefreshTimer) { clearInterval(threadRefreshTimer); threadRefreshTimer = null; }
+            if (listRefreshTimer)   { clearInterval(listRefreshTimer);   listRefreshTimer   = null; }
+        }
+
+        // =========================================================
         //  API
-        // ═══════════════════════════════════════════════════
+        // =========================================================
         async function apiCall(action, data) {
             if (!currentUser) throw new Error('未登录');
             const body = JSON.stringify({
                 Authentication: {
                     SessionID: currentUser.phpsessid,
-                    Username: currentUser.username
+                    Username:  currentUser.username
                 },
-                Data: data,
+                Data:    data,
                 Version: WEBUI_VERSION
             });
             const response = await fetch(API_BASE + action, {
-                method: 'POST',
+                method:  'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Cache-Control': 'no-cache',
-                    'XMOJ-UserID': currentUser.username,
+                    'Content-Type':        'application/json',
+                    'Cache-Control':       'no-cache',
+                    'XMOJ-UserID':         currentUser.username,
                     'XMOJ-Script-Version': WEBUI_VERSION
                 },
                 body
             });
-            if (!response.ok) {
-                throw new Error('服务器返回 HTTP ' + response.status);
-            }
+            if (!response.ok) throw new Error('服务器返回 HTTP ' + response.status);
             return response.json();
         }
 
         function isAuthError(result) {
             if (!result.Success && result.Message) {
-                const msg = result.Message.toLowerCase();
-                return msg.includes('session') || msg.includes('auth')
-                    || msg.includes('login') || msg.includes('unauthorized')
-                    || msg.includes('invalid');
+                const m = result.Message.toLowerCase();
+                return m.includes('session') || m.includes('auth')
+                    || m.includes('login')   || m.includes('unauthorized')
+                    || m.includes('invalid');
             }
             return false;
         }
 
-        // ═══════════════════════════════════════════════════
+        // =========================================================
         //  HELPERS
-        // ═══════════════════════════════════════════════════
+        // =========================================================
         function escapeHtml(str) {
             return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;');
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
 
         function formatRelativeTime(ts) {
             if (!ts) return '';
             const diff = Math.floor((Date.now() - Number(ts)) / 1000);
-            if (diff < 60) return '刚刚';
-            if (diff < 3600) return Math.floor(diff / 60) + ' 分钟前';
+            if (diff < 60)    return '刚刚';
+            if (diff < 3600)  return Math.floor(diff / 60) + ' 分钟前';
             if (diff < 86400) return Math.floor(diff / 3600) + ' 小时前';
-            if (diff < 86400 * 7) return Math.floor(diff / 86400) + ' 天前';
+            if (diff < 604800) return Math.floor(diff / 86400) + ' 天前';
             return new Date(Number(ts)).toLocaleDateString('zh-CN');
         }
 
@@ -531,12 +562,11 @@
             return DOMPurify.sanitize(html, {
                 ADD_ATTR: ['target', 'rel'],
                 ALLOWED_TAGS: [
-                    'p', 'br', 'strong', 'em', 'del', 'code', 'pre',
-                    'ul', 'ol', 'li', 'a', 'img', 'blockquote',
-                    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-                    'hr', 'table', 'thead', 'tbody', 'tr', 'th', 'td'
+                    'p','br','strong','em','del','code','pre',
+                    'ul','ol','li','a','img','blockquote',
+                    'h1','h2','h3','h4','h5','h6',
+                    'hr','table','thead','tbody','tr','th','td'
                 ],
-                // Only allow safe URL schemes in href/src to prevent data: URI XSS
                 ALLOWED_URI_REGEXP: /^(?:https?|ftp):\/\//i
             });
         }
@@ -553,49 +583,13 @@
         function showToast(msg) {
             document.getElementById('toast-body').textContent = msg;
             bootstrap.Toast.getOrCreateInstance(
-                document.getElementById('main-toast'),
-                { delay: 3000 }
+                document.getElementById('main-toast'), { delay: 3000 }
             ).show();
         }
 
-        function stopAutoRefresh() {
-            if (refreshTimer) {
-                clearInterval(refreshTimer);
-                refreshTimer = null;
-            }
-        }
-
-        // ═══════════════════════════════════════════════════
-        //  TURNSTILE (anti-bot) — callbacks must be global
-        // ═══════════════════════════════════════════════════
-        function onTurnstileSuccess(token) {
-            turnstileOk = true;
-            const btn = document.getElementById('manual-login-btn');
-            if (btn) btn.disabled = false;
-        }
-        function onTurnstileExpired() {
-            turnstileOk = false;
-            const btn = document.getElementById('manual-login-btn');
-            if (btn) btn.disabled = true;
-        }
-        function onTurnstileError() {
-            // On error (e.g. network / ad-blocker) fall through so users aren't locked out
-            turnstileOk = true;
-            const btn = document.getElementById('manual-login-btn');
-            if (btn) btn.disabled = false;
-        }
-        // Fallback: if Turnstile hasn't initialised within 5 s, allow login anyway
-        setTimeout(() => {
-            if (!turnstileOk) {
-                turnstileOk = true;
-                const btn = document.getElementById('manual-login-btn');
-                if (btn) btn.disabled = false;
-            }
-        }, 5000);
-
-        // ═══════════════════════════════════════════════════
+        // =========================================================
         //  RATE LIMITING
-        // ═══════════════════════════════════════════════════
+        // =========================================================
         function checkSendRateLimit() {
             const now = Date.now();
             sendTimestamps = sendTimestamps.filter(ts => now - ts < RATE_LIMIT_WINDOW_MS);
@@ -609,13 +603,12 @@
             return { ok: true };
         }
 
-        // ═══════════════════════════════════════════════════
+        // =========================================================
         //  LOGIN
-        // ═══════════════════════════════════════════════════
+        // =========================================================
         function generateBookmarklet() {
             const returnUrl = window.location.origin + window.location.pathname;
-            // Build the bookmarklet as a compact function
-            const code = `javascript:(function(){`
+            return `javascript:(function(){`
                 + `if(!location.hostname.match(/xmoj\\.tech|116\\.62\\.212\\.172/)){`
                 + `alert('\\u8bf7\\u5728 xmoj.tech \\u4e0a\\u4f7f\\u7528\\u6b64\\u4e66\\u7b3e\\uff01');return;}`
                 + `var m=document.cookie.match(/(?:^|;\\s*)PHPSESSID=([^;]+)/);`
@@ -627,7 +620,6 @@
                 + `if(!u)return;`
                 + `location.href='${returnUrl}#session='+encodeURIComponent(u)+':'+encodeURIComponent(p);`
                 + `})()`;
-            return code;
         }
 
         function copyBookmarklet() {
@@ -638,188 +630,164 @@
         }
 
         function manualLogin() {
-            const username = (document.getElementById('manual-username').value || '').trim();
+            const username  = (document.getElementById('manual-username').value  || '').trim();
             const phpsessid = (document.getElementById('manual-phpsessid').value || '').trim();
             const errEl = document.getElementById('manual-error');
-
-            if (!turnstileOk) {
-                errEl.textContent = '请先完成人机验证';
-                errEl.style.display = '';
-                return;
-            }
-            if (!username) {
-                errEl.textContent = '请输入用户名';
-                errEl.style.display = '';
-                return;
-            }
-            if (!phpsessid) {
-                errEl.textContent = '请输入 PHPSESSID';
-                errEl.style.display = '';
-                return;
-            }
+            if (!username)  { errEl.textContent = '请输入用户名';      errEl.style.display = ''; return; }
+            if (!phpsessid) { errEl.textContent = '请输入 PHPSESSID'; errEl.style.display = ''; return; }
             errEl.style.display = 'none';
             saveSession(username, phpsessid);
-            showList();
+            startApp();
         }
 
-        // ═══════════════════════════════════════════════════
-        //  MAIL LIST
-        // ═══════════════════════════════════════════════════
-        function showList() {
-            stopAutoRefresh();
-            currentThread = null;
-            showScreen('screen-list');
-            document.getElementById('new-msg-panel').style.display = 'none';
+        // =========================================================
+        //  APP ENTRY
+        // =========================================================
+        function startApp() {
+            showAppScreen();
+            setThreadVisible(false);
             loadMailList();
+            if (listRefreshTimer) clearInterval(listRefreshTimer);
+            listRefreshTimer = setInterval(loadMailList, LIST_REFRESH_INTERVAL_MS);
         }
 
+        // =========================================================
+        //  MAIL LIST
+        // =========================================================
         async function loadMailList() {
-            const loading = document.getElementById('list-loading');
-            const errEl = document.getElementById('list-error');
-            const emptyEl = document.getElementById('list-empty');
+            const loading   = document.getElementById('list-loading');
+            const errEl     = document.getElementById('list-error');
+            const emptyEl   = document.getElementById('list-empty');
             const container = document.getElementById('list-container');
 
-            loading.style.display = '';
+            if (container.children.length === 0) loading.style.display = '';
             errEl.style.display = 'none';
-            emptyEl.style.display = 'none';
-            container.style.display = 'none';
 
             try {
                 const result = await apiCall('GetMailList', {});
                 loading.style.display = 'none';
 
                 if (!result.Success) {
-                    if (isAuthError(result)) {
-                        logout();
-                        showToast('会话已过期，请重新登录');
-                        return;
-                    }
-                    errEl.textContent = result.Message || '加载收件箱失败';
+                    if (isAuthError(result)) { logout(); showToast('会话已过期，请重新登录'); return; }
+                    errEl.textContent   = result.Message || '加载收件箱失败';
                     errEl.style.display = '';
                     return;
                 }
 
                 const list = (result.Data && result.Data.MailList) || [];
                 if (list.length === 0) {
-                    emptyEl.style.display = '';
+                    emptyEl.style.display   = '';
+                    container.style.display = 'none';
+                    container.innerHTML     = '';
                 } else {
-                    container.innerHTML = '';
+                    emptyEl.style.display = 'none';
+                    container.innerHTML   = '';
                     list.forEach(item => {
                         const a = document.createElement('a');
-                        a.href = '#';
-                        a.className = 'list-group-item list-group-item-action py-3';
-                        a.addEventListener('click', e => {
-                            e.preventDefault();
-                            openThread(item.OtherUser);
-                        });
-
+                        a.href      = '#';
+                        a.className = 'list-group-item list-group-item-action py-3 conv-item'
+                            + (item.OtherUser === currentThread ? ' is-active' : '');
+                        a.addEventListener('click', e => { e.preventDefault(); openThread(item.OtherUser); });
                         const preview = stripMarkdown(item.LastsMessage);
-                        const previewShort = preview.length > 60
-                            ? preview.substring(0, 60) + '…'
-                            : preview;
-                        const unreadBadge = item.UnreadCount > 0
-                            ? `<span class="badge bg-danger unread-badge ms-1">${item.UnreadCount}</span>`
-                            : '';
-
+                        const short   = preview.length > 60 ? preview.substring(0, 60) + '\u2026' : preview;
+                        const badge   = item.UnreadCount > 0
+                            ? `<span class="badge bg-danger unread-badge ms-1">${item.UnreadCount}</span>` : '';
                         a.innerHTML = `
                             <div class="d-flex justify-content-between align-items-start">
-                                <div class="fw-semibold">
-                                    ${escapeHtml(item.OtherUser)}${unreadBadge}
-                                </div>
-                                <small class="text-muted text-nowrap ms-2">
-                                    ${formatRelativeTime(item.SendTime)}
-                                </small>
+                                <div class="fw-semibold">${escapeHtml(item.OtherUser)}${badge}</div>
+                                <small class="text-muted text-nowrap ms-2">${formatRelativeTime(item.SendTime)}</small>
                             </div>
-                            <small class="text-muted">${escapeHtml(previewShort)}</small>
-                        `;
+                            <small class="text-muted">${escapeHtml(short)}</small>`;
                         container.appendChild(a);
                     });
                     container.style.display = '';
                 }
             } catch (err) {
                 loading.style.display = 'none';
-                errEl.innerHTML = `连接失败：${escapeHtml(err.message)}`
-                    + `<br><small class="text-muted">请确认已登录，且 API 服务正常。</small>`;
+                errEl.innerHTML = `\u8fde\u63a5\u5931\u8d25\uff1a${escapeHtml(err.message)}`
+                    + `<br><small class="text-muted">\u8bf7\u786e\u8ba4\u5df2\u767b\u5f55\uff0c\u4e14\u7f51\u7edc/\u670d\u52a1\u6b63\u5e38\u3002</small>`;
                 errEl.style.display = '';
             }
         }
 
         function toggleNewMessage() {
-            const panel = document.getElementById('new-msg-panel');
+            const panel   = document.getElementById('new-msg-panel');
             const isHidden = panel.style.display === 'none';
             panel.style.display = isHidden ? '' : 'none';
             if (isHidden) {
                 document.getElementById('new-msg-to').focus();
             } else {
-                document.getElementById('new-msg-to').value = '';
+                document.getElementById('new-msg-to').value   = '';
                 document.getElementById('new-msg-body').value = '';
                 document.getElementById('new-msg-error').style.display = 'none';
             }
         }
 
         async function sendNewMessage() {
-            const toUser = (document.getElementById('new-msg-to').value || '').trim();
+            const toUser  = (document.getElementById('new-msg-to').value  || '').trim();
             const content = (document.getElementById('new-msg-body').value || '').trim();
-            const errEl = document.getElementById('new-msg-error');
+            const errEl   = document.getElementById('new-msg-error');
             const sendBtn = document.getElementById('new-msg-send-btn');
-
-            if (!toUser) { errEl.textContent = '请输入收件人用户名'; errEl.style.display = ''; return; }
-            if (!content) { errEl.textContent = '请输入消息内容'; errEl.style.display = ''; return; }
+            if (!toUser)  { errEl.textContent = '\u8bf7\u8f93\u5165\u6536\u4ef6\u4eba\u7528\u6237\u540d'; errEl.style.display = ''; return; }
+            if (!content) { errEl.textContent = '\u8bf7\u8f93\u5165\u6d88\u606f\u5185\u5bb9';             errEl.style.display = ''; return; }
             errEl.style.display = 'none';
-
-            sendBtn.disabled = true;
-            const origHTML = sendBtn.innerHTML;
-            sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
+            sendBtn.disabled    = true;
+            const origHTML      = sendBtn.innerHTML;
+            sendBtn.innerHTML   = '<span class="spinner-border spinner-border-sm" role="status"></span>';
             try {
                 const result = await apiCall('SendMail', { ToUser: toUser, Content: content });
                 if (result.Success) {
                     toggleNewMessage();
                     openThread(toUser);
                 } else {
-                    errEl.textContent = result.Message || '发送失败';
+                    errEl.textContent   = result.Message || '\u53d1\u9001\u5931\u8d25';
                     errEl.style.display = '';
                 }
             } catch (err) {
-                errEl.textContent = '发送失败：' + err.message;
+                errEl.textContent   = '\u53d1\u9001\u5931\u8d25\uff1a' + err.message;
                 errEl.style.display = '';
             } finally {
-                sendBtn.disabled = false;
+                sendBtn.disabled  = false;
                 sendBtn.innerHTML = origHTML;
             }
         }
 
-        // ═══════════════════════════════════════════════════
+        // =========================================================
         //  THREAD
-        // ═══════════════════════════════════════════════════
+        // =========================================================
         async function openThread(otherUser) {
-            stopAutoRefresh();
-            currentThread = otherUser;
-            showScreen('screen-thread');
-            document.getElementById('thread-title').textContent = '与 ' + otherUser + ' 的对话';
-            document.getElementById('msg-input').value = '';
-            document.getElementById('send-error').style.display = 'none';
+            if (threadRefreshTimer) { clearInterval(threadRefreshTimer); threadRefreshTimer = null; }
 
-            // Mark as read (non-critical)
+            currentThread = otherUser;
+            document.getElementById('thread-title').textContent     = '\u4e0e ' + otherUser + ' \u7684\u5bf9\u8bdd';
+            document.getElementById('msg-input').value              = '';
+            document.getElementById('send-error').style.display     = 'none';
+            document.getElementById('thread-messages').innerHTML    = '';
+            setThreadVisible(true);
+            showThreadPane();
+
+            document.querySelectorAll('#list-container .conv-item').forEach(el => {
+                const nameEl = el.querySelector('.fw-semibold');
+                const name   = nameEl ? nameEl.firstChild.textContent.trim() : '';
+                el.classList.toggle('is-active', name === otherUser);
+            });
+
             apiCall('ReadUserMailMention', { UserID: otherUser }).catch(() => {});
 
             await loadThread();
-
-            // Auto-refresh every THREAD_REFRESH_INTERVAL_MS
-            refreshTimer = setInterval(loadThread, THREAD_REFRESH_INTERVAL_MS);
+            threadRefreshTimer = setInterval(loadThread, THREAD_REFRESH_INTERVAL_MS);
+            loadMailList();
         }
 
         async function loadThread() {
             if (!currentThread) return;
 
-            const loading = document.getElementById('thread-loading');
-            const errEl = document.getElementById('thread-error');
+            const loading    = document.getElementById('thread-loading');
+            const errEl      = document.getElementById('thread-error');
             const messagesEl = document.getElementById('thread-messages');
+            const isFirst    = messagesEl.children.length === 0;
 
-            // Only show full spinner on first load
-            const isFirstLoad = messagesEl.children.length === 0;
-            if (isFirstLoad) {
-                loading.style.display = '';
-            }
+            if (isFirst) loading.style.display = '';
             errEl.style.display = 'none';
 
             try {
@@ -828,24 +796,23 @@
 
                 if (!result.Success) {
                     if (isAuthError(result)) {
-                        stopAutoRefresh();
+                        if (threadRefreshTimer) { clearInterval(threadRefreshTimer); threadRefreshTimer = null; }
                         logout();
-                        showToast('会话已过期，请重新登录');
+                        showToast('\u4f1a\u8bdd\u5df2\u8fc7\u671f\uff0c\u8bf7\u91cd\u65b0\u767b\u5f55');
                         return;
                     }
-                    errEl.textContent = result.Message || '加载消息失败';
+                    errEl.textContent   = result.Message || '\u52a0\u8f7d\u6d88\u606f\u5931\u8d25';
                     errEl.style.display = '';
                     return;
                 }
 
-                const mails = (result.Data && result.Data.Mail) || [];
-                const wasAtBottom = messagesEl.scrollHeight - messagesEl.scrollTop
+                const mails     = (result.Data && result.Data.Mail) || [];
+                const wasAtBot  = messagesEl.scrollHeight - messagesEl.scrollTop
                     <= messagesEl.clientHeight + SCROLL_BOTTOM_THRESHOLD;
 
-                // Build new content
                 messagesEl.innerHTML = '';
                 mails.forEach(msg => {
-                    const isSelf = msg.FromUser === currentUser.username;
+                    const isSelf  = msg.FromUser === currentUser.username;
                     const wrapper = document.createElement('div');
                     wrapper.className = 'd-flex ' + (isSelf ? 'justify-content-end' : 'justify-content-start');
 
@@ -855,22 +822,18 @@
                     const contentEl = document.createElement('div');
                     contentEl.className = 'msg-content';
                     contentEl.innerHTML = renderMarkdown(msg.Content);
-
-                    // Make images clickable
                     contentEl.querySelectorAll('img').forEach(img => {
                         img.addEventListener('click', () => viewImage(img.src));
                         img.setAttribute('loading', 'lazy');
                     });
-
-                    // Open links in new tab
                     contentEl.querySelectorAll('a').forEach(a => {
                         a.setAttribute('target', '_blank');
-                        a.setAttribute('rel', 'noopener noreferrer');
+                        a.setAttribute('rel',    'noopener noreferrer');
                     });
 
                     const timeEl = document.createElement('div');
-                    timeEl.style.cssText = 'font-size:0.7em;margin-top:4px;opacity:0.7;';
-                    timeEl.textContent = formatRelativeTime(msg.SendTime);
+                    timeEl.style.cssText = 'font-size:.7em;margin-top:4px;opacity:.7;';
+                    timeEl.textContent   = formatRelativeTime(msg.SendTime);
 
                     bubble.appendChild(contentEl);
                     bubble.appendChild(timeEl);
@@ -878,21 +841,18 @@
                     messagesEl.appendChild(wrapper);
                 });
 
-                if (isFirstLoad || wasAtBottom) {
-                    messagesEl.scrollTop = messagesEl.scrollHeight;
-                }
+                if (isFirst || wasAtBot) messagesEl.scrollTop = messagesEl.scrollHeight;
             } catch (err) {
                 loading.style.display = 'none';
-                errEl.innerHTML = `连接失败：${escapeHtml(err.message)}`;
-                errEl.style.display = '';
+                errEl.innerHTML       = `\u8fde\u63a5\u5931\u8d25\uff1a${escapeHtml(err.message)}`;
+                errEl.style.display   = '';
             }
         }
 
-        // ═══════════════════════════════════════════════════
+        // =========================================================
         //  SEND MESSAGE
-        // ═══════════════════════════════════════════════════
+        // =========================================================
         function handleInputKeydown(e) {
-            // Ctrl+Enter or Cmd+Enter to send
             if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
                 e.preventDefault();
                 sendMessage();
@@ -900,45 +860,43 @@
         }
 
         async function sendMessage() {
-            const input = document.getElementById('msg-input');
+            const input   = document.getElementById('msg-input');
             const sendBtn = document.getElementById('send-btn');
-            const errEl = document.getElementById('send-error');
+            const errEl   = document.getElementById('send-error');
             const content = (input.value || '').trim();
-
             if (!content || !currentThread) return;
 
             const rateCheck = checkSendRateLimit();
             if (!rateCheck.ok) {
-                errEl.textContent = `发送过于频繁，请等待 ${rateCheck.waitSecs} 秒后再试`;
+                errEl.textContent   = `\u53d1\u9001\u8fc7\u4e8e\u9891\u7e41\uff0c\u8bf7\u7b49\u5f85 ${rateCheck.waitSecs} \u79d2\u540e\u518d\u8bd5`;
                 errEl.style.display = '';
                 return;
             }
             errEl.style.display = 'none';
-
-            sendBtn.disabled = true;
-            const origHTML = sendBtn.innerHTML;
-            sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
+            sendBtn.disabled    = true;
+            const origHTML      = sendBtn.innerHTML;
+            sendBtn.innerHTML   = '<span class="spinner-border spinner-border-sm" role="status"></span>';
             try {
                 const result = await apiCall('SendMail', { ToUser: currentThread, Content: content });
                 if (result.Success) {
                     input.value = '';
                     await loadThread();
                 } else {
-                    errEl.textContent = result.Message || '发送失败';
+                    errEl.textContent   = result.Message || '\u53d1\u9001\u5931\u8d25';
                     errEl.style.display = '';
                 }
             } catch (err) {
-                errEl.textContent = '发送失败：' + err.message;
+                errEl.textContent   = '\u53d1\u9001\u5931\u8d25\uff1a' + err.message;
                 errEl.style.display = '';
             } finally {
-                sendBtn.disabled = false;
+                sendBtn.disabled  = false;
                 sendBtn.innerHTML = origHTML;
             }
         }
 
-        // ═══════════════════════════════════════════════════
+        // =========================================================
         //  IMAGE UPLOAD
-        // ═══════════════════════════════════════════════════
+        // =========================================================
         async function uploadImageData(base64DataUrl) {
             const indicator = document.getElementById('upload-indicator');
             indicator.style.display = '';
@@ -947,13 +905,12 @@
                 indicator.style.display = 'none';
                 if (result.Success) {
                     return `https://api.xmoj-bbs.me/GetImage?ImageID=${result.Data.ImageID}`;
-                } else {
-                    showToast('图片上传失败：' + (result.Message || '未知错误'));
-                    return null;
                 }
+                showToast('\u56fe\u7247\u4e0a\u4f20\u5931\u8d25\uff1a' + (result.Message || '\u672a\u77e5\u9519\u8bef'));
+                return null;
             } catch (err) {
                 indicator.style.display = 'none';
-                showToast('图片上传失败：' + err.message);
+                showToast('\u56fe\u7247\u4e0a\u4f20\u5931\u8d25\uff1a' + err.message);
                 return null;
             }
         }
@@ -961,24 +918,19 @@
         let _uploadCounter = 0;
 
         async function insertImageIntoInput(file) {
-            const input = document.getElementById('msg-input');
+            const input    = document.getElementById('msg-input');
             const selStart = input.selectionStart;
-            const selEnd = input.selectionEnd;
-            const before = input.value.substring(0, selStart);
-            const after = input.value.substring(selEnd);
-            // Use a unique placeholder per upload so concurrent uploads don't overwrite each other
-            const uid = ++_uploadCounter;
-            const placeholder = `![上传中…_${uid}]()`;
-
-            input.value = before + placeholder + after;
-            input.setSelectionRange(selStart, selStart + placeholder.length);
+            const selEnd   = input.selectionEnd;
+            const uid      = ++_uploadCounter;
+            const ph       = `![\u4e0a\u4f20\u4e2d\u2026_${uid}]()`;
+            input.value    = input.value.substring(0, selStart) + ph + input.value.substring(selEnd);
+            input.setSelectionRange(selStart, selStart + ph.length);
 
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = async () => {
-                const url = await uploadImageData(reader.result);
-                const replacement = url ? `![图片](${url})` : '';
-                input.value = input.value.replace(placeholder, replacement);
+                const url   = await uploadImageData(reader.result);
+                input.value = input.value.replace(ph, url ? `![\u56fe\u7247](${url})` : '');
             };
         }
 
@@ -995,13 +947,13 @@
             ).show();
         }
 
-        // ═══════════════════════════════════════════════════
+        // =========================================================
         //  INITIALIZATION
-        // ═══════════════════════════════════════════════════
+        // =========================================================
         document.addEventListener('DOMContentLoaded', () => {
-            // Set up paste-to-upload on the message input
-            const msgInput = document.getElementById('msg-input');
-            msgInput.addEventListener('paste', e => {
+
+            // Paste image into compose
+            document.getElementById('msg-input').addEventListener('paste', e => {
                 const items = (e.clipboardData || {}).items || [];
                 for (let i = 0; i < items.length; i++) {
                     if (items[i].type.startsWith('image/')) {
@@ -1012,64 +964,56 @@
                 }
             });
 
-            // Generate bookmarklet
+            // Populate bookmarklet
             const bmCode = generateBookmarklet();
-            document.getElementById('bookmarklet-link').href = bmCode;
+            document.getElementById('bookmarklet-link').href  = bmCode;
             document.getElementById('bookmarklet-code').value = bmCode;
 
-            // Check for session data in URL hash (from bookmarklet redirect)
+            // Handle bookmarklet redirect (#session=user:phpsessid)
             const hash = window.location.hash;
             if (hash.startsWith('#session=')) {
-                const payload = hash.substring(9);
+                const payload  = hash.substring(9);
                 const colonIdx = payload.indexOf(':');
                 if (colonIdx > 0) {
                     try {
-                        const username = decodeURIComponent(payload.substring(0, colonIdx));
+                        const username  = decodeURIComponent(payload.substring(0, colonIdx));
                         const phpsessid = decodeURIComponent(payload.substring(colonIdx + 1));
                         if (username && phpsessid) {
                             saveSession(username, phpsessid);
-                            // Remove hash from URL to avoid accidental sharing of session ID
-                            history.replaceState(null, '', window.location.pathname
-                                + window.location.search);
-                            const params = new URLSearchParams(window.location.search);
-                            const toUser = params.get('to_user');
-                            toUser ? openThread(toUser) : showList();
+                            history.replaceState(null, '',
+                                window.location.pathname + window.location.search);
+                            const toUser = new URLSearchParams(window.location.search).get('to_user');
+                            startApp();
+                            if (toUser) openThread(toUser);
                             return;
                         }
-                    } catch (e) {
-                        // Fall through to normal login
-                    }
+                    } catch (_e) { /* fall through */ }
                 }
             }
 
-            // Try to restore session from localStorage
+            // Restore session from localStorage
             if (loadSession()) {
-                const params = new URLSearchParams(window.location.search);
-                const toUser = params.get('to_user');
-                toUser ? openThread(toUser) : showList();
+                const toUser = new URLSearchParams(window.location.search).get('to_user');
+                startApp();
+                if (toUser) openThread(toUser);
             } else {
-                showScreen('screen-login');
+                showLoginScreen();
             }
 
-            // ── Userscript integration (Tampermonkey on xmoj-bbs.me) ──────────────
-            // Auto-fill session when the XMOJ userscript sends credentials via GM APIs
+            // Userscript integration (Tampermonkey on xmoj-bbs.me)
             window.addEventListener('xmoj-autofill-session', e => {
                 if (e.detail && e.detail.username && e.detail.phpsessid) {
                     saveSession(e.detail.username, e.detail.phpsessid);
-                    showToast('✅ 已通过 XMOJ 脚本自动登录');
+                    showToast('\u2705 \u5df2\u901a\u8fc7 XMOJ \u811a\u672c\u81ea\u52a8\u767b\u5f55');
                     if (document.getElementById('screen-login').style.display !== 'none') {
-                        showList();
+                        startApp();
                     }
                 }
             });
-            // Show a toast requested by the userscript (e.g. "please login first")
             window.addEventListener('xmoj-show-toast', e => {
-                if (e.detail && e.detail.message) {
-                    showToast(e.detail.message);
-                }
+                if (e.detail && e.detail.message) showToast(e.detail.message);
             });
         });
     </script>
 </body>
-
 </html>

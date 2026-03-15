@@ -867,13 +867,18 @@ if (/(?:^|\.)xmoj-bbs\.me$/.test(location.hostname) && location.pathname === '/m
     // Try to auto-fill the stored session from the user's active xmoj.tech cookie.
     // Runs only when localStorage has no saved credentials yet.
     (function () {
-        var stored = localStorage.getItem('xmoj-msg-username')
-            && localStorage.getItem('xmoj-msg-phpsessid');
-        if (stored) return;
+        var hasStoredSession = !!(localStorage.getItem('xmoj-msg-username')
+            && localStorage.getItem('xmoj-msg-phpsessid'));
+        if (hasStoredSession) return;
 
-        GM.cookie.list({ name: 'PHPSESSID', domain: 'www.xmoj.tech' })
-            .then(function (cookies) {
-                var sessionCookie = cookies && cookies.find(function (c) {
+        // Check both hostname variants: www.xmoj.tech and the raw IP (116.62.212.172)
+        Promise.all([
+            GM.cookie.list({ name: 'PHPSESSID', domain: 'www.xmoj.tech' }).catch(function () { return []; }),
+            GM.cookie.list({ name: 'PHPSESSID', domain: '116.62.212.172' }).catch(function () { return []; })
+        ]).then(function (results) {
+            var cookies = (results[0] || []).concat(results[1] || []);
+            {
+                var sessionCookie = cookies.find(function (c) {
                     return c.name === 'PHPSESSID';
                 });
                 if (!sessionCookie || !sessionCookie.value) {
@@ -921,14 +926,14 @@ if (/(?:^|\.)xmoj-bbs\.me$/.test(location.hostname) && location.pathname === '/m
                         }));
                     }
                 });
-            })
-            .catch(function () {
-                setTimeout(function () {
-                    window.dispatchEvent(new CustomEvent('xmoj-show-toast', {
-                        detail: { message: '请先登录 xmoj.tech，再使用短消息 WebUI' }
-                    }));
-                }, 800);
-            });
+            }
+        }).catch(function () {
+            setTimeout(function () {
+                window.dispatchEvent(new CustomEvent('xmoj-show-toast', {
+                    detail: { message: '请先登录 xmoj.tech，再使用短消息 WebUI' }
+                }));
+            }, 800);
+        });
     })();
     return; // Do not execute the rest of the userscript on xmoj-bbs.me
 }
