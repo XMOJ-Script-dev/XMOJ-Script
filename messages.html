@@ -548,6 +548,7 @@ async function loadThread() {
             tbody.innerHTML = '<tr><td colspan="4" class="text-center text-body-secondary py-4">暂无消息</td></tr>';
             return;
         }
+        mails.sort(function(a, b) { return a.SendTime - b.SendTime; });
         tbody.innerHTML = mails.map(function(m) {
             var isUnread = !m.IsRead;
             var isHighlight = isUnread && m.FromUser !== currentUser.username;
