@@ -2526,11 +2526,19 @@ async function main() {
                         document.title = "提交状态";
                         document.querySelector("body > script:nth-child(5)").remove();
                         if (UtilityEnabled("NewBootstrap")) {
+                            var checkNum = function(str) {
+                                var patrn = /^[0-9]{1,20}$/;
+                                var ans = true;
+                                if (!patrn.exec(str)) ans = false;
+                                return ans;
+                            }
+
                             const params = new URL(location.href).searchParams;
-                            let nonDigitPattern = /D/;
-                            let CurrentProblemId = isNaN(params.get("problem_id")) ? "" : params.get("problem_id");
-                            let CurrentLanguage = isNaN(params.get("language")) || params.get("language") < -1 || params.get("language") > 2 ? "-1" : params.get("language");
-                            let CurrentJresult = isNaN(params.get("jresult")) || params.get("jresult") < -1 || params.get("jresult") > 11 ? "-1" : params.get("jresult");
+                            let CurrentProblemId = checkNum(params.get("problem_id")) ? Number(params.get("problem_id")) : "";
+                            let CurrentLanguageParam = params.get("language");
+                            let CurrentLanguage = checkNum(CurrentLanguageParam) && -1 <= CurrentLanguageParam && CurrentLanguageParam <= 2 ? Number(CurrentLanguageParam) : "-1";
+                            let CurrentJresultParam = params.get("jresult");
+                            let CurrentJresult = checkNum(CurrentJresultParam) && -1 <= CurrentJresultParam && CurrentJresultParam <= 11 ? Number(CurrentJresultParam) : "-1";
 
                             document.querySelector("#simform").outerHTML = `<form id="simform" class="justify-content-center form-inline row g-2" action="status.php" method="get" style="padding-bottom: 7px;">
                     <input class="form-control" type="text" size="4" name="user_id" value="${CurrentUsername} "style="display: none;">
