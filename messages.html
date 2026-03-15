@@ -456,7 +456,10 @@ async function showUserInfo(username) {
     userInfoModalBS.show();
 
     try {
-        var res = await fetch(profileUrl);
+        var res = await fetch(profileUrl, {
+            referrer: XMOJ_BASE + '/',
+            credentials: 'include'
+        });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         var html = await res.text();
 
