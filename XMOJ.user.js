@@ -2279,8 +2279,8 @@ async function main() {
                 } else if (location.pathname == "/problem.php") {
                     let transZhEn = document.getElementById("lang_cn_to_en");
                     let transEnZh = document.getElementById("lang_en_to_cn");
-                    if (transZhEn !== null) await transZhEn.remove();
-                    if (transEnZh !== null) await transEnZh.remove();
+                    if (transZhEn !== null) transZhEn.remove();
+                    if (transEnZh !== null) transEnZh.remove();
 
                     await RenderMathJax();
                     if (SearchParams.get("cid") != null && UtilityEnabled("ProblemSwitcher")) {
