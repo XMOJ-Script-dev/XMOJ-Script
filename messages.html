@@ -10,6 +10,7 @@
     <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.bootcdn.net/ajax/libs/marked/9.1.6/marked.min.js"></script>
     <script src="https://cdn.bootcdn.net/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoad" defer></script>
     <style>
         body {
             padding-top: 60px;
@@ -250,9 +251,15 @@
                                     </div>
                                 </div>
 
-                                <button class="btn btn-primary w-100" onclick="manualLogin()">
+                                <button class="btn btn-primary w-100" id="manual-login-btn"
+                                    onclick="manualLogin()" disabled>
                                     登录
                                 </button>
+                                <div class="cf-turnstile mt-3 d-flex justify-content-center"
+                                    data-sitekey="0x4AAAAAAALBT58IhyDViNmv"
+                                    data-callback="onTurnstileSuccess"
+                                    data-expired-callback="onTurnstileExpired"
+                                    data-error-callback="onTurnstileError"></div>
 
                                 <div id="manual-error" class="alert alert-danger mt-2 py-2"
                                     style="display:none;"></div>
@@ -286,7 +293,7 @@
                         placeholder="消息内容（支持 Markdown）"></textarea>
                 </div>
                 <div class="d-flex gap-2">
-                    <button class="btn btn-primary btn-sm" onclick="sendNewMessage()">发送</button>
+                    <button class="btn btn-primary btn-sm" id="new-msg-send-btn" onclick="sendNewMessage()">发送</button>
                     <button class="btn btn-outline-secondary btn-sm"
                         onclick="toggleNewMessage()">取消</button>
                 </div>
@@ -344,7 +351,7 @@
                 <div class="d-flex gap-2">
                     <span id="upload-indicator" class="text-muted small align-self-center"
                         style="display:none;">上传中…</span>
-                    <button class="btn btn-primary btn-sm" onclick="sendMessage()">发送</button>
+                    <button class="btn btn-primary btn-sm" id="send-btn" onclick="sendMessage()">发送</button>
                 </div>
             </div>
             <div id="send-error" class="alert alert-danger mt-2 py-2 mb-0"
@@ -390,6 +397,11 @@
         const STORAGE_SESSION = 'xmoj-msg-phpsessid';
         const SCROLL_BOTTOM_THRESHOLD = 60; // px — treat user as "at bottom" within this margin
         const THREAD_REFRESH_INTERVAL_MS = 10000; // 10 s auto-refresh for open threads
+        // Cloudflare Turnstile site key (shared with userscript)
+        const TURNSTILE_SITE_KEY = '0x4AAAAAAALBT58IhyDViNmv';
+        // Client-side rate limiting for SendMail
+        const RATE_LIMIT_MAX = 5;         // max messages per window
+        const RATE_LIMIT_WINDOW_MS = 60000; // 60 s rolling window
 
         // ═══════════════════════════════════════════════════
         //  STATE
@@ -397,6 +409,8 @@
         let currentUser = null;   // { username, phpsessid }
         let currentThread = null; // string (other user)
         let refreshTimer = null;
+        let turnstileOk = false;  // Cloudflare Turnstile challenge passed (or fell back)
+        let sendTimestamps = [];  // rolling timestamps for rate limiting
 
         // ═══════════════════════════════════════════════════
         //  SESSION MANAGEMENT
@@ -552,6 +566,50 @@
         }
 
         // ═══════════════════════════════════════════════════
+        //  TURNSTILE (anti-bot) — callbacks must be global
+        // ═══════════════════════════════════════════════════
+        function onTurnstileSuccess(token) {
+            turnstileOk = true;
+            const btn = document.getElementById('manual-login-btn');
+            if (btn) btn.disabled = false;
+        }
+        function onTurnstileExpired() {
+            turnstileOk = false;
+            const btn = document.getElementById('manual-login-btn');
+            if (btn) btn.disabled = true;
+        }
+        function onTurnstileError() {
+            // On error (e.g. network / ad-blocker) fall through so users aren't locked out
+            turnstileOk = true;
+            const btn = document.getElementById('manual-login-btn');
+            if (btn) btn.disabled = false;
+        }
+        // Fallback: if Turnstile hasn't initialised within 5 s, allow login anyway
+        setTimeout(() => {
+            if (!turnstileOk) {
+                turnstileOk = true;
+                const btn = document.getElementById('manual-login-btn');
+                if (btn) btn.disabled = false;
+            }
+        }, 5000);
+
+        // ═══════════════════════════════════════════════════
+        //  RATE LIMITING
+        // ═══════════════════════════════════════════════════
+        function checkSendRateLimit() {
+            const now = Date.now();
+            sendTimestamps = sendTimestamps.filter(ts => now - ts < RATE_LIMIT_WINDOW_MS);
+            if (sendTimestamps.length >= RATE_LIMIT_MAX) {
+                const waitSecs = Math.ceil(
+                    (RATE_LIMIT_WINDOW_MS - (now - sendTimestamps[0])) / 1000
+                );
+                return { ok: false, waitSecs };
+            }
+            sendTimestamps.push(now);
+            return { ok: true };
+        }
+
+        // ═══════════════════════════════════════════════════
         //  LOGIN
         // ═══════════════════════════════════════════════════
         function generateBookmarklet() {
@@ -584,6 +642,11 @@
             const phpsessid = (document.getElementById('manual-phpsessid').value || '').trim();
             const errEl = document.getElementById('manual-error');
 
+            if (!turnstileOk) {
+                errEl.textContent = '请先完成人机验证';
+                errEl.style.display = '';
+                return;
+            }
             if (!username) {
                 errEl.textContent = '请输入用户名';
                 errEl.style.display = '';
@@ -698,11 +761,15 @@
             const toUser = (document.getElementById('new-msg-to').value || '').trim();
             const content = (document.getElementById('new-msg-body').value || '').trim();
             const errEl = document.getElementById('new-msg-error');
+            const sendBtn = document.getElementById('new-msg-send-btn');
 
             if (!toUser) { errEl.textContent = '请输入收件人用户名'; errEl.style.display = ''; return; }
             if (!content) { errEl.textContent = '请输入消息内容'; errEl.style.display = ''; return; }
             errEl.style.display = 'none';
 
+            sendBtn.disabled = true;
+            const origHTML = sendBtn.innerHTML;
+            sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
             try {
                 const result = await apiCall('SendMail', { ToUser: toUser, Content: content });
                 if (result.Success) {
@@ -715,6 +782,9 @@
             } catch (err) {
                 errEl.textContent = '发送失败：' + err.message;
                 errEl.style.display = '';
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = origHTML;
             }
         }
 
@@ -831,12 +901,23 @@
 
         async function sendMessage() {
             const input = document.getElementById('msg-input');
+            const sendBtn = document.getElementById('send-btn');
             const errEl = document.getElementById('send-error');
             const content = (input.value || '').trim();
 
             if (!content || !currentThread) return;
+
+            const rateCheck = checkSendRateLimit();
+            if (!rateCheck.ok) {
+                errEl.textContent = `发送过于频繁，请等待 ${rateCheck.waitSecs} 秒后再试`;
+                errEl.style.display = '';
+                return;
+            }
             errEl.style.display = 'none';
 
+            sendBtn.disabled = true;
+            const origHTML = sendBtn.innerHTML;
+            sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
             try {
                 const result = await apiCall('SendMail', { ToUser: currentThread, Content: content });
                 if (result.Success) {
@@ -849,6 +930,9 @@
             } catch (err) {
                 errEl.textContent = '发送失败：' + err.message;
                 errEl.style.display = '';
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = origHTML;
             }
         }
 
@@ -862,7 +946,7 @@
                 const result = await apiCall('UploadImage', { Image: base64DataUrl });
                 indicator.style.display = 'none';
                 if (result.Success) {
-                    return `https://assets.xmoj-bbs.me/GetImage?ImageID=${result.Data.ImageID}`;
+                    return `https://api.xmoj-bbs.me/GetImage?ImageID=${result.Data.ImageID}`;
                 } else {
                     showToast('图片上传失败：' + (result.Message || '未知错误'));
                     return null;
@@ -966,6 +1050,24 @@
             } else {
                 showScreen('screen-login');
             }
+
+            // ── Userscript integration (Tampermonkey on xmoj-bbs.me) ──────────────
+            // Auto-fill session when the XMOJ userscript sends credentials via GM APIs
+            window.addEventListener('xmoj-autofill-session', e => {
+                if (e.detail && e.detail.username && e.detail.phpsessid) {
+                    saveSession(e.detail.username, e.detail.phpsessid);
+                    showToast('✅ 已通过 XMOJ 脚本自动登录');
+                    if (document.getElementById('screen-login').style.display !== 'none') {
+                        showList();
+                    }
+                }
+            });
+            // Show a toast requested by the userscript (e.g. "please login first")
+            window.addEventListener('xmoj-show-toast', e => {
+                if (e.detail && e.detail.message) {
+                    showToast(e.detail.message);
+                }
+            });
         });
     </script>
 </body>

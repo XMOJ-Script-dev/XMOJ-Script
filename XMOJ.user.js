@@ -6,6 +6,8 @@
 // @namespace    https://github/langningchen
 // @match        *://*.xmoj.tech/*
 // @match        *://116.62.212.172/*
+// @match        *://xmoj-bbs.me/messages.html
+// @match        *://www.xmoj-bbs.me/messages.html
 // @require      https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/clike/clike.min.js
@@ -25,6 +27,7 @@
 // @supportURL   https://support.xmoj-bbs.me/form/8050213e-c806-4680-b414-0d1c48263677
 // @connect      api.xmoj-bbs.tech
 // @connect      api.xmoj-bbs.me
+// @connect      www.xmoj.tech
 // @connect      challenges.cloudflare.com
 // @connect      cppinsights.io
 // @connect      cdnjs.cloudflare.com
@@ -857,6 +860,78 @@ GM_registerMenuCommand("重置数据", () => {
         location.reload();
     }
 });
+
+// === Short Messages WebUI helper — runs ONLY on xmoj-bbs.me/messages.html ===
+// On that page the rest of the userscript must not execute (no xmoj.tech DOM present).
+if (/(?:^|\.)xmoj-bbs\.me$/.test(location.hostname) && location.pathname === '/messages.html') {
+    // Try to auto-fill the stored session from the user's active xmoj.tech cookie.
+    // Runs only when localStorage has no saved credentials yet.
+    (function () {
+        var stored = localStorage.getItem('xmoj-msg-username')
+            && localStorage.getItem('xmoj-msg-phpsessid');
+        if (stored) return;
+
+        GM.cookie.list({ name: 'PHPSESSID', domain: 'www.xmoj.tech' })
+            .then(function (cookies) {
+                var sessionCookie = cookies && cookies.find(function (c) {
+                    return c.name === 'PHPSESSID';
+                });
+                if (!sessionCookie || !sessionCookie.value) {
+                    // Not logged in — prompt the user after the page has rendered
+                    setTimeout(function () {
+                        var uEl = document.getElementById('manual-username');
+                        var pEl = document.getElementById('manual-phpsessid');
+                        if (!(uEl && uEl.value.trim()) && !(pEl && pEl.value.trim())) {
+                            window.dispatchEvent(new CustomEvent('xmoj-show-toast', {
+                                detail: { message: '请先登录 xmoj.tech，再使用短消息 WebUI' }
+                            }));
+                        }
+                    }, 800);
+                    return;
+                }
+                var phpsessid = sessionCookie.value;
+                // Fetch xmoj.tech home page to resolve the username from #profile
+                GM_xmlhttpRequest({
+                    method: 'GET',
+                    url: 'https://www.xmoj.tech/',
+                    onload: function (resp) {
+                        var parser = new DOMParser();
+                        var doc = parser.parseFromString(resp.responseText, 'text/html');
+                        var profileEl = doc.querySelector('#profile');
+                        var username = profileEl
+                            ? profileEl.innerText.replace(/[^a-zA-Z0-9]/g, '') : '';
+                        if (username) {
+                            window.dispatchEvent(new CustomEvent('xmoj-autofill-session', {
+                                detail: { username: username, phpsessid: phpsessid }
+                            }));
+                        } else {
+                            // Got the cookie but couldn't parse username — pre-fill the field
+                            var pEl = document.getElementById('manual-phpsessid');
+                            if (pEl) pEl.value = phpsessid;
+                            window.dispatchEvent(new CustomEvent('xmoj-show-toast', {
+                                detail: { message: '已填入会话，请输入用户名完成登录' }
+                            }));
+                        }
+                    },
+                    onerror: function () {
+                        var pEl = document.getElementById('manual-phpsessid');
+                        if (pEl) pEl.value = phpsessid;
+                        window.dispatchEvent(new CustomEvent('xmoj-show-toast', {
+                            detail: { message: '已填入 PHPSESSID，请手动输入用户名' }
+                        }));
+                    }
+                });
+            })
+            .catch(function () {
+                setTimeout(function () {
+                    window.dispatchEvent(new CustomEvent('xmoj-show-toast', {
+                        detail: { message: '请先登录 xmoj.tech，再使用短消息 WebUI' }
+                    }));
+                }, 800);
+            });
+    })();
+    return; // Do not execute the rest of the userscript on xmoj-bbs.me
+}
 
 //otherwise CurrentUsername might be undefined
 if (UtilityEnabled("AutoLogin") && document.querySelector("body > a:nth-child(1)") != null && document.querySelector("body > a:nth-child(1)").innerText == "请登录后继续操作") {
