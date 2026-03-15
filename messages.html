@@ -10,11 +10,22 @@
     <style>
         body { padding-top: 56px; }
         #thread-messages { max-height: 60vh; overflow-y: auto; }
-        #thread-messages img { max-width: 100%; max-height: 300px; object-fit: contain; cursor: pointer; }
+        #thread-messages img { max-width: 100%; max-height: 300px; object-fit: contain; cursor: zoom-in; }
         .compose-sticky { position: sticky; bottom: 0; background: var(--bs-body-bg); border-top: 1px solid var(--bs-border-color); padding: 0.75rem 0; }
         .msg-bubble-cell { word-break: break-word; max-width: 60vw; }
         #upload-indicator { font-size: 0.8em; }
         .bookmarklet-link { cursor: grab; }
+        .user-info-btn { font-size: inherit; vertical-align: baseline; text-decoration: none; }
+        .user-info-btn:hover { text-decoration: underline; }
+        #img-modal .modal-body { cursor: zoom-out; }
+        #thread-compose { resize: none; overflow-y: hidden; }
+        /* Bootstrap 5.3.3 does not ship dark-mode overrides for .table-primary;
+           supply them here using Bootstrap's own semantic color tokens. */
+        [data-bs-theme="dark"] .table-primary {
+            --bs-table-color: var(--bs-primary-text-emphasis);
+            --bs-table-bg: var(--bs-primary-bg-subtle);
+            --bs-table-border-color: var(--bs-primary-border-subtle);
+        }
     </style>
     <script>
         (function() {
@@ -218,6 +229,12 @@
         </div>
     </div>
 
+    <!-- Search contacts -->
+    <div class="mb-2">
+        <input type="search" class="form-control form-control-sm" id="list-search"
+               placeholder="搜索联系人…" autocomplete="off" autocapitalize="none">
+    </div>
+
     <!-- Compose new message -->
     <div class="collapse mb-3" id="compose-panel">
         <div class="card card-body border-0 shadow-sm">
@@ -236,7 +253,7 @@
     <!-- Mail list table -->
     <div class="table-responsive">
         <table class="table table-hover table-borderless align-middle">
-            <thead class="table-light">
+            <thead>
                 <tr>
                     <th>用户</th>
                     <th>最新消息</th>
@@ -265,7 +282,7 @@
     <!-- Messages table -->
     <div id="thread-messages" class="mb-2">
         <table class="table table-hover table-borderless align-top">
-            <thead class="table-light">
+            <thead>
                 <tr>
                     <th class="text-nowrap">发送者</th>
                     <th>内容</th>
@@ -299,6 +316,24 @@
             </div>
         </div>
         <input type="file" id="file-input" accept="image/png,image/jpeg" style="display:none;">
+    </div>
+</div>
+
+<!-- ==================== USER INFO MODAL ==================== -->
+<div class="modal fade" id="user-info-modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="user-info-modal-title">用户信息</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="user-info-modal-body"></div>
+            <div class="modal-footer">
+                <a id="user-info-profile-link" href="#" target="_blank" rel="noopener"
+                   class="btn btn-primary">查看完整资料</a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -346,12 +381,14 @@ let currentUser    = null;   // { username, phpsessid }
 let currentThread  = null;   // other user's username
 let refreshTimer   = null;
 let isFirstLoad    = true;
+let mailListCache  = [];     // last fetched mail list (for local search)
 
 // ── Bootstrap instances ────────────────────────────────────────────────────
-const toastEl    = document.getElementById('app-toast');
-const toastBS    = new bootstrap.Toast(toastEl, { delay: 3500 });
-const imgModalEl = document.getElementById('img-modal');
-const imgModalBS = new bootstrap.Modal(imgModalEl);
+const toastEl        = document.getElementById('app-toast');
+const toastBS        = new bootstrap.Toast(toastEl, { delay: 3500 });
+const imgModalEl     = document.getElementById('img-modal');
+const imgModalBS     = new bootstrap.Modal(imgModalEl);
+const userInfoModalBS = new bootstrap.Modal(document.getElementById('user-info-modal'));
 
 // ── Utility ────────────────────────────────────────────────────────────────
 function showToast(msg, type) {
@@ -397,18 +434,153 @@ function stripMarkdown(md) {
 
 function formatTime(ts) {
     if (!ts) return '';
-    var d = new Date(ts * 1000);
+    var d = new Date(ts);
     var now = new Date();
     var pad = function(n) { return String(n).padStart(2, '0'); };
     if (d.toDateString() === now.toDateString()) {
         return pad(d.getHours()) + ':' + pad(d.getMinutes());
     }
-    return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+    var datePart = (d.getFullYear() !== now.getFullYear() ? d.getFullYear() + '/' : '') +
+        (d.getMonth() + 1) + '/' + d.getDate();
+    return datePart + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
 }
 
-function userLink(username) {
-    return '<a href="' + XMOJ_BASE + '/userinfo.php?user=' + encodeURIComponent(username) +
-           '" target="_blank" rel="noopener">' + escapeHtml(username) + '</a>';
+function userSpan(username) {
+    return '<button type="button" class="btn btn-link p-0 user-info-btn" ' +
+           'data-username="' + escapeHtml(username) + '">' +
+           escapeHtml(username) + '</button>';
+}
+
+function loadBadgesForContainer(container) {
+    // Group buttons by username in a single DOM pass
+    var byUsername = new Map();
+    container.querySelectorAll('.user-info-btn').forEach(function(btn) {
+        var u = btn.dataset.username;
+        if (!u) return;
+        if (!byUsername.has(u)) byUsername.set(u, []);
+        byUsername.get(u).push(btn);
+    });
+    byUsername.forEach(function(btns, u) {
+        getUserBadge(u).then(function(badge) {
+            if (!badge || !badge.Content) return;
+            btns.forEach(function(b) {
+                // Avoid duplicates on re-render
+                if (b.nextElementSibling && b.nextElementSibling.classList.contains('user-badge')) return;
+                var span = document.createElement('span');
+                span.className = 'badge ms-1 user-badge';
+                span.style.backgroundColor = badge.BackgroundColor;
+                span.style.color = badge.Color;
+                span.textContent = badge.Content;
+                b.insertAdjacentElement('afterend', span);
+            });
+        }).catch(function() {});
+    });
+}
+
+async function getUserBadge(username) {
+    var BADGE_TTL = 1000 * 60 * 60 * 24; // 24 h, matching XMOJ.user.js
+    var prefix = 'UserScript-User-' + username + '-Badge-';
+    var lastUpdate = localStorage.getItem(prefix + 'LastUpdateTime');
+    if (lastUpdate && (Date.now() - parseInt(lastUpdate)) < BADGE_TTL) {
+        return {
+            BackgroundColor: localStorage.getItem(prefix + 'BackgroundColor') || '',
+            Color: localStorage.getItem(prefix + 'Color') || '',
+            Content: localStorage.getItem(prefix + 'Content') || ''
+        };
+    }
+    var result = await apiCall('GetBadge', { UserID: username });
+    var badge = (result && result.Success && result.Data)
+        ? result.Data
+        : { BackgroundColor: '', Color: '', Content: '' };
+    localStorage.setItem(prefix + 'BackgroundColor', badge.BackgroundColor || '');
+    localStorage.setItem(prefix + 'Color', badge.Color || '');
+    localStorage.setItem(prefix + 'Content', badge.Content || '');
+    localStorage.setItem(prefix + 'LastUpdateTime', String(Date.now()));
+    return badge;
+}
+
+async function showUserInfo(username) {
+    var title = document.getElementById('user-info-modal-title');
+    var body = document.getElementById('user-info-modal-body');
+    var profileLink = document.getElementById('user-info-profile-link');
+    var profileUrl = XMOJ_BASE + '/userinfo.php?user=' + encodeURIComponent(username);
+
+    title.textContent = username;
+    profileLink.href = profileUrl;
+    body.innerHTML = '<div class="text-center py-3"><span class="spinner-border spinner-border-sm me-2"></span>加载中…</div>';
+    userInfoModalBS.show();
+
+    var results = await Promise.allSettled([
+        fetch(profileUrl, { referrer: XMOJ_BASE + '/', credentials: 'include' })
+            .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); }),
+        getUserBadge(username)
+    ]);
+
+    // ── Badge (render into title) ───────────────────────────────────────────
+    var badge = results[1].status === 'fulfilled' ? results[1].value : null;
+    if (badge && badge.Content) {
+        title.innerHTML = escapeHtml(username) +
+            ' <span class="badge ms-2" style="background-color:' + escapeHtml(badge.BackgroundColor) +
+            ';color:' + escapeHtml(badge.Color) + '">' + escapeHtml(badge.Content) + '</span>';
+    }
+
+    // ── Profile (render into body) ──────────────────────────────────────────
+    if (results[0].status === 'rejected') {
+        body.innerHTML = '<p class="text-body-secondary mb-0">无法加载用户信息，请直接访问资料页面。</p>';
+        return;
+    }
+
+    var html = results[0].value;
+
+    if (html.indexOf('No such User!') !== -1) {
+        body.innerHTML = '<p class="text-body-secondary mb-0">用户不存在。</p>';
+        return;
+    }
+
+    var doc = new DOMParser().parseFromString(html, 'text/html');
+
+    var captionEl = doc.querySelector('#statics > caption');
+    var nickname = '';
+    if (captionEl) {
+        // Caption text format: "UserID--Nickname"
+        var parts = captionEl.textContent.trim().split('--');
+        if (parts.length > 1) nickname = parts[1].trim();
+    }
+
+    var submitEl = doc.querySelector('#statics > tbody > tr:nth-child(3) > td:nth-child(2)');
+    var acceptEl = doc.querySelector('#statics > tbody > tr:nth-child(4) > td:nth-child(2)');
+    var submitCount = submitEl ? (parseInt(submitEl.textContent.trim()) || 0) : 0;
+    var acceptCount = acceptEl ? (parseInt(acceptEl.textContent.trim()) || 0) : 0;
+    var rating = submitCount > 0 ? ((acceptCount / submitCount) * 1000).toFixed(1) : '—';
+
+    var tbodyRows = doc.querySelectorAll('#statics > tbody > tr');
+    var email = '';
+    if (tbodyRows.length > 0) {
+        var lastCells = tbodyRows[tbodyRows.length - 1].querySelectorAll('td');
+        if (lastCells.length >= 2) email = lastCells[1].textContent.trim();
+    }
+
+    var rows = [];
+    if (nickname) rows.push(['昵称', escapeHtml(nickname)]);
+    rows.push(['评分', escapeHtml(acceptCount + ' / ' + submitCount) +
+        ' <span class="text-body-secondary small ms-1">(' + escapeHtml(String(rating)) + ')</span>']);
+    if (email) rows.push(['邮箱', '<a href="mailto:' + escapeHtml(email) + '">' + escapeHtml(email) + '</a>']);
+
+    body.innerHTML = '<dl class="row mb-0">' +
+        rows.map(function(r) {
+            return '<dt class="col-4 text-truncate">' + r[0] + '</dt>' +
+                   '<dd class="col-8 mb-2">' + r[1] + '</dd>';
+        }).join('') +
+        '</dl>';
+}
+
+function initUserButtons(container) {
+    container.querySelectorAll('.user-info-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            showUserInfo(btn.dataset.username);
+        });
+    });
 }
 
 // ── Theme ──────────────────────────────────────────────────────────────────
@@ -485,6 +657,39 @@ async function apiCall(action, data) {
 }
 
 // ── Mail List ──────────────────────────────────────────────────────────────
+function renderMailList(query) {
+    var tbody = document.getElementById('list-tbody');
+    var q = query ? query.trim().toLowerCase() : '';
+    var list = q
+        ? mailListCache.filter(function(item) { return item.OtherUser.toLowerCase().indexOf(q) !== -1; })
+        : mailListCache;
+    if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="text-center text-body-secondary py-4">' +
+            (q ? '未找到匹配的联系人' : '暂无消息') + '</td></tr>';
+        return;
+    }
+    tbody.innerHTML = list.map(function(item) {
+        var hasUnread = item.UnreadCount > 0;
+        var preview = stripMarkdown(item.LastsMessage);
+        if (preview.length > PREVIEW_LEN) preview = preview.slice(0, PREVIEW_LEN) + '…';
+        return '<tr class="' + (hasUnread ? 'table-primary' : '') + '" data-user="' + escapeHtml(item.OtherUser) + '" style="cursor:pointer;">' +
+            '<td>' + userSpan(item.OtherUser) +
+            (hasUnread ? ' <span class="badge text-bg-danger ms-1">' + item.UnreadCount + '</span>' : '') +
+            '</td>' +
+            '<td class="text-body-secondary small">' + escapeHtml(preview) + '</td>' +
+            '<td class="text-nowrap text-body-secondary small">' + formatTime(item.SendTime) + '</td>' +
+            '</tr>';
+    }).join('');
+    initUserButtons(tbody);
+    loadBadgesForContainer(tbody);
+    tbody.querySelectorAll('tr[data-user]').forEach(function(row) {
+        row.addEventListener('click', function(e) {
+            if (e.target.closest('.user-info-btn')) return;
+            openThread(row.dataset.user);
+        });
+    });
+}
+
 async function loadMailList() {
     var tbody = document.getElementById('list-tbody');
     tbody.innerHTML = '<tr id="list-loading-row"><td colspan="3" class="text-center text-body-secondary py-4">' +
@@ -492,28 +697,13 @@ async function loadMailList() {
     try {
         var result = await apiCall('GetMailList', {});
         var list = result && result.Data && result.Data.MailList;
-        if (!list || list.length === 0) {
+        mailListCache = list || [];
+        if (mailListCache.length === 0) {
             tbody.innerHTML = '<tr><td colspan="3" class="text-center text-body-secondary py-4">暂无消息</td></tr>';
             return;
         }
-        tbody.innerHTML = list.map(function(item) {
-            var hasUnread = item.UnreadCount > 0;
-            var preview = stripMarkdown(item.LastsMessage);
-            if (preview.length > PREVIEW_LEN) preview = preview.slice(0, PREVIEW_LEN) + '…';
-            return '<tr class="' + (hasUnread ? 'table-primary' : '') + '" data-user="' + escapeHtml(item.OtherUser) + '" style="cursor:pointer;">' +
-                '<td>' + userLink(item.OtherUser) +
-                (hasUnread ? ' <span class="badge text-bg-danger ms-1">' + item.UnreadCount + '</span>' : '') +
-                '</td>' +
-                '<td class="text-body-secondary small">' + escapeHtml(preview) + '</td>' +
-                '<td class="text-nowrap text-body-secondary small">' + formatTime(item.SendTime) + '</td>' +
-                '</tr>';
-        }).join('');
-        tbody.querySelectorAll('tr[data-user]').forEach(function(row) {
-            row.addEventListener('click', function(e) {
-                if (e.target.tagName === 'A') return;
-                openThread(row.dataset.user);
-            });
-        });
+        var searchEl = document.getElementById('list-search');
+        renderMailList(searchEl ? searchEl.value : '');
     } catch (err) {
         tbody.innerHTML = '<tr><td colspan="3" class="text-center text-danger py-4">加载失败：' + escapeHtml(err.message) + '</td></tr>';
         showToast('加载消息列表失败：' + err.message, 'danger');
@@ -553,18 +743,27 @@ async function loadThread() {
             var isUnread = !m.IsRead;
             var isHighlight = isUnread && m.FromUser !== currentUser.username;
             return '<tr class="' + (isHighlight ? 'table-primary' : '') + '">' +
-                '<td class="text-nowrap">' + userLink(m.FromUser) + '</td>' +
+                '<td class="text-nowrap">' + userSpan(m.FromUser) + '</td>' +
                 '<td class="msg-bubble-cell">' + renderMarkdown(m.Content) + '</td>' +
                 '<td class="text-nowrap text-body-secondary small">' + formatTime(m.SendTime) + '</td>' +
                 '<td class="text-nowrap small">' + (isUnread ? '<span class="badge text-bg-warning">未读</span>' : '<span class="text-body-secondary">已读</span>') + '</td>' +
                 '</tr>';
         }).join('');
-        // Make images clickable
+        initUserButtons(tbody);
+        loadBadgesForContainer(tbody);
+        // Make images clickable to zoom
         tbody.querySelectorAll('img').forEach(function(img) {
+            img.title = '点击放大';
             img.addEventListener('click', function() {
                 document.getElementById('img-modal-src').src = img.src;
                 imgModalBS.show();
             });
+            // Re-scroll after each image loads so the bottom stays in view
+            if (atBottom) {
+                img.addEventListener('load', function() {
+                    scrollEl.scrollTop = scrollEl.scrollHeight;
+                });
+            }
         });
         // Make links open in new tab
         tbody.querySelectorAll('a').forEach(function(a) {
@@ -572,7 +771,11 @@ async function loadThread() {
             a.setAttribute('rel', 'noopener noreferrer');
         });
         if (atBottom) {
-            scrollEl.scrollTop = scrollEl.scrollHeight;
+            // Use requestAnimationFrame so the browser has finished laying out
+            // the new rows before we read scrollHeight
+            requestAnimationFrame(function() {
+                scrollEl.scrollTop = scrollEl.scrollHeight;
+            });
         }
         isFirstLoad = false;
     } catch (err) {
@@ -719,13 +922,17 @@ function checkSessionHash() {
 }
 
 // ── Login Tabs ─────────────────────────────────────────────────────────────
+function setLoginTab(tab) {
+    document.querySelectorAll('#loginTabs .nav-link').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.tab === tab);
+    });
+    document.getElementById('tab-bookmarklet').style.display = tab === 'bookmarklet' ? '' : 'none';
+    document.getElementById('tab-manual').style.display = tab === 'manual' ? '' : 'none';
+}
+
 document.querySelectorAll('#loginTabs .nav-link').forEach(function(btn) {
     btn.addEventListener('click', function() {
-        document.querySelectorAll('#loginTabs .nav-link').forEach(function(b) { b.classList.remove('active'); });
-        btn.classList.add('active');
-        var tab = btn.dataset.tab;
-        document.getElementById('tab-bookmarklet').style.display = tab === 'bookmarklet' ? '' : 'none';
-        document.getElementById('tab-manual').style.display = tab === 'manual' ? '' : 'none';
+        setLoginTab(btn.dataset.tab);
     });
 });
 
@@ -742,12 +949,18 @@ document.getElementById('btn-logout').addEventListener('click', logout);
 
 document.getElementById('btn-refresh-list').addEventListener('click', loadMailList);
 
+document.getElementById('list-search').addEventListener('input', function() {
+    renderMailList(this.value);
+});
+
 document.getElementById('btn-compose-send').addEventListener('click', sendCompose);
 
 document.getElementById('btn-back').addEventListener('click', function() {
     stopRefresh();
     currentThread = null;
+    document.getElementById('list-search').value = '';
     showScreen('screen-list');
+    renderMailList('');
     loadMailList();
 });
 
@@ -780,6 +993,32 @@ document.getElementById('thread-compose').addEventListener('paste', function(e) 
     }
 });
 
+// Auto-resize textarea as user types
+(function() {
+    var ta = document.getElementById('thread-compose');
+    function autoResize() {
+        ta.style.height = 'auto';
+        ta.style.height = Math.min(ta.scrollHeight, 200) + 'px';
+    }
+    ta.addEventListener('input', autoResize);
+    autoResize();
+})();
+
+// Global paste handler: upload image from clipboard when in thread view
+document.addEventListener('paste', function(e) {
+    if (document.getElementById('screen-thread').style.display === 'none') return;
+    if (e.defaultPrevented) return; // already handled by local handler
+    var items = e.clipboardData && e.clipboardData.items;
+    if (!items) return;
+    for (var i = 0; i < items.length; i++) {
+        if (items[i].type.startsWith('image/')) {
+            e.preventDefault();
+            handleImageFile(items[i].getAsFile());
+            return;
+        }
+    }
+});
+
 document.getElementById('img-modal-src').addEventListener('click', function() {
     imgModalBS.hide();
 });
@@ -794,6 +1033,12 @@ document.addEventListener('visibilitychange', function() {
 (function init() {
     initTheme();
     initBookmarklet();
+
+    // Set default login tab: bookmarklet on desktop, session login on mobile
+    var isDesktop = window.matchMedia
+        ? window.matchMedia('(pointer: fine)').matches
+        : (!('ontouchstart' in window) && window.innerWidth >= 1024);
+    setLoginTab(isDesktop ? 'bookmarklet' : 'manual');
 
     // Check for bookmarklet redirect
     if (checkSessionHash()) {
