@@ -1039,6 +1039,23 @@ function replaceMarkdownImages(text, string) {
     return text.replace(/!\[.*?\]\(.*?\)/g, string);
 }
 
+function GetMDText(element) {
+    let result = '';
+    for (let node of element.childNodes) {
+        if (node.nodeType === Node.TEXT_NODE) {
+            result += node.textContent;
+        } else if (node.nodeName === 'IMG') {
+            let src = node.getAttribute('src');
+            if (src) {
+                result += `![](${new URL(src, location.href).href})`;
+            }
+        } else {
+            result += GetMDText(node);
+        }
+    }
+    return result;
+}
+
 async function main() {
     try {
         if (location.href.startsWith('http://')) {
@@ -2436,7 +2453,7 @@ async function main() {
                                         CopyMDButton.type = "button";
                                         document.querySelectorAll(".cnt-row-head.title")[i].appendChild(CopyMDButton);
                                         CopyMDButton.addEventListener("click", () => {
-                                            GM_setClipboard(Temp[i].children[0].innerText.trim().replaceAll("\n\t", "\n").replaceAll("\n\n", "\n"));
+                                            GM_setClipboard(GetMDText(Temp[i].children[0]).trim().replaceAll("\n\t", "\n").replaceAll("\n\n", "\n"));
                                             CopyMDButton.innerText = "复制成功";
                                             setTimeout(() => {
                                                 CopyMDButton.innerText = "复制";
@@ -4464,7 +4481,7 @@ int main()
                             CopyMDButton.type = "button";
                             document.querySelector("body > div > div.mt-3 > center > h2").appendChild(CopyMDButton);
                             CopyMDButton.addEventListener("click", () => {
-                                GM_setClipboard(ParsedDocument.querySelector("body > div > div > div").innerText.trim().replaceAll("\n\t", "\n").replaceAll("\n\n", "\n"));
+                                GM_setClipboard(GetMDText(ParsedDocument.querySelector("body > div > div > div")).trim().replaceAll("\n\t", "\n").replaceAll("\n\n", "\n"));
                                 CopyMDButton.innerText = "复制成功";
                                 setTimeout(() => {
                                     CopyMDButton.innerText = "复制";
