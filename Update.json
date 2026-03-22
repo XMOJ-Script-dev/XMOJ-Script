@@ -3479,12 +3479,12 @@
             "Notes": "No release notes were provided for this release."
         },
         "3.3.6": {
-            "UpdateDate": 1774172389346,
+            "UpdateDate": 1774172454729,
             "Prerelease": true,
             "UpdateContents": [
                 {
                     "PR": 955,
-                    "Description": "Fix issue where copied solutions do not include image links"
+                    "Description": "fix: include image links as markdown when copying solution/problem content"
                 }
             ],
             "Notes": "No release notes were provided for this release."
