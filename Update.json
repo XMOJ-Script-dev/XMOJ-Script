@@ -3477,6 +3477,33 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "3.4.0": {
+            "UpdateDate": 1774192142561,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 924,
+                    "Description": "Add ImageEnlarger feature with modal viewer"
+                },
+                {
+                    "PR": 933,
+                    "Description": "Fix problem switcher not update"
+                },
+                {
+                    "PR": 937,
+                    "Description": "Display status.php Query Content"
+                },
+                {
+                    "PR": 939,
+                    "Description": "fix: gate MonochromeUI-specific styling in contestrank pages behind flag"
+                },
+                {
+                    "PR": 948,
+                    "Description": "Remove problem translate button"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
