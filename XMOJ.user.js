@@ -1041,18 +1041,56 @@ function replaceMarkdownImages(text, string) {
 
 function GetMDText(element) {
     let result = '';
-    for (let node of element.childNodes) {
+
+    function traverse(node) {
         if (node.nodeType === Node.TEXT_NODE) {
             result += node.textContent;
-        } else if (node.nodeName === 'IMG') {
-            let src = node.getAttribute('src');
+            return;
+        }
+
+        if (node.nodeType !== Node.ELEMENT_NODE) {
+            return;
+        }
+
+        const tag = node.nodeName.toUpperCase();
+
+        // Preserve line breaks for <br>
+        if (tag === 'BR') {
+            result += '\n';
+            return;
+        }
+
+        // Convert images to Markdown
+        if (tag === 'IMG') {
+            const src = node.getAttribute('src');
             if (src) {
                 result += `![](${new URL(src, location.href).href})`;
             }
-        } else {
-            result += GetMDText(node);
+            return;
+        }
+
+        // Common block-level elements: add newlines around their content
+        const blockTags = new Set([
+            'P', 'DIV', 'SECTION', 'ARTICLE', 'HEADER', 'FOOTER', 'NAV',
+            'UL', 'OL', 'LI', 'PRE', 'BLOCKQUOTE',
+            'H1', 'H2', 'H3', 'H4', 'H5', 'H6'
+        ]);
+        const isBlock = blockTags.has(tag);
+
+        if (isBlock && !result.endsWith('\n')) {
+            result += '\n';
+        }
+
+        for (let child of node.childNodes) {
+            traverse(child);
+        }
+
+        if (isBlock && !result.endsWith('\n')) {
+            result += '\n';
         }
     }
+
+    traverse(element);
     return result;
 }
 
