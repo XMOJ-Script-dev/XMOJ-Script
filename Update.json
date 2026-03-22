@@ -3484,7 +3484,7 @@
             "UpdateContents": [
                 {
                     "PR": 955,
-                    "Description": "[WIP] Fix issue where copied solutions do not include image links"
+                    "Description": "Fix issue where copied solutions do not include image links"
                 }
             ],
             "Notes": "No release notes were provided for this release."
