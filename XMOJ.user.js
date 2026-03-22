@@ -1064,7 +1064,13 @@ function GetMDText(element) {
         if (tag === 'IMG') {
             const src = node.getAttribute('src');
             if (src) {
-                result += `![](${new URL(src, location.href).href})`;
+                let resolvedSrc = src;
+                try {
+                    resolvedSrc = new URL(src, location.href).href;
+                } catch (e) {
+                    // Fallback to the raw src if URL construction fails
+                }
+                result += `![](${resolvedSrc})`;
             }
             return;
         }
