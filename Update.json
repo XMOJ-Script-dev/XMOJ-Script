@@ -3477,6 +3477,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "3.3.6": {
+            "UpdateDate": 1774172389346,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 955,
+                    "Description": "[WIP] Fix issue where copied solutions do not include image links"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
