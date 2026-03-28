@@ -2317,7 +2317,7 @@ async function main() {
                         RequestAPI("GetUserSettings", {}, (Response) => {
                             let SyncStatusEl = document.getElementById("UserScript-SyncStatus");
                             if (Response.Success) {
-                                let cloudSettings = Response.Data.Settings;
+                                const cloudSettings = (Response.Data && Response.Data.Settings) || {};
                                 if (Object.keys(cloudSettings).length === 0) {
                                     if (SyncStatusEl) SyncStatusEl.innerText = "正在上传本地设置至云端…";
                                     SyncSettingsToCloud((Resp) => {
