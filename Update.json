@@ -3530,6 +3530,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "3.4.2": {
+            "UpdateDate": 1774706085890,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 963,
+                    "Description": "feat: Add hourly periodic cloud settings sync"
+                }
+            ],
+            "Notes": "Add hourly automatic cloud settings sync. Every hour, if CloudSync is enabled, settings are downloaded from the cloud and applied locally, then local settings are uploaded to the cloud. This keeps settings in sync across devices without requiring a visit to the settings page."
         }
     }
 }
