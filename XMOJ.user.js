@@ -560,6 +560,28 @@ let SyncSettingsToCloud = (CallBack) => {
     });
 };
 
+let PeriodicCloudSync = () => {
+    if (!CurrentUsername || !UtilityEnabled("CloudSync")) return;
+    RequestAPI("GetUserSettings", {}, (Response) => {
+        if (Response.Success) {
+            const cloudSettings = (Response.Data && Response.Data.Settings) || {};
+            if (Object.keys(cloudSettings).length > 0) {
+                let themeChanged = false;
+                for (let key in cloudSettings) {
+                    const rawValue = String(cloudSettings[key]);
+                    const localKey = "UserScript-Setting-" + key;
+                    if (localStorage.getItem(localKey) !== rawValue) {
+                        localStorage.setItem(localKey, rawValue);
+                        if (key === "Theme") themeChanged = true;
+                    }
+                }
+                if (themeChanged) initTheme();
+            }
+        }
+        SyncSettingsToCloud();
+    });
+};
+
 unsafeWindow.GetContestProblemList = async function(RefreshList) {
     try {
         const contestReq = await fetch("https://www.xmoj.tech/contest.php?cid=" + SearchParams.get("cid"));
@@ -917,6 +939,7 @@ let initTheme = () => {
     }
 };
 initTheme();
+if (UtilityEnabled("CloudSync")) setInterval(PeriodicCloudSync, 60 * 60 * 1000);
 
 
 class NavbarStyler {
