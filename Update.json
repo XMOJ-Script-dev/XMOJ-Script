@@ -3521,12 +3521,12 @@
             "Notes": "No release notes were provided for this release."
         },
         "3.4.1": {
-            "UpdateDate": 1774663331441,
+            "UpdateDate": 1774663655535,
             "Prerelease": true,
             "UpdateContents": [
                 {
                     "PR": 961,
-                    "Description": "[WIP] Add cross-device sync for user settings"
+                    "Description": "feat: Cross-device settings sync via cloud backend"
                 }
             ],
             "Notes": "No release notes were provided for this release."
