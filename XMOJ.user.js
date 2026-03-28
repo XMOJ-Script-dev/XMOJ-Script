@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      3.3.5
+// @version      3.4.0
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -1037,6 +1037,78 @@ class NavbarStyler {
 
 function replaceMarkdownImages(text, string) {
     return text.replace(/!\[.*?\]\(.*?\)/g, string);
+}
+
+function GetMDText(element) {
+    let result = '';
+    const blockTags = new Set([
+        'P', 'DIV', 'SECTION', 'ARTICLE', 'HEADER', 'FOOTER', 'NAV',
+        'UL', 'OL', 'LI', 'PRE', 'BLOCKQUOTE',
+        'H1', 'H2', 'H3', 'H4', 'H5', 'H6',
+        'TABLE', 'THEAD', 'TBODY', 'TFOOT', 'TR'
+    ]);
+    const cellTags = new Set(['TD', 'TH']);
+
+    function traverse(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+            result += node.textContent;
+            return;
+        }
+
+        if (node.nodeType !== Node.ELEMENT_NODE) {
+            return;
+        }
+
+        const tag = node.nodeName.toUpperCase();
+
+        // Preserve line breaks for <br>
+        if (tag === 'BR') {
+            result += '\n';
+            return;
+        }
+
+        // Convert images to Markdown
+        if (tag === 'IMG') {
+            const src = node.getAttribute('src');
+            if (src) {
+                let resolvedSrc = src;
+                try {
+                    resolvedSrc = new URL(src, location.href).href;
+                } catch (e) {
+                    // Fallback to the raw src if URL construction fails
+                }
+                result += `![](${resolvedSrc})`;
+            }
+            return;
+        }
+
+        const isBlock = blockTags.has(tag);
+        const isCell = cellTags.has(tag);
+
+        if (isBlock && !result.endsWith('\n')) {
+            result += '\n';
+        }
+
+        // Keep table cells visually separated when copied as plain text.
+        if (isCell && result.length > 0 && !result.endsWith('\n') && !result.endsWith('\t') && !result.endsWith(' ')) {
+            result += '\t';
+        }
+
+        for (let child of node.childNodes) {
+            traverse(child);
+        }
+
+        if (isCell && !result.endsWith('\n') && !result.endsWith('\t')) {
+            result += '\t';
+        }
+
+        if (isBlock && !result.endsWith('\n')) {
+            result += '\n';
+        }
+    }
+
+    traverse(element);
+    return result;
 }
 
 async function main() {
@@ -2436,7 +2508,7 @@ async function main() {
                                         CopyMDButton.type = "button";
                                         document.querySelectorAll(".cnt-row-head.title")[i].appendChild(CopyMDButton);
                                         CopyMDButton.addEventListener("click", () => {
-                                            GM_setClipboard(Temp[i].children[0].innerText.trim().replaceAll("\n\t", "\n").replaceAll("\n\n", "\n"));
+                                            GM_setClipboard(GetMDText(Temp[i].children[0]).trim().replaceAll("\n\t", "\n").replaceAll("\n\n", "\n"));
                                             CopyMDButton.innerText = "复制成功";
                                             setTimeout(() => {
                                                 CopyMDButton.innerText = "复制";
@@ -4464,7 +4536,7 @@ int main()
                             CopyMDButton.type = "button";
                             document.querySelector("body > div > div.mt-3 > center > h2").appendChild(CopyMDButton);
                             CopyMDButton.addEventListener("click", () => {
-                                GM_setClipboard(ParsedDocument.querySelector("body > div > div > div").innerText.trim().replaceAll("\n\t", "\n").replaceAll("\n\n", "\n"));
+                                GM_setClipboard(GetMDText(ParsedDocument.querySelector("body > div > div > div")).trim().replaceAll("\n\t", "\n").replaceAll("\n\n", "\n"));
                                 CopyMDButton.innerText = "复制成功";
                                 setTimeout(() => {
                                     CopyMDButton.innerText = "复制";
