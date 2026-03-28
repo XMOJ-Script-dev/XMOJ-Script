@@ -3477,6 +3477,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "3.3.6": {
+            "UpdateDate": 1774660895572,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 955,
+                    "Description": "fix: include image links as markdown when copying solution/problem content"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
