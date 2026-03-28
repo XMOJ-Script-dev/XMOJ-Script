@@ -532,6 +532,26 @@ let RequestAPI = (Action, Data, CallBack) => {
         }
     }
 };
+let SyncSettingsToCloud = (CallBack) => {
+    if (!CurrentUsername) return;
+    let Settings = {};
+    for (let i = 0; i < localStorage.length; i++) {
+        let key = localStorage.key(i);
+        if (key && key.startsWith("UserScript-Setting-")) {
+            Settings[key.replace("UserScript-Setting-", "")] = localStorage.getItem(key);
+        }
+    }
+    RequestAPI("SetUserSettings", {"Settings": JSON.stringify(Settings)}, (Response) => {
+        if (UtilityEnabled("DebugMode")) {
+            if (Response.Success) {
+                console.log("设置已同步到云端");
+            } else {
+                console.error("设置云端同步失败:", Response.Message);
+            }
+        }
+        if (CallBack) CallBack(Response);
+    });
+};
 
 unsafeWindow.GetContestProblemList = async function(RefreshList) {
     try {
@@ -2127,6 +2147,7 @@ async function main() {
                                     Select.addEventListener("change", () => {
                                         localStorage.setItem("UserScript-Setting-Theme", Select.value);
                                         initTheme();
+                                        SyncSettingsToCloud();
                                     });
                                     Row.appendChild(Select);
                                 } else if (Data[i].Children == undefined) {
@@ -2144,7 +2165,8 @@ async function main() {
                                         CheckBox.checked = true;
                                     }
                                     CheckBox.addEventListener("change", () => {
-                                        return localStorage.setItem("UserScript-Setting-" + Data[i].ID, CheckBox.checked);
+                                        localStorage.setItem("UserScript-Setting-" + Data[i].ID, CheckBox.checked);
+                                        SyncSettingsToCloud();
                                     });
 
                                     Row.appendChild(CheckBox);
@@ -2236,6 +2258,79 @@ async function main() {
                         UtilitiesCardBody.appendChild(UtilitiesCardFooter);
                         UtilitiesCard.appendChild(UtilitiesCardBody);
                         Container.appendChild(UtilitiesCard);
+                        let SyncCard = document.createElement("div");
+                        SyncCard.className = "card mb-3";
+                        let SyncCardHeader = document.createElement("div");
+                        SyncCardHeader.className = "card-header";
+                        SyncCardHeader.innerText = "设置云同步";
+                        SyncCard.appendChild(SyncCardHeader);
+                        let SyncCardBody = document.createElement("div");
+                        SyncCardBody.className = "card-body";
+                        let SyncStatusText = document.createElement("p");
+                        SyncStatusText.className = "card-text mb-2";
+                        SyncStatusText.id = "UserScript-SyncStatus";
+                        SyncStatusText.innerText = "正在从云端加载设置…";
+                        SyncCardBody.appendChild(SyncStatusText);
+                        let SyncButtonGroup = document.createElement("div");
+                        SyncButtonGroup.className = "d-flex gap-2";
+                        let ApplyCloudSettings = (cloudSettings) => {
+                            for (let key in cloudSettings) {
+                                localStorage.setItem("UserScript-Setting-" + key, cloudSettings[key]);
+                                if (key === "Theme") {
+                                    let themeSelect = document.getElementById("UserScript-Setting-Theme");
+                                    if (themeSelect) themeSelect.value = cloudSettings[key];
+                                    initTheme();
+                                } else {
+                                    let checkbox = document.getElementById(key);
+                                    if (checkbox) checkbox.checked = (cloudSettings[key] === "true");
+                                }
+                            }
+                        };
+                        let UploadBtn = document.createElement("button");
+                        UploadBtn.className = "btn btn-sm btn-primary";
+                        UploadBtn.innerText = "上传设置到云端";
+                        UploadBtn.addEventListener("click", () => {
+                            SyncStatusText.innerText = "正在上传…";
+                            SyncSettingsToCloud((Response) => {
+                                SyncStatusText.innerText = Response.Success ? "上传成功" : ("上传失败: " + Response.Message);
+                            });
+                        });
+                        SyncButtonGroup.appendChild(UploadBtn);
+                        let DownloadBtn = document.createElement("button");
+                        DownloadBtn.className = "btn btn-sm btn-secondary";
+                        DownloadBtn.innerText = "从云端下载设置";
+                        DownloadBtn.addEventListener("click", () => {
+                            SyncStatusText.innerText = "正在下载…";
+                            RequestAPI("GetUserSettings", {}, (Response) => {
+                                if (Response.Success) {
+                                    ApplyCloudSettings(Response.Data.Settings);
+                                    SyncStatusText.innerText = "下载成功，设置已应用（部分设置需刷新页面后生效）";
+                                } else {
+                                    SyncStatusText.innerText = "下载失败: " + Response.Message;
+                                }
+                            });
+                        });
+                        SyncButtonGroup.appendChild(DownloadBtn);
+                        SyncCardBody.appendChild(SyncButtonGroup);
+                        SyncCard.appendChild(SyncCardBody);
+                        Container.appendChild(SyncCard);
+                        RequestAPI("GetUserSettings", {}, (Response) => {
+                            let SyncStatusEl = document.getElementById("UserScript-SyncStatus");
+                            if (Response.Success) {
+                                let cloudSettings = Response.Data.Settings;
+                                if (Object.keys(cloudSettings).length === 0) {
+                                    if (SyncStatusEl) SyncStatusEl.innerText = "正在上传本地设置至云端…";
+                                    SyncSettingsToCloud((Resp) => {
+                                        if (SyncStatusEl) SyncStatusEl.innerText = Resp.Success ? "已将本地设置上传至云端" : ("上传失败: " + Resp.Message);
+                                    });
+                                } else {
+                                    ApplyCloudSettings(cloudSettings);
+                                    if (SyncStatusEl) SyncStatusEl.innerText = "已从云端加载设置";
+                                }
+                            } else {
+                                if (SyncStatusEl) SyncStatusEl.innerText = "云端设置加载失败: " + Response.Message;
+                            }
+                        });
                         let FeedbackCard = document.createElement("div");
                         FeedbackCard.className = "card mb-3";
                         let FeedbackCardHeader = document.createElement("div");
