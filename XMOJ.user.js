@@ -577,8 +577,8 @@ let PeriodicCloudSync = () => {
                 }
                 if (themeChanged) initTheme();
             }
+            SyncSettingsToCloud();
         }
-        SyncSettingsToCloud();
     });
 };
 
@@ -939,7 +939,7 @@ let initTheme = () => {
     }
 };
 initTheme();
-if (UtilityEnabled("CloudSync")) setInterval(PeriodicCloudSync, 60 * 60 * 1000);
+setInterval(PeriodicCloudSync, 60 * 60 * 1000);
 
 
 class NavbarStyler {
