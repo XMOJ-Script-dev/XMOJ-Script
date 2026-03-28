@@ -1041,6 +1041,13 @@ function replaceMarkdownImages(text, string) {
 
 function GetMDText(element) {
     let result = '';
+    const blockTags = new Set([
+        'P', 'DIV', 'SECTION', 'ARTICLE', 'HEADER', 'FOOTER', 'NAV',
+        'UL', 'OL', 'LI', 'PRE', 'BLOCKQUOTE',
+        'H1', 'H2', 'H3', 'H4', 'H5', 'H6',
+        'TABLE', 'THEAD', 'TBODY', 'TFOOT', 'TR'
+    ]);
+    const cellTags = new Set(['TD', 'TH']);
 
     function traverse(node) {
         if (node.nodeType === Node.TEXT_NODE) {
@@ -1075,20 +1082,24 @@ function GetMDText(element) {
             return;
         }
 
-        // Common block-level elements: add newlines around their content
-        const blockTags = new Set([
-            'P', 'DIV', 'SECTION', 'ARTICLE', 'HEADER', 'FOOTER', 'NAV',
-            'UL', 'OL', 'LI', 'PRE', 'BLOCKQUOTE',
-            'H1', 'H2', 'H3', 'H4', 'H5', 'H6'
-        ]);
         const isBlock = blockTags.has(tag);
+        const isCell = cellTags.has(tag);
 
         if (isBlock && !result.endsWith('\n')) {
             result += '\n';
         }
 
+        // Keep table cells visually separated when copied as plain text.
+        if (isCell && result.length > 0 && !result.endsWith('\n') && !result.endsWith('\t') && !result.endsWith(' ')) {
+            result += '\t';
+        }
+
         for (let child of node.childNodes) {
             traverse(child);
+        }
+
+        if (isCell && !result.endsWith('\n') && !result.endsWith('\t')) {
+            result += '\t';
         }
 
         if (isBlock && !result.endsWith('\n')) {
