@@ -562,8 +562,11 @@ let SyncSettingsToCloud = (CallBack) => {
 
 let PeriodicCloudSync = () => {
     if (!CurrentUsername || !UtilityEnabled("CloudSync")) return;
+    const lastSync = parseInt(localStorage.getItem("UserScript-CloudSync-LastSync") || "0");
+    if (Date.now() - lastSync < 60 * 60 * 1000) return;
     RequestAPI("GetUserSettings", {}, (Response) => {
         if (Response.Success) {
+            localStorage.setItem("UserScript-CloudSync-LastSync", String(Date.now()));
             const cloudSettings = (Response.Data && Response.Data.Settings) || {};
             if (Object.keys(cloudSettings).length > 0) {
                 let themeChanged = false;
@@ -939,6 +942,7 @@ let initTheme = () => {
     }
 };
 initTheme();
+PeriodicCloudSync();
 setInterval(PeriodicCloudSync, 60 * 60 * 1000);
 
 
