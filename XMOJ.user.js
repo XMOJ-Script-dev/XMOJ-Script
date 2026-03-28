@@ -2278,14 +2278,18 @@ async function main() {
                         SyncButtonGroup.className = "d-flex gap-2";
                         let ApplyCloudSettings = (cloudSettings) => {
                             for (let key in cloudSettings) {
-                                localStorage.setItem("UserScript-Setting-" + key, cloudSettings[key]);
+                                const rawValue = cloudSettings[key];
+                                localStorage.setItem("UserScript-Setting-" + key, String(rawValue));
                                 if (key === "Theme") {
                                     let themeSelect = document.getElementById("UserScript-Setting-Theme");
-                                    if (themeSelect) themeSelect.value = cloudSettings[key];
+                                    if (themeSelect) themeSelect.value = String(rawValue);
                                     initTheme();
                                 } else {
                                     let checkbox = document.getElementById(key);
-                                    if (checkbox) checkbox.checked = (cloudSettings[key] === "true");
+                                    if (checkbox) {
+                                        const normalizedChecked = (typeof rawValue === "boolean") ? rawValue : (String(rawValue).toLowerCase() === "true");
+                                        checkbox.checked = normalizedChecked;
+                                    }
                                 }
                             }
                         };
