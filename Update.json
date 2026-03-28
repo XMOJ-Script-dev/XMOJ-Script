@@ -3422,6 +3422,103 @@
                 }
             ],
             "Notes": "<b>Bug 修复</b><br>\n- 修复了暗色模式下比赛排名表（contestrank-oi.php 和 contestrank-correct.php）颜色显示异常的问题（#916）<br>\n- 修复了 WebSocket 弹窗通知未遵循各功能独立弹窗开关（BBSPopup/MessagePopup）的问题（#919）"
+        },
+        "3.3.1": {
+            "UpdateDate": 1772981411290,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 924,
+                    "Description": "Add ImageEnlarger feature with modal viewer"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "3.3.2": {
+            "UpdateDate": 1773495619873,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 933,
+                    "Description": "Fix problem switcher not update"
+                }
+            ],
+            "Notes": "Fix ProblemSwitcher Not Update"
+        },
+        "3.3.3": {
+            "UpdateDate": 1773550684270,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 937,
+                    "Description": "Display status.php Query Content"
+                }
+            ],
+            "Notes": "Display status.php query content."
+        },
+        "3.3.4": {
+            "UpdateDate": 1773559861504,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 939,
+                    "Description": "fix: gate MonochromeUI-specific styling in contestrank pages behind flag"
+                }
+            ],
+            "Notes": "修复了未开启「极简黑白界面风格」时，比赛排行榜表头仍显示为黑白样式的问题 (#932)"
+        },
+        "3.3.5": {
+            "UpdateDate": 1773559861504,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 948,
+                    "Description": "Remove problem translate button"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "3.3.6": {
+            "UpdateDate": 1774660895572,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 955,
+                    "Description": "fix: include image links as markdown when copying solution/problem content"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "3.4.0": {
+            "UpdateDate": 1774660967491,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 924,
+                    "Description": "Add ImageEnlarger feature with modal viewer"
+                },
+                {
+                    "PR": 933,
+                    "Description": "Fix problem switcher not update"
+                },
+                {
+                    "PR": 937,
+                    "Description": "Display status.php Query Content"
+                },
+                {
+                    "PR": 939,
+                    "Description": "fix: gate MonochromeUI-specific styling in contestrank pages behind flag"
+                },
+                {
+                    "PR": 948,
+                    "Description": "Remove problem translate button"
+                },
+                {
+                    "PR": 955,
+                    "Description": "fix: include image links as markdown when copying solution/problem content"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }

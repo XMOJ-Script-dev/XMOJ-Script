@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      3.3.0
+// @version      3.4.0
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -533,6 +533,29 @@ let RequestAPI = (Action, Data, CallBack) => {
     }
 };
 
+unsafeWindow.GetContestProblemList = async function(RefreshList) {
+    try {
+        const contestReq = await fetch("https://www.xmoj.tech/contest.php?cid=" + SearchParams.get("cid"));
+        const res = await contestReq.text();
+        if (contestReq.status === 200 && res.indexOf("比赛尚未开始或私有，不能查看题目。") === -1) {
+            const parser = new DOMParser();
+            const dom = parser.parseFromString(res, "text/html");
+            const rows = (dom.querySelector("#problemset > tbody")).rows;
+            let problemList = [];
+            for (let i = 0; i < rows.length; i++) {
+                problemList.push({
+                    "title": rows[i].children[2].innerText,
+                    "url": rows[i].children[2].children[0].href
+                });
+            }
+            localStorage.setItem("UserScript-Contest-" + SearchParams.get("cid") + "-ProblemList", JSON.stringify(problemList));
+            if (RefreshList) location.reload();
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
+
 // WebSocket Notification System
 let NotificationSocket = null;
 let NotificationSocketReconnectAttempts = 0;
@@ -1014,6 +1037,78 @@ class NavbarStyler {
 
 function replaceMarkdownImages(text, string) {
     return text.replace(/!\[.*?\]\(.*?\)/g, string);
+}
+
+function GetMDText(element) {
+    let result = '';
+    const blockTags = new Set([
+        'P', 'DIV', 'SECTION', 'ARTICLE', 'HEADER', 'FOOTER', 'NAV',
+        'UL', 'OL', 'LI', 'PRE', 'BLOCKQUOTE',
+        'H1', 'H2', 'H3', 'H4', 'H5', 'H6',
+        'TABLE', 'THEAD', 'TBODY', 'TFOOT', 'TR'
+    ]);
+    const cellTags = new Set(['TD', 'TH']);
+
+    function traverse(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+            result += node.textContent;
+            return;
+        }
+
+        if (node.nodeType !== Node.ELEMENT_NODE) {
+            return;
+        }
+
+        const tag = node.nodeName.toUpperCase();
+
+        // Preserve line breaks for <br>
+        if (tag === 'BR') {
+            result += '\n';
+            return;
+        }
+
+        // Convert images to Markdown
+        if (tag === 'IMG') {
+            const src = node.getAttribute('src');
+            if (src) {
+                let resolvedSrc = src;
+                try {
+                    resolvedSrc = new URL(src, location.href).href;
+                } catch (e) {
+                    // Fallback to the raw src if URL construction fails
+                }
+                result += `![](${resolvedSrc})`;
+            }
+            return;
+        }
+
+        const isBlock = blockTags.has(tag);
+        const isCell = cellTags.has(tag);
+
+        if (isBlock && !result.endsWith('\n')) {
+            result += '\n';
+        }
+
+        // Keep table cells visually separated when copied as plain text.
+        if (isCell && result.length > 0 && !result.endsWith('\n') && !result.endsWith('\t') && !result.endsWith(' ')) {
+            result += '\t';
+        }
+
+        for (let child of node.childNodes) {
+            traverse(child);
+        }
+
+        if (isCell && !result.endsWith('\n') && !result.endsWith('\t')) {
+            result += '\t';
+        }
+
+        if (isBlock && !result.endsWith('\n')) {
+            result += '\n';
+        }
+    }
+
+    traverse(element);
+    return result;
 }
 
 async function main() {
@@ -1551,6 +1646,9 @@ async function main() {
                         display: none !important;
                     }
                 }
+                .refreshList {
+                    cursor: pointer;
+                }
 
                 /* Contain images */
                 img {
@@ -1616,6 +1714,11 @@ async function main() {
                     border: 1px solid var(--bs-secondary-bg);
                     border-top: none;
                     border-radius: 0 0 0.3rem 0.3rem;
+                }
+                .refreshList {
+                    cursor: pointer;
+                    color: #6c757d;
+                    text-decoration: none;
                 }`;
                 }
                 if (UtilityEnabled("AddAnimation")) {
@@ -2121,6 +2224,8 @@ async function main() {
                         }, {"ID": "CompareSource", "Type": "A", "Name": "比较代码"}, {
                             "ID": "BBSPopup", "Type": "A", "Name": "讨论提醒"
                         }, {"ID": "MessagePopup", "Type": "A", "Name": "短消息提醒"}, {
+                            "ID": "ImageEnlarger", "Type": "A", "Name": "图片放大功能"
+                        }, {
                             "ID": "DebugMode", "Type": "A", "Name": "调试模式（仅供开发者使用）"
                         }, {
                             "ID": "SuperDebug", "Type": "A", "Name": "本地调试模式（仅供开发者使用) (未经授权的擅自开启将导致大部分功能不可用！)"
@@ -2244,6 +2349,11 @@ async function main() {
                         localStorage.setItem("UserScript-Problem-" + Temp[i].children[1].innerText + "-Name", Temp[i].children[2].innerText);
                     }
                 } else if (location.pathname == "/problem.php") {
+                    let transZhEn = document.getElementById("lang_cn_to_en");
+                    let transEnZh = document.getElementById("lang_en_to_cn");
+                    if (transZhEn !== null) transZhEn.remove();
+                    if (transEnZh !== null) transEnZh.remove();
+
                     await RenderMathJax();
                     if (SearchParams.get("cid") != null && UtilityEnabled("ProblemSwitcher")) {
                         let pid = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + SearchParams.get("pid") + "-PID");
@@ -2270,22 +2380,8 @@ async function main() {
                         }
                         let ContestProblemList = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-ProblemList");
                         if (ContestProblemList == null) {
-                            const contestReq = await fetch("https://www.xmoj.tech/contest.php?cid=" + SearchParams.get("cid"));
-                            const res = await contestReq.text();
-                            if (contestReq.status === 200 && res.indexOf("比赛尚未开始或私有，不能查看题目。") === -1) {
-                                const parser = new DOMParser();
-                                const dom = parser.parseFromString(res, "text/html");
-                                const rows = (dom.querySelector("#problemset > tbody")).rows;
-                                let problemList = [];
-                                for (let i = 0; i < rows.length; i++) {
-                                    problemList.push({
-                                        "title": rows[i].children[2].innerText,
-                                        "url": rows[i].children[2].children[0].href
-                                    });
-                                }
-                                localStorage.setItem("UserScript-Contest-" + SearchParams.get("cid") + "-ProblemList", JSON.stringify(problemList));
-                                ContestProblemList = JSON.stringify(problemList);
-                            }
+                            await unsafeWindow.GetContestProblemList(false);
+                            ContestProblemList = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-ProblemList");
                         }
 
                         let problemSwitcher = document.createElement("div");
@@ -2308,6 +2404,7 @@ async function main() {
                         problemSwitcher.style.flexDirection = "column";
 
                         let problemList = JSON.parse(ContestProblemList);
+                        problemSwitcher.innerHTML += `<a onclick="GetContestProblemList(true)" title="刷新列表" class="refreshList mb-2" style="text-align: center;" active>刷新</a>`;
                         for (let i = 0; i < problemList.length; i++) {
                             let buttonText = "";
                             if (i < 26) {
@@ -2411,7 +2508,7 @@ async function main() {
                                         CopyMDButton.type = "button";
                                         document.querySelectorAll(".cnt-row-head.title")[i].appendChild(CopyMDButton);
                                         CopyMDButton.addEventListener("click", () => {
-                                            GM_setClipboard(Temp[i].children[0].innerText.trim().replaceAll("\n\t", "\n").replaceAll("\n\n", "\n"));
+                                            GM_setClipboard(GetMDText(Temp[i].children[0]).trim().replaceAll("\n\t", "\n").replaceAll("\n\n", "\n"));
                                             CopyMDButton.innerText = "复制成功";
                                             setTimeout(() => {
                                                 CopyMDButton.innerText = "复制";
@@ -2506,6 +2603,20 @@ async function main() {
                         document.title = "提交状态";
                         document.querySelector("body > script:nth-child(5)").remove();
                         if (UtilityEnabled("NewBootstrap")) {
+                            var checkNum = function(str) {
+                                var patrn = /^[0-9]{1,20}$/;
+                                var ans = true;
+                                if (!patrn.exec(str)) ans = false;
+                                return ans;
+                            }
+
+                            const params = new URL(location.href).searchParams;
+                            let CurrentProblemId = checkNum(params.get("problem_id")) ? Number(params.get("problem_id")) : "";
+                            let CurrentLanguageParam = params.get("language");
+                            let CurrentLanguage = checkNum(CurrentLanguageParam) && -1 <= CurrentLanguageParam && CurrentLanguageParam <= 2 ? Number(CurrentLanguageParam) : "-1";
+                            let CurrentJresultParam = params.get("jresult");
+                            let CurrentJresult = checkNum(CurrentJresultParam) && -1 <= CurrentJresultParam && CurrentJresultParam <= 11 ? Number(CurrentJresultParam) : "-1";
+
                             document.querySelector("#simform").outerHTML = `<form id="simform" class="justify-content-center form-inline row g-2" action="status.php" method="get" style="padding-bottom: 7px;">
                     <input class="form-control" type="text" size="4" name="user_id" value="${CurrentUsername} "style="display: none;">
                 <div class="col-md-1">
@@ -2515,7 +2626,7 @@ async function main() {
                 <div class="col-md-1">
                     <label for="language" class="form-label">语言</label>
                     <select id="language" name="language" class="form-select">
-                        <option value="-1" selected="">全部</option>
+                        <option value="-1">全部</option>
                         <option value="0">C</option>
                         <option value="1">C++</option>
                         <option value="2">Pascal</option>
@@ -2523,7 +2634,7 @@ async function main() {
                 </div><div class="col-md-1">
                     <label for="jresult" class="form-label">结果</label>
                     <select id="jresult" name="jresult" class="form-select">
-                        <option value="-1" selected="">全部</option>
+                        <option value="-1">全部</option>
                         <option value="4">正确</option>
                         <option value="5">格式错误</option>
                         <option value="6">答案错误</option>
@@ -2541,6 +2652,13 @@ async function main() {
                 <div class="col-md-1">
                     <button type="submit" class="btn btn-primary">查找</button>
                 </div><div id="csrf"></div></form>`;
+
+                            var selectElement = document.getElementById('problem_id');
+                            selectElement.value = CurrentProblemId;
+                            selectElement = document.getElementById('language');
+                            selectElement.value = CurrentLanguage;
+                            selectElement = document.getElementById('jresult');
+                            selectElement.value = CurrentJresult;
                         }
 
                         if (UtilityEnabled("ImproveACRate")) {
@@ -3002,13 +3120,15 @@ async function main() {
                             HeaderCells[2].innerText = "昵称";
                             HeaderCells[3].innerText = "AC数";
                             HeaderCells[4].innerText = "得分";
-                            for (let j = 0; j < HeaderCells.length; j++) {
-                                HeaderCells[j].removeAttribute("bgcolor");
-                                HeaderCells[j].style.setProperty("background-color", "black", "important");
-                                HeaderCells[j].style.setProperty("color", "white", "important");
-                                let Links = HeaderCells[j].querySelectorAll("a");
-                                for (let k = 0; k < Links.length; k++) {
-                                    Links[k].style.setProperty("color", "white", "important");
+                            if (UtilityEnabled("MonochromeUI")) {
+                                for (let j = 0; j < HeaderCells.length; j++) {
+                                    HeaderCells[j].removeAttribute("bgcolor");
+                                    HeaderCells[j].style.setProperty("background-color", "black", "important");
+                                    HeaderCells[j].style.setProperty("color", "white", "important");
+                                    let Links = HeaderCells[j].querySelectorAll("a");
+                                    for (let k = 0; k < Links.length; k++) {
+                                        Links[k].style.setProperty("color", "white", "important");
+                                    }
                                 }
                             }
                             let RefreshOIRank = async () => {
@@ -3021,7 +3141,9 @@ async function main() {
                                         TidyTable(ParsedDocument.getElementById("rank"));
                                         let Temp = ParsedDocument.getElementById("rank").rows;
                                         for (var i = 1; i < Temp.length; i++) {
-                                            Temp[i].style.backgroundColor = "";
+                                            if (UtilityEnabled("MonochromeUI")) {
+                                                Temp[i].style.backgroundColor = "";
+                                            }
                                             let MetalCell = Temp[i].cells[0];
                                             let Metal = document.createElement("span");
                                             Metal.innerText = MetalCell.innerText;
@@ -3031,9 +3153,11 @@ async function main() {
                                             GetUsernameHTML(Temp[i].cells[1], Temp[i].cells[1].innerText);
                                             Temp[i].cells[2].innerHTML = Temp[i].cells[2].innerText;
                                             Temp[i].cells[3].innerHTML = Temp[i].cells[3].innerText;
-                                            for (let j = 0; j < 5 && j < Temp[i].cells.length; j++) {
-                                                Temp[i].cells[j].style.backgroundColor = "";
-                                                Temp[i].cells[j].style.color = "";
+                                            if (UtilityEnabled("MonochromeUI")) {
+                                                for (let j = 0; j < 5 && j < Temp[i].cells.length; j++) {
+                                                    Temp[i].cells[j].style.backgroundColor = "";
+                                                    Temp[i].cells[j].style.color = "";
+                                                }
                                             }
                                             for (let j = 5; j < Temp[i].cells.length; j++) {
                                                 let InnerText = Temp[i].cells[j].innerText;
@@ -3103,13 +3227,15 @@ async function main() {
                         HeaderCells[2].innerText = "昵称";
                         HeaderCells[3].innerText = "AC数";
                         HeaderCells[4].innerText = "得分";
-                        for (let j = 0; j < HeaderCells.length; j++) {
-                            HeaderCells[j].removeAttribute("bgcolor");
-                            HeaderCells[j].style.setProperty("background-color", "black", "important");
-                            HeaderCells[j].style.setProperty("color", "white", "important");
-                            let Links = HeaderCells[j].querySelectorAll("a");
-                            for (let k = 0; k < Links.length; k++) {
-                                Links[k].style.setProperty("color", "white", "important");
+                        if (UtilityEnabled("MonochromeUI")) {
+                            for (let j = 0; j < HeaderCells.length; j++) {
+                                HeaderCells[j].removeAttribute("bgcolor");
+                                HeaderCells[j].style.setProperty("background-color", "black", "important");
+                                HeaderCells[j].style.setProperty("color", "white", "important");
+                                let Links = HeaderCells[j].querySelectorAll("a");
+                                for (let k = 0; k < Links.length; k++) {
+                                    Links[k].style.setProperty("color", "white", "important");
+                                }
                             }
                         }
                         let RefreshCorrectRank = async () => {
@@ -3122,7 +3248,9 @@ async function main() {
                                     TidyTable(ParsedDocument.getElementById("rank"));
                                     let Temp = ParsedDocument.getElementById("rank").rows;
                                     for (var i = 1; i < Temp.length; i++) {
-                                        Temp[i].style.backgroundColor = "";
+                                        if (UtilityEnabled("MonochromeUI")) {
+                                            Temp[i].style.backgroundColor = "";
+                                        }
                                         let MetalCell = Temp[i].cells[0];
                                         let Metal = document.createElement("span");
                                         Metal.innerText = MetalCell.innerText;
@@ -3132,9 +3260,11 @@ async function main() {
                                         GetUsernameHTML(Temp[i].cells[1], Temp[i].cells[1].innerText);
                                         Temp[i].cells[2].innerHTML = Temp[i].cells[2].innerText;
                                         Temp[i].cells[3].innerHTML = Temp[i].cells[3].innerText;
-                                        for (let j = 0; j < 5 && j < Temp[i].cells.length; j++) {
-                                            Temp[i].cells[j].style.backgroundColor = "";
-                                            Temp[i].cells[j].style.color = "";
+                                        if (UtilityEnabled("MonochromeUI")) {
+                                            for (let j = 0; j < 5 && j < Temp[i].cells.length; j++) {
+                                                Temp[i].cells[j].style.backgroundColor = "";
+                                                Temp[i].cells[j].style.color = "";
+                                            }
                                         }
                                         for (let j = 5; j < Temp[i].cells.length; j++) {
                                             let InnerText = Temp[i].cells[j].innerText;
@@ -3278,8 +3408,8 @@ async function main() {
                                     }
                                     ErrorElement.style.display = "block";
                                     ErrorMessage.style.color = "red";
-                                    ErrorMessage.innerText = "比赛已结束, 正在尝试像题目 " + rPID + " 提交";
-                                    console.log("比赛已结束, 正在尝试像题目 " + rPID + " 提交");
+                                    ErrorMessage.innerText = "比赛已结束, 正在尝试向题目 " + rPID + " 提交";
+                                    console.log("比赛已结束, 正在尝试向题目 " + rPID + " 提交");
                                     let o2Switch = "&enable_O2=on";
                                     if (!document.querySelector("#enable_O2").checked) o2Switch = "";
                                     await fetch("https://www.xmoj.tech/submit.php", {
@@ -4406,7 +4536,7 @@ int main()
                             CopyMDButton.type = "button";
                             document.querySelector("body > div > div.mt-3 > center > h2").appendChild(CopyMDButton);
                             CopyMDButton.addEventListener("click", () => {
-                                GM_setClipboard(ParsedDocument.querySelector("body > div > div > div").innerText.trim().replaceAll("\n\t", "\n").replaceAll("\n\n", "\n"));
+                                GM_setClipboard(GetMDText(ParsedDocument.querySelector("body > div > div > div")).trim().replaceAll("\n\t", "\n").replaceAll("\n\n", "\n"));
                                 CopyMDButton.innerText = "复制成功";
                                 setTimeout(() => {
                                     CopyMDButton.innerText = "复制";
@@ -5569,6 +5699,491 @@ int main()
                             }
                         }
                     }
+                }
+            }
+        }
+
+        // Image Enlargement Feature
+        if (UtilityEnabled("ImageEnlarger")) {
+            try {
+                // Add CSS styles for the enlarger
+                let EnlargerStyle = document.createElement("style");
+                EnlargerStyle.textContent = `
+                    .xmoj-image-preview {
+                        cursor: pointer;
+                    }
+
+                    .xmoj-image-preview:hover {
+                        opacity: 0.8;
+                        transition: opacity 0.2s ease;
+                    }
+
+
+                    .xmoj-image-modal {
+                        display: none;
+                        position: fixed;
+                        z-index: 2000;
+                        left: 0;
+                        top: 0;
+                        width: 100%;
+                        height: 100%;
+                        background-color: rgba(0, 0, 0, 0.9);
+                    }
+
+                    .xmoj-image-modal.show {
+                        display: flex;
+                        flex-direction: column;
+                    }
+
+                    .xmoj-image-modal-content {
+                        flex: 1;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        overflow: hidden;
+                        position: relative;
+                    }
+
+                    .xmoj-image-modal-image {
+                        max-width: 100%;
+                        max-height: 100%;
+                        object-fit: contain;
+                    }
+
+                    .xmoj-image-modal-toolbar {
+                        display: flex;
+                        justify-content: center;
+                        gap: 10px;
+                        padding: 15px;
+                        background-color: rgba(0, 0, 0, 0.5);
+                        flex-wrap: wrap;
+                    }
+
+                    .xmoj-image-modal-toolbar button {
+                        padding: 8px 16px;
+                        background-color: #0d6efd;
+                        color: white;
+                        border: none;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-size: 14px;
+                        transition: background-color 0.2s ease;
+                    }
+
+                    .xmoj-image-modal-toolbar button:hover {
+                        background-color: #0b5ed7;
+                    }
+
+                    .xmoj-image-modal-toolbar button:active {
+                        background-color: #0a58ca;
+                    }
+
+                    .xmoj-image-modal-close {
+                        position: absolute;
+                        top: 20px;
+                        right: 30px;
+                        color: white;
+                        background: none;
+                        border: none;
+                        padding: 0;
+                        line-height: 1;
+                        font-size: 40px;
+                        font-weight: bold;
+                        cursor: pointer;
+                        transition: color 0.2s ease;
+                        z-index: 1;
+                    }
+
+                    .xmoj-image-modal-close:hover {
+                        color: #ccc;
+                    }
+
+                    .xmoj-image-modal-nav {
+                        position: absolute;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        background: rgba(0, 0, 0, 0.5);
+                        color: white;
+                        border: none;
+                        padding: 20px 12px;
+                        cursor: pointer;
+                        font-size: 28px;
+                        transition: background-color 0.2s ease;
+                        user-select: none;
+                        -webkit-user-select: none;
+                    }
+
+                    .xmoj-image-modal-nav:hover {
+                        background: rgba(0, 0, 0, 0.8);
+                    }
+
+                    .xmoj-image-modal-nav:disabled {
+                        opacity: 0.3;
+                        cursor: default;
+                    }
+
+                    .xmoj-image-modal-nav-prev {
+                        left: 0;
+                        border-radius: 0 4px 4px 0;
+                    }
+
+                    .xmoj-image-modal-nav-next {
+                        right: 0;
+                        border-radius: 4px 0 0 4px;
+                    }
+                `;
+                document.head.appendChild(EnlargerStyle);
+
+                // Create modal element
+                let ImageModal = document.createElement("div");
+                ImageModal.className = "xmoj-image-modal";
+                ImageModal.id = "xmoj-image-modal";
+
+                let CloseButton = document.createElement("button");
+                CloseButton.className = "xmoj-image-modal-close";
+                CloseButton.type = "button";
+                CloseButton.setAttribute("aria-label", "关闭图片");
+                CloseButton.title = "关闭图片";
+                CloseButton.innerHTML = "&times;";
+                ImageModal.appendChild(CloseButton);
+
+                let ModalContent = document.createElement("div");
+                ModalContent.className = "xmoj-image-modal-content";
+
+                let PrevBtn = document.createElement("button");
+                PrevBtn.className = "xmoj-image-modal-nav xmoj-image-modal-nav-prev";
+                PrevBtn.type = "button";
+                PrevBtn.setAttribute("aria-label", "上一张");
+                PrevBtn.innerHTML = "&#10094;";
+                ModalContent.appendChild(PrevBtn);
+
+                let NextBtn = document.createElement("button");
+                NextBtn.className = "xmoj-image-modal-nav xmoj-image-modal-nav-next";
+                NextBtn.type = "button";
+                NextBtn.setAttribute("aria-label", "下一张");
+                NextBtn.innerHTML = "&#10095;";
+                ModalContent.appendChild(NextBtn);
+
+                let ModalImage = document.createElement("img");
+                ModalImage.className = "xmoj-image-modal-image";
+                ModalContent.appendChild(ModalImage);
+                ImageModal.appendChild(ModalContent);
+
+                let Toolbar = document.createElement("div");
+                Toolbar.className = "xmoj-image-modal-toolbar";
+
+                let ZoomInBtn = document.createElement("button");
+                ZoomInBtn.innerHTML = "放大 (+)";
+                ZoomInBtn.type = "button";
+                Toolbar.appendChild(ZoomInBtn);
+
+                let ZoomOutBtn = document.createElement("button");
+                ZoomOutBtn.innerHTML = "缩小 (-)";
+                ZoomOutBtn.type = "button";
+                Toolbar.appendChild(ZoomOutBtn);
+
+                let ResetZoomBtn = document.createElement("button");
+                ResetZoomBtn.innerHTML = "重置大小";
+                ResetZoomBtn.type = "button";
+                Toolbar.appendChild(ResetZoomBtn);
+
+                let SaveBtn = document.createElement("button");
+                SaveBtn.innerHTML = "保存图片";
+                SaveBtn.type = "button";
+                Toolbar.appendChild(SaveBtn);
+
+                ImageModal.appendChild(Toolbar);
+                document.body.appendChild(ImageModal);
+
+                // Zoom level and navigation state
+                let CurrentZoom = 1;
+                const ZoomStep = 0.1;
+                const MinZoom = 0.1;
+                const MaxZoom = 5;
+                let ImageList = [];
+                let CurrentImageIndex = -1;
+                let PanX = 0;
+                let PanY = 0;
+                let IsDragging = false;
+                let DragStartX = 0;
+                let DragStartY = 0;
+                let DragStartPanX = 0;
+                let DragStartPanY = 0;
+                let IsTouchPanning = false;
+                let TouchStartX = 0;
+                let TouchStartY = 0;
+                let TouchPanStartPanX = 0;
+                let TouchPanStartPanY = 0;
+
+                // Function to update image transform (zoom + pan)
+                let UpdateImageSize = () => {
+                    ModalImage.style.transform = `translate(${PanX}px, ${PanY}px) scale(${CurrentZoom})`;
+                    ModalImage.style.transition = IsDragging ? "none" : "transform 0.2s ease";
+                    let CursorStyle = CurrentZoom > 1 ? "grab" : "";
+                    ModalImage.style.cursor = CursorStyle;
+                    ModalContent.style.cursor = CursorStyle;
+                };
+
+                // Function to update prev/next button state
+                let UpdateNavButtons = () => {
+                    let HasMultiple = ImageList.length > 1;
+                    PrevBtn.style.display = HasMultiple ? "" : "none";
+                    NextBtn.style.display = HasMultiple ? "" : "none";
+                    PrevBtn.disabled = CurrentImageIndex <= 0;
+                    NextBtn.disabled = CurrentImageIndex >= ImageList.length - 1;
+                };
+
+                // Function to navigate to a specific image by index
+                let NavigateTo = (index) => {
+                    if (index < 0 || index >= ImageList.length) return;
+                    CurrentImageIndex = index;
+                    CurrentZoom = 1;
+                    PanX = 0;
+                    PanY = 0;
+                    ModalImage.src = ImageList[CurrentImageIndex];
+                    UpdateNavButtons();
+                    UpdateImageSize();
+                };
+
+                // Function to open modal
+                let OpenImageModal = (imgElement) => {
+                    let PreviewImages = [...document.querySelectorAll("img.xmoj-image-preview")];
+                    ImageList = PreviewImages.map(img => img.currentSrc || img.src).filter(src => src);
+                    CurrentImageIndex = PreviewImages.indexOf(imgElement);
+                    if (CurrentImageIndex === -1) {
+                        ImageList = [(imgElement.currentSrc || imgElement.src)];
+                        CurrentImageIndex = 0;
+                    }
+                    CurrentZoom = 1;
+                    PanX = 0;
+                    PanY = 0;
+                    ModalImage.src = ImageList[CurrentImageIndex];
+                    ImageModal.classList.add("show");
+                    UpdateNavButtons();
+                    UpdateImageSize();
+                };
+
+                // Function to close modal
+                let CloseImageModal = () => {
+                    ImageModal.classList.remove("show");
+                };
+
+                // Close button click
+                CloseButton.addEventListener("click", CloseImageModal);
+
+                // Close when clicking outside the image
+                ImageModal.addEventListener("click", (e) => {
+                    if (e.target === ImageModal || e.target === ModalContent) {
+                        CloseImageModal();
+                    }
+                });
+
+                // Keyboard shortcuts
+                document.addEventListener("keydown", (e) => {
+                    if (ImageModal.classList.contains("show")) {
+                        if (e.key === "Escape") {
+                            CloseImageModal();
+                        } else if (e.key === "+") {
+                            ZoomInBtn.click();
+                        } else if (e.key === "-") {
+                            ZoomOutBtn.click();
+                        } else if (e.key === "ArrowLeft") {
+                            NavigateTo(CurrentImageIndex - 1);
+                        } else if (e.key === "ArrowRight") {
+                            NavigateTo(CurrentImageIndex + 1);
+                        }
+                    }
+                });
+
+                // Touch events: pan when zoomed, swipe to navigate when at zoom level 1
+                ModalContent.addEventListener("touchstart", (e) => {
+                    if (e.touches.length !== 1) return;
+                    TouchStartX = e.touches[0].clientX;
+                    TouchStartY = e.touches[0].clientY;
+                    if (CurrentZoom > 1) {
+                        IsTouchPanning = true;
+                        TouchPanStartPanX = PanX;
+                        TouchPanStartPanY = PanY;
+                    } else {
+                        IsTouchPanning = false;
+                    }
+                }, { passive: true });
+
+                ModalContent.addEventListener("touchmove", (e) => {
+                    if (!IsTouchPanning || e.touches.length !== 1) return;
+                    PanX = TouchPanStartPanX + (e.touches[0].clientX - TouchStartX);
+                    PanY = TouchPanStartPanY + (e.touches[0].clientY - TouchStartY);
+                    UpdateImageSize();
+                    e.preventDefault();
+                }, { passive: false });
+
+                ModalContent.addEventListener("touchend", (e) => {
+                    if (IsTouchPanning) {
+                        IsTouchPanning = false;
+                        return;
+                    }
+                    let TouchEndX = e.changedTouches[0].clientX;
+                    let TouchEndY = e.changedTouches[0].clientY;
+                    let DeltaX = TouchEndX - TouchStartX;
+                    let DeltaY = TouchEndY - TouchStartY;
+                    const SwipeThreshold = 50;
+                    if (Math.abs(DeltaX) > SwipeThreshold && Math.abs(DeltaX) > Math.abs(DeltaY)) {
+                        if (DeltaX < 0) {
+                            NavigateTo(CurrentImageIndex + 1);
+                        } else {
+                            NavigateTo(CurrentImageIndex - 1);
+                        }
+                    }
+                }, { passive: true });
+
+                // Mouse drag to pan when zoomed
+                ModalContent.addEventListener("mousedown", (e) => {
+                    if (CurrentZoom <= 1) return;
+                    if (e.target.tagName.toUpperCase() === "BUTTON") return;
+                    IsDragging = true;
+                    DragStartX = e.clientX;
+                    DragStartY = e.clientY;
+                    DragStartPanX = PanX;
+                    DragStartPanY = PanY;
+                    ModalImage.style.cursor = "grabbing";
+                    ModalContent.style.cursor = "grabbing";
+                    e.preventDefault();
+                });
+
+                document.addEventListener("mousemove", (e) => {
+                    if (!IsDragging) return;
+                    PanX = DragStartPanX + (e.clientX - DragStartX);
+                    PanY = DragStartPanY + (e.clientY - DragStartY);
+                    UpdateImageSize();
+                });
+
+                document.addEventListener("mouseup", () => {
+                    if (IsDragging) {
+                        IsDragging = false;
+                        let CursorStyle = CurrentZoom > 1 ? "grab" : "";
+                        ModalImage.style.cursor = CursorStyle;
+                        ModalContent.style.cursor = CursorStyle;
+                    }
+                });
+
+                // Mouse wheel to zoom in/out
+                ModalContent.addEventListener("wheel", (e) => {
+                    e.preventDefault();
+                    let ZoomDelta = e.deltaY > 0 ? -ZoomStep : ZoomStep;
+                    CurrentZoom = Math.max(MinZoom, Math.min(MaxZoom, CurrentZoom + ZoomDelta));
+                    UpdateImageSize();
+                }, { passive: false });
+
+                // Navigation button clicks
+                PrevBtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    NavigateTo(CurrentImageIndex - 1);
+                });
+
+                NextBtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    NavigateTo(CurrentImageIndex + 1);
+                });
+
+                // Zoom controls
+                ZoomInBtn.addEventListener("click", () => {
+                    CurrentZoom = Math.min(CurrentZoom + ZoomStep, MaxZoom);
+                    UpdateImageSize();
+                });
+
+                ZoomOutBtn.addEventListener("click", () => {
+                    CurrentZoom = Math.max(CurrentZoom - ZoomStep, MinZoom);
+                    UpdateImageSize();
+                });
+
+                ResetZoomBtn.addEventListener("click", () => {
+                    CurrentZoom = 1;
+                    PanX = 0;
+                    PanY = 0;
+                    UpdateImageSize();
+                });
+
+                // Save/Download image: fetch via GM_xmlhttpRequest to bypass CORS, then use blob URL for reliable download
+                SaveBtn.addEventListener("click", () => {
+                    let src = ModalImage.src;
+                    let urlPath = src.split("?")[0];
+                    let filename = urlPath.split("/").pop() || "image.png";
+                    GM_xmlhttpRequest({
+                        method: "GET",
+                        url: src,
+                        responseType: "blob",
+                        onload: (resp) => {
+                            let BlobUrl = URL.createObjectURL(resp.response);
+                            let Link = document.createElement("a");
+                            Link.href = BlobUrl;
+                            Link.download = filename;
+                            document.body.appendChild(Link);
+                            Link.click();
+                            document.body.removeChild(Link);
+                            setTimeout(() => URL.revokeObjectURL(BlobUrl), 100);
+                        },
+                        onerror: () => {
+                            let Link = document.createElement("a");
+                            Link.href = src;
+                            Link.download = filename;
+                            Link.target = "_blank";
+                            document.body.appendChild(Link);
+                            Link.click();
+                            document.body.removeChild(Link);
+                        }
+                    });
+                });
+
+                // Apply to all images on the page
+                let ApplyEnlargerToImage = (img) => {
+                    const effectiveSrc = img.currentSrc || img.src;
+                    if (!img.classList.contains("xmoj-image-preview") &&
+                        !img.closest(".xmoj-image-modal") &&
+                        effectiveSrc &&
+                        !effectiveSrc.includes("gravatar") &&
+                        !effectiveSrc.includes("cravatar")) {
+
+                        img.classList.add("xmoj-image-preview");
+                        if (!img.title) {
+                            img.title = "点击放大";
+                        }
+                        img.addEventListener("click", (e) => {
+                            e.stopPropagation();
+                            OpenImageModal(img);
+                        });
+                    }
+                };
+
+                let ApplyEnlargerToImages = () => {
+                    document.querySelectorAll("img").forEach(ApplyEnlargerToImage);
+                };
+
+                // Apply to existing images
+                ApplyEnlargerToImages();
+
+                // Apply to dynamically added images
+                let Observer = new MutationObserver((mutations) => {
+                    mutations.forEach((mutation) => {
+                        mutation.addedNodes.forEach((node) => {
+                            if (node.nodeType !== Node.ELEMENT_NODE) return;
+                            if (node.tagName === "IMG") {
+                                ApplyEnlargerToImage(node);
+                            } else {
+                                node.querySelectorAll("img").forEach(ApplyEnlargerToImage);
+                            }
+                        });
+                    });
+                });
+
+                Observer.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                });
+
+            } catch (e) {
+                console.error(e);
+                if (UtilityEnabled("DebugMode")) {
+                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
                 }
             }
         }
