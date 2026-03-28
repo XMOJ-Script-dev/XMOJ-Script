@@ -533,7 +533,10 @@ let RequestAPI = (Action, Data, CallBack) => {
     }
 };
 let SyncSettingsToCloud = (CallBack) => {
-    if (!CurrentUsername) return;
+    if (!CurrentUsername) {
+        if (CallBack) CallBack({ Success: false, Message: "用户未登录" });
+        return;
+    }
     let Settings = {};
     for (let i = 0; i < localStorage.length; i++) {
         let key = localStorage.key(i);
