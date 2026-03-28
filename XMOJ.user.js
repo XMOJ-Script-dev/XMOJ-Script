@@ -537,6 +537,10 @@ let SyncSettingsToCloud = (CallBack) => {
         if (CallBack) CallBack({ Success: false, Message: "用户未登录" });
         return;
     }
+    if (!UtilityEnabled("CloudSync")) {
+        if (CallBack) CallBack({ Success: false, Message: "云同步已禁用" });
+        return;
+    }
     let Settings = {};
     for (let i = 0; i < localStorage.length; i++) {
         let key = localStorage.key(i);
@@ -2169,7 +2173,10 @@ async function main() {
                                     }
                                     CheckBox.addEventListener("change", () => {
                                         localStorage.setItem("UserScript-Setting-" + Data[i].ID, CheckBox.checked);
-                                        SyncSettingsToCloud();
+                                        // Don't sync when disabling CloudSync itself (it's already off)
+                                        if (Data[i].ID !== "CloudSync" || CheckBox.checked) {
+                                            SyncSettingsToCloud();
+                                        }
                                     });
 
                                     Row.appendChild(CheckBox);
@@ -2251,6 +2258,8 @@ async function main() {
                         }, {"ID": "MessagePopup", "Type": "A", "Name": "短消息提醒"}, {
                             "ID": "ImageEnlarger", "Type": "A", "Name": "图片放大功能"
                         }, {
+                            "ID": "CloudSync", "Type": "A", "Name": "将设置同步至云端（跨设备同步）"
+                        }, {
                             "ID": "DebugMode", "Type": "A", "Name": "调试模式（仅供开发者使用）"
                         }, {
                             "ID": "SuperDebug", "Type": "A", "Name": "本地调试模式（仅供开发者使用) (未经授权的擅自开启将导致大部分功能不可用！)"
@@ -2321,6 +2330,7 @@ async function main() {
                         SyncCardBody.appendChild(SyncButtonGroup);
                         SyncCard.appendChild(SyncCardBody);
                         Container.appendChild(SyncCard);
+                        if (UtilityEnabled("CloudSync")) {
                         RequestAPI("GetUserSettings", {}, (Response) => {
                             let SyncStatusEl = document.getElementById("UserScript-SyncStatus");
                             if (Response.Success) {
@@ -2338,6 +2348,10 @@ async function main() {
                                 if (SyncStatusEl) SyncStatusEl.innerText = "云端设置加载失败: " + Response.Message;
                             }
                         });
+                        } else {
+                            let SyncStatusEl = document.getElementById("UserScript-SyncStatus");
+                            if (SyncStatusEl) SyncStatusEl.innerText = "云同步已禁用";
+                        }
                         let FeedbackCard = document.createElement("div");
                         FeedbackCard.className = "card mb-3";
                         let FeedbackCardHeader = document.createElement("div");
