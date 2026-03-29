@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      3.4.1
+// @version      3.4.2
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -560,6 +560,31 @@ let SyncSettingsToCloud = (CallBack) => {
     });
 };
 
+let PeriodicCloudSync = () => {
+    if (!CurrentUsername || !UtilityEnabled("CloudSync")) return;
+    const lastSync = parseInt(localStorage.getItem("UserScript-CloudSync-LastSync") || "0");
+    if (Date.now() - lastSync < 60 * 60 * 1000) return;
+    RequestAPI("GetUserSettings", {}, (Response) => {
+        if (Response.Success) {
+            localStorage.setItem("UserScript-CloudSync-LastSync", String(Date.now()));
+            const cloudSettings = (Response.Data && Response.Data.Settings) || {};
+            if (Object.keys(cloudSettings).length > 0) {
+                let themeChanged = false;
+                for (let key in cloudSettings) {
+                    const rawValue = String(cloudSettings[key]);
+                    const localKey = "UserScript-Setting-" + key;
+                    if (localStorage.getItem(localKey) !== rawValue) {
+                        localStorage.setItem(localKey, rawValue);
+                        if (key === "Theme") themeChanged = true;
+                    }
+                }
+                if (themeChanged) initTheme();
+            }
+            SyncSettingsToCloud();
+        }
+    });
+};
+
 unsafeWindow.GetContestProblemList = async function(RefreshList) {
     try {
         const contestReq = await fetch("https://www.xmoj.tech/contest.php?cid=" + SearchParams.get("cid"));
@@ -917,6 +942,8 @@ let initTheme = () => {
     }
 };
 initTheme();
+PeriodicCloudSync();
+setInterval(PeriodicCloudSync, 60 * 60 * 1000);
 
 
 class NavbarStyler {
