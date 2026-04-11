@@ -3541,6 +3541,17 @@
                 }
             ],
             "Notes": "Add hourly automatic cloud settings sync. Every hour, if CloudSync is enabled, settings are downloaded from the cloud and applied locally, then local settings are uploaded to the cloud. This keeps settings in sync across devices without requiring a visit to the settings page."
+        },
+        "3.4.3": {
+            "UpdateDate": 1775875549804,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 969,
+                    "Description": "Migrate XMOJ-BBS client endpoints to  routes"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
