@@ -3548,7 +3548,7 @@
             "UpdateContents": [
                 {
                     "PR": 969,
-                    "Description": "Migrate XMOJ-BBS client endpoints to  routes"
+                    "Description": "Migrate XMOJ-BBS client endpoints to /v1 routes"
                 }
             ],
             "Notes": "No release notes were provided for this release."
