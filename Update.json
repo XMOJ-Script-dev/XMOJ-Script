@@ -3548,7 +3548,7 @@
             "UpdateContents": [
                 {
                     "PR": 969,
-                    "Description": "Migrate XMOJ-BBS client endpoints to  routes"
+                    "Description": "Migrate XMOJ-BBS client endpoints to /v1 routes"
                 }
             ],
             "Notes": "No release notes were provided for this release."
@@ -3563,6 +3563,17 @@
                 }
             ],
             "Notes": "Revert the `/v1` endpoint migration from #969 to restore original API routes."
+        },
+        "3.4.5": {
+            "UpdateDate": 1776009434318,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 973,
+                    "Description": "Fix loginpage.php Loop"
+                }
+            ],
+            "Notes": "Fix loginpage.php loop."
         }
     }
 }
