@@ -3552,6 +3552,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "3.4.4": {
+            "UpdateDate": 1775975721817,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 973,
+                    "Description": "Fix loginpage.php Loop"
+                }
+            ],
+            "Notes": "Fix loginpage.php loop."
         }
     }
 }
