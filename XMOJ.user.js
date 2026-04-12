@@ -911,7 +911,8 @@ GM_registerMenuCommand("重置数据", () => {
 });
 
 //otherwise CurrentUsername might be undefined
-let logined = (document.querySelector('a').innerText == "Please logout First!");
+const firstAnchor = document.querySelector('a');
+const logined = !!firstAnchor && firstAnchor.innerText === 'Please logout First!';
 if (UtilityEnabled("AutoLogin") && document.querySelector("body > a:nth-child(1)") != null && document.querySelector("body > a:nth-child(1)").innerText == "请登录后继续操作") {
     if (logined) location.href = (localStorage.getItem("UserScript-LastPage") == null ? "/" : localStorage.getItem("UserScript-LastPage"));
     localStorage.setItem("UserScript-LastPage", location.pathname + location.search);
