@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      3.3.6
+// @version      3.4.4
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -505,7 +505,7 @@ let RequestAPI = (Action, Data, CallBack) => {
         }
         GM_xmlhttpRequest({
             method: "POST",
-            url: (UtilityEnabled("SuperDebug") ? "http://127.0.0.1:8787/" : "https://api.xmoj-bbs.me/") + Action,
+            url: (UtilityEnabled("SuperDebug") ? "http://127.0.0.1:8787/v1/" : "https://api.xmoj-bbs.me/v1/") + Action,
             headers: {
                 "Content-Type": "application/json",
                 "Cache-Control": "no-cache",
@@ -531,6 +531,58 @@ let RequestAPI = (Action, Data, CallBack) => {
             SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
         }
     }
+};
+let SyncSettingsToCloud = (CallBack) => {
+    if (!CurrentUsername) {
+        if (CallBack) CallBack({ Success: false, Message: "用户未登录" });
+        return;
+    }
+    if (!UtilityEnabled("CloudSync")) {
+        if (CallBack) CallBack({ Success: false, Message: "云同步已禁用" });
+        return;
+    }
+    let Settings = {};
+    for (let i = 0; i < localStorage.length; i++) {
+        let key = localStorage.key(i);
+        if (key && key.startsWith("UserScript-Setting-")) {
+            Settings[key.replace("UserScript-Setting-", "")] = localStorage.getItem(key);
+        }
+    }
+    RequestAPI("SetUserSettings", {"Settings": JSON.stringify(Settings)}, (Response) => {
+        if (UtilityEnabled("DebugMode")) {
+            if (Response.Success) {
+                console.log("设置已同步到云端");
+            } else {
+                console.error("设置云端同步失败:", Response.Message);
+            }
+        }
+        if (CallBack) CallBack(Response);
+    });
+};
+
+let PeriodicCloudSync = () => {
+    if (!CurrentUsername || !UtilityEnabled("CloudSync")) return;
+    const lastSync = parseInt(localStorage.getItem("UserScript-CloudSync-LastSync") || "0");
+    if (Date.now() - lastSync < 60 * 60 * 1000) return;
+    RequestAPI("GetUserSettings", {}, (Response) => {
+        if (Response.Success) {
+            localStorage.setItem("UserScript-CloudSync-LastSync", String(Date.now()));
+            const cloudSettings = (Response.Data && Response.Data.Settings) || {};
+            if (Object.keys(cloudSettings).length > 0) {
+                let themeChanged = false;
+                for (let key in cloudSettings) {
+                    const rawValue = String(cloudSettings[key]);
+                    const localKey = "UserScript-Setting-" + key;
+                    if (localStorage.getItem(localKey) !== rawValue) {
+                        localStorage.setItem(localKey, rawValue);
+                        if (key === "Theme") themeChanged = true;
+                    }
+                }
+                if (themeChanged) initTheme();
+            }
+            SyncSettingsToCloud();
+        }
+    });
 };
 
 unsafeWindow.GetContestProblemList = async function(RefreshList) {
@@ -591,7 +643,7 @@ function ConnectNotificationSocket() {
             return;
         }
 
-        let wsUrl = (UtilityEnabled("SuperDebug") ? "ws://127.0.0.1:8787" : "wss://api.xmoj-bbs.me") + "/ws/notifications?SessionID=" + Session;
+        let wsUrl = (UtilityEnabled("SuperDebug") ? "ws://127.0.0.1:8787" : "wss://api.xmoj-bbs.me") + "/v1/ws/notifications?SessionID=" + Session;
 
         if (UtilityEnabled("DebugMode")) {
             console.log("WebSocket: Connecting to", wsUrl);
@@ -892,6 +944,8 @@ let initTheme = () => {
     }
 };
 initTheme();
+PeriodicCloudSync();
+setInterval(PeriodicCloudSync, 60 * 60 * 1000);
 
 
 class NavbarStyler {
@@ -1039,6 +1093,78 @@ class NavbarStyler {
 
 function replaceMarkdownImages(text, string) {
     return text.replace(/!\[.*?\]\(.*?\)/g, string);
+}
+
+function GetMDText(element) {
+    let result = '';
+    const blockTags = new Set([
+        'P', 'DIV', 'SECTION', 'ARTICLE', 'HEADER', 'FOOTER', 'NAV',
+        'UL', 'OL', 'LI', 'PRE', 'BLOCKQUOTE',
+        'H1', 'H2', 'H3', 'H4', 'H5', 'H6',
+        'TABLE', 'THEAD', 'TBODY', 'TFOOT', 'TR'
+    ]);
+    const cellTags = new Set(['TD', 'TH']);
+
+    function traverse(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+            result += node.textContent;
+            return;
+        }
+
+        if (node.nodeType !== Node.ELEMENT_NODE) {
+            return;
+        }
+
+        const tag = node.nodeName.toUpperCase();
+
+        // Preserve line breaks for <br>
+        if (tag === 'BR') {
+            result += '\n';
+            return;
+        }
+
+        // Convert images to Markdown
+        if (tag === 'IMG') {
+            const src = node.getAttribute('src');
+            if (src) {
+                let resolvedSrc = src;
+                try {
+                    resolvedSrc = new URL(src, location.href).href;
+                } catch (e) {
+                    // Fallback to the raw src if URL construction fails
+                }
+                result += `![](${resolvedSrc})`;
+            }
+            return;
+        }
+
+        const isBlock = blockTags.has(tag);
+        const isCell = cellTags.has(tag);
+
+        if (isBlock && !result.endsWith('\n')) {
+            result += '\n';
+        }
+
+        // Keep table cells visually separated when copied as plain text.
+        if (isCell && result.length > 0 && !result.endsWith('\n') && !result.endsWith('\t') && !result.endsWith(' ')) {
+            result += '\t';
+        }
+
+        for (let child of node.childNodes) {
+            traverse(child);
+        }
+
+        if (isCell && !result.endsWith('\n') && !result.endsWith('\t')) {
+            result += '\t';
+        }
+
+        if (isBlock && !result.endsWith('\n')) {
+            result += '\n';
+        }
+    }
+
+    traverse(element);
+    return result;
 }
 
 async function main() {
@@ -2058,6 +2184,7 @@ async function main() {
                                     Select.addEventListener("change", () => {
                                         localStorage.setItem("UserScript-Setting-Theme", Select.value);
                                         initTheme();
+                                        SyncSettingsToCloud();
                                     });
                                     Row.appendChild(Select);
                                 } else if (Data[i].Children == undefined) {
@@ -2075,7 +2202,11 @@ async function main() {
                                         CheckBox.checked = true;
                                     }
                                     CheckBox.addEventListener("change", () => {
-                                        return localStorage.setItem("UserScript-Setting-" + Data[i].ID, CheckBox.checked);
+                                        localStorage.setItem("UserScript-Setting-" + Data[i].ID, CheckBox.checked);
+                                        // Don't sync when disabling CloudSync itself (it's already off)
+                                        if (Data[i].ID !== "CloudSync" || CheckBox.checked) {
+                                            SyncSettingsToCloud();
+                                        }
                                     });
 
                                     Row.appendChild(CheckBox);
@@ -2157,6 +2288,8 @@ async function main() {
                         }, {"ID": "MessagePopup", "Type": "A", "Name": "短消息提醒"}, {
                             "ID": "ImageEnlarger", "Type": "A", "Name": "图片放大功能"
                         }, {
+                            "ID": "CloudSync", "Type": "A", "Name": "将设置同步至云端（跨设备同步）"
+                        }, {
                             "ID": "DebugMode", "Type": "A", "Name": "调试模式（仅供开发者使用）"
                         }, {
                             "ID": "SuperDebug", "Type": "A", "Name": "本地调试模式（仅供开发者使用) (未经授权的擅自开启将导致大部分功能不可用！)"
@@ -2167,6 +2300,88 @@ async function main() {
                         UtilitiesCardBody.appendChild(UtilitiesCardFooter);
                         UtilitiesCard.appendChild(UtilitiesCardBody);
                         Container.appendChild(UtilitiesCard);
+                        let SyncCard = document.createElement("div");
+                        SyncCard.className = "card mb-3";
+                        let SyncCardHeader = document.createElement("div");
+                        SyncCardHeader.className = "card-header";
+                        SyncCardHeader.innerText = "设置云同步";
+                        SyncCard.appendChild(SyncCardHeader);
+                        let SyncCardBody = document.createElement("div");
+                        SyncCardBody.className = "card-body";
+                        let SyncStatusText = document.createElement("p");
+                        SyncStatusText.className = "card-text mb-2";
+                        SyncStatusText.id = "UserScript-SyncStatus";
+                        SyncStatusText.innerText = "正在从云端加载设置…";
+                        SyncCardBody.appendChild(SyncStatusText);
+                        let SyncButtonGroup = document.createElement("div");
+                        SyncButtonGroup.className = "d-flex gap-2";
+                        let ApplyCloudSettings = (cloudSettings) => {
+                            for (let key in cloudSettings) {
+                                const rawValue = cloudSettings[key];
+                                localStorage.setItem("UserScript-Setting-" + key, String(rawValue));
+                                if (key === "Theme") {
+                                    let themeSelect = document.getElementById("UserScript-Setting-Theme");
+                                    if (themeSelect) themeSelect.value = String(rawValue);
+                                    initTheme();
+                                } else {
+                                    let checkbox = document.getElementById(key);
+                                    if (checkbox) {
+                                        const normalizedChecked = (typeof rawValue === "boolean") ? rawValue : (String(rawValue).toLowerCase() === "true");
+                                        checkbox.checked = normalizedChecked;
+                                    }
+                                }
+                            }
+                        };
+                        let UploadBtn = document.createElement("button");
+                        UploadBtn.className = "btn btn-sm btn-primary";
+                        UploadBtn.innerText = "上传设置到云端";
+                        UploadBtn.addEventListener("click", () => {
+                            SyncStatusText.innerText = "正在上传…";
+                            SyncSettingsToCloud((Response) => {
+                                SyncStatusText.innerText = Response.Success ? "上传成功" : ("上传失败: " + Response.Message);
+                            });
+                        });
+                        SyncButtonGroup.appendChild(UploadBtn);
+                        let DownloadBtn = document.createElement("button");
+                        DownloadBtn.className = "btn btn-sm btn-secondary";
+                        DownloadBtn.innerText = "从云端下载设置";
+                        DownloadBtn.addEventListener("click", () => {
+                            SyncStatusText.innerText = "正在下载…";
+                            RequestAPI("GetUserSettings", {}, (Response) => {
+                                if (Response.Success) {
+                                    ApplyCloudSettings(Response.Data.Settings);
+                                    SyncStatusText.innerText = "下载成功，设置已应用（部分设置需刷新页面后生效）";
+                                } else {
+                                    SyncStatusText.innerText = "下载失败: " + Response.Message;
+                                }
+                            });
+                        });
+                        SyncButtonGroup.appendChild(DownloadBtn);
+                        SyncCardBody.appendChild(SyncButtonGroup);
+                        SyncCard.appendChild(SyncCardBody);
+                        Container.appendChild(SyncCard);
+                        if (UtilityEnabled("CloudSync")) {
+                        RequestAPI("GetUserSettings", {}, (Response) => {
+                            let SyncStatusEl = document.getElementById("UserScript-SyncStatus");
+                            if (Response.Success) {
+                                const cloudSettings = (Response.Data && Response.Data.Settings) || {};
+                                if (Object.keys(cloudSettings).length === 0) {
+                                    if (SyncStatusEl) SyncStatusEl.innerText = "正在上传本地设置至云端…";
+                                    SyncSettingsToCloud((Resp) => {
+                                        if (SyncStatusEl) SyncStatusEl.innerText = Resp.Success ? "已将本地设置上传至云端" : ("上传失败: " + Resp.Message);
+                                    });
+                                } else {
+                                    ApplyCloudSettings(cloudSettings);
+                                    if (SyncStatusEl) SyncStatusEl.innerText = "已从云端加载设置";
+                                }
+                            } else {
+                                if (SyncStatusEl) SyncStatusEl.innerText = "云端设置加载失败: " + Response.Message;
+                            }
+                        });
+                        } else {
+                            let SyncStatusEl = document.getElementById("UserScript-SyncStatus");
+                            if (SyncStatusEl) SyncStatusEl.innerText = "云同步已禁用";
+                        }
                         let FeedbackCard = document.createElement("div");
                         FeedbackCard.className = "card mb-3";
                         let FeedbackCardHeader = document.createElement("div");
@@ -2439,7 +2654,7 @@ async function main() {
                                         CopyMDButton.type = "button";
                                         document.querySelectorAll(".cnt-row-head.title")[i].appendChild(CopyMDButton);
                                         CopyMDButton.addEventListener("click", () => {
-                                            GM_setClipboard(Temp[i].children[0].innerText.trim().replaceAll("\n\t", "\n").replaceAll("\n\n", "\n"));
+                                            GM_setClipboard(GetMDText(Temp[i].children[0]).trim().replaceAll("\n\t", "\n").replaceAll("\n\n", "\n"));
                                             CopyMDButton.innerText = "复制成功";
                                             setTimeout(() => {
                                                 CopyMDButton.innerText = "复制";
@@ -4467,7 +4682,7 @@ int main()
                             CopyMDButton.type = "button";
                             document.querySelector("body > div > div.mt-3 > center > h2").appendChild(CopyMDButton);
                             CopyMDButton.addEventListener("click", () => {
-                                GM_setClipboard(ParsedDocument.querySelector("body > div > div > div").innerText.trim().replaceAll("\n\t", "\n").replaceAll("\n\n", "\n"));
+                                GM_setClipboard(GetMDText(ParsedDocument.querySelector("body > div > div > div")).trim().replaceAll("\n\t", "\n").replaceAll("\n\n", "\n"));
                                 CopyMDButton.innerText = "复制成功";
                                 setTimeout(() => {
                                     CopyMDButton.innerText = "复制";
@@ -4809,7 +5024,7 @@ int main()
                                                 "Image": Reader.result
                                             }, (ResponseData) => {
                                                 if (ResponseData.Success) {
-                                                    Content.value = Before + `![](https://assets.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
+                                                    Content.value = Before + `![](https://assets.xmoj-bbs.me/v1/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
                                                     Content.dispatchEvent(new Event("input"));
                                                 } else {
                                                     Content.value = Before + `![上传失败！` + ResponseData.Message + `]()` + After;
@@ -5065,7 +5280,7 @@ int main()
                                                     "Image": Reader.result
                                                 }, (ResponseData) => {
                                                     if (ResponseData.Success) {
-                                                        ContentElement.value = Before + `![](https://assets.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
+                                                        ContentElement.value = Before + `![](https://assets.xmoj-bbs.me/v1/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
                                                         ContentElement.dispatchEvent(new Event("input"));
                                                     } else {
                                                         ContentElement.value = Before + `![上传失败！]()` + After;
@@ -5238,7 +5453,7 @@ int main()
                                                         "Image": Reader.result
                                                     }, (ResponseData) => {
                                                         if (ResponseData.Success) {
-                                                            ContentElement.value = Before + `![](https://assets.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
+                                                            ContentElement.value = Before + `![](https://assets.xmoj-bbs.me/v1/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
                                                             ContentElement.dispatchEvent(new Event("input"));
                                                         } else {
                                                             ContentElement.value = Before + `![上传失败！]()` + After;
@@ -5496,7 +5711,7 @@ int main()
                                                                         "Image": Reader.result
                                                                     }, (ResponseData) => {
                                                                         if (ResponseData.Success) {
-                                                                            ContentEditor.value = Before + `![](https://assets.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
+                                                                            ContentEditor.value = Before + `![](https://assets.xmoj-bbs.me/v1/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
                                                                             ContentEditor.dispatchEvent(new Event("input"));
                                                                         } else {
                                                                             ContentEditor.value = Before + `![上传失败！]()` + After;
