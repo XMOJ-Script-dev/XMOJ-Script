@@ -860,6 +860,7 @@ GM_registerMenuCommand("重置数据", () => {
 
 //otherwise CurrentUsername might be undefined
 if (UtilityEnabled("AutoLogin") && document.querySelector("body > a:nth-child(1)") != null && document.querySelector("body > a:nth-child(1)").innerText == "请登录后继续操作") {
+    if (document.querySelector('a').innerText == "Please logout First!") location.href = localStorage.getItem("UserScript-LastPage");
     localStorage.setItem("UserScript-LastPage", location.pathname + location.search);
     location.href = "https://www.xmoj.tech/loginpage.php";
 }
@@ -867,6 +868,7 @@ if (UtilityEnabled("AutoLogin") && document.querySelector("body > a:nth-child(1)
 let SearchParams = new URLSearchParams(location.search);
 let ServerURL = (UtilityEnabled("DebugMode") ? "https://ghpages.xmoj-bbs.me/" : "https://www.xmoj-bbs.me")
 if (document.querySelector("#profile") === null) {
+    if (document.querySelector('a').innerText == "Please logout First!") location.href = localStorage.getItem("UserScript-LastPage");
     location.href = "https://www.xmoj.tech/loginpage.php";
 }
 let CurrentUsername = document.querySelector("#profile").innerText;
@@ -1058,6 +1060,7 @@ async function main() {
                 }
 
                 if (UtilityEnabled("AutoLogin") && document.querySelector("#profile") != null && document.querySelector("#profile").innerHTML == "登录" && location.pathname != "/login.php" && location.pathname != "/loginpage.php" && location.pathname != "/lostpassword.php") {
+                    if (document.querySelector('a').innerText == "Please logout First!") location.href = localStorage.getItem("UserScript-LastPage");
                     localStorage.setItem("UserScript-LastPage", location.pathname + location.search);
                     location.href = "https://www.xmoj.tech/loginpage.php";
                 }
