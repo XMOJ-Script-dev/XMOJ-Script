@@ -3565,7 +3565,7 @@
             "Notes": "Revert the `/v1` endpoint migration from #969 to restore original API routes."
         },
         "3.4.5": {
-            "UpdateDate": 1776009148847,
+            "UpdateDate": 1776009434318,
             "Prerelease": true,
             "UpdateContents": [
                 {
