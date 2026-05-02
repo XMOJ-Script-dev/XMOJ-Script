@@ -3576,7 +3576,7 @@
             "Notes": "Fix loginpage.php loop."
         },
         "3.4.6": {
-            "UpdateDate": 1777708038758,
+            "UpdateDate": 1777708177251,
             "Prerelease": true,
             "UpdateContents": [
                 {
