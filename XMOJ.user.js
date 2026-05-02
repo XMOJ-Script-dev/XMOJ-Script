@@ -23,8 +23,7 @@
 // @grant        GM_cookie
 // @homepage     https://www.xmoj-bbs.me/
 // @supportURL   https://support.xmoj-bbs.me/form/8050213e-c806-4680-b414-0d1c48263677
-// @connect      api.xmoj-bbs.tech
-// @connect      api.xmoj-bbs.me
+// @connect      api.xmoj-script.uk
 // @connect      challenges.cloudflare.com
 // @connect      cppinsights.io
 // @connect      cdnjs.cloudflare.com
@@ -505,7 +504,7 @@ let RequestAPI = (Action, Data, CallBack) => {
         }
         GM_xmlhttpRequest({
             method: "POST",
-            url: (UtilityEnabled("SuperDebug") ? "http://127.0.0.1:8787/" : "https://api.xmoj-bbs.me/") + Action,
+            url: (UtilityEnabled("SuperDebug") ? "http://127.0.0.1:8787/" : "https://api.xmoj-script.uk/") + Action,
             headers: {
                 "Content-Type": "application/json",
                 "Cache-Control": "no-cache",
@@ -643,7 +642,7 @@ function ConnectNotificationSocket() {
             return;
         }
 
-        let wsUrl = (UtilityEnabled("SuperDebug") ? "ws://127.0.0.1:8787" : "wss://api.xmoj-bbs.me") + "/ws/notifications?SessionID=" + Session;
+        let wsUrl = (UtilityEnabled("SuperDebug") ? "ws://127.0.0.1:8787" : "wss://api.xmoj-script.uk") + "/ws/notifications?SessionID=" + Session;
 
         if (UtilityEnabled("DebugMode")) {
             console.log("WebSocket: Connecting to", wsUrl);
@@ -5026,7 +5025,7 @@ int main()
                                                 "Image": Reader.result
                                             }, (ResponseData) => {
                                                 if (ResponseData.Success) {
-                                                    Content.value = Before + `![](https://assets.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
+                                                    Content.value = Before + `![](https://api.xmoj-script.uk/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
                                                     Content.dispatchEvent(new Event("input"));
                                                 } else {
                                                     Content.value = Before + `![上传失败！` + ResponseData.Message + `]()` + After;
@@ -5282,7 +5281,7 @@ int main()
                                                     "Image": Reader.result
                                                 }, (ResponseData) => {
                                                     if (ResponseData.Success) {
-                                                        ContentElement.value = Before + `![](https://assets.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
+                                                        ContentElement.value = Before + `![](https://api.xmoj-script.uk/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
                                                         ContentElement.dispatchEvent(new Event("input"));
                                                     } else {
                                                         ContentElement.value = Before + `![上传失败！]()` + After;
@@ -5455,7 +5454,7 @@ int main()
                                                         "Image": Reader.result
                                                     }, (ResponseData) => {
                                                         if (ResponseData.Success) {
-                                                            ContentElement.value = Before + `![](https://assets.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
+                                                            ContentElement.value = Before + `![](https://api.xmoj-script.uk/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
                                                             ContentElement.dispatchEvent(new Event("input"));
                                                         } else {
                                                             ContentElement.value = Before + `![上传失败！]()` + After;
@@ -5713,7 +5712,7 @@ int main()
                                                                         "Image": Reader.result
                                                                     }, (ResponseData) => {
                                                                         if (ResponseData.Success) {
-                                                                            ContentEditor.value = Before + `![](https://assets.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
+                                                                            ContentEditor.value = Before + `![](https://api.xmoj-script.uk/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
                                                                             ContentEditor.dispatchEvent(new Event("input"));
                                                                         } else {
                                                                             ContentEditor.value = Before + `![上传失败！]()` + After;
