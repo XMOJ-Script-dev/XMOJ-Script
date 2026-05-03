@@ -74,7 +74,7 @@
             <button class="nav-link" data-tab="bookmarklet">书签登录（桌面端）</button>
         </li>
         <li class="nav-item">
-            <button class="nav-link" data-tab="sso">统一认证登录</button>
+            <button class="nav-link" data-tab="sso-develop">统一认证登录(开发中)</button>
         </li>
     </ul>
 
@@ -386,8 +386,8 @@
 'use strict';
 
 // ── Constants ──────────────────────────────────────────────────────────────
-const API_BASE          = 'https://api.xmoj-bbs.me/';
-const ASSET_BASE        = 'https://assets.xmoj-bbs.me/GetImage?ImageID=';
+const API_BASE          = 'https://api.xmoj-script.uk/';
+const ASSET_BASE        = 'https://assets.xmoj-script.uk/GetImage?ImageID=';
 const XMOJ_BASE        = 'https://www.xmoj.tech';
 const WEBUI_VERSION     = 'webui-1.0.0';
 const STORAGE_USER      = 'xmoj-msg-username';
@@ -991,7 +991,6 @@ function startSsoLogin() {
         scope: OAUTH_SCOPE,
         state: state
     });
-    location.href = OAUTH_AUTHORIZE_URL + '?' + params.toString();
 }
 
 async function exchangeSsoCode(code, state) {
