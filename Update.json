@@ -3585,6 +3585,37 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "3.5.0": {
+            "UpdateDate": 1778930758179,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 961,
+                    "Description": "feat: Cross-device settings sync via cloud backend"
+                },
+                {
+                    "PR": 963,
+                    "Description": "feat: Add hourly periodic cloud settings sync"
+                },
+                {
+                    "PR": 969,
+                    "Description": "Migrate XMOJ-BBS client endpoints to /v1 routes"
+                },
+                {
+                    "PR": 975,
+                    "Description": "Revert /v1 endpoint migration"
+                },
+                {
+                    "PR": 973,
+                    "Description": "Fix loginpage.php Loop"
+                },
+                {
+                    "PR": 980,
+                    "Description": "Switch all backend endpoints to api.xmoj-script.uk"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
