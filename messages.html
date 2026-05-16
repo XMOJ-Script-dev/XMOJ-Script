@@ -73,6 +73,9 @@
         <li class="nav-item">
             <button class="nav-link" data-tab="bookmarklet">书签登录（桌面端）</button>
         </li>
+        <li class="nav-item">
+            <button class="nav-link" data-tab="sso-develop">统一认证登录(开发中)</button>
+        </li>
     </ul>
 
     <!-- Tab: Manual (default) -->
@@ -213,6 +216,22 @@
                     <li>点击刚才添加的书签。</li>
                     <li>页面会自动跳转回此处并完成登录。</li>
                 </ol>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab: SSO Login -->
+    <div id="tab-sso" style="display:none;">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h6 class="card-title mb-2">统一认证中心登录</h6>
+                <p class="card-text small text-body-secondary mb-3">
+                    点击下方按钮跳转至统一认证中心授权，授权成功后将自动返回并完成登录。
+                </p>
+                <button class="btn btn-primary w-100" id="btn-sso-login">前往统一认证中心授权</button>
+                <p class="small text-body-secondary mt-2 mb-0">
+                    授权地址：sso.xmoj-bbs.me，回调地址：xmoj-bbs.me/messages.html
+                </p>
             </div>
         </div>
     </div>
@@ -367,8 +386,8 @@
 'use strict';
 
 // ── Constants ──────────────────────────────────────────────────────────────
-const API_BASE          = 'https://api.xmoj-bbs.me/';
-const ASSET_BASE        = 'https://assets.xmoj-bbs.me/GetImage?ImageID=';
+const API_BASE          = 'https://api.xmoj-script.uk/';
+const ASSET_BASE        = 'https://assets.xmoj-script.uk/GetImage?ImageID=';
 const XMOJ_BASE        = 'https://www.xmoj.tech';
 const WEBUI_VERSION     = 'webui-1.0.0';
 const STORAGE_USER      = 'xmoj-msg-username';
@@ -377,6 +396,11 @@ const THREAD_REFRESH_MS = 10000;
 const SCROLL_THRESHOLD  = 80;
 const MAX_IMAGE_BYTES   = 5 * 1024 * 1024;
 const PREVIEW_LEN       = 60;
+const OAUTH_AUTHORIZE_URL = 'https://sso.xmoj-bbs.me/authorize';
+const OAUTH_CLIENT_ID     = 'app_0f4cbbddfa42c0c4576cba8f7598d0a2';
+const OAUTH_SCOPE         = 'openid profile email xmoj_profile';
+const OAUTH_REDIRECT_URI  = 'https://xmoj-bbs.me/messages.html';
+const STORAGE_OAUTH_STATE = 'xmoj-msg-oauth-state';
 
 // ── State ──────────────────────────────────────────────────────────────────
 let currentUser    = null;   // { username, phpsessid }
@@ -931,6 +955,7 @@ function setLoginTab(tab) {
     });
     document.getElementById('tab-bookmarklet').style.display = tab === 'bookmarklet' ? '' : 'none';
     document.getElementById('tab-manual').style.display = tab === 'manual' ? '' : 'none';
+    document.getElementById('tab-sso').style.display = tab === 'sso' ? '' : 'none';
 }
 
 document.querySelectorAll('#loginTabs .nav-link').forEach(function(btn) {
@@ -938,6 +963,88 @@ document.querySelectorAll('#loginTabs .nav-link').forEach(function(btn) {
         setLoginTab(btn.dataset.tab);
     });
 });
+
+function generateUuidV4() {
+    if (window.crypto && window.crypto.randomUUID) return window.crypto.randomUUID();
+    if (window.crypto && window.crypto.getRandomValues) {
+        var bytes = new Uint8Array(16);
+        window.crypto.getRandomValues(bytes);
+        bytes[6] = (bytes[6] & 0x0f) | 0x40;
+        bytes[8] = (bytes[8] & 0x3f) | 0x80;
+        var hex = Array.from(bytes).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+        return [hex.slice(0, 8), hex.slice(8, 12), hex.slice(12, 16), hex.slice(16, 20), hex.slice(20)].join('-');
+    }
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0;
+        var v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
+function startSsoLogin() {
+    var state = generateUuidV4() + '.' + generateUuidV4();
+    localStorage.setItem(STORAGE_OAUTH_STATE, state);
+    var params = new URLSearchParams({
+        response_type: 'code',
+        client_id: OAUTH_CLIENT_ID,
+        redirect_uri: OAUTH_REDIRECT_URI,
+        scope: OAUTH_SCOPE,
+        state: state
+    });
+}
+
+async function exchangeSsoCode(code, state) {
+    var res = await fetch(API_BASE + 'ExchangeSSOCode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            Code: code,
+            State: state,
+            RedirectURI: OAUTH_REDIRECT_URI,
+            ClientID: OAUTH_CLIENT_ID
+        })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+}
+
+async function handleSsoCallback() {
+    var url = new URL(location.href);
+    var code = url.searchParams.get('code');
+    var state = url.searchParams.get('state');
+    if (!code) return false;
+
+    var expectedState = localStorage.getItem(STORAGE_OAUTH_STATE);
+    if (!state || !expectedState || state !== expectedState) {
+        showToast('统一认证登录失败：state 校验失败', 'danger');
+        url.searchParams.delete('code');
+        url.searchParams.delete('state');
+        history.replaceState(null, '', url.pathname + (url.searchParams.toString() ? '?' + url.searchParams.toString() : ''));
+        return false;
+    }
+
+    try {
+        var result = await exchangeSsoCode(code, state);
+        if (!result || !result.Success || !result.Data) {
+            throw new Error((result && result.Message) || '后端未返回有效登录数据');
+        }
+        if (!result.Data.Username || !result.Data.SessionID) {
+            throw new Error('返回数据缺少 Username 或 SessionID');
+        }
+
+        localStorage.removeItem(STORAGE_OAUTH_STATE);
+        saveSession(result.Data.Username, result.Data.SessionID);
+        url.searchParams.delete('code');
+        url.searchParams.delete('state');
+        history.replaceState(null, '', url.pathname + (url.searchParams.toString() ? '?' + url.searchParams.toString() : ''));
+        showToast('统一认证登录成功', 'success');
+        onLoggedIn();
+        return true;
+    } catch (err) {
+        showToast('统一认证登录失败：' + err.message, 'danger');
+        return false;
+    }
+}
 
 // ── Event Wiring ───────────────────────────────────────────────────────────
 document.getElementById('btn-manual-login').addEventListener('click', function() {
@@ -947,6 +1054,8 @@ document.getElementById('btn-manual-login').addEventListener('click', function()
     saveSession(username, phpsessid);
     onLoggedIn();
 });
+
+document.getElementById('btn-sso-login').addEventListener('click', startSsoLogin);
 
 document.getElementById('btn-logout').addEventListener('click', logout);
 
@@ -1034,7 +1143,7 @@ document.addEventListener('visibilitychange', function() {
 });
 
 // ── Boot ───────────────────────────────────────────────────────────────────
-(function init() {
+(async function init() {
     initTheme();
     initBookmarklet();
 
@@ -1049,6 +1158,8 @@ document.addEventListener('visibilitychange', function() {
         onLoggedIn();
         return;
     }
+
+    if (await handleSsoCallback()) return;
 
     if (loadSession()) {
         onLoggedIn();

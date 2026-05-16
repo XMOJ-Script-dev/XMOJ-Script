@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      3.4.0
+// @version      3.5.0
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -21,10 +21,11 @@
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_cookie
-// @homepage     https://www.xmoj-bbs.me/
-// @supportURL   https://support.xmoj-bbs.me/form/8050213e-c806-4680-b414-0d1c48263677
+// @homepage     https://www.xmoj-script.uk/
+// @supportURL   https://github.com/XMOJ-Script-dev/XMOJ-Script/issues
 // @connect      api.xmoj-bbs.tech
 // @connect      api.xmoj-bbs.me
+// @connect      api.xmoj-script.uk
 // @connect      challenges.cloudflare.com
 // @connect      cppinsights.io
 // @connect      cdnjs.cloudflare.com
@@ -505,7 +506,7 @@ let RequestAPI = (Action, Data, CallBack) => {
         }
         GM_xmlhttpRequest({
             method: "POST",
-            url: (UtilityEnabled("SuperDebug") ? "http://127.0.0.1:8787/" : "https://api.xmoj-bbs.me/") + Action,
+            url: (UtilityEnabled("SuperDebug") ? "http://127.0.0.1:8787/" : "https://api.xmoj-script.uk/") + Action,
             headers: {
                 "Content-Type": "application/json",
                 "Cache-Control": "no-cache",
@@ -531,6 +532,58 @@ let RequestAPI = (Action, Data, CallBack) => {
             SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
         }
     }
+};
+let SyncSettingsToCloud = (CallBack) => {
+    if (!CurrentUsername) {
+        if (CallBack) CallBack({ Success: false, Message: "用户未登录" });
+        return;
+    }
+    if (!UtilityEnabled("CloudSync")) {
+        if (CallBack) CallBack({ Success: false, Message: "云同步已禁用" });
+        return;
+    }
+    let Settings = {};
+    for (let i = 0; i < localStorage.length; i++) {
+        let key = localStorage.key(i);
+        if (key && key.startsWith("UserScript-Setting-")) {
+            Settings[key.replace("UserScript-Setting-", "")] = localStorage.getItem(key);
+        }
+    }
+    RequestAPI("SetUserSettings", {"Settings": JSON.stringify(Settings)}, (Response) => {
+        if (UtilityEnabled("DebugMode")) {
+            if (Response.Success) {
+                console.log("设置已同步到云端");
+            } else {
+                console.error("设置云端同步失败:", Response.Message);
+            }
+        }
+        if (CallBack) CallBack(Response);
+    });
+};
+
+let PeriodicCloudSync = () => {
+    if (!CurrentUsername || !UtilityEnabled("CloudSync")) return;
+    const lastSync = parseInt(localStorage.getItem("UserScript-CloudSync-LastSync") || "0");
+    if (Date.now() - lastSync < 60 * 60 * 1000) return;
+    RequestAPI("GetUserSettings", {}, (Response) => {
+        if (Response.Success) {
+            localStorage.setItem("UserScript-CloudSync-LastSync", String(Date.now()));
+            const cloudSettings = (Response.Data && Response.Data.Settings) || {};
+            if (Object.keys(cloudSettings).length > 0) {
+                let themeChanged = false;
+                for (let key in cloudSettings) {
+                    const rawValue = String(cloudSettings[key]);
+                    const localKey = "UserScript-Setting-" + key;
+                    if (localStorage.getItem(localKey) !== rawValue) {
+                        localStorage.setItem(localKey, rawValue);
+                        if (key === "Theme") themeChanged = true;
+                    }
+                }
+                if (themeChanged) initTheme();
+            }
+            SyncSettingsToCloud();
+        }
+    });
 };
 
 unsafeWindow.GetContestProblemList = async function(RefreshList) {
@@ -591,7 +644,7 @@ function ConnectNotificationSocket() {
             return;
         }
 
-        let wsUrl = (UtilityEnabled("SuperDebug") ? "ws://127.0.0.1:8787" : "wss://api.xmoj-bbs.me") + "/ws/notifications?SessionID=" + Session;
+        let wsUrl = (UtilityEnabled("SuperDebug") ? "ws://127.0.0.1:8787" : "wss://api.xmoj-script.uk") + "/ws/notifications?SessionID=" + Session;
 
         if (UtilityEnabled("DebugMode")) {
             console.log("WebSocket: Connecting to", wsUrl);
@@ -859,14 +912,19 @@ GM_registerMenuCommand("重置数据", () => {
 });
 
 //otherwise CurrentUsername might be undefined
+let loginStatus;
+await fetch("https://www.xmoj.tech/loginpage.php")
+    .then((response) => response.text())
+    .then((data) => (loginStatus = data));
+const logined = loginStatus == "<a href=logout.php>Please logout First!</a>";
 if (UtilityEnabled("AutoLogin") && document.querySelector("body > a:nth-child(1)") != null && document.querySelector("body > a:nth-child(1)").innerText == "请登录后继续操作") {
     localStorage.setItem("UserScript-LastPage", location.pathname + location.search);
     location.href = "https://www.xmoj.tech/loginpage.php";
 }
 
 let SearchParams = new URLSearchParams(location.search);
-let ServerURL = (UtilityEnabled("DebugMode") ? "https://ghpages.xmoj-bbs.me/" : "https://www.xmoj-bbs.me")
-if (document.querySelector("#profile") === null) {
+let ServerURL = (UtilityEnabled("DebugMode") ? "https://ghpages.xmoj-script.uk/" : "https://www.xmoj-script.uk")
+if (document.querySelector("#profile") === null && !logined) {
     location.href = "https://www.xmoj.tech/loginpage.php";
 }
 let CurrentUsername = document.querySelector("#profile").innerText;
@@ -890,6 +948,8 @@ let initTheme = () => {
     }
 };
 initTheme();
+PeriodicCloudSync();
+setInterval(PeriodicCloudSync, 60 * 60 * 1000);
 
 
 class NavbarStyler {
@@ -1129,7 +1189,7 @@ async function main() {
                     document.querySelector("body > div > div.jumbotron").className = "mt-3";
                 }
 
-                if (UtilityEnabled("AutoLogin") && document.querySelector("#profile") != null && document.querySelector("#profile").innerHTML == "登录" && location.pathname != "/login.php" && location.pathname != "/loginpage.php" && location.pathname != "/lostpassword.php") {
+                if (UtilityEnabled("AutoLogin") && document.querySelector("#profile") != null && document.querySelector("#profile").innerHTML == "登录" && location.pathname != "/login.php" && location.pathname != "/loginpage.php" && location.pathname != "/lostpassword.php" && !logined) {
                     localStorage.setItem("UserScript-LastPage", location.pathname + location.search);
                     location.href = "https://www.xmoj.tech/loginpage.php";
                 }
@@ -2127,6 +2187,7 @@ async function main() {
                                     Select.addEventListener("change", () => {
                                         localStorage.setItem("UserScript-Setting-Theme", Select.value);
                                         initTheme();
+                                        SyncSettingsToCloud();
                                     });
                                     Row.appendChild(Select);
                                 } else if (Data[i].Children == undefined) {
@@ -2144,7 +2205,11 @@ async function main() {
                                         CheckBox.checked = true;
                                     }
                                     CheckBox.addEventListener("change", () => {
-                                        return localStorage.setItem("UserScript-Setting-" + Data[i].ID, CheckBox.checked);
+                                        localStorage.setItem("UserScript-Setting-" + Data[i].ID, CheckBox.checked);
+                                        // Don't sync when disabling CloudSync itself (it's already off)
+                                        if (Data[i].ID !== "CloudSync" || CheckBox.checked) {
+                                            SyncSettingsToCloud();
+                                        }
                                     });
 
                                     Row.appendChild(CheckBox);
@@ -2226,6 +2291,8 @@ async function main() {
                         }, {"ID": "MessagePopup", "Type": "A", "Name": "短消息提醒"}, {
                             "ID": "ImageEnlarger", "Type": "A", "Name": "图片放大功能"
                         }, {
+                            "ID": "CloudSync", "Type": "A", "Name": "将设置同步至云端（跨设备同步）"
+                        }, {
                             "ID": "DebugMode", "Type": "A", "Name": "调试模式（仅供开发者使用）"
                         }, {
                             "ID": "SuperDebug", "Type": "A", "Name": "本地调试模式（仅供开发者使用) (未经授权的擅自开启将导致大部分功能不可用！)"
@@ -2236,6 +2303,88 @@ async function main() {
                         UtilitiesCardBody.appendChild(UtilitiesCardFooter);
                         UtilitiesCard.appendChild(UtilitiesCardBody);
                         Container.appendChild(UtilitiesCard);
+                        let SyncCard = document.createElement("div");
+                        SyncCard.className = "card mb-3";
+                        let SyncCardHeader = document.createElement("div");
+                        SyncCardHeader.className = "card-header";
+                        SyncCardHeader.innerText = "设置云同步";
+                        SyncCard.appendChild(SyncCardHeader);
+                        let SyncCardBody = document.createElement("div");
+                        SyncCardBody.className = "card-body";
+                        let SyncStatusText = document.createElement("p");
+                        SyncStatusText.className = "card-text mb-2";
+                        SyncStatusText.id = "UserScript-SyncStatus";
+                        SyncStatusText.innerText = "正在从云端加载设置…";
+                        SyncCardBody.appendChild(SyncStatusText);
+                        let SyncButtonGroup = document.createElement("div");
+                        SyncButtonGroup.className = "d-flex gap-2";
+                        let ApplyCloudSettings = (cloudSettings) => {
+                            for (let key in cloudSettings) {
+                                const rawValue = cloudSettings[key];
+                                localStorage.setItem("UserScript-Setting-" + key, String(rawValue));
+                                if (key === "Theme") {
+                                    let themeSelect = document.getElementById("UserScript-Setting-Theme");
+                                    if (themeSelect) themeSelect.value = String(rawValue);
+                                    initTheme();
+                                } else {
+                                    let checkbox = document.getElementById(key);
+                                    if (checkbox) {
+                                        const normalizedChecked = (typeof rawValue === "boolean") ? rawValue : (String(rawValue).toLowerCase() === "true");
+                                        checkbox.checked = normalizedChecked;
+                                    }
+                                }
+                            }
+                        };
+                        let UploadBtn = document.createElement("button");
+                        UploadBtn.className = "btn btn-sm btn-primary";
+                        UploadBtn.innerText = "上传设置到云端";
+                        UploadBtn.addEventListener("click", () => {
+                            SyncStatusText.innerText = "正在上传…";
+                            SyncSettingsToCloud((Response) => {
+                                SyncStatusText.innerText = Response.Success ? "上传成功" : ("上传失败: " + Response.Message);
+                            });
+                        });
+                        SyncButtonGroup.appendChild(UploadBtn);
+                        let DownloadBtn = document.createElement("button");
+                        DownloadBtn.className = "btn btn-sm btn-secondary";
+                        DownloadBtn.innerText = "从云端下载设置";
+                        DownloadBtn.addEventListener("click", () => {
+                            SyncStatusText.innerText = "正在下载…";
+                            RequestAPI("GetUserSettings", {}, (Response) => {
+                                if (Response.Success) {
+                                    ApplyCloudSettings(Response.Data.Settings);
+                                    SyncStatusText.innerText = "下载成功，设置已应用（部分设置需刷新页面后生效）";
+                                } else {
+                                    SyncStatusText.innerText = "下载失败: " + Response.Message;
+                                }
+                            });
+                        });
+                        SyncButtonGroup.appendChild(DownloadBtn);
+                        SyncCardBody.appendChild(SyncButtonGroup);
+                        SyncCard.appendChild(SyncCardBody);
+                        Container.appendChild(SyncCard);
+                        if (UtilityEnabled("CloudSync")) {
+                        RequestAPI("GetUserSettings", {}, (Response) => {
+                            let SyncStatusEl = document.getElementById("UserScript-SyncStatus");
+                            if (Response.Success) {
+                                const cloudSettings = (Response.Data && Response.Data.Settings) || {};
+                                if (Object.keys(cloudSettings).length === 0) {
+                                    if (SyncStatusEl) SyncStatusEl.innerText = "正在上传本地设置至云端…";
+                                    SyncSettingsToCloud((Resp) => {
+                                        if (SyncStatusEl) SyncStatusEl.innerText = Resp.Success ? "已将本地设置上传至云端" : ("上传失败: " + Resp.Message);
+                                    });
+                                } else {
+                                    ApplyCloudSettings(cloudSettings);
+                                    if (SyncStatusEl) SyncStatusEl.innerText = "已从云端加载设置";
+                                }
+                            } else {
+                                if (SyncStatusEl) SyncStatusEl.innerText = "云端设置加载失败: " + Response.Message;
+                            }
+                        });
+                        } else {
+                            let SyncStatusEl = document.getElementById("UserScript-SyncStatus");
+                            if (SyncStatusEl) SyncStatusEl.innerText = "云同步已禁用";
+                        }
                         let FeedbackCard = document.createElement("div");
                         FeedbackCard.className = "card mb-3";
                         let FeedbackCardHeader = document.createElement("div");
@@ -4878,7 +5027,7 @@ int main()
                                                 "Image": Reader.result
                                             }, (ResponseData) => {
                                                 if (ResponseData.Success) {
-                                                    Content.value = Before + `![](https://assets.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
+                                                    Content.value = Before + `![](https://assets.xmoj-script.uk/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
                                                     Content.dispatchEvent(new Event("input"));
                                                 } else {
                                                     Content.value = Before + `![上传失败！` + ResponseData.Message + `]()` + After;
@@ -5134,7 +5283,7 @@ int main()
                                                     "Image": Reader.result
                                                 }, (ResponseData) => {
                                                     if (ResponseData.Success) {
-                                                        ContentElement.value = Before + `![](https://assets.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
+                                                        ContentElement.value = Before + `![](https://assets.xmoj-script.uk/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
                                                         ContentElement.dispatchEvent(new Event("input"));
                                                     } else {
                                                         ContentElement.value = Before + `![上传失败！]()` + After;
@@ -5307,7 +5456,7 @@ int main()
                                                         "Image": Reader.result
                                                     }, (ResponseData) => {
                                                         if (ResponseData.Success) {
-                                                            ContentElement.value = Before + `![](https://assets.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
+                                                            ContentElement.value = Before + `![](https://assets.xmoj-script.uk/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
                                                             ContentElement.dispatchEvent(new Event("input"));
                                                         } else {
                                                             ContentElement.value = Before + `![上传失败！]()` + After;
@@ -5565,7 +5714,7 @@ int main()
                                                                         "Image": Reader.result
                                                                     }, (ResponseData) => {
                                                                         if (ResponseData.Success) {
-                                                                            ContentEditor.value = Before + `![](https://assets.xmoj-bbs.me/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
+                                                                            ContentEditor.value = Before + `![](https://assets.xmoj-script.uk/GetImage?ImageID=${ResponseData.Data.ImageID})` + After;
                                                                             ContentEditor.dispatchEvent(new Event("input"));
                                                                         } else {
                                                                             ContentEditor.value = Before + `![上传失败！]()` + After;
