@@ -3519,6 +3519,103 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "3.4.1": {
+            "UpdateDate": 1774675280384,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 961,
+                    "Description": "feat: Cross-device settings sync via cloud backend"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "3.4.2": {
+            "UpdateDate": 1774706085890,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 963,
+                    "Description": "feat: Add hourly periodic cloud settings sync"
+                }
+            ],
+            "Notes": "Add hourly automatic cloud settings sync. Every hour, if CloudSync is enabled, settings are downloaded from the cloud and applied locally, then local settings are uploaded to the cloud. This keeps settings in sync across devices without requiring a visit to the settings page."
+        },
+        "3.4.3": {
+            "UpdateDate": 1775972372292,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 969,
+                    "Description": "Migrate XMOJ-BBS client endpoints to /v1 routes"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "3.4.4": {
+            "UpdateDate": 1775993504358,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 975,
+                    "Description": "Revert /v1 endpoint migration"
+                }
+            ],
+            "Notes": "Revert the `/v1` endpoint migration from #969 to restore original API routes."
+        },
+        "3.4.5": {
+            "UpdateDate": 1776009434318,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 973,
+                    "Description": "Fix loginpage.php Loop"
+                }
+            ],
+            "Notes": "Fix loginpage.php loop."
+        },
+        "3.4.6": {
+            "UpdateDate": 1777708421566,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 980,
+                    "Description": "Switch all backend endpoints to api.xmoj-script.uk"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
+        },
+        "3.5.0": {
+            "UpdateDate": 1778930758179,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 961,
+                    "Description": "feat: Cross-device settings sync via cloud backend"
+                },
+                {
+                    "PR": 963,
+                    "Description": "feat: Add hourly periodic cloud settings sync"
+                },
+                {
+                    "PR": 969,
+                    "Description": "Migrate XMOJ-BBS client endpoints to /v1 routes"
+                },
+                {
+                    "PR": 975,
+                    "Description": "Revert /v1 endpoint migration"
+                },
+                {
+                    "PR": 973,
+                    "Description": "Fix loginpage.php Loop"
+                },
+                {
+                    "PR": 980,
+                    "Description": "Switch all backend endpoints to api.xmoj-script.uk"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
