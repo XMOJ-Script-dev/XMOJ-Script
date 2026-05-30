@@ -240,6 +240,162 @@ let GetUserBadge = async (Username) => {
         }
     }
 };
+async function ensureMonaco() {
+    if (typeof monaco !== 'undefined') return;
+    const loaderUrl = 'https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs/loader.js';
+    if (typeof require === 'undefined' || typeof require.config === 'undefined') {
+        await new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = loaderUrl;
+            s.onload = () => {
+                try { require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs' } }); } catch (e) {}
+                resolve();
+            };
+            s.onerror = reject;
+            document.head.appendChild(s);
+        });
+    } else {
+        try { require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs' } }); } catch (e) {}
+    }
+    await new Promise((resolve) => {
+        try {
+            require(['vs/editor/editor.main'], function() { resolve(); });
+        } catch (e) {
+            const check = setInterval(() => { if (typeof monaco !== 'undefined') { clearInterval(check); resolve(); } }, 50);
+        }
+    });
+    if (!document.getElementById('monaco-custom-style')) {
+        const style = document.createElement('style');
+        style.id = 'monaco-custom-style';
+        style.textContent = `
+/* rounded corners + find/replace/goto UI tweaks */
+.monaco-editor, .monaco-editor .margin, .monaco-editor .overflow-guard, .monaco-editor .monaco-editor-background {
+    border-radius: 8px !important;
+}
+.monaco-editor .find-widget, .monaco-editor .replace-widget, .monaco-editor .gotoLine-widget {
+    border-radius: 8px !important;
+    overflow: hidden;
+}
+.monaco-editor .monaco-scrollable-element .monaco-editor-background {
+    border-radius: 8px !important;
+}
+        `;
+        document.head.appendChild(style);
+    }
+}
+
+async function createMonacoEditor(containerOrId, options = {}) {
+    await ensureMonaco();
+    let container = null;
+    if (typeof containerOrId === 'string') container = document.getElementById(containerOrId);
+    else container = containerOrId;
+    if (!container) throw new Error('Monaco container not found');
+    if (!container.id) container.id = 'monaco-' + Math.random().toString(36).slice(2,9);
+    const key = options.localStorageKey || ('XMOJ-Monaco-' + location.pathname + ':' + container.id);
+    const theme = options.theme || (typeof UtilityEnabled === 'function' && UtilityEnabled("DarkMode") ? 'vs-dark' : 'vs');
+    const readOnly = !!options.readOnly;
+    const language = options.language || (options.mode === 'text/x-c++src' ? 'cpp' : (options.mode || 'cpp'));
+    const editor = monaco.editor.create(container, {
+        value: options.value || '',
+        language: language,
+        automaticLayout: !!options.automaticLayout,
+        theme: theme,
+        minimap: (typeof options.minimap !== 'undefined' ? options.minimap : { enabled: false }),
+        readOnly: readOnly,
+        lineNumbers: typeof options.lineNumbers !== 'undefined' ? options.lineNumbers : 'on',
+        tabSize: options.tabSize || 4
+    });
+    try {
+        if (options.restoreOnLoad !== false) {
+            const saved = localStorage.getItem(key);
+            if (saved !== null && saved !== 'null') editor.setValue(saved);
+        }
+    } catch (e) {}
+    let saveTimer = null;
+    const doSave = () => { try { localStorage.setItem(key, editor.getValue()); } catch (e) {} };
+    editor.onDidChangeModelContent(() => { if (saveTimer) clearTimeout(saveTimer); saveTimer = setTimeout(doSave, options.saveDebounce || 500); });
+    const adapter = {
+        getValue: () => editor.getValue(),
+        setValue: (v) => { editor.setValue(v); },
+        setSize: (w, h) => { const el = container; if (w) el.style.width = w; if (h) { if (h === 'auto') { try { const lines = editor.getModel().getLineCount(); el.style.height = Math.max(80, Math.min(1200, lines * 18)) + 'px'; } catch (e) { el.style.height = typeof h === 'number' ? h + 'px' : h; } } else el.style.height = h; } try { editor.layout(); } catch (e) {} },
+        getWrapperElement: () => container,
+        focus: () => { try { editor.focus(); } catch (e) {} },
+        _monacoEditor: editor,
+        showFind: () => { try { editor.trigger('', 'editor.action.startFindReplaceAction'); } catch (e) {} },
+        goToLine: (line) => { try { editor.setPosition({ lineNumber: parseInt(line) || 1, column: 1 }); editor.revealPositionInCenter({ lineNumber: parseInt(line) || 1, column: 1 }); editor.focus(); } catch (e) {} },
+        selectRange: (sLine, sCol, eLine, eCol) => { try { editor.setSelection({ startLineNumber: sLine, startColumn: sCol, endLineNumber: eLine, endColumn: eCol }); editor.revealRangeInCenter({ startLineNumber: sLine, startColumn: sCol, endLineNumber: eLine, endColumn: eCol }); } catch (e) {} },
+        saveToLocal: doSave,
+        localStorageKey: key
+    };
+    return adapter;
+}
+
+(function() {
+    const shim = function(containerOrTextArea, options) {
+        let container = containerOrTextArea;
+        let initialValue = '';
+        if (container && container.tagName && container.tagName.toLowerCase() === 'textarea') {
+            initialValue = container.value || container.textContent || '';
+            const div = document.createElement('div');
+            div.className = 'codemirror-shim-host';
+            container.parentNode.replaceChild(div, container);
+            container = div;
+        } else if (typeof containerOrTextArea === 'string') {
+            container = document.querySelector(containerOrTextArea) || document.getElementById(containerOrTextArea);
+        }
+        if (!container) { container = document.createElement('div'); document.body.appendChild(container); }
+        container._cmValue = (options && options.value) ? options.value : initialValue;
+        const placeholderAdapter = {
+            getValue: () => container._cmValue || '',
+            setValue: (v) => { container._cmValue = v; if (container._cmEditor) try { container._cmEditor.setValue(v); } catch (e) {} },
+            setSize: (w, h) => { if (w) container.style.width = w; if (h) { if (h === 'auto') container.style.height = 'auto'; else container.style.height = h; } if (container._cmEditor) try { container._cmEditor.layout(); } catch (e) {} },
+            getWrapperElement: () => container,
+            focus: () => { if (container._cmEditor) try { container._cmEditor.focus(); } catch (e) {} },
+            _monacoEditor: null
+        };
+        (async () => {
+            try {
+                const opts = options || {};
+                await ensureMonaco();
+                const lang = opts.mode === 'text/x-c++src' || (opts.mode && opts.mode.indexOf('c++') !== -1) ? 'cpp' : (opts.language || 'cpp');
+                const monacoAdapter = await createMonacoEditor(container, Object.assign({ language: lang, value: container._cmValue || '', readOnly: !!opts.readOnly, theme: (typeof UtilityEnabled === 'function' && UtilityEnabled("DarkMode") ? 'vs-dark' : 'vs') }, opts));
+                container._cmEditor = monacoAdapter._monacoEditor;
+                placeholderAdapter.getValue = monacoAdapter.getValue;
+                placeholderAdapter.setValue = monacoAdapter.setValue;
+                placeholderAdapter.setSize = monacoAdapter.setSize;
+                placeholderAdapter.getWrapperElement = monacoAdapter.getWrapperElement;
+                placeholderAdapter.focus = monacoAdapter.focus;
+                placeholderAdapter._monacoEditor = monacoAdapter._monacoEditor;
+            } catch (e) { console.error(e); }
+        })();
+        return placeholderAdapter;
+    };
+    shim.fromTextArea = function(textarea, options) { return shim(textarea, options); };
+    shim.MergeView = function(container, options) {
+        let el = container;
+        if (typeof container === 'string') el = document.getElementById(container) || document.querySelector(container);
+        if (!el) { el = document.createElement('div'); document.body.appendChild(el); }
+        const wrapper = { ignoreWhitespace: !!(options && options.ignoreWhitespace), _diffEditor: null, _originalModel: null, _modifiedModel: null };
+        (async () => {
+            try {
+                await ensureMonaco();
+                const diffEditor = monaco.editor.createDiffEditor(el, { readOnly: !!(options && options.readOnly), theme: (typeof UtilityEnabled === 'function' && UtilityEnabled("DarkMode") ? 'vs-dark' : 'vs'), minimap: { enabled: false }, automaticLayout: true });
+                const orig = options && options.value ? options.value : '';
+                const mod = options && options.orig ? options.orig : '';
+                const origVal = wrapper.ignoreWhitespace ? orig.replace(/\s+/g,' ') : orig;
+                const modVal = wrapper.ignoreWhitespace ? mod.replace(/\s+/g,' ') : mod;
+                const originalModel = monaco.editor.createModel(origVal, 'cpp');
+                const modifiedModel = monaco.editor.createModel(modVal, 'cpp');
+                diffEditor.setModel({ original: originalModel, modified: modifiedModel });
+                wrapper._diffEditor = diffEditor;
+                wrapper._originalModel = originalModel;
+                wrapper._modifiedModel = modifiedModel;
+            } catch (e) { console.error(e); }
+        })();
+        return wrapper;
+    };
+    window.CodeMirror = shim;
+})();
 /**
  * Sets the HTML content of an element to display a username with optional additional information.
  * @param {HTMLElement} Element - The element to set the HTML content.
@@ -3475,7 +3631,8 @@ async function main() {
                 } else if (location.pathname == "/submitpage.php") {
                     document.title = "提交代码: " + (SearchParams.get("id") != null ? "题目" + Number(SearchParams.get("id")) : "比赛" + Number(SearchParams.get("cid")));
                     document.querySelector("body > div > div.mt-3").innerHTML = `<center class="mb-3">` + `<h3>提交代码</h3>` + (SearchParams.get("id") != null ? `题目<span class="blue">${Number(SearchParams.get("id"))}</span>` : `比赛<span class="blue">${Number(SearchParams.get("cid")) + `</span>&emsp;题目<span class="blue">` + String.fromCharCode(65 + parseInt(SearchParams.get("pid")))}</span>`) + `</center>
-    <textarea id="CodeInput"></textarea>
+    <div id="MonacoEditor" style="width:100%; height:400px;"></div>
+    <textarea id="CodeInput" style="display:none"></textarea>
     <center class="mt-3">
         <input id="enable_O2" name="enable_O2" type="checkbox"><label for="enable_O2">打开O2开关</label>
         <br>
@@ -3489,24 +3646,21 @@ async function main() {
                         document.querySelector("#enable_O2").checked = true;
                     }
                     let CodeMirrorElement;
-                    (() => {
-                        CodeMirrorElement = CodeMirror.fromTextArea(document.querySelector("#CodeInput"), {
-                            lineNumbers: true,
-                            matchBrackets: true,
-                            mode: "text/x-c++src",
-                            indentUnit: 4,
-                            indentWithTabs: true,
-                            enterMode: "keep",
-                            tabMode: "shift",
-                            theme: (UtilityEnabled("DarkMode") ? "darcula" : "default"),
-                            extraKeys: {
-                                "Ctrl-Space": "autocomplete", "Ctrl-Enter": function (instance) {
-                                    Submit.click();
-                                }
-                            }
-                        })
-                    })();
-                    CodeMirrorElement.setSize("100%", "auto");
+                    CodeMirrorElement = await createMonacoEditor('MonacoEditor', {
+                        language: 'cpp',
+                        value: '',
+                        automaticLayout: true,
+                        theme: (UtilityEnabled("DarkMode") ? 'vs-dark' : 'vs'),
+                        minimap: { enabled: false },
+                        lineNumbers: 'on',
+                        tabSize: 4,
+                        localStorageKey: (SearchParams.get("id") != null ? ('XMOJ-Submit-id-' + SearchParams.get("id")) : ('XMOJ-Submit-cid-' + SearchParams.get("cid") + '-pid-' + SearchParams.get("pid")))
+                    });
+                    try {
+                        CodeMirrorElement._monacoEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, function() { Submit.click(); });
+                        CodeMirrorElement._monacoEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Space, function() { CodeMirrorElement._monacoEditor.trigger('keyboard', 'editor.action.triggerSuggest', {}); });
+                    } catch (e) {}
+                    CodeMirrorElement.setSize("100%", "400px");
                     CodeMirrorElement.getWrapperElement().style.border = UtilityEnabled("MonochromeUI") ? "2px solid var(--mono-black)" : "1px solid #ddd";
 
                     if (SearchParams.get("sid") !== null) {
@@ -3641,14 +3795,27 @@ async function main() {
                                     }, 1500);
                                 });
                                 document.getElementById('ErrorMessage').appendChild(copyFreopenButton);
-                                let freopenCodeField = CodeMirror(document.getElementById('ErrorMessage'), {
-                                    value: 'freopen("' + IOFilename + '.in", "r", stdin);\nfreopen("' + IOFilename + '.out", "w", stdout);',
-                                    mode: 'text/x-c++src',
-                                    theme: (UtilityEnabled("DarkMode") ? "darcula" : "default"),
-                                    readOnly: true,
-                                    lineNumbers: true
-                                });
-                                freopenCodeField.setSize("100%", "auto");
+                                // create a small read-only Monaco editor or fallback text for the freopen snippet
+                                let codeHost = document.createElement('div');
+                                codeHost.style.width = '100%';
+                                codeHost.style.height = '80px';
+                                codeHost.style.marginTop = '10px';
+                                document.getElementById('ErrorMessage').appendChild(codeHost);
+                                if (typeof monaco !== 'undefined') {
+                                    monaco.editor.create(codeHost, {
+                                        value: 'freopen("' + IOFilename + '.in", "r", stdin);\nfreopen("' + IOFilename + '.out", "w", stdout);',
+                                        language: 'cpp',
+                                        readOnly: true,
+                                        theme: (UtilityEnabled("DarkMode") ? 'vs-dark' : 'vs'),
+                                        automaticLayout: true,
+                                        minimap: { enabled: false },
+                                        lineNumbers: 'on'
+                                    });
+                                } else {
+                                    const pre = document.createElement('pre');
+                                    pre.textContent = 'freopen("' + IOFilename + '.in", "r", stdin);\nfreopen("' + IOFilename + '.out", "w", stdout);';
+                                    document.getElementById('ErrorMessage').appendChild(pre);
+                                }
                                 document.querySelector("#Submit").disabled = false;
                                 document.querySelector("#Submit").value = "提交";
                                 return false;
