@@ -3627,6 +3627,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "3.5.2": {
+            "UpdateDate": 1780154238096,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 989,
+                    "Description": "Use Monaco Editor and save code in submitpage.php when edit the content."
+                }
+            ],
+            "Notes": "Use Monaco Editor and save code in submitpage.php when edit the content."
         }
     }
 }
