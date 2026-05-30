@@ -3623,7 +3623,7 @@
             "UpdateContents": [
                 {
                     "PR": 986,
-                    "Description": "[WIP] Fix syntax error in XMOJ script for Violentmonkey"
+                    "Description": "Fix Violentmonkey SyntaxError: wrap async init block in IIFE"
                 }
             ],
             "Notes": "No release notes were provided for this release."
