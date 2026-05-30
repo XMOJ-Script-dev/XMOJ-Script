@@ -3616,6 +3616,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "3.5.1": {
+            "UpdateDate": 1780117325597,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 986,
+                    "Description": "Fix Violentmonkey SyntaxError: wrap async init block in IIFE"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }

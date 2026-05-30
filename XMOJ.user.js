@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      3.5.0
+// @version      3.5.1
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -42,6 +42,11 @@
 
 const CaptchaSiteKey = "0x4AAAAAAALBT58IhyDViNmv";
 const AdminUserList = ["zhuchenrui2", "shanwenxiao", "chenlangning", "admin"];
+
+// Pre-declared so that closures defined before the async init block can reference them
+let CurrentUsername;
+let initTheme;
+let SearchParams;
 
 let escapeHTML = (str) => {
     return str.replace(/[&<>"']/g, function (match) {
@@ -911,6 +916,9 @@ GM_registerMenuCommand("重置数据", () => {
     }
 });
 
+// Wrapped in an async IIFE so that `await` is valid in Violentmonkey,
+// which executes userscripts as classic scripts (not ES modules).
+(async () => {
 //otherwise CurrentUsername might be undefined
 let loginStatus;
 await fetch("https://www.xmoj.tech/loginpage.php")
@@ -920,14 +928,19 @@ const logined = loginStatus == "<a href=logout.php>Please logout First!</a>";
 if (UtilityEnabled("AutoLogin") && document.querySelector("body > a:nth-child(1)") != null && document.querySelector("body > a:nth-child(1)").innerText == "请登录后继续操作") {
     localStorage.setItem("UserScript-LastPage", location.pathname + location.search);
     location.href = "https://www.xmoj.tech/loginpage.php";
+    return;
 }
 
-let SearchParams = new URLSearchParams(location.search);
+SearchParams = new URLSearchParams(location.search);
 let ServerURL = (UtilityEnabled("DebugMode") ? "https://ghpages.xmoj-script.uk/" : "https://www.xmoj-script.uk")
-if (document.querySelector("#profile") === null && !logined) {
-    location.href = "https://www.xmoj.tech/loginpage.php";
+const profileElement = document.querySelector("#profile");
+if (profileElement === null) {
+    if (!logined) {
+        location.href = "https://www.xmoj.tech/loginpage.php";
+    }
+    return;
 }
-let CurrentUsername = document.querySelector("#profile").innerText;
+CurrentUsername = profileElement.innerText;
 CurrentUsername = CurrentUsername.replaceAll(/[^a-zA-Z0-9]/g, "");
 let IsAdmin = AdminUserList.indexOf(CurrentUsername) !== -1;
 
@@ -937,7 +950,7 @@ const applyTheme = (theme) => {
     localStorage.setItem("UserScript-Setting-DarkMode", theme === "dark" ? "true" : "false");
 };
 const applySystemTheme = (e) => applyTheme(e.matches ? "dark" : "light");
-let initTheme = () => {
+initTheme = () => {
     const saved = localStorage.getItem("UserScript-Setting-Theme") || "auto";
     if (saved === "auto") {
         applyTheme(prefersDark.matches ? "dark" : "light");
@@ -6344,6 +6357,8 @@ int main()
     }
 }
 
-main().then(r => {
-    console.log("XMOJ-Script loaded successfully!");
+await main();
+console.log("XMOJ-Script loaded successfully!");
+})().catch(e => {
+    console.error("[XMOJ-Script] Initialization error:", e);
 });
