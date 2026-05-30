@@ -928,14 +928,19 @@ const logined = loginStatus == "<a href=logout.php>Please logout First!</a>";
 if (UtilityEnabled("AutoLogin") && document.querySelector("body > a:nth-child(1)") != null && document.querySelector("body > a:nth-child(1)").innerText == "请登录后继续操作") {
     localStorage.setItem("UserScript-LastPage", location.pathname + location.search);
     location.href = "https://www.xmoj.tech/loginpage.php";
+    return;
 }
 
 SearchParams = new URLSearchParams(location.search);
 let ServerURL = (UtilityEnabled("DebugMode") ? "https://ghpages.xmoj-script.uk/" : "https://www.xmoj-script.uk")
-if (document.querySelector("#profile") === null && !logined) {
-    location.href = "https://www.xmoj.tech/loginpage.php";
+const profileElement = document.querySelector("#profile");
+if (profileElement === null) {
+    if (!logined) {
+        location.href = "https://www.xmoj.tech/loginpage.php";
+    }
+    return;
 }
-CurrentUsername = document.querySelector("#profile").innerText;
+CurrentUsername = profileElement.innerText;
 CurrentUsername = CurrentUsername.replaceAll(/[^a-zA-Z0-9]/g, "");
 let IsAdmin = AdminUserList.indexOf(CurrentUsername) !== -1;
 
@@ -6352,9 +6357,8 @@ int main()
     }
 }
 
-main().then(r => {
-    console.log("XMOJ-Script loaded successfully!");
-});
+await main();
+console.log("XMOJ-Script loaded successfully!");
 })().catch(e => {
     console.error("[XMOJ-Script] Initialization error:", e);
 });
