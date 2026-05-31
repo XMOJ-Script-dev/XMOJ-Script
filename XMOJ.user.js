@@ -257,11 +257,12 @@ async function ensureMonaco() {
     } else {
         try { require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs' } }); } catch (e) {}
     }
-    await new Promise((resolve) => {
+    await new Promise((resolve, reject) => {
         try {
             require(['vs/editor/editor.main'], function() { resolve(); });
         } catch (e) {
             const check = setInterval(() => { if (typeof monaco !== 'undefined') { clearInterval(check); resolve(); } }, 50);
+            setTimeout(() => { clearInterval(check); reject(new Error('Monaco load timeout')); }, 30000);
         }
     });
     if (!document.getElementById('monaco-custom-style')) {
@@ -384,8 +385,9 @@ async function createMonacoEditor(containerOrId, options = {}) {
                 const mod = options && options.orig ? options.orig : '';
                 const origVal = wrapper.ignoreWhitespace ? orig.replace(/\s+/g,' ') : orig;
                 const modVal = wrapper.ignoreWhitespace ? mod.replace(/\s+/g,' ') : mod;
-                const originalModel = monaco.editor.createModel(origVal, 'cpp');
-                const modifiedModel = monaco.editor.createModel(modVal, 'cpp');
+                const lang = (options && options.mode === 'text/x-c++src') || (options && options.mode && options.mode.indexOf('c++') !== -1) ? 'cpp' : (options && options.language || 'cpp');
+                const originalModel = monaco.editor.createModel(origVal, lang);
+                const modifiedModel = monaco.editor.createModel(modVal, lang);
                 diffEditor.setModel({ original: originalModel, modified: modifiedModel });
                 wrapper._diffEditor = diffEditor;
                 wrapper._originalModel = originalModel;
@@ -3630,7 +3632,7 @@ async function main() {
                     }
                 } else if (location.pathname == "/submitpage.php") {
                     document.title = "提交代码: " + (SearchParams.get("id") != null ? "题目" + Number(SearchParams.get("id")) : "比赛" + Number(SearchParams.get("cid")));
-                    document.querySelector("body > div > div.mt-3").innerHTML = `<center class="mb-3">` + `<h3>提交代码</h3>` + (SearchParams.get("id") != null ? `题目<span class="blue">${Number(SearchParams.get("id"))}</span>` : `比赛<span class="blue">${Number(SearchParams.get("cid")) + `</span>&emsp;题目<span class="blue">` + String.fromCharCode(65 + parseInt(SearchParams.get("pid")))}</span>`) + `</center>
+                    document.querySelector("body > div > div.mt-3").innerHTML = `<center class="mb-3" id="_submitPageHeader"></center>
     <div id="MonacoEditor" style="width:100%; height:400px;"></div>
     <textarea id="CodeInput" style="display:none"></textarea>
     <center class="mt-3">
@@ -3642,26 +3644,66 @@ async function main() {
             <button id="PassCheck" class="btn btn-outline-secondary mt-2" style="display: none">强制提交</button>
         </div>
     </center>`;
+                    (function() {
+                        const _header = document.getElementById('_submitPageHeader');
+                        const _h3 = document.createElement('h3');
+                        _h3.textContent = '提交代码';
+                        _header.appendChild(_h3);
+                        if (SearchParams.get("id") != null) {
+                            _header.appendChild(document.createTextNode('题目'));
+                            const _idSpan = document.createElement('span');
+                            _idSpan.className = 'blue';
+                            _idSpan.textContent = String(Number(SearchParams.get("id")));
+                            _header.appendChild(_idSpan);
+                        } else {
+                            _header.appendChild(document.createTextNode('比赛'));
+                            const _cidSpan = document.createElement('span');
+                            _cidSpan.className = 'blue';
+                            _cidSpan.textContent = String(Number(SearchParams.get("cid")));
+                            _header.appendChild(_cidSpan);
+                            _header.appendChild(document.createTextNode('\u2003题目'));
+                            const _pidSpan = document.createElement('span');
+                            _pidSpan.className = 'blue';
+                            _pidSpan.textContent = String.fromCharCode(65 + parseInt(SearchParams.get("pid")));
+                            _header.appendChild(_pidSpan);
+                        }
+                    })();
                     if (UtilityEnabled("AutoO2")) {
                         document.querySelector("#enable_O2").checked = true;
                     }
                     let CodeMirrorElement;
-                    CodeMirrorElement = await createMonacoEditor('MonacoEditor', {
-                        language: 'cpp',
-                        value: '',
-                        automaticLayout: true,
-                        theme: (UtilityEnabled("DarkMode") ? 'vs-dark' : 'vs'),
-                        minimap: { enabled: false },
-                        lineNumbers: 'on',
-                        tabSize: 4,
-                        localStorageKey: (SearchParams.get("id") != null ? ('XMOJ-Submit-id-' + SearchParams.get("id")) : ('XMOJ-Submit-cid-' + SearchParams.get("cid") + '-pid-' + SearchParams.get("pid")))
-                    });
                     try {
-                        CodeMirrorElement._monacoEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, function() { Submit.click(); });
-                        CodeMirrorElement._monacoEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Space, function() { CodeMirrorElement._monacoEditor.trigger('keyboard', 'editor.action.triggerSuggest', {}); });
-                    } catch (e) {}
-                    CodeMirrorElement.setSize("100%", "400px");
-                    CodeMirrorElement.getWrapperElement().style.border = UtilityEnabled("MonochromeUI") ? "2px solid var(--mono-black)" : "1px solid #ddd";
+                        CodeMirrorElement = await createMonacoEditor('MonacoEditor', {
+                            language: 'cpp',
+                            value: '',
+                            automaticLayout: true,
+                            theme: (UtilityEnabled("DarkMode") ? 'vs-dark' : 'vs'),
+                            minimap: { enabled: false },
+                            lineNumbers: 'on',
+                            tabSize: 4,
+                            localStorageKey: (SearchParams.get("id") != null ? ('XMOJ-Submit-id-' + SearchParams.get("id")) : ('XMOJ-Submit-cid-' + SearchParams.get("cid") + '-pid-' + SearchParams.get("pid")))
+                        });
+                        try {
+                            CodeMirrorElement._monacoEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, function() { Submit.click(); });
+                            CodeMirrorElement._monacoEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Space, function() { CodeMirrorElement._monacoEditor.trigger('keyboard', 'editor.action.triggerSuggest', {}); });
+                        } catch (e) {}
+                        CodeMirrorElement.setSize("100%", "400px");
+                        CodeMirrorElement.getWrapperElement().style.border = UtilityEnabled("MonochromeUI") ? "2px solid var(--mono-black)" : "1px solid #ddd";
+                    } catch (e) {
+                        const _fallbackTA = document.getElementById('CodeInput');
+                        document.getElementById('MonacoEditor').style.display = 'none';
+                        _fallbackTA.style.display = '';
+                        _fallbackTA.style.width = '100%';
+                        _fallbackTA.style.height = '400px';
+                        CodeMirrorElement = {
+                            getValue: () => _fallbackTA.value,
+                            setValue: (v) => { _fallbackTA.value = v; },
+                            setSize: (w, h) => { if (w) _fallbackTA.style.width = w; if (h) _fallbackTA.style.height = h; },
+                            getWrapperElement: () => _fallbackTA,
+                            focus: () => _fallbackTA.focus(),
+                            _monacoEditor: null
+                        };
+                    }
 
                     if (SearchParams.get("sid") !== null) {
                         await fetch("https://www.xmoj.tech/getsource.php?id=" + SearchParams.get("sid"))
