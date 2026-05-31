@@ -318,7 +318,7 @@ async function createMonacoEditor(containerOrId, options = {}) {
     const adapter = {
         getValue: () => editor.getValue(),
         setValue: (v) => { editor.setValue(v); },
-        setSize: (w, h) => { const el = container; if (w) el.style.width = w; if (h) { if (h === 'auto') { try { const lines = editor.getModel().getLineCount(); el.style.height = Math.max(80, Math.min(1200, lines * 18)) + 'px'; } catch (e) { el.style.height = typeof h === 'number' ? h + 'px' : h; } } else el.style.height = h; } try { editor.layout(); } catch (e) {} },
+        setSize: (w, h) => { const el = container; if (w) el.style.width = w; if (h) { if (h === 'auto') { try { const lines = editor.getModel().getLineCount(); el.style.height = Math.max(80, Math.min(1200, lines * 18)) + 'px'; } catch (e) { el.style.height = '80px'; } } else el.style.height = h; } try { editor.layout(); } catch (e) {} },
         getWrapperElement: () => container,
         focus: () => { try { editor.focus(); } catch (e) {} },
         _monacoEditor: editor,
