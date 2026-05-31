@@ -385,7 +385,8 @@ async function createMonacoEditor(containerOrId, options = {}) {
                 const mod = options && options.orig ? options.orig : '';
                 const origVal = wrapper.ignoreWhitespace ? orig.replace(/\s+/g,' ') : orig;
                 const modVal = wrapper.ignoreWhitespace ? mod.replace(/\s+/g,' ') : mod;
-                const lang = (options && options.mode === 'text/x-c++src') || (options && options.mode && options.mode.indexOf('c++') !== -1) ? 'cpp' : (options && options.language || 'cpp');
+                const isCpp = (options && options.mode === 'text/x-c++src') || (options && options.mode && options.mode.indexOf('c++') !== -1);
+                const lang = isCpp ? 'cpp' : (options && options.language || 'cpp');
                 const originalModel = monaco.editor.createModel(origVal, lang);
                 const modifiedModel = monaco.editor.createModel(modVal, lang);
                 diffEditor.setModel({ original: originalModel, modified: modifiedModel });
@@ -3661,7 +3662,7 @@ async function main() {
                             _cidSpan.className = 'blue';
                             _cidSpan.textContent = String(Number(SearchParams.get("cid")));
                             _header.appendChild(_cidSpan);
-                            _header.appendChild(document.createTextNode('\u2003题目'));
+                            _header.appendChild(document.createTextNode('\u2003题目')); // \u2003 = em space
                             const _pidSpan = document.createElement('span');
                             _pidSpan.className = 'blue';
                             _pidSpan.textContent = String.fromCharCode(65 + parseInt(SearchParams.get("pid")));
@@ -3701,6 +3702,11 @@ async function main() {
                             setSize: (w, h) => { if (w) _fallbackTA.style.width = w; if (h) _fallbackTA.style.height = h; },
                             getWrapperElement: () => _fallbackTA,
                             focus: () => _fallbackTA.focus(),
+                            showFind: () => {},
+                            goToLine: () => {},
+                            selectRange: () => {},
+                            saveToLocal: () => {},
+                            localStorageKey: null,
                             _monacoEditor: null
                         };
                     }
