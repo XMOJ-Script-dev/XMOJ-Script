@@ -258,11 +258,13 @@ async function ensureMonaco() {
         try { require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs' } }); } catch (e) {}
     }
     await new Promise((resolve, reject) => {
+        let check = null;
+        const done = () => { if (check) clearInterval(check); clearTimeout(timeout); resolve(); };
+        const timeout = setTimeout(() => { if (check) clearInterval(check); reject(new Error('Monaco load timeout')); }, 30000);
         try {
-            require(['vs/editor/editor.main'], function() { resolve(); });
+            require(['vs/editor/editor.main'], function() { done(); });
         } catch (e) {
-            const check = setInterval(() => { if (typeof monaco !== 'undefined') { clearInterval(check); resolve(); } }, 50);
-            setTimeout(() => { clearInterval(check); reject(new Error('Monaco load timeout')); }, 30000);
+            check = setInterval(() => { if (typeof monaco !== 'undefined') done(); }, 50);
         }
     });
     if (!document.getElementById('monaco-custom-style')) {
