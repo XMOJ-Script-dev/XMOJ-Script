@@ -348,10 +348,11 @@ async function createMonacoEditor(containerOrId, options = {}) {
         }
         if (!container) { container = document.createElement('div'); document.body.appendChild(container); }
         container._cmValue = (options && options.value) ? options.value : initialValue;
+        let _lastSetSizeArgs = null;
         const placeholderAdapter = {
             getValue: () => container._cmValue || '',
             setValue: (v) => { container._cmValue = v; if (container._cmEditor) try { container._cmEditor.setValue(v); } catch (e) {} },
-            setSize: (w, h) => { if (w) container.style.width = w; if (h) { if (h === 'auto') container.style.height = 'auto'; else container.style.height = h; } if (container._cmEditor) try { container._cmEditor.layout(); } catch (e) {} },
+            setSize: (w, h) => { _lastSetSizeArgs = [w, h]; if (w) container.style.width = w; if (h) { if (h === 'auto') container.style.height = 'auto'; else container.style.height = h; } if (container._cmEditor) try { container._cmEditor.layout(); } catch (e) {} },
             getWrapperElement: () => container,
             focus: () => { if (container._cmEditor) try { container._cmEditor.focus(); } catch (e) {} },
             _monacoEditor: null
@@ -369,6 +370,7 @@ async function createMonacoEditor(containerOrId, options = {}) {
                 placeholderAdapter.getWrapperElement = monacoAdapter.getWrapperElement;
                 placeholderAdapter.focus = monacoAdapter.focus;
                 placeholderAdapter._monacoEditor = monacoAdapter._monacoEditor;
+                if (_lastSetSizeArgs) monacoAdapter.setSize(_lastSetSizeArgs[0], _lastSetSizeArgs[1]);
             } catch (e) { console.error(e); }
         })();
         return placeholderAdapter;
@@ -382,15 +384,13 @@ async function createMonacoEditor(containerOrId, options = {}) {
         (async () => {
             try {
                 await ensureMonaco();
-                const diffEditor = monaco.editor.createDiffEditor(el, { readOnly: !!(options && options.readOnly), theme: (typeof UtilityEnabled === 'function' && UtilityEnabled("DarkMode") ? 'vs-dark' : 'vs'), minimap: { enabled: false }, automaticLayout: true });
+                const diffEditor = monaco.editor.createDiffEditor(el, { readOnly: !!(options && options.readOnly), theme: (typeof UtilityEnabled === 'function' && UtilityEnabled("DarkMode") ? 'vs-dark' : 'vs'), minimap: { enabled: false }, automaticLayout: true, ignoreTrimWhitespace: !!wrapper.ignoreWhitespace });
                 const orig = options && options.value ? options.value : '';
                 const mod = options && options.orig ? options.orig : '';
-                const origVal = wrapper.ignoreWhitespace ? orig.replace(/\s+/g,' ') : orig;
-                const modVal = wrapper.ignoreWhitespace ? mod.replace(/\s+/g,' ') : mod;
                 const isCpp = (options && options.mode === 'text/x-c++src') || (options && options.mode && options.mode.indexOf('c++') !== -1);
                 const lang = isCpp ? 'cpp' : (options && options.language || 'cpp');
-                const originalModel = monaco.editor.createModel(origVal, lang);
-                const modifiedModel = monaco.editor.createModel(modVal, lang);
+                const originalModel = monaco.editor.createModel(orig, lang);
+                const modifiedModel = monaco.editor.createModel(mod, lang);
                 diffEditor.setModel({ original: originalModel, modified: modifiedModel });
                 wrapper._diffEditor = diffEditor;
                 wrapper._originalModel = originalModel;
@@ -3698,6 +3698,11 @@ async function main() {
                         _fallbackTA.style.display = '';
                         _fallbackTA.style.width = '100%';
                         _fallbackTA.style.height = '400px';
+                        const _fallbackKey = SearchParams.get("id") != null ? ('XMOJ-Submit-id-' + SearchParams.get("id")) : ('XMOJ-Submit-cid-' + SearchParams.get("cid") + '-pid-' + SearchParams.get("pid"));
+                        try { const _saved = localStorage.getItem(_fallbackKey); if (_saved !== null && _saved !== 'null') _fallbackTA.value = _saved; } catch (_e) {}
+                        let _fallbackTimer = null;
+                        const _fallbackSave = () => { try { localStorage.setItem(_fallbackKey, _fallbackTA.value); } catch (_e) {} };
+                        _fallbackTA.addEventListener('input', () => { if (_fallbackTimer) clearTimeout(_fallbackTimer); _fallbackTimer = setTimeout(_fallbackSave, 500); });
                         CodeMirrorElement = {
                             getValue: () => _fallbackTA.value,
                             setValue: (v) => { _fallbackTA.value = v; },
@@ -3707,8 +3712,8 @@ async function main() {
                             showFind: () => {},
                             goToLine: () => {},
                             selectRange: () => {},
-                            saveToLocal: () => {},
-                            localStorageKey: null,
+                            saveToLocal: _fallbackSave,
+                            localStorageKey: _fallbackKey,
                             _monacoEditor: null
                         };
                     }
