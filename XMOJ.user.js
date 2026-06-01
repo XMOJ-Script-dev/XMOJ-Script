@@ -3690,6 +3690,16 @@ async function main() {
                         let _fallbackTimer = null;
                         const _fallbackSave = () => { try { localStorage.setItem(_fallbackKey, _fallbackTA.value); } catch (_e) {} };
                         _fallbackTA.addEventListener('input', () => { if (_fallbackTimer) clearTimeout(_fallbackTimer); _fallbackTimer = setTimeout(_fallbackSave, 500); });
+                        _fallbackTA.addEventListener('keydown', (e) => {
+                            const key = e.key || e.keyCode;
+                            const isEnter = key === 'Enter' || key === 13;
+                            if (isEnter && e.ctrlKey) {
+                                e.preventDefault();
+                                if (typeof Submit !== 'undefined' && Submit && typeof Submit.click === 'function') {
+                                    Submit.click();
+                                }
+                            }
+                        });
                         CodeMirrorElement = {
                             getValue: () => _fallbackTA.value,
                             setValue: (v) => { _fallbackTA.value = v; },
