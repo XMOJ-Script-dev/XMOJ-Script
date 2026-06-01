@@ -270,19 +270,6 @@ async function ensureMonaco() {
     if (!document.getElementById('monaco-custom-style')) {
         const style = document.createElement('style');
         style.id = 'monaco-custom-style';
-        style.textContent = `
-/* rounded corners + find/replace/goto UI tweaks */
-.monaco-editor, .monaco-editor .margin, .monaco-editor .overflow-guard, .monaco-editor .monaco-editor-background {
-    border-radius: 8px !important;
-}
-.monaco-editor .find-widget, .monaco-editor .replace-widget, .monaco-editor .gotoLine-widget {
-    border-radius: 8px !important;
-    overflow: hidden;
-}
-.monaco-editor .monaco-scrollable-element .monaco-editor-background {
-    border-radius: 8px !important;
-}
-        `;
         document.head.appendChild(style);
     }
 }
