@@ -3718,7 +3718,9 @@ async function main() {
                         };
                     }
 
-                    if (SearchParams.get("sid") !== null) {
+                    const _fallbackKey = SearchParams.get("id") != null ? ('XMOJ-Submit-id-' + SearchParams.get("id")) : ('XMOJ-Submit-cid-' + SearchParams.get("cid") + '-pid-' + SearchParams.get("pid"));
+                    const _saved = localStorage.getItem(_fallbackKey);
+                    if (_saved == null && _saved == 'null' && SearchParams.get("sid") !== null) {
                         await fetch("https://www.xmoj.tech/getsource.php?id=" + SearchParams.get("sid"))
                             .then((Response) => {
                                 return Response.text()
@@ -3853,7 +3855,7 @@ async function main() {
                                 // create a small read-only Monaco editor or fallback text for the freopen snippet
                                 let codeHost = document.createElement('div');
                                 codeHost.style.width = '100%';
-                                codeHost.style.height = '80px';
+                                codeHost.style.height = '38px';
                                 codeHost.style.marginTop = '10px';
                                 document.getElementById('ErrorMessage').appendChild(codeHost);
                                 if (typeof monaco !== 'undefined') {
