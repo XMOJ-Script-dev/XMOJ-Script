@@ -12,7 +12,7 @@
 // @require      https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/addon/merge/merge.min.js
 // @require      https://gitee.com/mirrors_google/diff-match-patch/raw/master/javascript/diff_match_patch_uncompressed.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.2/purify.min.js
-// @require      https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js
+// @require      https://cdnjs.cloudfflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js
 // @grant        GM_registerMenuCommand
 // @grant        GM_xmlhttpRequest
@@ -3623,7 +3623,9 @@ async function main() {
                 } else if (location.pathname == "/submitpage.php") {
                     document.title = "提交代码: " + (SearchParams.get("id") != null ? "题目" + Number(SearchParams.get("id")) : "比赛" + Number(SearchParams.get("cid")));
                     document.querySelector("body > div > div.mt-3").innerHTML = `<center class="mb-3" id="_submitPageHeader"></center>
-    <div id="MonacoEditor" style="width:100%; height:400px;"></div>
+    <div id="MonacoEditor" style="width:100%; height:550px; display: grid; place-items: center;">
+      <p id="loadEditor">Loading...</p>
+    </div>
     <textarea id="CodeInput" style="display:none"></textarea>
     <center class="mt-3">
         <input id="enable_O2" name="enable_O2" type="checkbox"><label for="enable_O2">打开O2开关</label>
@@ -3677,14 +3679,15 @@ async function main() {
                             CodeMirrorElement._monacoEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, function() { Submit.click(); });
                             CodeMirrorElement._monacoEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Space, function() { CodeMirrorElement._monacoEditor.trigger('keyboard', 'editor.action.triggerSuggest', {}); });
                         } catch (e) {}
-                        CodeMirrorElement.setSize("100%", "400px");
+                        CodeMirrorElement.setSize("100%", "550px");
                         CodeMirrorElement.getWrapperElement().style.border = UtilityEnabled("MonochromeUI") ? "2px solid var(--mono-black)" : "1px solid #ddd";
+                        document.getElementById("loadEditor").remove();
                     } catch (e) {
                         const _fallbackTA = document.getElementById('CodeInput');
                         document.getElementById('MonacoEditor').style.display = 'none';
                         _fallbackTA.style.display = '';
                         _fallbackTA.style.width = '100%';
-                        _fallbackTA.style.height = '400px';
+                        _fallbackTA.style.height = '550px';
                         const _fallbackKey = SearchParams.get("id") != null ? ('XMOJ-Submit-id-' + SearchParams.get("id")) : ('XMOJ-Submit-cid-' + SearchParams.get("cid") + '-pid-' + SearchParams.get("pid"));
                         try { const _saved = localStorage.getItem(_fallbackKey); if (_saved !== null && _saved !== 'null') _fallbackTA.value = _saved; } catch (_e) {}
                         let _fallbackTimer = null;
@@ -5012,7 +5015,7 @@ int main()
                         mode: "text/x-c++src",
                         readOnly: true,
                         theme: (UtilityEnabled("DarkMode") ? "darcula" : "default")
-                    }).setSize("100%", "auto");
+                    }).setSize("100%", "730px");
                 } else if (location.pathname == "/ceinfo.php") {
                     await fetch(location.href)
                         .then((Result) => {
@@ -5029,7 +5032,7 @@ int main()
                                 mode: "text/x-c++src",
                                 readOnly: true,
                                 theme: (UtilityEnabled("DarkMode") ? "darcula" : "default")
-                            }).setSize("100%", "auto");
+                            }).setSize("100%", "730px");
                         });
                 } else if (location.pathname == "/problem_std.php") {
                     await fetch("https://www.xmoj.tech/problem_std.php?cid=" + SearchParams.get("cid") + "&pid=" + SearchParams.get("pid"))
@@ -5049,8 +5052,9 @@ int main()
                                     mode: "text/x-c++src",
                                     readOnly: true,
                                     theme: (UtilityEnabled("DarkMode") ? "darcula" : "default")
-                                }).setSize("100%", "auto");
+                                }).setSize("100%", "730px");
                             }
+                            document.getElementById("overlay").remove();
                         });
                 } else if (location.pathname == "/mail.php") {
                     if (SearchParams.get("to_user") == null) {
