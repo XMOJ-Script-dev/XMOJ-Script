@@ -12,7 +12,7 @@
 // @require      https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/addon/merge/merge.min.js
 // @require      https://gitee.com/mirrors_google/diff-match-patch/raw/master/javascript/diff_match_patch_uncompressed.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.2/purify.min.js
-// @require      https://cdnjs.cloudfflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js
+// @require      https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js
 // @grant        GM_registerMenuCommand
 // @grant        GM_xmlhttpRequest
