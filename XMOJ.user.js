@@ -3720,7 +3720,7 @@ async function main() {
 
                     const _fallbackKey = SearchParams.get("id") != null ? ('XMOJ-Submit-id-' + SearchParams.get("id")) : ('XMOJ-Submit-cid-' + SearchParams.get("cid") + '-pid-' + SearchParams.get("pid"));
                     const _saved = localStorage.getItem(_fallbackKey);
-                    if (_saved == null && _saved == 'null' && SearchParams.get("sid") !== null) {
+                    if ((_saved == null || _saved == 'null') && SearchParams.get("sid") !== null) {
                         await fetch("https://www.xmoj.tech/getsource.php?id=" + SearchParams.get("sid"))
                             .then((Response) => {
                                 return Response.text()
