@@ -289,7 +289,7 @@ async function createMonacoEditor(containerOrId, options = {}) {
             return available;
         } catch (e) { return null; }
     };
-    const applyAutoFit = (callLayout) => {
+    const applyAutoFit = (callLayout, ed) => {
         try {
             if (!autoFitEnabled) return;
             const available = computeAvailableHeight();
@@ -312,7 +312,7 @@ async function createMonacoEditor(containerOrId, options = {}) {
                         innerHost.style.boxSizing = 'border-box';
                     } catch (e) {}
                 }
-                if (callLayout) try { if (typeof editor !== 'undefined' && editor && editor.layout) editor.layout(); } catch (e) {}
+                if (callLayout) try { if (ed && ed.layout) ed.layout(); } catch (e) {}
             }
         } catch (e) {}
     };
@@ -344,12 +344,12 @@ async function createMonacoEditor(containerOrId, options = {}) {
         tabSize: options.tabSize || 4
     });
     // apply initial auto-fit (no layout call yet because editor is not fully initialized until after creation)
-    try { applyAutoFit(false); } catch (e) {}
+    try { applyAutoFit(false, editor); } catch (e) {}
     // after creation, ensure Monaco layout matches the computed size and listen for viewport changes
     try {
-        applyAutoFit(true);
+        applyAutoFit(true, editor);
         if (autoFitEnabled && typeof window !== 'undefined') {
-            _autoFitHandler = () => applyAutoFit(true);
+            _autoFitHandler = () => applyAutoFit(true, editor);
             window.addEventListener('resize', _autoFitHandler);
             window.addEventListener('orientationchange', _autoFitHandler);
             window.addEventListener('scroll', _autoFitHandler);
@@ -407,7 +407,18 @@ async function createMonacoEditor(containerOrId, options = {}) {
         if (container && container.tagName && container.tagName.toLowerCase() === 'textarea') {
             initialValue = container.value || container.textContent || '';
             const div = document.createElement('div');
-            div.className = 'codemirror-shim-host';
+            // copy most attributes from the original textarea to the replacement div (except value)
+            try {
+                for (let i = 0; i < container.attributes.length; i++) {
+                    const a = container.attributes[i];
+                    if (!a) continue;
+                    if (a.name === 'value') continue;
+                    try { div.setAttribute(a.name, a.value); } catch (e) {}
+                }
+            } catch (e) {}
+            div.classList.add('codemirror-shim-host');
+            // preserve inline styles if any
+            try { if (container.style && container.style.cssText) div.style.cssText = container.style.cssText; } catch (e) {}
             container.parentNode.replaceChild(div, container);
             container = div;
         } else if (typeof containerOrTextArea === 'string') {
