@@ -276,6 +276,7 @@ async function ensureMonaco() {
 
 async function createMonacoEditor(containerOrId, options = {}) {
     await ensureMonaco();
+    options = options || {};
     let container = null;
     if (typeof containerOrId === 'string') container = document.getElementById(containerOrId);
     else container = containerOrId;
