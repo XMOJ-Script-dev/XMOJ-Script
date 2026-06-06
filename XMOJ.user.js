@@ -383,7 +383,24 @@ async function createMonacoEditor(containerOrId, options = {}) {
         saveToLocal: doSave,
         localStorageKey: key
         ,
-        dispose: () => { try { if (_autoFitHandler && typeof window !== 'undefined') { window.removeEventListener('resize', _autoFitHandler); window.removeEventListener('orientationchange', _autoFitHandler); window.removeEventListener('scroll', _autoFitHandler); } } catch (e) {} }
+        dispose: () => {
+            try {
+                if (_autoFitHandler && typeof window !== 'undefined') {
+                    window.removeEventListener('resize', _autoFitHandler);
+                    window.removeEventListener('orientationchange', _autoFitHandler);
+                    window.removeEventListener('scroll', _autoFitHandler);
+                }
+            } catch (e) {}
+            try {
+                if (editor) {
+                    try {
+                        const model = (editor.getModel && editor.getModel()) || null;
+                        if (model && model.dispose) model.dispose();
+                    } catch (e) {}
+                    try { editor.dispose(); } catch (e) {}
+                }
+            } catch (e) {}
+        }
     };
     return adapter;
 }
@@ -4003,7 +4020,7 @@ async function main() {
                                 } else {
                                     const pre = document.createElement('pre');
                                     pre.textContent = 'freopen("' + IOFilename + '.in", "r", stdin);\nfreopen("' + IOFilename + '.out", "w", stdout);';
-                                    document.getElementById('ErrorMessage').appendChild(pre);
+                                    codeHost.appendChild(pre);
                                 }
                                 document.querySelector("#Submit").disabled = false;
                                 document.querySelector("#Submit").value = "提交";
