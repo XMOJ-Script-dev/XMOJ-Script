@@ -267,11 +267,6 @@ async function ensureMonaco() {
             check = setInterval(() => { if (typeof monaco !== 'undefined') done(); }, 50);
         }
     });
-    if (!document.getElementById('monaco-custom-style')) {
-        const style = document.createElement('style');
-        style.id = 'monaco-custom-style';
-        document.head.appendChild(style);
-    }
 }
 
 async function createMonacoEditor(containerOrId, options = {}) {
@@ -521,6 +516,32 @@ async function createMonacoEditor(containerOrId, options = {}) {
     };
     window.CodeMirror = shim;
 })();
+/**
+ * Dispose any transient Monaco editors created inside the ErrorMessage area (freopen snippets).
+ */
+function _xmoj_disposeErrorMessageEditors() {
+    try {
+        const arr = window._xmoj_temp_error_editors || [];
+        if (arr && arr.length) {
+            arr.forEach((ed) => {
+                try {
+                    const m = (ed && ed.getModel) ? ed.getModel() : null;
+                    if (m && m.dispose) try { m.dispose(); } catch (e) {}
+                } catch (e) {}
+                try { if (ed && ed.dispose) ed.dispose(); } catch (e) {}
+            });
+        }
+        window._xmoj_temp_error_editors = [];
+    } catch (e) {}
+    try {
+        const hosts = document.querySelectorAll('[data-xmoj-error-editor]');
+        hosts.forEach((h) => {
+            try { if (h._monacoEditor && h._monacoEditor.dispose) h._monacoEditor.dispose(); } catch (e) {}
+            try { delete h._monacoEditor; } catch (e) {}
+            try { h.removeAttribute('data-xmoj-error-editor'); } catch (e) {}
+        });
+    } catch (e) {}
+}
 /**
  * Sets the HTML content of an element to display a username with optional additional information.
  * @param {HTMLElement} Element - The element to set the HTML content.
@@ -3930,6 +3951,7 @@ async function main() {
                                     }
                                     ErrorElement.style.display = "block";
                                     ErrorMessage.style.color = "red";
+                                    try { _xmoj_disposeErrorMessageEditors(); } catch (e) {}
                                     ErrorMessage.innerText = "比赛已结束, 正在尝试向题目 " + rPID + " 提交";
                                     console.log("比赛已结束, 正在尝试向题目 " + rPID + " 提交");
                                     let o2Switch = "&enable_O2=on";
@@ -3954,6 +3976,7 @@ async function main() {
                                 }
                                 ErrorElement.style.display = "block";
                                 ErrorMessage.style.color = "red";
+                                try { _xmoj_disposeErrorMessageEditors(); } catch (e) {}
                                 ErrorMessage.innerText = "提交失败！请关闭脚本后重试！";
                                 Submit.disabled = false;
                                 Submit.value = "提交";
@@ -3980,6 +4003,7 @@ async function main() {
                                 PassCheck.style.display = "";
                                 ErrorElement.style.display = "block";
                                 if (UtilityEnabled("DarkMode")) ErrorMessage.style.color = "yellow"; else ErrorMessage.style.color = "red";
+                                try { _xmoj_disposeErrorMessageEditors(); } catch (e) {}
                                 ErrorMessage.innerText = "此题输入输出文件名为" + IOFilename + "，请检查是否填错";
 
                                 let freopenText = document.createElement('small');
@@ -4008,15 +4032,24 @@ async function main() {
                                 codeHost.style.marginTop = '10px';
                                 document.getElementById('ErrorMessage').appendChild(codeHost);
                                 if (typeof monaco !== 'undefined') {
-                                    monaco.editor.create(codeHost, {
-                                        value: 'freopen("' + IOFilename + '.in", "r", stdin);\nfreopen("' + IOFilename + '.out", "w", stdout);',
-                                        language: 'cpp',
-                                        readOnly: true,
-                                        theme: (UtilityEnabled("DarkMode") ? 'vs-dark' : 'vs'),
-                                        automaticLayout: true,
-                                        minimap: { enabled: false },
-                                        lineNumbers: 'on'
-                                    });
+                                    try {
+                                        const _tmpErrEditor = monaco.editor.create(codeHost, {
+                                            value: 'freopen("' + IOFilename + '.in", "r", stdin);\nfreopen("' + IOFilename + '.out", "w", stdout);',
+                                            language: 'cpp',
+                                            readOnly: true,
+                                            theme: (UtilityEnabled("DarkMode") ? 'vs-dark' : 'vs'),
+                                            automaticLayout: true,
+                                            minimap: { enabled: false },
+                                            lineNumbers: 'on'
+                                        });
+                                        window._xmoj_temp_error_editors = window._xmoj_temp_error_editors || [];
+                                        window._xmoj_temp_error_editors.push(_tmpErrEditor);
+                                        try { codeHost._monacoEditor = _tmpErrEditor; codeHost.setAttribute('data-xmoj-error-editor', '1'); } catch (e) {}
+                                    } catch (e) {
+                                        const pre = document.createElement('pre');
+                                        pre.textContent = 'freopen("' + IOFilename + '.in", "r", stdin);\nfreopen("' + IOFilename + '.out", "w", stdout);';
+                                        codeHost.appendChild(pre);
+                                    }
                                 } else {
                                     const pre = document.createElement('pre');
                                     pre.textContent = 'freopen("' + IOFilename + '.in", "r", stdin);\nfreopen("' + IOFilename + '.out", "w", stdout);';
@@ -4029,6 +4062,7 @@ async function main() {
                                 PassCheck.style.display = "";
                                 ErrorElement.style.display = "block";
                                 if (UtilityEnabled("DarkMode")) ErrorMessage.style.color = "yellow"; else ErrorMessage.style.color = "red";
+                                try { _xmoj_disposeErrorMessageEditors(); } catch (e) {}
                                 ErrorMessage.innerText = "请不要注释freopen语句";
                                 document.querySelector("#Submit").disabled = false;
                                 document.querySelector("#Submit").value = "提交";
@@ -4039,6 +4073,7 @@ async function main() {
                             PassCheck.style.display = "";
                             ErrorElement.style.display = "block";
                             if (UtilityEnabled("DarkMode")) ErrorMessage.style.color = "yellow"; else ErrorMessage.style.color = "red";
+                            try { _xmoj_disposeErrorMessageEditors(); } catch (e) {}
                             ErrorMessage.innerText = "源代码为空";
                             document.querySelector("#Submit").disabled = false;
                             document.querySelector("#Submit").value = "提交";
@@ -4061,6 +4096,7 @@ async function main() {
                                 PassCheck.style.display = "";
                                 ErrorElement.style.display = "block";
                                 if (UtilityEnabled("DarkMode")) ErrorMessage.style.color = "yellow"; else ErrorMessage.style.color = "red";
+                                try { _xmoj_disposeErrorMessageEditors(); } catch (e) {}
                                 ErrorMessage.innerText = "编译错误：\n" + Response.stderr.trim();
                                 document.querySelector("#Submit").disabled = false;
                                 document.querySelector("#Submit").value = "提交";
