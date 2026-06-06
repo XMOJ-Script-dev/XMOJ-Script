@@ -522,7 +522,7 @@ async function createMonacoEditor(containerOrId, options = {}) {
 function _xmoj_disposeErrorMessageEditors() {
     try {
         const arr = window._xmoj_temp_error_editors || [];
-        if (arr && arr.length) {
+        if (arr.length) {
             arr.forEach((ed) => {
                 try {
                     const m = (ed && ed.getModel) ? ed.getModel() : null;
