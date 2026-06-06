@@ -282,14 +282,14 @@ async function createMonacoEditor(containerOrId, options = {}) {
     if (!container) throw new Error('Monaco container not found');
     if (!container.id) container.id = 'monaco-' + Math.random().toString(36).slice(2,9);
     // Auto-fit settings: when true Monaco will fill width and height from the page header to window bottom
-    let autoFitEnabled = (typeof options.fitToViewport === 'undefined') ? false : !!options.fitToViewport;
+    let autoFitEnabled = !!options.fitToViewport;
     let _autoFitHandler = null;
     let innerHost = null;
     const computeAvailableHeight = () => {
         try {
             const header = document.querySelector('nav') || document.querySelector('#navbar') || document.querySelector('.navbar') || document.querySelector('header');
             const top = header ? header.getBoundingClientRect().bottom : 0;
-            const bottomOffset = (options && options.bottomOffset) ? Number(options.bottomOffset) : 0;
+            const bottomOffset = Number(options.bottomOffset || 0);
             const available = Math.max(80, window.innerHeight - top - bottomOffset);
             return available;
         } catch (e) { return null; }
@@ -312,7 +312,7 @@ async function createMonacoEditor(containerOrId, options = {}) {
                         const innerRatio = (options && options.innerRatio) ? Number(options.innerRatio) : 0.95;
                         const wrapperHeight = Math.max(200, Math.min(Math.floor(available * innerRatio), available));
                         innerHost.style.height = wrapperHeight + 'px';
-                        innerHost.style.width = options.width || (options.maxWidth ? '95%' : '95%');
+                        innerHost.style.width = options.width || '95%';
                         if (options.maxWidth) innerHost.style.maxWidth = String(options.maxWidth);
                         innerHost.style.boxSizing = 'border-box';
                     } catch (e) {}
@@ -460,7 +460,7 @@ async function createMonacoEditor(containerOrId, options = {}) {
             _mergeLoadingEl.textContent = 'Loading...';
             el.appendChild(_mergeLoadingEl);
         } catch (e) {}
-        const wrapper = { ignoreWhitespace: !!(options && options.ignoreWhitespace), _diffEditor: null, _originalModel: null, _modifiedModel: null };
+        const wrapper = { ignoreWhitespace: !!options.ignoreWhitespace, _diffEditor: null, _originalModel: null, _modifiedModel: null };
         (async () => {
             try {
                 await ensureMonaco();
@@ -470,17 +470,17 @@ async function createMonacoEditor(containerOrId, options = {}) {
                     mvInner = document.createElement('div');
                     mvInner.className = 'monaco-merge-host';
                     mvInner.style.boxSizing = 'border-box';
-                    mvInner.style.width = options && options.width ? options.width : '95%';
+                    mvInner.style.width = options.width || '95%';
                     if (options && options.fitToViewport) {
                         try { el.style.display = 'flex'; el.style.alignItems = 'center'; el.style.justifyContent = 'center'; } catch (e) {}
                         const header = document.querySelector('nav') || document.querySelector('#navbar') || document.querySelector('.navbar') || document.querySelector('header');
                         const top = header ? header.getBoundingClientRect().bottom : 0;
-                        const bottomOffset = (options && options.bottomOffset) ? Number(options.bottomOffset) : 0;
+                        const bottomOffset = Number(options.bottomOffset || 0);
                         const available = Math.max(80, window.innerHeight - top - bottomOffset);
                         const wrapperHeight = Math.max(200, Math.min(Math.floor(available * 0.95), available));
                         mvInner.style.height = wrapperHeight + 'px';
                     } else {
-                        if (options && options.height) mvInner.style.height = (typeof options.height === 'number' ? options.height + 'px' : options.height);
+                        if (options.height) mvInner.style.height = (typeof options.height === 'number' ? options.height + 'px' : options.height);
                     }
                     el.appendChild(mvInner);
                 } catch (e) { mvInner = null; }
@@ -3811,7 +3811,7 @@ async function main() {
                             try {
                                 const header = document.querySelector('nav') || document.querySelector('#navbar') || document.querySelector('.navbar') || document.querySelector('header');
                                 const top = header ? header.getBoundingClientRect().bottom : 0;
-                                const bottomOffset = (editorOptions && editorOptions.bottomOffset) ? Number(editorOptions.bottomOffset) : 0;
+                                const bottomOffset = Number(editorOptions.bottomOffset || 0);
                                 const available = Math.max(80, window.innerHeight - top - bottomOffset);
                                 _fallbackTA.style.height = available + 'px';
                             } catch (err) { _fallbackTA.style.height = '550px'; }
