@@ -276,7 +276,6 @@ async function ensureMonaco() {
 
 async function createMonacoEditor(containerOrId, options = {}) {
     await ensureMonaco();
-    options = options || {};
     let container = null;
     if (typeof containerOrId === 'string') container = document.getElementById(containerOrId);
     else container = containerOrId;
@@ -310,7 +309,7 @@ async function createMonacoEditor(containerOrId, options = {}) {
                 try { container.style.height = available + 'px'; } catch (e) {}
                 if (innerHost) {
                     try {
-                        const innerRatio = (options && options.innerRatio) ? Number(options.innerRatio) : 0.95;
+                        const innerRatio = (typeof options.innerRatio !== 'undefined') ? Number(options.innerRatio) : 0.95;
                         const wrapperHeight = Math.max(200, Math.min(Math.floor(available * innerRatio), available));
                         innerHost.style.height = wrapperHeight + 'px';
                         innerHost.style.width = options.width || '95%';
@@ -446,6 +445,7 @@ async function createMonacoEditor(containerOrId, options = {}) {
     };
     shim.fromTextArea = function(textarea, options) { return shim(textarea, options); };
     shim.MergeView = function(container, options) {
+        options = options || {};
         let el = container;
         if (typeof container === 'string') el = document.getElementById(container) || document.querySelector(container);
         if (!el) { el = document.createElement('div'); document.body.appendChild(el); }
@@ -472,7 +472,7 @@ async function createMonacoEditor(containerOrId, options = {}) {
                     mvInner.className = 'monaco-merge-host';
                     mvInner.style.boxSizing = 'border-box';
                     mvInner.style.width = options.width || '95%';
-                    if (options && options.fitToViewport) {
+                    if (options.fitToViewport) {
                         try { el.style.display = 'flex'; el.style.alignItems = 'center'; el.style.justifyContent = 'center'; } catch (e) {}
                         const header = document.querySelector('nav') || document.querySelector('#navbar') || document.querySelector('.navbar') || document.querySelector('header');
                         const top = header ? header.getBoundingClientRect().bottom : 0;
@@ -486,11 +486,11 @@ async function createMonacoEditor(containerOrId, options = {}) {
                     el.appendChild(mvInner);
                 } catch (e) { mvInner = null; }
 
-                const diffEditor = monaco.editor.createDiffEditor(mvInner || el, { readOnly: !!(options && options.readOnly), theme: (typeof UtilityEnabled === 'function' && UtilityEnabled("DarkMode") ? 'vs-dark' : 'vs'), minimap: { enabled: false }, automaticLayout: true, ignoreTrimWhitespace: !!wrapper.ignoreWhitespace });
-                const orig = options && options.value ? options.value : '';
-                const mod = options && options.orig ? options.orig : '';
-                const isCpp = (options && options.mode === 'text/x-c++src') || (options && options.mode && options.mode.indexOf('c++') !== -1);
-                const lang = isCpp ? 'cpp' : (options && options.language || 'cpp');
+                const diffEditor = monaco.editor.createDiffEditor(mvInner || el, { readOnly: !!options.readOnly, theme: (typeof UtilityEnabled === 'function' && UtilityEnabled("DarkMode") ? 'vs-dark' : 'vs'), minimap: { enabled: false }, automaticLayout: true, ignoreTrimWhitespace: !!wrapper.ignoreWhitespace });
+                const orig = options.value || '';
+                const mod = options.orig || '';
+                const isCpp = options.mode === 'text/x-c++src' || (typeof options.mode === 'string' && options.mode.indexOf('c++') !== -1);
+                const lang = isCpp ? 'cpp' : (options.language || 'cpp');
                 const originalModel = monaco.editor.createModel(orig, lang);
                 const modifiedModel = monaco.editor.createModel(mod, lang);
                 diffEditor.setModel({ original: originalModel, modified: modifiedModel });
