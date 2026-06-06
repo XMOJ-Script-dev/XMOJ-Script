@@ -281,11 +281,64 @@ async function createMonacoEditor(containerOrId, options = {}) {
     else container = containerOrId;
     if (!container) throw new Error('Monaco container not found');
     if (!container.id) container.id = 'monaco-' + Math.random().toString(36).slice(2,9);
+    // Auto-fit settings: when true Monaco will fill width and height from the page header to window bottom
+    let autoFitEnabled = (typeof options.fitToViewport === 'undefined') ? false : !!options.fitToViewport;
+    let _autoFitHandler = null;
+    let innerHost = null;
+    const computeAvailableHeight = () => {
+        try {
+            const header = document.querySelector('nav') || document.querySelector('#navbar') || document.querySelector('.navbar') || document.querySelector('header');
+            const top = header ? header.getBoundingClientRect().bottom : 0;
+            const bottomOffset = (options && options.bottomOffset) ? Number(options.bottomOffset) : 0;
+            const available = Math.max(80, window.innerHeight - top - bottomOffset);
+            return available;
+        } catch (e) { return null; }
+    };
+    const applyAutoFit = (callLayout) => {
+        try {
+            if (!autoFitEnabled) return;
+            const available = computeAvailableHeight();
+            if (available != null) {
+                try {
+                    container.style.width = options.width || '100%';
+                    container.style.display = 'flex';
+                    container.style.alignItems = 'center';
+                    container.style.justifyContent = 'center';
+                    container.style.boxSizing = 'border-box';
+                } catch (e) {}
+                try { container.style.height = available + 'px'; } catch (e) {}
+                if (innerHost) {
+                    try {
+                        const innerRatio = (options && options.innerRatio) ? Number(options.innerRatio) : 0.95;
+                        const wrapperHeight = Math.max(200, Math.min(Math.floor(available * innerRatio), available));
+                        innerHost.style.height = wrapperHeight + 'px';
+                        innerHost.style.width = options.width || (options.maxWidth ? '95%' : '95%');
+                        if (options.maxWidth) innerHost.style.maxWidth = String(options.maxWidth);
+                        innerHost.style.boxSizing = 'border-box';
+                    } catch (e) {}
+                }
+                if (callLayout) try { if (typeof editor !== 'undefined' && editor && editor.layout) editor.layout(); } catch (e) {}
+            }
+        } catch (e) {}
+    };
     const key = options.localStorageKey || ('XMOJ-Monaco-' + location.pathname + ':' + container.id);
     const theme = options.theme || (typeof UtilityEnabled === 'function' && UtilityEnabled("DarkMode") ? 'vs-dark' : 'vs');
     const readOnly = !!options.readOnly;
     const language = options.language || (options.mode === 'text/x-c++src' ? 'cpp' : (options.mode || 'cpp'));
-    const editor = monaco.editor.create(container, {
+    // create an inner host so we can center the editor both horizontally and vertically
+    try {
+        innerHost = document.createElement('div');
+        innerHost.className = 'monaco-editor-host';
+        innerHost.style.boxSizing = 'border-box';
+        // default sizing; will be recalculated by applyAutoFit when enabled
+        innerHost.style.width = options.width || (autoFitEnabled ? '95%' : '100%');
+        if (!autoFitEnabled) {
+            if (options.height) innerHost.style.height = (typeof options.height === 'number' ? options.height + 'px' : options.height);
+        }
+        container.appendChild(innerHost);
+    } catch (e) { console.error(e); }
+
+    const editor = monaco.editor.create(innerHost || container, {
         value: options.value || '',
         language: language,
         automaticLayout: !!options.automaticLayout,
@@ -295,6 +348,19 @@ async function createMonacoEditor(containerOrId, options = {}) {
         lineNumbers: typeof options.lineNumbers !== 'undefined' ? options.lineNumbers : 'on',
         tabSize: options.tabSize || 4
     });
+    // apply initial auto-fit (no layout call yet because editor is not fully initialized until after creation)
+    try { applyAutoFit(false); } catch (e) {}
+    // after creation, ensure Monaco layout matches the computed size and listen for viewport changes
+    try {
+        applyAutoFit(true);
+        if (autoFitEnabled && typeof window !== 'undefined') {
+            _autoFitHandler = () => applyAutoFit(true);
+            window.addEventListener('resize', _autoFitHandler);
+            window.addEventListener('orientationchange', _autoFitHandler);
+            window.addEventListener('scroll', _autoFitHandler);
+            try { editor.onDidDispose(() => { window.removeEventListener('resize', _autoFitHandler); window.removeEventListener('orientationchange', _autoFitHandler); window.removeEventListener('scroll', _autoFitHandler); }); } catch (e) {}
+        }
+    } catch (e) {}
     try {
         if (options.restoreOnLoad !== false) {
             const saved = localStorage.getItem(key);
@@ -307,8 +373,8 @@ async function createMonacoEditor(containerOrId, options = {}) {
     const adapter = {
         getValue: () => editor.getValue(),
         setValue: (v) => { editor.setValue(v); },
-        setSize: (w, h) => { const el = container; if (w) el.style.width = w; if (h) { if (h === 'auto') { try { const lines = editor.getModel().getLineCount(); el.style.height = Math.max(80, Math.min(1200, lines * 18)) + 'px'; } catch (e) { el.style.height = '80px'; } } else el.style.height = h; } try { editor.layout(); } catch (e) {} },
-        getWrapperElement: () => container,
+        setSize: (w, h) => { const el = innerHost || container; if (w) el.style.width = w; if (h) { try { if (h !== 'auto') autoFitEnabled = false; } catch (e) {} if (h === 'auto') { try { const lines = editor.getModel().getLineCount(); el.style.height = Math.max(80, Math.min(1200, lines * 18)) + 'px'; } catch (e) { el.style.height = '80px'; } } else el.style.height = h; } try { editor.layout(); } catch (e) {} },
+        getWrapperElement: () => innerHost || container,
         focus: () => { try { editor.focus(); } catch (e) {} },
         _monacoEditor: editor,
         showFind: () => { try { editor.trigger('', 'editor.action.startFindReplaceAction'); } catch (e) {} },
@@ -316,6 +382,8 @@ async function createMonacoEditor(containerOrId, options = {}) {
         selectRange: (sLine, sCol, eLine, eCol) => { try { editor.setSelection({ startLineNumber: sLine, startColumn: sCol, endLineNumber: eLine, endColumn: eCol }); editor.revealRangeInCenter({ startLineNumber: sLine, startColumn: sCol, endLineNumber: eLine, endColumn: eCol }); } catch (e) {} },
         saveToLocal: doSave,
         localStorageKey: key
+        ,
+        dispose: () => { try { if (_autoFitHandler && typeof window !== 'undefined') { window.removeEventListener('resize', _autoFitHandler); window.removeEventListener('orientationchange', _autoFitHandler); window.removeEventListener('scroll', _autoFitHandler); } } catch (e) {} }
     };
     return adapter;
 }
@@ -335,6 +403,18 @@ async function createMonacoEditor(containerOrId, options = {}) {
         }
         if (!container) { container = document.createElement('div'); document.body.appendChild(container); }
         container._cmValue = (options && options.value) ? options.value : initialValue;
+        // show a centered Loading... placeholder while Monaco initializes
+        try {
+            const _monacoLoadingEl = document.createElement('div');
+            _monacoLoadingEl.className = 'monaco-loading';
+            _monacoLoadingEl.style.width = '100%';
+            _monacoLoadingEl.style.height = '100%';
+            _monacoLoadingEl.style.display = 'flex';
+            _monacoLoadingEl.style.alignItems = 'center';
+            _monacoLoadingEl.style.justifyContent = 'center';
+            _monacoLoadingEl.textContent = 'Loading...';
+            container.appendChild(_monacoLoadingEl);
+        } catch (e) {}
         let _lastSetSizeArgs = null;
         const placeholderAdapter = {
             getValue: () => container._cmValue || '',
@@ -357,8 +437,9 @@ async function createMonacoEditor(containerOrId, options = {}) {
                 placeholderAdapter.getWrapperElement = monacoAdapter.getWrapperElement;
                 placeholderAdapter.focus = monacoAdapter.focus;
                 placeholderAdapter._monacoEditor = monacoAdapter._monacoEditor;
+                try { const _l = container.querySelector('.monaco-loading'); if (_l) _l.remove(); } catch (e) {}
                 if (_lastSetSizeArgs) monacoAdapter.setSize(_lastSetSizeArgs[0], _lastSetSizeArgs[1]);
-            } catch (e) { console.error(e); }
+            } catch (e) { console.error(e); try { const _l = container.querySelector('.monaco-loading'); if (_l) _l.remove(); } catch (_) {} }
         })();
         return placeholderAdapter;
     };
@@ -367,11 +448,44 @@ async function createMonacoEditor(containerOrId, options = {}) {
         let el = container;
         if (typeof container === 'string') el = document.getElementById(container) || document.querySelector(container);
         if (!el) { el = document.createElement('div'); document.body.appendChild(el); }
+        // show a centered Loading... placeholder while Monaco initializes
+        try {
+            const _mergeLoadingEl = document.createElement('div');
+            _mergeLoadingEl.className = 'monaco-loading';
+            _mergeLoadingEl.style.width = '100%';
+            _mergeLoadingEl.style.height = '100%';
+            _mergeLoadingEl.style.display = 'flex';
+            _mergeLoadingEl.style.alignItems = 'center';
+            _mergeLoadingEl.style.justifyContent = 'center';
+            _mergeLoadingEl.textContent = 'Loading...';
+            el.appendChild(_mergeLoadingEl);
+        } catch (e) {}
         const wrapper = { ignoreWhitespace: !!(options && options.ignoreWhitespace), _diffEditor: null, _originalModel: null, _modifiedModel: null };
         (async () => {
             try {
                 await ensureMonaco();
-                const diffEditor = monaco.editor.createDiffEditor(el, { readOnly: !!(options && options.readOnly), theme: (typeof UtilityEnabled === 'function' && UtilityEnabled("DarkMode") ? 'vs-dark' : 'vs'), minimap: { enabled: false }, automaticLayout: true, ignoreTrimWhitespace: !!wrapper.ignoreWhitespace });
+                // create an inner host so the diff editor can be centered if requested
+                let mvInner = null;
+                try {
+                    mvInner = document.createElement('div');
+                    mvInner.className = 'monaco-merge-host';
+                    mvInner.style.boxSizing = 'border-box';
+                    mvInner.style.width = options && options.width ? options.width : '95%';
+                    if (options && options.fitToViewport) {
+                        try { el.style.display = 'flex'; el.style.alignItems = 'center'; el.style.justifyContent = 'center'; } catch (e) {}
+                        const header = document.querySelector('nav') || document.querySelector('#navbar') || document.querySelector('.navbar') || document.querySelector('header');
+                        const top = header ? header.getBoundingClientRect().bottom : 0;
+                        const bottomOffset = (options && options.bottomOffset) ? Number(options.bottomOffset) : 0;
+                        const available = Math.max(80, window.innerHeight - top - bottomOffset);
+                        const wrapperHeight = Math.max(200, Math.min(Math.floor(available * 0.95), available));
+                        mvInner.style.height = wrapperHeight + 'px';
+                    } else {
+                        if (options && options.height) mvInner.style.height = (typeof options.height === 'number' ? options.height + 'px' : options.height);
+                    }
+                    el.appendChild(mvInner);
+                } catch (e) { mvInner = null; }
+
+                const diffEditor = monaco.editor.createDiffEditor(mvInner || el, { readOnly: !!(options && options.readOnly), theme: (typeof UtilityEnabled === 'function' && UtilityEnabled("DarkMode") ? 'vs-dark' : 'vs'), minimap: { enabled: false }, automaticLayout: true, ignoreTrimWhitespace: !!wrapper.ignoreWhitespace });
                 const orig = options && options.value ? options.value : '';
                 const mod = options && options.orig ? options.orig : '';
                 const isCpp = (options && options.mode === 'text/x-c++src') || (options && options.mode && options.mode.indexOf('c++') !== -1);
@@ -382,7 +496,8 @@ async function createMonacoEditor(containerOrId, options = {}) {
                 wrapper._diffEditor = diffEditor;
                 wrapper._originalModel = originalModel;
                 wrapper._modifiedModel = modifiedModel;
-            } catch (e) { console.error(e); }
+                try { const _l = el.querySelector('.monaco-loading'); if (_l) _l.remove(); } catch (e) {}
+            } catch (e) { console.error(e); try { const _l = el.querySelector('.monaco-loading'); if (_l) _l.remove(); } catch (_) {} }
         })();
         return wrapper;
     };
@@ -3663,23 +3778,28 @@ async function main() {
                     if (UtilityEnabled("AutoO2")) {
                         document.querySelector("#enable_O2").checked = true;
                     }
+                    const getSubmitStorageKey = () => (SearchParams.get("id") != null ? ('XMOJ-Submit-id-' + SearchParams.get("id")) : ('XMOJ-Submit-cid-' + SearchParams.get("cid") + '-pid-' + SearchParams.get("pid")));
                     let CodeMirrorElement;
+                    const editorOptions = {
+                        language: 'cpp',
+                        value: '',
+                        automaticLayout: true,
+                        theme: (UtilityEnabled("DarkMode") ? 'vs-dark' : 'vs'),
+                        minimap: { enabled: false },
+                        lineNumbers: 'on',
+                        tabSize: 4,
+                        localStorageKey: getSubmitStorageKey(),
+                        // enable filling from header bottom to window bottom by default
+                        fitToViewport: true,
+                        bottomOffset: 8
+                    };
                     try {
-                        CodeMirrorElement = await createMonacoEditor('MonacoEditor', {
-                            language: 'cpp',
-                            value: '',
-                            automaticLayout: true,
-                            theme: (UtilityEnabled("DarkMode") ? 'vs-dark' : 'vs'),
-                            minimap: { enabled: false },
-                            lineNumbers: 'on',
-                            tabSize: 4,
-                            localStorageKey: (SearchParams.get("id") != null ? ('XMOJ-Submit-id-' + SearchParams.get("id")) : ('XMOJ-Submit-cid-' + SearchParams.get("cid") + '-pid-' + SearchParams.get("pid")))
-                        });
+                        CodeMirrorElement = await createMonacoEditor('MonacoEditor', editorOptions);
                         try {
                             CodeMirrorElement._monacoEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, function() { Submit.click(); });
                             CodeMirrorElement._monacoEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Space, function() { CodeMirrorElement._monacoEditor.trigger('keyboard', 'editor.action.triggerSuggest', {}); });
                         } catch (e) {}
-                        CodeMirrorElement.setSize("100%", "550px");
+                        if (!editorOptions.fitToViewport) CodeMirrorElement.setSize("100%", "550px");
                         CodeMirrorElement.getWrapperElement().style.border = UtilityEnabled("MonochromeUI") ? "2px solid var(--mono-black)" : "1px solid #ddd";
                         document.getElementById("loadEditor").remove();
                     } catch (e) {
@@ -3687,8 +3807,18 @@ async function main() {
                         document.getElementById('MonacoEditor').style.display = 'none';
                         _fallbackTA.style.display = '';
                         _fallbackTA.style.width = '100%';
-                        _fallbackTA.style.height = '550px';
-                        const _fallbackKey = SearchParams.get("id") != null ? ('XMOJ-Submit-id-' + SearchParams.get("id")) : ('XMOJ-Submit-cid-' + SearchParams.get("cid") + '-pid-' + SearchParams.get("pid"));
+                        if (editorOptions.fitToViewport) {
+                            try {
+                                const header = document.querySelector('nav') || document.querySelector('#navbar') || document.querySelector('.navbar') || document.querySelector('header');
+                                const top = header ? header.getBoundingClientRect().bottom : 0;
+                                const bottomOffset = (editorOptions && editorOptions.bottomOffset) ? Number(editorOptions.bottomOffset) : 0;
+                                const available = Math.max(80, window.innerHeight - top - bottomOffset);
+                                _fallbackTA.style.height = available + 'px';
+                            } catch (err) { _fallbackTA.style.height = '550px'; }
+                        } else {
+                            _fallbackTA.style.height = '550px';
+                        }
+                        const _fallbackKey = getSubmitStorageKey();
                         try { const _saved = localStorage.getItem(_fallbackKey); if (_saved !== null && _saved !== 'null') _fallbackTA.value = _saved; } catch (_e) {}
                         let _fallbackTimer = null;
                         const _fallbackSave = () => { try { localStorage.setItem(_fallbackKey, _fallbackTA.value); } catch (_e) {} };
@@ -3718,8 +3848,9 @@ async function main() {
                         };
                     }
 
-                    const _fallbackKey = SearchParams.get("id") != null ? ('XMOJ-Submit-id-' + SearchParams.get("id")) : ('XMOJ-Submit-cid-' + SearchParams.get("cid") + '-pid-' + SearchParams.get("pid"));
-                    const _saved = localStorage.getItem(_fallbackKey);
+                    const _fallbackKey = getSubmitStorageKey();
+                    let _saved = null;
+                    try { _saved = localStorage.getItem(_fallbackKey); } catch (e) { _saved = null; }
                     if ((_saved == null || _saved == 'null') && SearchParams.get("sid") !== null) {
                         await fetch("https://www.xmoj.tech/getsource.php?id=" + SearchParams.get("sid"))
                             .then((Response) => {
