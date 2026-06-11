@@ -3899,10 +3899,7 @@ async function main() {
                         };
                     }
 
-                    const _fallbackKey = getSubmitStorageKey();
-                    let _saved = null;
-                    try { _saved = localStorage.getItem(_fallbackKey); } catch (e) { _saved = null; }
-                    if ((_saved == null || _saved == 'null') && SearchParams.get("sid") !== null) {
+                    if (SearchParams.get("sid") !== null) {
                         await fetch("https://www.xmoj.tech/getsource.php?id=" + SearchParams.get("sid"))
                             .then((Response) => {
                                 return Response.text()
