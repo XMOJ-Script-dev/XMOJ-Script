@@ -41,6 +41,7 @@
  */
 
 const CaptchaSiteKey = "0x4AAAAAAALBT58IhyDViNmv";
+const MonacoCDN = "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.53.0/min/vs";
 const AdminUserList = ["zhuchenrui2", "shanwenxiao", "chenlangning", "admin"];
 
 // Pre-declared so that closures defined before the async init block can reference them
@@ -242,20 +243,20 @@ let GetUserBadge = async (Username) => {
 };
 async function ensureMonaco() {
     if (typeof monaco !== 'undefined') return;
-    const loaderUrl = 'https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs/loader.js';
+    const loaderUrl = MonacoCDN + '/loader.js';
     if (typeof require === 'undefined' || typeof require.config === 'undefined') {
         await new Promise((resolve, reject) => {
             const s = document.createElement('script');
             s.src = loaderUrl;
             s.onload = () => {
-                try { require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs' } }); } catch (e) {}
+                try { require.config({ paths: { vs: MonacoCDN } }); } catch (e) {}
                 resolve();
             };
             s.onerror = reject;
             document.head.appendChild(s);
         });
     } else {
-        try { require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs' } }); } catch (e) {}
+        try { require.config({ paths: { vs: MonacoCDN } }); } catch (e) {}
     }
     await new Promise((resolve, reject) => {
         let check = null;
@@ -4672,7 +4673,7 @@ async function main() {
                                 mode: "text/x-c++src",
                                 collapseIdentical: "true",
                                 readOnly: true,
-                                theme: (UtilityEnabled("DarkMode") ? "darcula" : "default"),
+                                theme: (UtilityEnabled("DarkMode") ? "vs-dark" : "default"),
                                 revertButtons: false,
                                 ignoreWhitespace: true
                             });
@@ -4944,7 +4945,7 @@ int main()
                                             ApplyDiv.appendChild(CodeElement);
                                             CodeMirror(CodeElement, {
                                                 value: Data,
-                                                theme: (UtilityEnabled("DarkMode") ? "darcula" : "default"),
+                                                theme: (UtilityEnabled("DarkMode") ? "vs-dark" : "default"),
                                                 lineNumbers: true,
                                                 readOnly: true
                                             }).setSize("100%", "auto");
@@ -5137,7 +5138,7 @@ int main()
                             lineNumbers: true,
                             mode: "text/x-c++src",
                             readOnly: true,
-                            theme: (UtilityEnabled("DarkMode") ? "darcula" : "default")
+                            theme: (UtilityEnabled("DarkMode") ? "vs-dark" : "default")
                         }).setSize("100%", "auto");
                     }
                 } else if (location.pathname == "/open_contest.php") {
@@ -5212,25 +5213,27 @@ int main()
                         lineNumbers: true,
                         mode: "text/x-c++src",
                         readOnly: true,
-                        theme: (UtilityEnabled("DarkMode") ? "darcula" : "default")
-                    }).setSize("100%", "730px");
+                        theme: (UtilityEnabled("DarkMode") ? "vs-dark" : "default")
+                    }).setSize("100%", "auto");
                 } else if (location.pathname == "/ceinfo.php") {
                     await fetch(location.href)
                         .then((Result) => {
                             return Result.text();
                         }).then((Result) => {
                             let ParsedDocument = new DOMParser().parseFromString(Result, "text/html");
-                            document.querySelector("body > div > div.mt-3").innerHTML = "";
-                            let CodeElement = document.createElement("div");
-                            CodeElement.className = "mb-3";
-                            document.querySelector("body > div > div.mt-3").appendChild(CodeElement);
-                            CodeMirror(CodeElement, {
-                                value: ParsedDocument.getElementById("errtxt").innerHTML.replaceAll("&lt;", "<").replaceAll("&gt;", ">"),
-                                lineNumbers: true,
-                                mode: "text/x-c++src",
-                                readOnly: true,
-                                theme: (UtilityEnabled("DarkMode") ? "darcula" : "default")
-                            }).setSize("100%", "730px");
+                            if (!ParsedDocument.getElementsByClassName("jumbotron")[0].innerHTML.includes('I am sorry, You could not view this message!')) {
+                                document.querySelector("body > div > div.mt-3").innerHTML = "";
+                                let CodeElement = document.createElement("div");
+                                CodeElement.className = "mb-3";
+                                document.querySelector("body > div > div.mt-3").appendChild(CodeElement);
+                                CodeMirror(CodeElement, {
+                                    value: ParsedDocument.getElementById("errtxt").innerHTML.replaceAll("&lt;", "<").replaceAll("&gt;", ">"),
+                                    lineNumbers: true,
+                                    mode: "text/x-c++src",
+                                    readOnly: true,
+                                    theme: (UtilityEnabled("DarkMode") ? "vs-dark" : "default")
+                                }).setSize("100%", "auto");
+                            }
                         });
                 } else if (location.pathname == "/problem_std.php") {
                     await fetch("https://www.xmoj.tech/problem_std.php?cid=" + SearchParams.get("cid") + "&pid=" + SearchParams.get("pid"))
@@ -5238,21 +5241,25 @@ int main()
                             return Response.text();
                         }).then((Response) => {
                             let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
-                            let Temp = ParsedDocument.getElementsByTagName("pre");
-                            document.querySelector("body > div > div.mt-3").innerHTML = "";
-                            for (let i = 0; i < Temp.length; i++) {
-                                let CodeElement = document.createElement("div");
-                                CodeElement.className = "mb-3";
-                                document.querySelector("body > div > div.mt-3").appendChild(CodeElement);
-                                CodeMirror(CodeElement, {
-                                    value: Temp[i].innerText,
-                                    lineNumbers: true,
-                                    mode: "text/x-c++src",
-                                    readOnly: true,
-                                    theme: (UtilityEnabled("DarkMode") ? "darcula" : "default")
-                                }).setSize("100%", "730px");
+                            if (!ParsedDocument.getElementsByClassName("jumbotron")[0].innerHTML.includes('No such Problem!')) {
+                                let Temp = ParsedDocument.getElementsByTagName("pre");
+                                document.querySelector("body > div > div.mt-3").innerHTML = "";
+                                for (let i = 0; i < Temp.length; i++) {
+                                    let CodeElement = document.createElement("div");
+                                    CodeElement.className = "mb-3";
+                                    document.querySelector("body > div > div.mt-3").appendChild(CodeElement);
+                                    CodeMirror(CodeElement, {
+                                        value: Temp[i].innerText,
+                                        lineNumbers: true,
+                                        mode: "text/x-c++src",
+                                        readOnly: true,
+                                        theme: (UtilityEnabled("DarkMode") ? "vs-dark" : "default")
+                                    }).setSize("100%", "auto");
+                                }
+
+                                const overlay = document.getElementById('overlay');
+                                if (overlay && overlay.remove) overlay.remove();
                             }
-                            document.getElementById("overlay").remove();
                         });
                 } else if (location.pathname == "/mail.php") {
                     if (SearchParams.get("to_user") == null) {
@@ -6178,7 +6185,7 @@ int main()
                                                 CodeMirror(CodeElements[i].parentElement, {
                                                     value: CodeElements[i].innerText,
                                                     mode: ModeName,
-                                                    theme: (UtilityEnabled("DarkMode") ? "darcula" : "default"),
+                                                    theme: (UtilityEnabled("DarkMode") ? "vs-dark" : "default"),
                                                     lineNumbers: true,
                                                     readOnly: true
                                                 }).setSize("100%", "auto");
