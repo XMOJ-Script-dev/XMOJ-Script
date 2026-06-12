@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      3.5.1
+// @version      3.5.2
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -41,6 +41,7 @@
  */
 
 const CaptchaSiteKey = "0x4AAAAAAALBT58IhyDViNmv";
+const MonacoCDN = "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.53.0/min/vs";
 const AdminUserList = ["zhuchenrui2", "shanwenxiao", "chenlangning", "admin"];
 
 // Pre-declared so that closures defined before the async init block can reference them
@@ -240,6 +241,534 @@ let GetUserBadge = async (Username) => {
         }
     }
 };
+async function ensureMonaco() {
+    if (typeof monaco !== 'undefined') return;
+    const loaderUrl = MonacoCDN + '/loader.js';
+    if (typeof require === 'undefined' || typeof require.config === 'undefined') {
+        await new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = loaderUrl;
+            s.onload = () => {
+                try { require.config({ paths: { vs: MonacoCDN } }); } catch (e) {
+                    console.error(e);
+                    if (UtilityEnabled("DebugMode")) {
+                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                    }
+                }
+                resolve();
+            };
+            s.onerror = reject;
+            document.head.appendChild(s);
+        });
+    } else {
+        try { require.config({ paths: { vs: MonacoCDN } }); } catch (e) {
+            console.error(e);
+            if (UtilityEnabled("DebugMode")) {
+                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            }
+        }
+    }
+    await new Promise((resolve, reject) => {
+        let check = null;
+        const done = () => { if (check) clearInterval(check); clearTimeout(timeout); resolve(); };
+        const timeout = setTimeout(() => { if (check) clearInterval(check); reject(new Error('Monaco load timeout')); }, 30000);
+        try {
+            require(['vs/editor/editor.main'], function() { done(); });
+        } catch (e) {
+            check = setInterval(() => { if (typeof monaco !== 'undefined') done(); }, 50);
+            console.error(e);
+            if (UtilityEnabled("DebugMode")) {
+                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            }
+        }
+    });
+}
+
+async function createMonacoEditor(containerOrId, options = {}) {
+    await ensureMonaco();
+    let container = null;
+    if (typeof containerOrId === 'string') container = document.getElementById(containerOrId);
+    else container = containerOrId;
+    if (!container) throw new Error('Monaco container not found');
+    if (!container.id) container.id = 'monaco-' + Math.random().toString(36).slice(2,9);
+    // Auto-fit settings: when true Monaco will fill width and height from the page header to window bottom
+    let autoFitEnabled = !!options.fitToViewport;
+    let _autoFitHandler = null;
+    let innerHost = null;
+    const computeAvailableHeight = () => {
+        try {
+            const header = document.querySelector('nav') || document.querySelector('#navbar') || document.querySelector('.navbar') || document.querySelector('header');
+            const top = header ? header.getBoundingClientRect().bottom : 0;
+            const bottomOffset = Number(options.bottomOffset || 0);
+            const available = Math.max(80, window.innerHeight - top - bottomOffset);
+            return available;
+        } catch (e) {
+            console.error(e);
+            if (UtilityEnabled("DebugMode")) {
+                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            }
+            return null;
+        }
+    };
+    const applyAutoFit = (callLayout, ed) => {
+        try {
+            if (!autoFitEnabled) return;
+            const available = computeAvailableHeight();
+            if (available != null) {
+                try {
+                    container.style.width = options.width || '100%';
+                    container.style.display = 'flex';
+                    container.style.alignItems = 'center';
+                    container.style.justifyContent = 'center';
+                    container.style.boxSizing = 'border-box';
+                } catch (e) {
+                    console.error(e);
+                    if (UtilityEnabled("DebugMode")) {
+                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                    }
+                }
+                try { container.style.height = available + 'px'; } catch (e) {
+                    console.error(e);
+                    if (UtilityEnabled("DebugMode")) {
+                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                    }
+                }
+                if (innerHost) {
+                    try {
+                        const innerRatio = (typeof options.innerRatio !== 'undefined') ? Number(options.innerRatio) : 0.95;
+                        const wrapperHeight = Math.max(200, Math.min(Math.floor(available * innerRatio), available));
+                        innerHost.style.height = wrapperHeight + 'px';
+                        innerHost.style.width = options.width || '95%';
+                        if (options.maxWidth) innerHost.style.maxWidth = String(options.maxWidth);
+                        innerHost.style.boxSizing = 'border-box';
+                    } catch (e) {
+                        console.error(e);
+                        if (UtilityEnabled("DebugMode")) {
+                            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                        }
+                    }
+                }
+                if (callLayout) try { if (ed && ed.layout) ed.layout(); } catch (e) {
+                    console.error(e);
+                    if (UtilityEnabled("DebugMode")) {
+                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                    }
+                }
+            }
+        } catch (e) {
+            console.error(e);
+            if (UtilityEnabled("DebugMode")) {
+                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            }
+        }
+    };
+    const key = options.localStorageKey || ('XMOJ-Monaco-' + location.pathname + ':' + container.id);
+    const theme = options.theme || (typeof UtilityEnabled === 'function' && UtilityEnabled("DarkMode") ? 'vs-dark' : 'vs');
+    const readOnly = !!options.readOnly;
+    const language = options.language || (options.mode === 'text/x-c++src' ? 'cpp' : (options.mode || 'cpp'));
+    // create an inner host so we can center the editor both horizontally and vertically
+    try {
+        innerHost = document.createElement('div');
+        innerHost.className = 'monaco-editor-host';
+        innerHost.style.boxSizing = 'border-box';
+        // default sizing; will be recalculated by applyAutoFit when enabled
+        innerHost.style.width = options.width || (autoFitEnabled ? '95%' : '100%');
+        if (!autoFitEnabled) {
+            if (options.height) innerHost.style.height = (typeof options.height === 'number' ? options.height + 'px' : options.height);
+        }
+        container.appendChild(innerHost);
+    } catch (e) { console.error(e); }
+
+    const editor = monaco.editor.create(innerHost || container, {
+        value: options.value || '',
+        language: language,
+        automaticLayout: !!options.automaticLayout,
+        theme: theme,
+        minimap: (typeof options.minimap !== 'undefined' ? options.minimap : { enabled: false }),
+        readOnly: readOnly,
+        lineNumbers: typeof options.lineNumbers !== 'undefined' ? options.lineNumbers : 'on',
+        tabSize: options.tabSize || 4
+    });
+    // apply initial auto-fit (no layout call yet because editor is not fully initialized until after creation)
+    try { applyAutoFit(false, editor); } catch (e) {
+        console.error(e);
+        if (UtilityEnabled("DebugMode")) {
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+        }
+    }
+    // after creation, ensure Monaco layout matches the computed size and listen for viewport changes
+    try {
+        applyAutoFit(true, editor);
+        if (autoFitEnabled && typeof window !== 'undefined') {
+            _autoFitHandler = () => applyAutoFit(true, editor);
+            window.addEventListener('resize', _autoFitHandler);
+            window.addEventListener('orientationchange', _autoFitHandler);
+            window.addEventListener('scroll', _autoFitHandler);
+            try { editor.onDidDispose(() => { window.removeEventListener('resize', _autoFitHandler); window.removeEventListener('orientationchange', _autoFitHandler); window.removeEventListener('scroll', _autoFitHandler); }); } catch (e) {
+                console.error(e);
+                if (UtilityEnabled("DebugMode")) {
+                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                }
+            }
+        }
+    } catch (e) {
+        console.error(e);
+        if (UtilityEnabled("DebugMode")) {
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+        }
+    }
+    try {
+        if (options.restoreOnLoad !== false) {
+            const saved = localStorage.getItem(key);
+            if (saved !== null && saved !== 'null') editor.setValue(saved);
+        }
+    } catch (e) {
+        console.error(e);
+        if (UtilityEnabled("DebugMode")) {
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+        }
+    }
+    let saveTimer = null;
+    const doSave = () => { try { localStorage.setItem(key, editor.getValue()); } catch (e) {
+        console.error(e);
+        if (UtilityEnabled("DebugMode")) {
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+        }
+    } };
+    editor.onDidChangeModelContent(() => { if (saveTimer) clearTimeout(saveTimer); saveTimer = setTimeout(doSave, options.saveDebounce || 500); });
+    const adapter = {
+        getValue: () => editor.getValue(),
+        setValue: (v) => { editor.setValue(v); },
+        setSize: (w, h) => { const el = innerHost || container; if (w) el.style.width = w; if (h) { try { if (h !== 'auto') autoFitEnabled = false; } catch (e) {
+            console.error(e);
+            if (UtilityEnabled("DebugMode")) {
+                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            }
+        } if (h === 'auto') { try { const lines = editor.getModel().getLineCount(); el.style.height = Math.max(80, Math.min(1200, lines * 18)) + 'px'; } catch (e) { el.style.height = '80px'; } } else el.style.height = h; } try { editor.layout(); } catch (e) {
+            console.error(e);
+            if (UtilityEnabled("DebugMode")) {
+                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            }
+        } },
+        getWrapperElement: () => innerHost || container,
+        focus: () => { try { editor.focus(); } catch (e) {
+            console.error(e);
+            if (UtilityEnabled("DebugMode")) {
+                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            }
+        } },
+        _monacoEditor: editor,
+        showFind: () => { try { editor.trigger('', 'editor.action.startFindReplaceAction'); } catch (e) {
+            console.error(e);
+            if (UtilityEnabled("DebugMode")) {
+                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            }
+        } },
+        goToLine: (line) => { try { editor.setPosition({ lineNumber: parseInt(line) || 1, column: 1 }); editor.revealPositionInCenter({ lineNumber: parseInt(line) || 1, column: 1 }); editor.focus(); } catch (e) {
+            console.error(e);
+            if (UtilityEnabled("DebugMode")) {
+                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            }
+        } },
+        selectRange: (sLine, sCol, eLine, eCol) => { try { editor.setSelection({ startLineNumber: sLine, startColumn: sCol, endLineNumber: eLine, endColumn: eCol }); editor.revealRangeInCenter({ startLineNumber: sLine, startColumn: sCol, endLineNumber: eLine, endColumn: eCol }); } catch (e) {
+            console.error(e);
+            if (UtilityEnabled("DebugMode")) {
+                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            }
+        } },
+        saveToLocal: doSave,
+        localStorageKey: key
+        ,
+        dispose: () => {
+            try {
+                if (_autoFitHandler && typeof window !== 'undefined') {
+                    window.removeEventListener('resize', _autoFitHandler);
+                    window.removeEventListener('orientationchange', _autoFitHandler);
+                    window.removeEventListener('scroll', _autoFitHandler);
+                }
+            } catch (e) {
+                console.error(e);
+                if (UtilityEnabled("DebugMode")) {
+                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                }
+            }
+            try {
+                if (editor) {
+                    try {
+                        const model = (editor.getModel && editor.getModel()) || null;
+                        if (model && model.dispose) model.dispose();
+                    } catch (e) {
+                        console.error(e);
+                        if (UtilityEnabled("DebugMode")) {
+                            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                        }
+                    }
+                    try { editor.dispose(); } catch (e) {
+                        console.error(e);
+                        if (UtilityEnabled("DebugMode")) {
+                            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+                if (UtilityEnabled("DebugMode")) {
+                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                }
+            }
+        }
+    };
+    return adapter;
+}
+
+(function() {
+    const shim = function(containerOrTextArea, options) {
+        let container = containerOrTextArea;
+        let initialValue = '';
+        if (container && container.tagName && container.tagName.toLowerCase() === 'textarea') {
+            initialValue = container.value || container.textContent || '';
+            const div = document.createElement('div');
+            // copy most attributes from the original textarea to the replacement div (except value)
+            try {
+                for (let i = 0; i < container.attributes.length; i++) {
+                    const a = container.attributes[i];
+                    if (!a) continue;
+                    if (a.name === 'value') continue;
+                    try { div.setAttribute(a.name, a.value); } catch (e) {
+                        console.error(e);
+                        if (UtilityEnabled("DebugMode")) {
+                            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+                if (UtilityEnabled("DebugMode")) {
+                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                }
+            }
+            div.classList.add('codemirror-shim-host');
+            // preserve inline styles if any
+            try { if (container.style && container.style.cssText) div.style.cssText = container.style.cssText; } catch (e) {
+                console.error(e);
+                if (UtilityEnabled("DebugMode")) {
+                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                }
+            }
+            container.parentNode.replaceChild(div, container);
+            container = div;
+        } else if (typeof containerOrTextArea === 'string') {
+            container = document.querySelector(containerOrTextArea) || document.getElementById(containerOrTextArea);
+        }
+        if (!container) { container = document.createElement('div'); document.body.appendChild(container); }
+        container._cmValue = (options && options.value) ? options.value : initialValue;
+        // show a centered Loading... placeholder while Monaco initializes
+        try {
+            const _monacoLoadingEl = document.createElement('div');
+            _monacoLoadingEl.className = 'monaco-loading';
+            _monacoLoadingEl.style.width = '100%';
+            _monacoLoadingEl.style.height = '100%';
+            _monacoLoadingEl.style.display = 'flex';
+            _monacoLoadingEl.style.alignItems = 'center';
+            _monacoLoadingEl.style.justifyContent = 'center';
+            _monacoLoadingEl.textContent = 'Loading...';
+            container.appendChild(_monacoLoadingEl);
+        } catch (e) {
+            console.error(e);
+            if (UtilityEnabled("DebugMode")) {
+                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            }
+        }
+        let _lastSetSizeArgs = null;
+        const placeholderAdapter = {
+            getValue: () => container._cmValue || '',
+            setValue: (v) => { container._cmValue = v; if (container._cmEditor) try { container._cmEditor.setValue(v); } catch (e) {
+                console.error(e);
+                if (UtilityEnabled("DebugMode")) {
+                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                }
+            } },
+            setSize: (w, h) => { _lastSetSizeArgs = [w, h]; if (w) container.style.width = w; if (h) { if (h === 'auto') container.style.height = 'auto'; else container.style.height = h; } if (container._cmEditor) try { container._cmEditor.layout(); } catch (e) {
+                console.error(e);
+                if (UtilityEnabled("DebugMode")) {
+                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                }
+            } },
+            getWrapperElement: () => container,
+            focus: () => { if (container._cmEditor) try { container._cmEditor.focus(); } catch (e) {
+                console.error(e);
+                if (UtilityEnabled("DebugMode")) {
+                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                }
+            } },
+            _monacoEditor: null
+        };
+        (async () => {
+            try {
+                const opts = options || {};
+                await ensureMonaco();
+                const lang = opts.mode === 'text/x-c++src' || (opts.mode && opts.mode.indexOf('c++') !== -1) ? 'cpp' : (opts.language || 'cpp');
+                const monacoAdapter = await createMonacoEditor(container, Object.assign({ language: lang, value: container._cmValue || '', readOnly: !!opts.readOnly, theme: (typeof UtilityEnabled === 'function' && UtilityEnabled("DarkMode") ? 'vs-dark' : 'vs') }, opts));
+                container._cmEditor = monacoAdapter._monacoEditor;
+                placeholderAdapter.getValue = monacoAdapter.getValue;
+                placeholderAdapter.setValue = monacoAdapter.setValue;
+                placeholderAdapter.setSize = monacoAdapter.setSize;
+                placeholderAdapter.getWrapperElement = monacoAdapter.getWrapperElement;
+                placeholderAdapter.focus = monacoAdapter.focus;
+                placeholderAdapter._monacoEditor = monacoAdapter._monacoEditor;
+                try { const _l = container.querySelector('.monaco-loading'); if (_l) _l.remove(); } catch (e) {
+                    console.error(e);
+                    if (UtilityEnabled("DebugMode")) {
+                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                    }
+                }
+                if (_lastSetSizeArgs) monacoAdapter.setSize(_lastSetSizeArgs[0], _lastSetSizeArgs[1]);
+            } catch (e) { console.error(e); try { const _l = container.querySelector('.monaco-loading'); if (_l) _l.remove(); } catch (_) {} }
+        })();
+        return placeholderAdapter;
+    };
+    shim.fromTextArea = function(textarea, options) { return shim(textarea, options); };
+    shim.MergeView = function(container, options) {
+        options = options || {};
+        let el = container;
+        if (typeof container === 'string') el = document.getElementById(container) || document.querySelector(container);
+        if (!el) { el = document.createElement('div'); document.body.appendChild(el); }
+        // show a centered Loading... placeholder while Monaco initializes
+        try {
+            const _mergeLoadingEl = document.createElement('div');
+            _mergeLoadingEl.className = 'monaco-loading';
+            _mergeLoadingEl.style.width = '100%';
+            _mergeLoadingEl.style.height = '100%';
+            _mergeLoadingEl.style.display = 'flex';
+            _mergeLoadingEl.style.alignItems = 'center';
+            _mergeLoadingEl.style.justifyContent = 'center';
+            _mergeLoadingEl.textContent = 'Loading...';
+            el.appendChild(_mergeLoadingEl);
+        } catch (e) {
+            console.error(e);
+            if (UtilityEnabled("DebugMode")) {
+                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            }
+        }
+        const wrapper = { ignoreWhitespace: !!options.ignoreWhitespace, _diffEditor: null, _originalModel: null, _modifiedModel: null };
+        (async () => {
+            try {
+                await ensureMonaco();
+                // create an inner host so the diff editor can be centered if requested
+                let mvInner = null;
+                try {
+                    mvInner = document.createElement('div');
+                    mvInner.className = 'monaco-merge-host';
+                    mvInner.style.boxSizing = 'border-box';
+                    mvInner.style.width = options.width || '95%';
+                    if (options.fitToViewport) {
+                        try { el.style.display = 'flex'; el.style.alignItems = 'center'; el.style.justifyContent = 'center'; } catch (e) {
+                            console.error(e);
+                            if (UtilityEnabled("DebugMode")) {
+                                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                            }
+                        }
+                        const header = document.querySelector('nav') || document.querySelector('#navbar') || document.querySelector('.navbar') || document.querySelector('header');
+                        const top = header ? header.getBoundingClientRect().bottom : 0;
+                        const bottomOffset = Number(options.bottomOffset || 0);
+                        const available = Math.max(80, window.innerHeight - top - bottomOffset);
+                        const wrapperHeight = Math.max(200, Math.min(Math.floor(available * 0.95), available));
+                        mvInner.style.height = wrapperHeight + 'px';
+                    } else {
+                        if (options.height) mvInner.style.height = (typeof options.height === 'number' ? options.height + 'px' : options.height);
+                    }
+                    el.appendChild(mvInner);
+                } catch (e) { mvInner = null; }
+
+                const diffEditor = monaco.editor.createDiffEditor(mvInner || el, { readOnly: !!options.readOnly, theme: (typeof UtilityEnabled === 'function' && UtilityEnabled("DarkMode") ? 'vs-dark' : 'vs'), minimap: { enabled: false }, automaticLayout: true, ignoreTrimWhitespace: !!wrapper.ignoreWhitespace });
+                const orig = options.value || '';
+                const mod = options.orig || '';
+                const isCpp = options.mode === 'text/x-c++src' || (typeof options.mode === 'string' && options.mode.indexOf('c++') !== -1);
+                const lang = isCpp ? 'cpp' : (options.language || 'cpp');
+                const originalModel = monaco.editor.createModel(orig, lang);
+                const modifiedModel = monaco.editor.createModel(mod, lang);
+                diffEditor.setModel({ original: originalModel, modified: modifiedModel });
+                wrapper._diffEditor = diffEditor;
+                wrapper._originalModel = originalModel;
+                wrapper._modifiedModel = modifiedModel;
+                try { const _l = el.querySelector('.monaco-loading'); if (_l) _l.remove(); } catch (e) {
+                    console.error(e);
+                    if (UtilityEnabled("DebugMode")) {
+                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                    }
+                }
+            } catch (e) { console.error(e); try { const _l = el.querySelector('.monaco-loading'); if (_l) _l.remove(); } catch (_) {} }
+        })();
+        return wrapper;
+    };
+    window.CodeMirror = shim;
+})();
+/**
+ * Dispose any transient Monaco editors created inside the ErrorMessage area (freopen snippets).
+ */
+function _xmoj_disposeErrorMessageEditors() {
+    try {
+        const arr = window._xmoj_temp_error_editors || [];
+        if (arr.length) {
+            arr.forEach((ed) => {
+                try {
+                    const m = (ed && ed.getModel) ? ed.getModel() : null;
+                    if (m && m.dispose) try { m.dispose(); } catch (e) {
+                        console.error(e);
+                        if (UtilityEnabled("DebugMode")) {
+                            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                        }
+                    }
+                } catch (e) {
+                    console.error(e);
+                    if (UtilityEnabled("DebugMode")) {
+                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                    }
+                }
+                try { if (ed && ed.dispose) ed.dispose(); } catch (e) {
+                    console.error(e);
+                    if (UtilityEnabled("DebugMode")) {
+                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                    }
+                }
+            });
+        }
+        window._xmoj_temp_error_editors = [];
+    } catch (e) {
+        console.error(e);
+        if (UtilityEnabled("DebugMode")) {
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+        }
+    }
+    try {
+        const hosts = document.querySelectorAll('[data-xmoj-error-editor]');
+        hosts.forEach((h) => {
+            try { if (h._monacoEditor && h._monacoEditor.dispose) h._monacoEditor.dispose(); } catch (e) {
+                console.error(e);
+                if (UtilityEnabled("DebugMode")) {
+                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                }
+            }
+            try { delete h._monacoEditor; } catch (e) {
+                console.error(e);
+                if (UtilityEnabled("DebugMode")) {
+                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                }
+            }
+            try { h.removeAttribute('data-xmoj-error-editor'); } catch (e) {
+                console.error(e);
+                if (UtilityEnabled("DebugMode")) {
+                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                }
+            }
+        });
+    } catch (e) {
+        console.error(e);
+        if (UtilityEnabled("DebugMode")) {
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+        }
+    }
+}
 /**
  * Sets the HTML content of an element to display a username with optional additional information.
  * @param {HTMLElement} Element - The element to set the HTML content.
@@ -3474,8 +4003,11 @@ async function main() {
                     }
                 } else if (location.pathname == "/submitpage.php") {
                     document.title = "提交代码: " + (SearchParams.get("id") != null ? "题目" + Number(SearchParams.get("id")) : "比赛" + Number(SearchParams.get("cid")));
-                    document.querySelector("body > div > div.mt-3").innerHTML = `<center class="mb-3">` + `<h3>提交代码</h3>` + (SearchParams.get("id") != null ? `题目<span class="blue">${Number(SearchParams.get("id"))}</span>` : `比赛<span class="blue">${Number(SearchParams.get("cid")) + `</span>&emsp;题目<span class="blue">` + String.fromCharCode(65 + parseInt(SearchParams.get("pid")))}</span>`) + `</center>
-    <textarea id="CodeInput"></textarea>
+                    document.querySelector("body > div > div.mt-3").innerHTML = `<center class="mb-3" id="_submitPageHeader"></center>
+    <div id="MonacoEditor" style="width:100%; height:550px; display: grid; place-items: center;">
+      <p id="loadEditor">Loading...</p>
+    </div>
+    <textarea id="CodeInput" style="display:none"></textarea>
     <center class="mt-3">
         <input id="enable_O2" name="enable_O2" type="checkbox"><label for="enable_O2">打开O2开关</label>
         <br>
@@ -3485,29 +4017,107 @@ async function main() {
             <button id="PassCheck" class="btn btn-outline-secondary mt-2" style="display: none">强制提交</button>
         </div>
     </center>`;
+                    (function() {
+                        const _header = document.getElementById('_submitPageHeader');
+                        const _h3 = document.createElement('h3');
+                        _h3.textContent = '提交代码';
+                        _header.appendChild(_h3);
+                        if (SearchParams.get("id") != null) {
+                            _header.appendChild(document.createTextNode('题目'));
+                            const _idSpan = document.createElement('span');
+                            _idSpan.className = 'blue';
+                            _idSpan.textContent = String(Number(SearchParams.get("id")));
+                            _header.appendChild(_idSpan);
+                        } else {
+                            _header.appendChild(document.createTextNode('比赛'));
+                            const _cidSpan = document.createElement('span');
+                            _cidSpan.className = 'blue';
+                            _cidSpan.textContent = String(Number(SearchParams.get("cid")));
+                            _header.appendChild(_cidSpan);
+                            _header.appendChild(document.createTextNode('\u2003题目')); // \u2003 = em space
+                            const _pidSpan = document.createElement('span');
+                            _pidSpan.className = 'blue';
+                            _pidSpan.textContent = String.fromCharCode(65 + parseInt(SearchParams.get("pid")));
+                            _header.appendChild(_pidSpan);
+                        }
+                    })();
                     if (UtilityEnabled("AutoO2")) {
                         document.querySelector("#enable_O2").checked = true;
                     }
+                    const getSubmitStorageKey = () => (SearchParams.get("id") != null ? ('XMOJ-Submit-id-' + SearchParams.get("id")) : ('XMOJ-Submit-cid-' + SearchParams.get("cid") + '-pid-' + SearchParams.get("pid")));
                     let CodeMirrorElement;
-                    (() => {
-                        CodeMirrorElement = CodeMirror.fromTextArea(document.querySelector("#CodeInput"), {
-                            lineNumbers: true,
-                            matchBrackets: true,
-                            mode: "text/x-c++src",
-                            indentUnit: 4,
-                            indentWithTabs: true,
-                            enterMode: "keep",
-                            tabMode: "shift",
-                            theme: (UtilityEnabled("DarkMode") ? "darcula" : "default"),
-                            extraKeys: {
-                                "Ctrl-Space": "autocomplete", "Ctrl-Enter": function (instance) {
+                    const editorOptions = {
+                        language: 'cpp',
+                        value: '',
+                        automaticLayout: true,
+                        theme: (UtilityEnabled("DarkMode") ? 'vs-dark' : 'vs'),
+                        minimap: { enabled: false },
+                        lineNumbers: 'on',
+                        tabSize: 4,
+                        localStorageKey: getSubmitStorageKey(),
+                        // enable filling from header bottom to window bottom by default
+                        fitToViewport: true,
+                        bottomOffset: 8
+                    };
+                    try {
+                        CodeMirrorElement = await createMonacoEditor('MonacoEditor', editorOptions);
+                        try {
+                            CodeMirrorElement._monacoEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, function() { Submit.click(); });
+                            CodeMirrorElement._monacoEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Space, function() { CodeMirrorElement._monacoEditor.trigger('keyboard', 'editor.action.triggerSuggest', {}); });
+                        } catch (e) {
+                            console.error(e);
+                            if (UtilityEnabled("DebugMode")) {
+                                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                            }
+                        }
+                        if (!editorOptions.fitToViewport) CodeMirrorElement.setSize("100%", "550px");
+                        CodeMirrorElement.getWrapperElement().style.border = UtilityEnabled("MonochromeUI") ? "2px solid var(--mono-black)" : "1px solid #ddd";
+                        document.getElementById("loadEditor").remove();
+                    } catch (e) {
+                        const _fallbackTA = document.getElementById('CodeInput');
+                        document.getElementById('MonacoEditor').style.display = 'none';
+                        _fallbackTA.style.display = '';
+                        _fallbackTA.style.width = '100%';
+                        if (editorOptions.fitToViewport) {
+                            try {
+                                const header = document.querySelector('nav') || document.querySelector('#navbar') || document.querySelector('.navbar') || document.querySelector('header');
+                                const top = header ? header.getBoundingClientRect().bottom : 0;
+                                const bottomOffset = Number(editorOptions.bottomOffset || 0);
+                                const available = Math.max(80, window.innerHeight - top - bottomOffset);
+                                _fallbackTA.style.height = available + 'px';
+                            } catch (err) { _fallbackTA.style.height = '550px'; }
+                        } else {
+                            _fallbackTA.style.height = '550px';
+                        }
+                        const _fallbackKey = getSubmitStorageKey();
+                        try { const _saved = localStorage.getItem(_fallbackKey); if (_saved !== null && _saved !== 'null') _fallbackTA.value = _saved; } catch (_e) {}
+                        let _fallbackTimer = null;
+                        const _fallbackSave = () => { try { localStorage.setItem(_fallbackKey, _fallbackTA.value); } catch (_e) {} };
+                        _fallbackTA.addEventListener('input', () => { if (_fallbackTimer) clearTimeout(_fallbackTimer); _fallbackTimer = setTimeout(_fallbackSave, 500); });
+                        _fallbackTA.addEventListener('keydown', (e) => {
+                            const key = e.key || e.keyCode;
+                            const isEnter = key === 'Enter' || key === 13;
+                            if (isEnter && e.ctrlKey) {
+                                e.preventDefault();
+                                if (typeof Submit !== 'undefined' && Submit && typeof Submit.click === 'function') {
                                     Submit.click();
                                 }
                             }
-                        })
-                    })();
-                    CodeMirrorElement.setSize("100%", "auto");
-                    CodeMirrorElement.getWrapperElement().style.border = UtilityEnabled("MonochromeUI") ? "2px solid var(--mono-black)" : "1px solid #ddd";
+                        });
+                        CodeMirrorElement = {
+                            getValue: () => _fallbackTA.value,
+                            setValue: (v) => { _fallbackTA.value = v; },
+                            setSize: (w, h) => { if (w) _fallbackTA.style.width = w; if (h) _fallbackTA.style.height = h; },
+                            getWrapperElement: () => _fallbackTA,
+                            focus: () => _fallbackTA.focus(),
+                            showFind: () => {},
+                            goToLine: () => {},
+                            selectRange: () => {},
+                            saveToLocal: _fallbackSave,
+                            localStorageKey: _fallbackKey,
+                            _monacoEditor: null
+                        };
+                    }
 
                     if (SearchParams.get("sid") !== null) {
                         await fetch("https://www.xmoj.tech/getsource.php?id=" + SearchParams.get("sid"))
@@ -3570,6 +4180,12 @@ async function main() {
                                     }
                                     ErrorElement.style.display = "block";
                                     ErrorMessage.style.color = "red";
+                                    try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
+                                        console.error(e);
+                                        if (UtilityEnabled("DebugMode")) {
+                                            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                        }
+                                    }
                                     ErrorMessage.innerText = "比赛已结束, 正在尝试向题目 " + rPID + " 提交";
                                     console.log("比赛已结束, 正在尝试向题目 " + rPID + " 提交");
                                     let o2Switch = "&enable_O2=on";
@@ -3594,6 +4210,12 @@ async function main() {
                                 }
                                 ErrorElement.style.display = "block";
                                 ErrorMessage.style.color = "red";
+                                try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
+                                    console.error(e);
+                                    if (UtilityEnabled("DebugMode")) {
+                                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                    }
+                                }
                                 ErrorMessage.innerText = "提交失败！请关闭脚本后重试！";
                                 Submit.disabled = false;
                                 Submit.value = "提交";
@@ -3620,6 +4242,12 @@ async function main() {
                                 PassCheck.style.display = "";
                                 ErrorElement.style.display = "block";
                                 if (UtilityEnabled("DarkMode")) ErrorMessage.style.color = "yellow"; else ErrorMessage.style.color = "red";
+                                try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
+                                    console.error(e);
+                                    if (UtilityEnabled("DebugMode")) {
+                                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                    }
+                                }
                                 ErrorMessage.innerText = "此题输入输出文件名为" + IOFilename + "，请检查是否填错";
 
                                 let freopenText = document.createElement('small');
@@ -3641,14 +4269,41 @@ async function main() {
                                     }, 1500);
                                 });
                                 document.getElementById('ErrorMessage').appendChild(copyFreopenButton);
-                                let freopenCodeField = CodeMirror(document.getElementById('ErrorMessage'), {
-                                    value: 'freopen("' + IOFilename + '.in", "r", stdin);\nfreopen("' + IOFilename + '.out", "w", stdout);',
-                                    mode: 'text/x-c++src',
-                                    theme: (UtilityEnabled("DarkMode") ? "darcula" : "default"),
-                                    readOnly: true,
-                                    lineNumbers: true
-                                });
-                                freopenCodeField.setSize("100%", "auto");
+                                // create a small read-only Monaco editor or fallback text for the freopen snippet
+                                let codeHost = document.createElement('div');
+                                codeHost.style.width = '100%';
+                                codeHost.style.height = '38px';
+                                codeHost.style.marginTop = '10px';
+                                document.getElementById('ErrorMessage').appendChild(codeHost);
+                                if (typeof monaco !== 'undefined') {
+                                    try {
+                                        const _tmpErrEditor = monaco.editor.create(codeHost, {
+                                            value: 'freopen("' + IOFilename + '.in", "r", stdin);\nfreopen("' + IOFilename + '.out", "w", stdout);',
+                                            language: 'cpp',
+                                            readOnly: true,
+                                            theme: (UtilityEnabled("DarkMode") ? 'vs-dark' : 'vs'),
+                                            automaticLayout: true,
+                                            minimap: { enabled: false },
+                                            lineNumbers: 'on'
+                                        });
+                                        window._xmoj_temp_error_editors = window._xmoj_temp_error_editors || [];
+                                        window._xmoj_temp_error_editors.push(_tmpErrEditor);
+                                        try { codeHost._monacoEditor = _tmpErrEditor; codeHost.setAttribute('data-xmoj-error-editor', '1'); } catch (e) {
+                                            console.error(e);
+                                            if (UtilityEnabled("DebugMode")) {
+                                                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                            }
+                                        }
+                                    } catch (e) {
+                                        const pre = document.createElement('pre');
+                                        pre.textContent = 'freopen("' + IOFilename + '.in", "r", stdin);\nfreopen("' + IOFilename + '.out", "w", stdout);';
+                                        codeHost.appendChild(pre);
+                                    }
+                                } else {
+                                    const pre = document.createElement('pre');
+                                    pre.textContent = 'freopen("' + IOFilename + '.in", "r", stdin);\nfreopen("' + IOFilename + '.out", "w", stdout);';
+                                    codeHost.appendChild(pre);
+                                }
                                 document.querySelector("#Submit").disabled = false;
                                 document.querySelector("#Submit").value = "提交";
                                 return false;
@@ -3656,6 +4311,12 @@ async function main() {
                                 PassCheck.style.display = "";
                                 ErrorElement.style.display = "block";
                                 if (UtilityEnabled("DarkMode")) ErrorMessage.style.color = "yellow"; else ErrorMessage.style.color = "red";
+                                try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
+                                    console.error(e);
+                                    if (UtilityEnabled("DebugMode")) {
+                                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                    }
+                                }
                                 ErrorMessage.innerText = "请不要注释freopen语句";
                                 document.querySelector("#Submit").disabled = false;
                                 document.querySelector("#Submit").value = "提交";
@@ -3666,6 +4327,12 @@ async function main() {
                             PassCheck.style.display = "";
                             ErrorElement.style.display = "block";
                             if (UtilityEnabled("DarkMode")) ErrorMessage.style.color = "yellow"; else ErrorMessage.style.color = "red";
+                            try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
+                                console.error(e);
+                                if (UtilityEnabled("DebugMode")) {
+                                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                }
+                            }
                             ErrorMessage.innerText = "源代码为空";
                             document.querySelector("#Submit").disabled = false;
                             document.querySelector("#Submit").value = "提交";
@@ -3688,6 +4355,12 @@ async function main() {
                                 PassCheck.style.display = "";
                                 ErrorElement.style.display = "block";
                                 if (UtilityEnabled("DarkMode")) ErrorMessage.style.color = "yellow"; else ErrorMessage.style.color = "red";
+                                try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
+                                    console.error(e);
+                                    if (UtilityEnabled("DebugMode")) {
+                                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                    }
+                                }
                                 ErrorMessage.innerText = "编译错误：\n" + Response.stderr.trim();
                                 document.querySelector("#Submit").disabled = false;
                                 document.querySelector("#Submit").value = "提交";
@@ -4227,7 +4900,7 @@ async function main() {
                             <input class="form-check-input" type="checkbox" checked id="IgnoreWhitespace">
                             <label class="form-check-label" for="IgnoreWhitespace">忽略空白</label>
                         </div>
-                        <div id="CompareElement"></div>`;
+                        <div id="CompareElement" style="width:100%; height:550px; display: grid; place-items: center;"></div>`;
 
                             let LeftCode = "";
                             await fetch("https://www.xmoj.tech/getsource.php?id=" + SearchParams.get("left"))
@@ -4252,7 +4925,7 @@ async function main() {
                                 mode: "text/x-c++src",
                                 collapseIdentical: "true",
                                 readOnly: true,
-                                theme: (UtilityEnabled("DarkMode") ? "darcula" : "default"),
+                                theme: (UtilityEnabled("DarkMode") ? "vs-dark" : "default"),
                                 revertButtons: false,
                                 ignoreWhitespace: true
                             });
@@ -4524,7 +5197,7 @@ int main()
                                             ApplyDiv.appendChild(CodeElement);
                                             CodeMirror(CodeElement, {
                                                 value: Data,
-                                                theme: (UtilityEnabled("DarkMode") ? "darcula" : "default"),
+                                                theme: (UtilityEnabled("DarkMode") ? "vs-dark" : "default"),
                                                 lineNumbers: true,
                                                 readOnly: true
                                             }).setSize("100%", "auto");
@@ -4717,7 +5390,7 @@ int main()
                             lineNumbers: true,
                             mode: "text/x-c++src",
                             readOnly: true,
-                            theme: (UtilityEnabled("DarkMode") ? "darcula" : "default")
+                            theme: (UtilityEnabled("DarkMode") ? "vs-dark" : "default")
                         }).setSize("100%", "auto");
                     }
                 } else if (location.pathname == "/open_contest.php") {
@@ -4792,7 +5465,7 @@ int main()
                         lineNumbers: true,
                         mode: "text/x-c++src",
                         readOnly: true,
-                        theme: (UtilityEnabled("DarkMode") ? "darcula" : "default")
+                        theme: (UtilityEnabled("DarkMode") ? "vs-dark" : "default")
                     }).setSize("100%", "auto");
                 } else if (location.pathname == "/ceinfo.php") {
                     await fetch(location.href)
@@ -4800,17 +5473,19 @@ int main()
                             return Result.text();
                         }).then((Result) => {
                             let ParsedDocument = new DOMParser().parseFromString(Result, "text/html");
-                            document.querySelector("body > div > div.mt-3").innerHTML = "";
-                            let CodeElement = document.createElement("div");
-                            CodeElement.className = "mb-3";
-                            document.querySelector("body > div > div.mt-3").appendChild(CodeElement);
-                            CodeMirror(CodeElement, {
-                                value: ParsedDocument.getElementById("errtxt").innerHTML.replaceAll("&lt;", "<").replaceAll("&gt;", ">"),
-                                lineNumbers: true,
-                                mode: "text/x-c++src",
-                                readOnly: true,
-                                theme: (UtilityEnabled("DarkMode") ? "darcula" : "default")
-                            }).setSize("100%", "auto");
+                            if (!ParsedDocument.getElementsByClassName("jumbotron")[0].innerHTML.includes('I am sorry, You could not view this message!')) {
+                                document.querySelector("body > div > div.mt-3").innerHTML = "";
+                                let CodeElement = document.createElement("div");
+                                CodeElement.className = "mb-3";
+                                document.querySelector("body > div > div.mt-3").appendChild(CodeElement);
+                                CodeMirror(CodeElement, {
+                                    value: ParsedDocument.getElementById("errtxt").innerHTML.replaceAll("&lt;", "<").replaceAll("&gt;", ">"),
+                                    lineNumbers: true,
+                                    mode: "text/x-c++src",
+                                    readOnly: true,
+                                    theme: (UtilityEnabled("DarkMode") ? "vs-dark" : "default")
+                                }).setSize("100%", "auto");
+                            }
                         });
                 } else if (location.pathname == "/problem_std.php") {
                     await fetch("https://www.xmoj.tech/problem_std.php?cid=" + SearchParams.get("cid") + "&pid=" + SearchParams.get("pid"))
@@ -4818,19 +5493,24 @@ int main()
                             return Response.text();
                         }).then((Response) => {
                             let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
-                            let Temp = ParsedDocument.getElementsByTagName("pre");
-                            document.querySelector("body > div > div.mt-3").innerHTML = "";
-                            for (let i = 0; i < Temp.length; i++) {
-                                let CodeElement = document.createElement("div");
-                                CodeElement.className = "mb-3";
-                                document.querySelector("body > div > div.mt-3").appendChild(CodeElement);
-                                CodeMirror(CodeElement, {
-                                    value: Temp[i].innerText,
-                                    lineNumbers: true,
-                                    mode: "text/x-c++src",
-                                    readOnly: true,
-                                    theme: (UtilityEnabled("DarkMode") ? "darcula" : "default")
-                                }).setSize("100%", "auto");
+                            if (!ParsedDocument.getElementsByClassName("jumbotron")[0].innerHTML.includes('No such Problem!')) {
+                                let Temp = ParsedDocument.getElementsByTagName("pre");
+                                document.querySelector("body > div > div.mt-3").innerHTML = "";
+                                for (let i = 0; i < Temp.length; i++) {
+                                    let CodeElement = document.createElement("div");
+                                    CodeElement.className = "mb-3";
+                                    document.querySelector("body > div > div.mt-3").appendChild(CodeElement);
+                                    CodeMirror(CodeElement, {
+                                        value: Temp[i].innerText,
+                                        lineNumbers: true,
+                                        mode: "text/x-c++src",
+                                        readOnly: true,
+                                        theme: (UtilityEnabled("DarkMode") ? "vs-dark" : "default")
+                                    }).setSize("100%", "auto");
+                                }
+
+                                const overlay = document.getElementById('overlay');
+                                if (overlay && overlay.remove) overlay.remove();
                             }
                         });
                 } else if (location.pathname == "/mail.php") {
@@ -5757,7 +6437,7 @@ int main()
                                                 CodeMirror(CodeElements[i].parentElement, {
                                                     value: CodeElements[i].innerText,
                                                     mode: ModeName,
-                                                    theme: (UtilityEnabled("DarkMode") ? "darcula" : "default"),
+                                                    theme: (UtilityEnabled("DarkMode") ? "vs-dark" : "default"),
                                                     lineNumbers: true,
                                                     readOnly: true
                                                 }).setSize("100%", "auto");
