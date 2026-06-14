@@ -2326,9 +2326,6 @@ async function main() {
                 }
                 let Style = document.createElement("style");
                 document.body.appendChild(Style);
-                Style.innerHTML = UtilityEnabled("MonochromeUI") ? MonochromeSkinCSS : NewBootstrapSkinCSS;
-                if (UtilityEnabled("AddAnimation")) Style.innerHTML += `.status, .test-case { transition: ${UtilityEnabled("MonochromeUI") ? "100ms ease" : "0.5s"} !important; }`;
-                if (UtilityEnabled("AddColorText")) Style.innerHTML += `.red { color: red !important; } .green { color: green !important; } .blue { color: blue !important; }`;
 
                 if (UtilityEnabled("RemoveUseless")) {
                     if (document.getElementsByClassName("footer")[0] != null) {
