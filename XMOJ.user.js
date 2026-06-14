@@ -486,6 +486,11 @@ const NewBootstrapSkinCSS = `
 // Set to true by the early block if Bootstrap CSS was injected from the @resource
 // cache. Checked in the IIFE to decide whether a CDN fallback is needed.
 let _earlyBootstrapInjected = false;
+// Shared between the early block and the IIFE so the IIFE can perform the
+// reveal and observer teardown at DOMContentLoaded time (more reliable than
+// adding a DOMContentLoaded listener inside the sandboxed early block).
+let _foucStyle = null;
+let _earlyObs = null;
 
 // Runs synchronously at document-start. When NewBootstrap is enabled, we apply
 // the saved theme and inject Bootstrap CSS + the skin CSS before the first paint,
@@ -526,36 +531,20 @@ let _earlyBootstrapInjected = false;
         head.appendChild(skinStyle);
 
         // Hide the page until old stylesheets are evicted and our CSS is in place.
-        // This eliminates CLS from the preload scanner loading old Bootstrap CSS.
-        // The page is revealed in the DOMContentLoaded handler below.
-        let foucStyle = document.createElement("style");
-        foucStyle.id = "xmoj-fouc-prevent";
-        foucStyle.textContent = "html { opacity: 0 !important; }";
-        head.appendChild(foucStyle);
-        // Safety net: reveal after 3 s in case DOMContentLoaded misfires.
-        let foucTimeout = setTimeout(() => { foucStyle.remove(); }, 3000);
+        // Revealed by the IIFE right after its DOMContentLoaded wait (more reliable
+        // than a DOMContentLoaded listener here due to sandbox context differences).
+        _foucStyle = document.createElement("style");
+        _foucStyle.textContent = "html { opacity: 0 !important; }";
+        head.appendChild(_foucStyle);
 
         let blocked = ["bootstrap.min.css", "white.css", "semantic.min.css", "bootstrap-theme.min.css", "problem.css"];
-        let obs = new MutationObserver(mutations => {
+        _earlyObs = new MutationObserver(mutations => {
             for (let m of mutations)
                 for (let node of m.addedNodes)
                     if (node.tagName === "LINK" && blocked.some(h => node.href && node.href.indexOf(h) !== -1))
                         node.remove();
         });
-        obs.observe(document.documentElement, { childList: true, subtree: true });
-        document.addEventListener("DOMContentLoaded", () => {
-            obs.disconnect();
-            // Evict any stylesheets the preload scanner fetched before the observer
-            // could intercept them, then reveal the page in the correct final state.
-            let links = document.querySelectorAll("link");
-            for (let link of links) {
-                if (blocked.some(h => link.href && link.href.indexOf(h) !== -1)) {
-                    link.remove();
-                }
-            }
-            clearTimeout(foucTimeout);
-            foucStyle.remove();
-        }, { once: true });
+        _earlyObs.observe(document.documentElement, { childList: true, subtree: true });
     } catch (e) {
         console.error("[XMOJ-Script] early init error:", e);
     }
@@ -1971,6 +1960,17 @@ GM_registerMenuCommand("重置数据", () => {
 (async () => {
 if (document.readyState === "loading") {
     await new Promise(r => document.addEventListener("DOMContentLoaded", r, { once: true }));
+}
+// Reveal the page now that DOMContentLoaded has fired. Remove any old Bootstrap
+// stylesheets the preload scanner fetched (un-applies them from the CSSOM), then
+// remove the FOUC hide so the user sees the correct final state immediately.
+if (_earlyObs) { _earlyObs.disconnect(); _earlyObs = null; }
+if (_foucStyle) {
+    let _blocked = ["bootstrap.min.css", "white.css", "semantic.min.css", "bootstrap-theme.min.css", "problem.css"];
+    for (let _link of document.querySelectorAll("link")) {
+        if (_blocked.some(h => _link.href && _link.href.indexOf(h) !== -1)) _link.remove();
+    }
+    _foucStyle.remove(); _foucStyle = null;
 }
 //otherwise CurrentUsername might be undefined
 let loginStatus;
