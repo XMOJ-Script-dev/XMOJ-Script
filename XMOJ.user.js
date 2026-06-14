@@ -533,7 +533,19 @@ let _earlyBootstrapInjected = false;
                         node.remove();
         });
         obs.observe(document.documentElement, { childList: true, subtree: true });
-        document.addEventListener("DOMContentLoaded", () => obs.disconnect(), { once: true });
+        // At DOMContentLoaded, immediately evict any old stylesheets the browser's
+        // preload scanner fetched before the observer could intercept them. This
+        // fires before the IIFE's await fetch() completes, so the flash window is
+        // as short as possible.
+        document.addEventListener("DOMContentLoaded", () => {
+            obs.disconnect();
+            let links = document.querySelectorAll("link");
+            for (let link of links) {
+                if (blocked.some(h => link.href && link.href.indexOf(h) !== -1)) {
+                    link.remove();
+                }
+            }
+        }, { once: true });
     } catch (e) {
         console.error("[XMOJ-Script] early init error:", e);
     }
