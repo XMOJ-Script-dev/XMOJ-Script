@@ -483,6 +483,10 @@ const NewBootstrapSkinCSS = `
                     text-decoration: none;
                 }`;
 
+// Set to true by the early block if Bootstrap CSS was injected from the @resource
+// cache. Checked in the IIFE to decide whether a CDN fallback is needed.
+let _earlyBootstrapInjected = false;
+
 // Runs synchronously at document-start. When NewBootstrap is enabled, we apply
 // the saved theme and inject Bootstrap CSS + the skin CSS before the first paint,
 // and we block the page's own old stylesheets from loading at all.
@@ -502,8 +506,15 @@ const NewBootstrapSkinCSS = `
 
         let head = document.head || document.documentElement;
 
+        let bootstrapCSS = GM_getResourceText("BootstrapCSS");
+        if (!bootstrapCSS) {
+            // @resource not cached yet (first install/update). Let the old stylesheets
+            // load normally and let the late CDN fallback in the IIFE handle Bootstrap.
+            return;
+        }
+        _earlyBootstrapInjected = true;
         let bsStyle = document.createElement("style");
-        bsStyle.textContent = GM_getResourceText("BootstrapCSS");
+        bsStyle.textContent = bootstrapCSS;
         head.appendChild(bsStyle);
 
         let isMono = get("MonochromeUI");
@@ -2274,6 +2285,15 @@ async function main() {
                         href: 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/addon/merge/merge.min.css',
                         rel: 'stylesheet'
                     }];
+                    // If the @resource wasn't cached yet (first install/update), the early
+                    // block bailed out and Bootstrap CSS still needs to load from CDN.
+                    if (!_earlyBootstrapInjected) {
+                        resources.push({
+                            type: 'link',
+                            href: 'https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css',
+                            rel: 'stylesheet'
+                        });
+                    }
                     let loadResources = async () => {
                         let promises = resources.map(resource => {
                             return new Promise((resolve, reject) => {
