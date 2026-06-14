@@ -525,6 +525,16 @@ let _earlyBootstrapInjected = false;
         skinStyle.textContent = skinCSS;
         head.appendChild(skinStyle);
 
+        // Hide the page until old stylesheets are evicted and our CSS is in place.
+        // This eliminates CLS from the preload scanner loading old Bootstrap CSS.
+        // The page is revealed in the DOMContentLoaded handler below.
+        let foucStyle = document.createElement("style");
+        foucStyle.id = "xmoj-fouc-prevent";
+        foucStyle.textContent = "html { opacity: 0 !important; }";
+        head.appendChild(foucStyle);
+        // Safety net: reveal after 3 s in case DOMContentLoaded misfires.
+        let foucTimeout = setTimeout(() => { foucStyle.remove(); }, 3000);
+
         let blocked = ["bootstrap.min.css", "white.css", "semantic.min.css", "bootstrap-theme.min.css", "problem.css"];
         let obs = new MutationObserver(mutations => {
             for (let m of mutations)
@@ -533,18 +543,18 @@ let _earlyBootstrapInjected = false;
                         node.remove();
         });
         obs.observe(document.documentElement, { childList: true, subtree: true });
-        // At DOMContentLoaded, immediately evict any old stylesheets the browser's
-        // preload scanner fetched before the observer could intercept them. This
-        // fires before the IIFE's await fetch() completes, so the flash window is
-        // as short as possible.
         document.addEventListener("DOMContentLoaded", () => {
             obs.disconnect();
+            // Evict any stylesheets the preload scanner fetched before the observer
+            // could intercept them, then reveal the page in the correct final state.
             let links = document.querySelectorAll("link");
             for (let link of links) {
                 if (blocked.some(h => link.href && link.href.indexOf(h) !== -1)) {
                     link.remove();
                 }
             }
+            clearTimeout(foucTimeout);
+            foucStyle.remove();
         }, { once: true });
     } catch (e) {
         console.error("[XMOJ-Script] early init error:", e);
