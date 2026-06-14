@@ -3640,12 +3640,12 @@
             "Notes": "Use Monaco Editor and save code in submitpage.php when edit the content."
         },
         "3.5.3": {
-            "UpdateDate": 1781425971151,
+            "UpdateDate": 1781426046724,
             "Prerelease": true,
             "UpdateContents": [
                 {
                     "PR": 992,
-                    "Description": "Refactor and enhance XMOJ.user.js with improved features"
+                    "Description": "fix page flashes in dark mode"
                 }
             ],
             "Notes": "Major refactoring and enhancement of XMOJ.user.js with improved code organization and feature implementations."
