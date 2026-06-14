@@ -2266,6 +2266,24 @@ async function main() {
                 }
 
                 if (UtilityEnabled("NewBootstrap")) {
+                    // Remove any old Bootstrap/theme stylesheets that the browser's preload
+                    // scanner may have fetched and applied before the document-start
+                    // MutationObserver could intercept them. Removing a <link> from the DOM
+                    // un-applies its stylesheet from the CSSOM immediately.
+                    let Temp = document.querySelectorAll("link");
+                    for (var i = 0; i < Temp.length; i++) {
+                        if (Temp[i].href.indexOf("bootstrap.min.css") != -1) {
+                            Temp[i].remove();
+                        } else if (Temp[i].href.indexOf("white.css") != -1) {
+                            Temp[i].remove();
+                        } else if (Temp[i].href.indexOf("semantic.min.css") != -1) {
+                            Temp[i].remove();
+                        } else if (Temp[i].href.indexOf("bootstrap-theme.min.css") != -1) {
+                            Temp[i].remove();
+                        } else if (Temp[i].href.indexOf("problem.css") != -1) {
+                            Temp[i].remove();
+                        }
+                    }
                     if (UtilityEnabled("MonochromeUI")) {
                         let fontLink = document.createElement("link");
                         fontLink.rel = "stylesheet";
