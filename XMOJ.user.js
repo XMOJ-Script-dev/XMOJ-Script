@@ -2386,6 +2386,12 @@ async function main() {
                 }
                 let Style = document.createElement("style");
                 document.body.appendChild(Style);
+                if (!_earlyBootstrapInjected) {
+                    let _isMono = UtilityEnabled("MonochromeUI");
+                    Style.innerHTML = _isMono ? MonochromeSkinCSS : NewBootstrapSkinCSS;
+                    if (UtilityEnabled("AddAnimation")) Style.innerHTML += `.status, .test-case { transition: ${_isMono ? "100ms ease" : "0.5s"} !important; }`;
+                    if (UtilityEnabled("AddColorText")) Style.innerHTML += `.red { color: red !important; } .green { color: green !important; } .blue { color: blue !important; }`;
+                }
 
                 if (UtilityEnabled("RemoveUseless")) {
                     if (document.getElementsByClassName("footer")[0] != null) {
