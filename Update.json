@@ -3638,6 +3638,17 @@
                 }
             ],
             "Notes": "Use Monaco Editor and save code in submitpage.php when edit the content."
+        },
+        "3.5.3": {
+            "UpdateDate": 1781427038989,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 992,
+                    "Description": "fix: eliminate dark-mode flash in MonochromeUI/NewBootstrap"
+                }
+            ],
+            "Notes": "修复了 MonochromeUI / NewBootstrap 新界面在深色模式下加载时出现的白色闪烁（FOUC/CLS）问题。"
         }
     }
 }
