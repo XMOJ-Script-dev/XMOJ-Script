@@ -3649,6 +3649,17 @@
                 }
             ],
             "Notes": "修复了 MonochromeUI / NewBootstrap 新界面在深色模式下加载时出现的白色闪烁（FOUC/CLS）问题。"
+        },
+        "3.5.4": {
+            "UpdateDate": 1785114353055,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 997,
+                    "Description": "fix: pin Monaco to 0.52.2 to stop intermittent editor load failures"
+                }
+            ],
+            "Notes": "修复了提交代码页面上 Monaco 编辑器有时无法加载、退化为纯文本框的问题（Monaco 0.53.0 的上游 bug）。"
         }
     }
 }
