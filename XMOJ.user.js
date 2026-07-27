@@ -551,7 +551,11 @@ let _earlyObs = null;
 })();
 
 const CaptchaSiteKey = "0x4AAAAAAALBT58IhyDViNmv";
-const MonacoCDN = "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.53.0/min/vs";
+// 0.53.0 leaks its minified helper variables (m, r, o, ...) into the global scope from every
+// chunk file, so whichever chunk happens to be evaluated last clobbers the others and the
+// editor randomly fails to load (microsoft/monaco-editor#5015). 0.52.2 ships a single bundle
+// and is not affected. cdnjs has no fixed release newer than 0.53.0 yet.
+const MonacoCDN = "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs";
 const AdminUserList = ["zhuchenrui2", "shanwenxiao", "chenlangning", "admin"];
 
 // Pre-declared so that closures defined before the async init block can reference them
@@ -751,8 +755,19 @@ let GetUserBadge = async (Username) => {
         }
     }
 };
+let MonacoLoadPromise = null;
 async function ensureMonaco() {
     if (typeof monaco !== 'undefined') return;
+    // Callers can overlap (submit page editor, merge view, freopen snippets). Without this guard
+    // each of them appends its own loader.js, and the second loader resets the AMD registry while
+    // the first one is still resolving modules.
+    if (MonacoLoadPromise === null) {
+        MonacoLoadPromise = loadMonaco();
+        MonacoLoadPromise.catch(() => { MonacoLoadPromise = null; });
+    }
+    return MonacoLoadPromise;
+}
+async function loadMonaco() {
     const loaderUrl = MonacoCDN + '/loader.js';
     if (typeof require === 'undefined' || typeof require.config === 'undefined') {
         await new Promise((resolve, reject) => {
