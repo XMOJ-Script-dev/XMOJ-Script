@@ -4970,6 +4970,10 @@ async function main() {
                         </div>
                         <div id="CompareElement" style="width:100%; height:550px; display: grid; place-items: center;"></div>`;
 
+                            let compareElementStyle = document.createElement("style");
+                            compareElementStyle.textContent = `#CompareElement .monaco-merge-host { height: 95%; }`;
+                            document.head.appendChild(compareElementStyle);
+
                             let LeftCode = "";
                             await fetch("https://www.xmoj.tech/getsource.php?id=" + SearchParams.get("left"))
                                 .then((Response) => {
