@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      3.6.0
+// @version      3.6.1
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -4969,6 +4969,10 @@ async function main() {
                             <label class="form-check-label" for="IgnoreWhitespace">忽略空白</label>
                         </div>
                         <div id="CompareElement" style="width:100%; height:550px; display: grid; place-items: center;"></div>`;
+
+                            let compareElementStyle = document.createElement("style");
+                            compareElementStyle.textContent = `#CompareElement .monaco-merge-host { height: 95%; }`;
+                            document.head.appendChild(compareElementStyle);
 
                             let LeftCode = "";
                             await fetch("https://www.xmoj.tech/getsource.php?id=" + SearchParams.get("left"))

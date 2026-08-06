@@ -3683,6 +3683,17 @@
                 }
             ],
             "Notes": "本次发布将 3.5.0 之后的四个预发布版本合并为正式版 3.5.4：\n\n- **#986** 修复 Violentmonkey 下因顶层 `await` 导致的 `SyntaxError`（将异步初始化包进 IIFE）。\n- **#989** 提交代码页面（submitpage.php）改用 Monaco Editor，并支持编辑时保存代码。\n- **#992** 修复 MonochromeUI / NewBootstrap 新界面在深色模式下加载时的白色闪烁（FOUC/CLS）问题。\n- **#997** 将 Monaco 固定到 0.52.2，修复编辑器有时无法加载、退化为纯文本框的问题（0.53.0 上游 bug）。"
+        },
+        "3.6.1": {
+            "UpdateDate": 1785987881994,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 1006,
+                    "Description": "Fix #1004"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }
