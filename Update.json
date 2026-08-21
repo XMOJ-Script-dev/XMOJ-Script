@@ -3707,12 +3707,12 @@
             "Notes": "修复提交记录中题目 ID 为 0 时的排版错误。"
         },
         "3.6.3": {
-            "UpdateDate": 1787299092354,
+            "UpdateDate": 1787299121823,
             "Prerelease": true,
             "UpdateContents": [
                 {
                     "PR": 1015,
-                    "Description": "feat: compress ApplyData payloads with gzip and Base91"
+                    "Description": "feat: compress ApplyData payloads with gzip and Base93"
                 }
             ],
             "Notes": "No release notes were provided for this release."
