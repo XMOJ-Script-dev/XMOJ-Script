@@ -3502,7 +3502,7 @@ async function main() {
                             SolutionIDs.push(SID);
                             if (UtilityEnabled("ResetType")) {
                                 Temp[i].childNodes[0].remove();
-                                let resubmitLink = Temp[i].childNodes[6]?.children[1];
+                                let resubmitLink = Temp[i].childNodes[6].children[1] ?? null;
                                 let sourceCell = Temp[i].childNodes[0];
                                 let sourceLink = document.createElement("a");
                                 sourceLink.href = "https://www.xmoj.tech/showsource.php?id=" + SID;
