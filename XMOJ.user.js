@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      3.6.1
+// @version      3.6.2
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -3502,7 +3502,20 @@ async function main() {
                             SolutionIDs.push(SID);
                             if (UtilityEnabled("ResetType")) {
                                 Temp[i].childNodes[0].remove();
-                                Temp[i].childNodes[0].innerHTML = "<a href=\"https://www.xmoj.tech/showsource.php?id=" + SID + "\">" + SID + "</a> " + "<a href=\"" + Temp[i].childNodes[6].children[1].href + "\">重交</a>";
+                                let resubmitLink = Temp[i].childNodes[6].children[1] ?? null;
+                                let sourceCell = Temp[i].childNodes[0];
+                                let sourceLink = document.createElement("a");
+                                sourceLink.href = "https://www.xmoj.tech/showsource.php?id=" + SID;
+                                sourceLink.innerText = SID;
+                                sourceCell.replaceChildren(sourceLink);
+                                // Submissions with PID 0 do not have a resubmit link.
+                                if (resubmitLink != null) {
+                                    let newResubmitLink = document.createElement("a");
+                                    newResubmitLink.href = resubmitLink.href;
+                                    newResubmitLink.innerText = "重交";
+                                    sourceCell.appendChild(document.createTextNode(" "));
+                                    sourceCell.appendChild(newResubmitLink);
+                                }
                                 Temp[i].childNodes[1].remove();
                                 Temp[i].childNodes[1].children[0].removeAttribute("class");
                                 Temp[i].childNodes[3].childNodes[0].innerText = SizeToStringSize(Temp[i].childNodes[3].childNodes[0].innerText);
