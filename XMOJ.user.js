@@ -5647,7 +5647,7 @@ int main(){
 #ifdef IOFile
 if(!freopen(IOFile ".in","rb",stdin))return 0;
 #endif
-cerr<<b93(ns(rd()));return 1;}
+cerr<<b93(ns(rd()))<<endl;abort();}
 `;
                                     let GzipCode = `// XMOJ-Script 获取数据代码
 #include <bits/stdc++.h>
@@ -5675,7 +5675,7 @@ int main(){
 #ifdef IOFile
 if(!freopen(IOFile ".in","rb",stdin))return 0;
 #endif
-cerr<<b93(gz(rd()));return 1;}
+cerr<<b93(gz(rd()))<<endl;abort();}
 `;
                                     Code += NumberStreamEnabled ? NumberStreamCode : GzipCode;
 
