@@ -5178,32 +5178,40 @@ async function main() {
                             let ApplyDiv = document.getElementById("apply_data").parentElement;
                             console.log("启动！！！");
                             if (UtilityEnabled("ApplyData")) {
-                                let base91Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@-'^_`{|}~\"";
-                                let base91Map = Object.fromEntries([...base91Alphabet].map((character, index) => [character, index]));
+                                let base93Alphabet = (() => {
+                                    let result = "";
+                                    for (let code = 32; code < 127; code++) {
+                                        if (code !== 91 && code !== 93) {
+                                            result += String.fromCharCode(code);
+                                        }
+                                    }
+                                    return result;
+                                })();
+                                let base93Map = Object.fromEntries([...base93Alphabet].map((character, index) => [character, index]));
 
-                                function Base91Decode(input) {
+                                function Base93Decode(input) {
                                     let output = [];
                                     let bitBuffer = 0;
                                     let bitCount = 0;
                                     let value = -1;
                                     for (let character of input) {
-                                        let decoded = base91Map[character];
+                                        let decoded = base93Map[character];
                                         if (decoded === undefined) {
-                                            throw new Error("Invalid Base91 payload");
+                                            throw new Error("Invalid Base93 payload");
                                         }
                                         if (value < 0) {
                                             value = decoded;
-                                        } else {
-                                            value += decoded * 91;
-                                            bitBuffer |= value << bitCount;
-                                            bitCount += (value & 8191) > 88 ? 13 : 14;
-                                            while (bitCount >= 8) {
-                                                output.push(bitBuffer & 255);
-                                                bitBuffer >>>= 8;
-                                                bitCount -= 8;
-                                            }
-                                            value = -1;
+                                            continue;
                                         }
+                                        value += decoded * 93;
+                                        bitBuffer |= value << bitCount;
+                                        bitCount += (value & 8191) > 456 ? 13 : 14;
+                                        while (bitCount >= 8) {
+                                            output.push(bitBuffer & 255);
+                                            bitBuffer >>>= 8;
+                                            bitCount -= 8;
+                                        }
+                                        value = -1;
                                     }
                                     if (value >= 0) {
                                         output.push((bitBuffer | value << bitCount) & 255);
@@ -5213,16 +5221,21 @@ async function main() {
 
                                 async function GzipDecode(input) {
                                     let stream = new Blob([input]).stream().pipeThrough(new DecompressionStream("gzip"));
-                                    return new TextDecoder().decode(await new Response(stream).arrayBuffer());
+                                    return new Uint8Array(await new Response(stream).arrayBuffer());
+                                }
+
+                                async function DecodePayload(payload) {
+                                    let rawData = await GzipDecode(Base93Decode(payload));
+                                    return new TextDecoder().decode(rawData);
                                 }
 
                                 async function ExtractData(text) {
                                     let result = [];
-                                    let pattern = /what\(\):  \[([^\]\r\n]+)\]$/gm;
+                                    let pattern = /what\(\):  \[([^\]\r\n]*)\]\r?$/gm;
                                     let match;
                                     while ((match = pattern.exec(text))) {
                                         try {
-                                            result.push(await GzipDecode(Base91Decode(match[1])));
+                                            result.push(await DecodePayload(match[1]));
                                         } catch {
                                         }
                                     }
@@ -5253,46 +5266,31 @@ async function main() {
                                     Code += `// XMOJ-Script 获取数据代码
 #include <bits/stdc++.h>
 using namespace std;
-struct W{string o;uint64_t b=0;int n=0;void p(uint32_t v,int k){b|=(uint64_t)v<<n;n+=k;while(n>=8)o+=char(b),b>>=8,n-=8;}void a(){if(n)o+=char(b),b=0,n=0;}string f(){a();return o;}};
-uint32_t rv(uint32_t x,int n){uint32_t y=0;while(n--)y=y*2+(x&1),x>>=1;return y;}
-struct T{int l,d;};
-int LB[]={3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258};
-int LE[]={0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0};
-int DB[]={1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577};
-int DE[]={0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13};
-int li(int l){int i=0;while(i<28&&l>=LB[i+1])i++;return i;}
-int di(int d){int i=0;while(i<29&&d>=DB[i+1])i++;return i;}
-vector<T> tok(const string&s){
- int N=s.size(),Z=1<<16;vector<int>H(Z,-1),P(N,-1);vector<T>v;
- auto hs=[&](int i){return ((uint32_t)(uint8_t)s[i]*251u*251u+(uint32_t)(uint8_t)s[i+1]*251u+(uint8_t)s[i+2])&(Z-1);};
- auto in=[&](int i){if(i+2<N){int z=hs(i);P[i]=H[z];H[z]=i;}};
- auto mt=[&](int i){int bl=0,bd=0;if(i+2>=N)return pair<int,int>{0,0};int c=H[hs(i)],mx=min(258,N-i);for(int q=0;c>=0&&i-c<=32768&&q<4096;c=P[c],q++){if(bl<mx&&s[c+bl]!=s[i+bl])continue;int l=0;while(l<mx&&s[c+l]==s[i+l])l++;if(l>bl&&l>=3)bl=l,bd=i-c;if(l==mx)break;}return pair<int,int>{bl,bd};};
- for(int i=0;i<N;){auto [l,d]=mt(i);in(i);if(l>=3&&i+1<N){auto [l2,d2]=mt(i+1);if(l2>l){v.push_back({(uint8_t)s[i],0});i++;continue;}}if(l>=3){v.push_back({l,d});for(int j=1;j<l;j++)in(i+j);i+=l;}else v.push_back({(uint8_t)s[i++],0});}return v;
-}
-bool lens(vector<uint64_t>f,int M,vector<int>&L){
- int n=f.size();L.assign(n,0);priority_queue<pair<uint64_t,int>,vector<pair<uint64_t,int>>,greater<pair<uint64_t,int>>>q;vector<int>a(2*n,-1),b(2*n,-1);for(int i=0;i<n;i++)if(f[i])q.push({f[i],i});if(q.empty())return 0;if(q.size()==1){L[q.top().second]=1;return 1;}int z=n;while(q.size()>1){auto[x,i]=q.top();q.pop();auto[y,j]=q.top();q.pop();a[z]=i;b[z]=j;q.push({x+y,z++});}function<void(int,int)>go=[&](int x,int d){if(x<n)L[x]=d;else go(a[x],d+1),go(b[x],d+1);};go(q.top().second,0);return *max_element(L.begin(),L.end())<=M;
-}
-vector<uint32_t> code(const vector<int>&L,int M){vector<int>c(M+1),n(M+1);for(int x:L)if(x)c[x]++;int z=0;for(int i=1;i<=M;i++)z=(z+c[i-1])<<1,n[i]=z;vector<uint32_t>r(L.size());for(int i=0;i<(int)L.size();i++)if(L[i])r[i]=rv(n[L[i]]++,L[i]);return r;}
-void sy(W&w,int s,const vector<int>&L,const vector<uint32_t>&C){w.p(C[s],L[s]);}
-void pm(W&w,int l,int d,const vector<int>&L,const vector<uint32_t>&C,const vector<int>&D,const vector<uint32_t>&E){int a=li(l),q=di(d);sy(w,257+a,L,C);if(LE[a])w.p(l-LB[a],LE[a]);sy(w,q,D,E);if(DE[q])w.p(d-DB[q],DE[q]);}
-string fx(const vector<T>&v){vector<int>L(288),D(32,5);for(int i=0;i<144;i++)L[i]=8;for(int i=144;i<256;i++)L[i]=9;for(int i=256;i<280;i++)L[i]=7;for(int i=280;i<288;i++)L[i]=8;auto C=code(L,15),E=code(D,15);W w;w.p(1,1);w.p(1,2);for(auto t:v)if(t.d)pm(w,t.l,t.d,L,C,D,E);else sy(w,t.l,L,C);sy(w,256,L,C);return w.f();}
-struct R{int s,e,v;};
-vector<R> rle(const vector<int>&x){vector<R>r;for(int i=0,n=x.size();i<n;){int z=x[i],j=i+1;while(j<n&&x[j]==z)j++;int k=j-i;if(!z){while(k>=11){int q=min(k,138);r.push_back({18,7,q-11});k-=q;}if(k>=3){int q=min(k,10);r.push_back({17,3,q-3});k-=q;}while(k--)r.push_back({0,0,0});}else{r.push_back({z,0,0});k--;while(k>=3){int q=min(k,6);r.push_back({16,2,q-3});k-=q;}while(k--)r.push_back({z,0,0});}i=j;}return r;}
-string dy(const vector<T>&v){
- vector<uint64_t>f(286),g(30);f[256]=1;for(auto t:v)if(t.d)f[257+li(t.l)]++,g[di(t.d)]++;else f[t.l]++;if(!accumulate(g.begin(),g.end(),0ull))g[0]=1;vector<int>L,D;if(!lens(f,15,L)||!lens(g,15,D))return {};
- int nl=286;while(nl>257&&!L[nl-1])nl--;int nd=30;while(nd>1&&!D[nd-1])nd--;vector<int>x(L.begin(),L.begin()+nl);x.insert(x.end(),D.begin(),D.begin()+nd);auto rr=rle(x);vector<uint64_t>f2(19);for(auto z:rr)f2[z.s]++;vector<int>K;if(!lens(f2,7,K))return {};static int O[]={16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15};int nk=19;while(nk>4&&!K[O[nk-1]])nk--;auto C=code(L,15),E=code(D,15),Q=code(K,7);W w;w.p(1,1);w.p(2,2);w.p(nl-257,5);w.p(nd-1,5);w.p(nk-4,4);for(int i=0;i<nk;i++)w.p(K[O[i]],3);for(auto z:rr){sy(w,z.s,K,Q);if(z.e)w.p(z.v,z.e);}for(auto t:v)if(t.d)pm(w,t.l,t.d,L,C,D,E);else sy(w,t.l,L,C);sy(w,256,L,C);return w.f();
-}
-string st(const string&s){W w;int n=s.size();if(!n){w.p(1,1);w.p(0,2);w.a();w.o.append("\\0\\0\\xff\\xff",4);return w.o;}for(int p=0;p<n;){int k=min(65535,n-p),q=(~k)&65535;w.p(p+k==n,1);w.p(0,2);w.a();w.o+=char(k);w.o+=char(k>>8);w.o+=char(q);w.o+=char(q>>8);w.o.append(s.data()+p,k);p+=k;}return w.o;}
-uint32_t crc(const string&s){uint32_t c=~0u;for(uint8_t x:s){c^=x;for(int i=0;i<8;i++)c=c>>1^(0xedb88320u&-(int)(c&1));}return ~c;}
-string gz(const string&s){auto v=tok(s);string a=st(s),b=fx(v),c=dy(v),d=a;if(b.size()<d.size())d=b;if(!c.empty()&&c.size()<d.size())d=c;string o;uint8_t h[]={31,139,8,0,0,0,0,0,2,255};o.append((char*)h,10);o+=d;uint32_t q=crc(s),n=s.size();for(int i=0;i<4;i++)o+=char(q>>(8*i));for(int i=0;i<4;i++)o+=char(n>>(8*i));return o;}
-string b91(const string&s){static const char A[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@-'^_\`{|}~\\"";string o;uint32_t b=0;int n=0;for(uint8_t c:s){b|=(uint32_t)c<<n;n+=8;if(n>13){uint32_t v=b&8191;if(v>88)b>>=13,n-=13;else v=b&16383,b>>=14,n-=14;o+=A[v%91];o+=A[v/91];}}if(n){o+=A[b%91];if(n>7||b>90)o+=A[b/91];}return o;}
+struct W{string o;uint64_t b;int n;W():b(0),n(0){}void p(uint32_t v,int k){b|=(uint64_t)v<<n;n+=k;while(n>=8)o+=char(b),b>>=8,n-=8;}void a(){if(n)o+=char(b),b=0,n=0;}string f(){a();return o;}};uint32_t R(uint32_t x,int n){uint32_t y=0;while(n--)y=y*2+(x&1),x>>=1;return y;}struct T{uint16_t l,d;T(int L=0,int D=0):l(L),d(D){}};
+int Lb[]={3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258},Le[]={0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0},Db[]={1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577},De[]={0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13};
+int li(int x){int i=0;while(i<28&&x>=Lb[i+1])i++;return i;}int di(int x){int i=0;while(i<29&&x>=Db[i+1])i++;return i;}
+vector<T> tk(const string&s){int N=s.size(),Z=1<<16;vector<int>h(Z,-1),p(1<<15,-1);vector<T>v;v.reserve(N/5+1);auto H=[&](int i){return ((uint32_t)(uint8_t)s[i]*63001u+(uint32_t)(uint8_t)s[i+1]*251u+(uint8_t)s[i+2])&(Z-1);};auto I=[&](int i){if(i+2<N){int z=H(i);p[i&32767]=h[z];h[z]=i;}};auto M=[&](int i){int l=0,d=0;if(i+2>=N)return make_pair(0,0);int c=h[H(i)],m=min(258,N-i),q=0;const char*a=s.data()+i;while(c>=0&&i-c<=32768){int lim=l>=8?64:128;if(q++>=lim)break;const char*b=s.data()+c;if(b[0]!=a[0]||b[1]!=a[1]||b[2]!=a[2]){c=p[c&32767];continue;}if(l>=3&&(b[l]!=a[l]||memcmp(a,b,l))){c=p[c&32767];continue;}int z=l>=3?l+1:3;while(z+8<=m){uint64_t x,y;memcpy(&x,a+z,8);memcpy(&y,b+z,8);if(x!=y)break;z+=8;}while(z<m&&a[z]==b[z])z++;if(z>l)l=z,d=i-c;if(z>=128||z==m)break;c=p[c&32767];}return make_pair(l,d);};for(int i=0;i<N;){pair<int,int>u=M(i);int l=u.first,d=u.second;I(i);if(l>=3&&l<16&&i+1<N){pair<int,int>q=M(i+1);if(q.first>l){v.push_back(T((uint8_t)s[i++],0));continue;}}if(l>=3){v.push_back(T(l,d));for(int j=1;j<l;j++)I(i+j);i+=l;}else v.push_back(T((uint8_t)s[i++],0));}return v;}
+bool ln(vector<uint64_t>f,int M,vector<int>&L){int n=f.size();L.assign(n,0);priority_queue<pair<uint64_t,int>,vector<pair<uint64_t,int> >,greater<pair<uint64_t,int> > >q;vector<int>a(2*n,-1),b(2*n,-1);for(int i=0;i<n;i++)if(f[i])q.push(make_pair(f[i],i));if(q.empty())return 0;if(q.size()==1)return L[q.top().second]=1,1;int z=n;while(q.size()>1){pair<uint64_t,int>x=q.top();q.pop();pair<uint64_t,int>y=q.top();q.pop();a[z]=x.second;b[z]=y.second;q.push(make_pair(x.first+y.first,z++));}function<void(int,int)>F=[&](int x,int d){if(x<n)L[x]=d;else F(a[x],d+1),F(b[x],d+1);};F(q.top().second,0);return *max_element(L.begin(),L.end())<=M;}
+vector<uint32_t> cd(const vector<int>&L,int M){vector<int>c(M+1),n(M+1);for(size_t i=0;i<L.size();i++)if(L[i])c[L[i]]++;int z=0;for(int i=1;i<=M;i++)z=(z+c[i-1])<<1,n[i]=z;vector<uint32_t>r(L.size());for(size_t i=0;i<L.size();i++)if(L[i])r[i]=R(n[L[i]]++,L[i]);return r;}void sy(W&w,int s,const vector<int>&L,const vector<uint32_t>&C){w.p(C[s],L[s]);}
+void pm(W&w,int l,int d,const vector<int>&L,const vector<uint32_t>&C,const vector<int>&D,const vector<uint32_t>&E){int a=li(l),q=di(d);sy(w,257+a,L,C);if(Le[a])w.p(l-Lb[a],Le[a]);sy(w,q,D,E);if(De[q])w.p(d-Db[q],De[q]);}
+string fx(const vector<T>&v){vector<int>L(288),D(32,5);for(int i=0;i<144;i++)L[i]=8;for(int i=144;i<256;i++)L[i]=9;for(int i=256;i<280;i++)L[i]=7;for(int i=280;i<288;i++)L[i]=8;vector<uint32_t>C=cd(L,15),E=cd(D,15);W w;w.o.reserve(v.size());w.p(1,1);w.p(1,2);for(size_t i=0;i<v.size();i++)v[i].d?pm(w,v[i].l,v[i].d,L,C,D,E):sy(w,v[i].l,L,C);sy(w,256,L,C);return w.f();}
+struct Q{int s,e,v;Q(int S=0,int E=0,int V=0):s(S),e(E),v(V){}};vector<Q> rl(const vector<int>&x){vector<Q>r;for(int i=0,n=x.size();i<n;){int z=x[i],j=i+1;while(j<n&&x[j]==z)j++;int k=j-i;if(!z){while(k>=11){int q=min(k,138);r.push_back(Q(18,7,q-11));k-=q;}if(k>=3){int q=min(k,10);r.push_back(Q(17,3,q-3));k-=q;}while(k--)r.push_back(Q(0,0,0));}else{r.push_back(Q(z,0,0));k--;while(k>=3){int q=min(k,6);r.push_back(Q(16,2,q-3));k-=q;}while(k--)r.push_back(Q(z,0,0));}i=j;}return r;}
+string dy(const vector<T>&v){vector<uint64_t>f(286),g(30);f[256]=1;for(size_t i=0;i<v.size();i++)v[i].d?(f[257+li(v[i].l)]++,g[di(v[i].d)]++):f[v[i].l]++;if(!accumulate(g.begin(),g.end(),0ull))g[0]=1;vector<int>L,D;if(!ln(f,15,L)||!ln(g,15,D))return string();int nl=286,nd=30;while(nl>257&&!L[nl-1])nl--;while(nd>1&&!D[nd-1])nd--;vector<int>x(L.begin(),L.begin()+nl);x.insert(x.end(),D.begin(),D.begin()+nd);vector<Q>r=rl(x);vector<uint64_t>f2(19);for(size_t i=0;i<r.size();i++)f2[r[i].s]++;vector<int>K;if(!ln(f2,7,K))return string();static int O[]={16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15};int nk=19;while(nk>4&&!K[O[nk-1]])nk--;vector<uint32_t>C=cd(L,15),E=cd(D,15),J=cd(K,7);W w;w.o.reserve(v.size());w.p(1,1);w.p(2,2);w.p(nl-257,5);w.p(nd-1,5);w.p(nk-4,4);for(int i=0;i<nk;i++)w.p(K[O[i]],3);for(size_t i=0;i<r.size();i++){sy(w,r[i].s,K,J);if(r[i].e)w.p(r[i].v,r[i].e);}for(size_t i=0;i<v.size();i++)v[i].d?pm(w,v[i].l,v[i].d,L,C,D,E):sy(w,v[i].l,L,C);sy(w,256,L,C);return w.f();}
+string st(const string&s){W w;int n=s.size();w.o.reserve(n+n/65535*5+5);if(!n){w.p(1,1);w.p(0,2);w.a();w.o.append("\\0\\0\\xff\\xff",4);return w.o;}for(int p=0;p<n;){int k=min(65535,n-p),q=(~k)&65535;w.p(p+k==n,1);w.p(0,2);w.a();w.o+=char(k);w.o+=char(k>>8);w.o+=char(q);w.o+=char(q>>8);w.o.append(s.data()+p,k);p+=k;}return w.o;}
+uint32_t cr(const string&s){static uint32_t t[256];static int z=0;if(!z){for(int i=0;i<256;i++){uint32_t c=i;for(int j=0;j<8;j++)c=c>>1^(0xedb88320u&-(int)(c&1));t[i]=c;}z=1;}uint32_t c=~0u;for(size_t i=0;i<s.size();i++)c=t[(c^(uint8_t)s[i])&255]^(c>>8);return ~c;}
+string gz(const string&s){vector<T>v=tk(s);string b=fx(v),c=dy(v),d;c.size()&&c.size()<b.size()?d.swap(c):d.swap(b);size_t z=s.size()+5*max<size_t>(1,(s.size()+65534)/65535);if(z<d.size())d=st(s);string o("\\x1f\\x8b\\x08\\0\\0\\0\\0\\0\\x02\\xff",10);o.reserve(d.size()+18);o+=d;uint32_t q=cr(s),n=s.size();for(int i=0;i<4;i++)o+=char(q>>8*i);for(int i=0;i<4;i++)o+=char(n>>8*i);return o;}
+string b93(const string&s){static string A=[](){string a;for(int c=32;c<127;c++)if(c!=91&&c!=93)a+=char(c);return a;}();string o="[";o.reserve(s.size()*5/4+3);uint32_t b=0;int n=0;for(size_t i=0;i<s.size();i++){uint8_t c=s[i];b|=(uint32_t)c<<n;n+=8;if(n>13){uint32_t v=b&8191;if(v>456)b>>=13,n-=13;else v=b&16383,b>>=14,n-=14;o+=A[v%93];o+=A[v/93];}}if(n){o+=A[b%93];if(n>7||b>92)o+=A[b/93];}o+=']';return o;}
+string rd(){string s;
+#ifdef IOFile
+if(!fseek(stdin,0,SEEK_END)){long n=ftell(stdin);rewind(stdin);if(n>=0){s.resize((size_t)n);if(n){size_t q=fread(&s[0],1,(size_t)n,stdin);s.resize(q);}return s;}}
+#endif
+char b[65536];size_t q;while((q=fread(b,1,sizeof b,stdin))!=0)s.append(b,q);return s;}
 int main(){
 #ifdef IOFile
- freopen(IOFile ".in","rb",stdin);freopen(IOFile ".out","w",stdout);
+if(!freopen(IOFile ".in","rb",stdin))return 0;
 #endif
- string s;for(int c;(c=getchar())!=EOF;)s+=char(c);
- throw logic_error("["+b91(gz(s))+"]");
-}`;
+throw logic_error(b93(gz(rd())));}
+`;
 
                                     await fetch("https://www.xmoj.tech/submit.php", {
                                         "headers": {
@@ -7187,3 +7185,4 @@ console.log("XMOJ-Script loaded successfully!");
 })().catch(e => {
     console.error("[XMOJ-Script] Initialization error:", e);
 });
+
