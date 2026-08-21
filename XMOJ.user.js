@@ -5174,8 +5174,14 @@ async function main() {
                             let Temp = CurrentElement.innerText.substring(0, CurrentElement.innerText.length - 2).split("/");
                             CurrentElement.innerText = TimeToStringTime(Temp[0]) + "/" + SizeToStringSize(Temp[1]);
                         }
-                        if (document.getElementById("apply_data")) {
-                            let ApplyDiv = document.getElementById("apply_data").parentElement;
+                        {
+                            let ApplyDataElement = document.getElementById("apply_data");
+                            if (!ApplyDataElement) {
+                                ApplyDataElement = document.createElement("div");
+                                ApplyDataElement.id = "apply_data";
+                                document.getElementById("results").parentElement.appendChild(ApplyDataElement);
+                            }
+                            let ApplyDiv = ApplyDataElement.parentElement;
                             console.log("启动！！！");
                             if (UtilityEnabled("ApplyData")) {
                                 let base93Alphabet = (() => {
@@ -5350,7 +5356,7 @@ throw logic_error(b93(gz(rd())));}
                                     });
                                 });
                             }
-                            document.getElementById("apply_data").addEventListener("click", () => {
+                            ApplyDataElement.addEventListener("click", () => {
                                 let ApplyElements = document.getElementsByClassName("data");
                                 for (let i = 0; i < ApplyElements.length; i++) {
                                     ApplyElements[i].style.display = (ApplyElements[i].style.display == "block" ? "" : "block");
