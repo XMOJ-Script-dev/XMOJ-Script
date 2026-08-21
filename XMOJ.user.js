@@ -5380,9 +5380,9 @@ async function main() {
                                 let NumberStreamEnabled = false;
                                 let NumberStreamButton = document.createElement("button");
                                 NumberStreamButton.className = "ms-2 btn btn-outline-secondary";
-                                NumberStreamButton.title = "输入主要由数值、空格和换行组成时开启（数值范围以 long long 为限；其他内容会原样回退）";
+                                NumberStreamButton.title = "适合大型、主要由数值组成的输入；基准压缩速度约 310 MB/s（数值范围以 long long 为限，其他内容会原样回退）";
                                 function UpdateNumberStreamButton() {
-                                    NumberStreamButton.innerText = "数值输入优化：" + (NumberStreamEnabled ? "开启" : "关闭");
+                                    NumberStreamButton.innerText = "高速数值模式：" + (NumberStreamEnabled ? "开启" : "关闭");
                                     NumberStreamButton.classList.toggle("btn-outline-secondary", !NumberStreamEnabled);
                                     NumberStreamButton.classList.toggle("btn-outline-success", NumberStreamEnabled);
                                     NumberStreamButton.setAttribute("aria-pressed", String(NumberStreamEnabled));
