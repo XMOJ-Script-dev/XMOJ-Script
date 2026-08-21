@@ -5557,11 +5557,11 @@ async function main() {
                                     NumberStreamButton.classList.toggle("btn-outline-success", NumberStreamEnabled);
                                     NumberStreamButton.setAttribute("aria-pressed", String(NumberStreamEnabled));
                                 }
-                                UpdateNumberStreamButton();
                                 NumberStreamButton.addEventListener("click", () => {
                                     NumberStreamEnabled = !NumberStreamEnabled;
                                     UpdateNumberStreamButton();
                                     UpdateLineBreakButton();
+                                    UpdateModeDescription();
                                 });
                                 ApplyDiv.appendChild(NumberStreamButton);
                                 let PreserveLineBreaks = true;
@@ -5575,12 +5575,27 @@ async function main() {
                                     LineBreakButton.classList.toggle("btn-outline-warning", !PreserveLineBreaks && NumberStreamEnabled);
                                     LineBreakButton.setAttribute("aria-pressed", String(!PreserveLineBreaks));
                                 }
-                                UpdateLineBreakButton();
                                 LineBreakButton.addEventListener("click", () => {
                                     PreserveLineBreaks = !PreserveLineBreaks;
                                     UpdateLineBreakButton();
+                                    UpdateModeDescription();
                                 });
                                 ApplyDiv.appendChild(LineBreakButton);
+                                let ModeDescription = document.createElement("div");
+                                ModeDescription.className = "small text-secondary mt-2";
+                                function UpdateModeDescription() {
+                                    if (!NumberStreamEnabled) {
+                                        ModeDescription.innerText = "默认模式（gzip + Base93）：逐字节压缩并精确保留任意输入，适合文本、Unicode、混合内容，以及使用 getline 或按字符读取的程序。";
+                                    } else if (PreserveLineBreaks) {
+                                        ModeDescription.innerText = "高速数值模式（保留换行）：NSC3 同时压缩 long long 数值和每行数值个数，精确恢复规范数值输入的空格、空行、换行和末尾换行；非规范或混合内容会原样回退。大量随机行长仍可能超过评测输出限制。";
+                                    } else {
+                                        ModeDescription.innerText = "高速数值模式（不保留换行）：丢弃规范数值输入的行边界，恢复为单行空格分隔的数据，可避开随机行长开销。仅适合 cin >> 或 scanf 等空白不敏感读取；不要用于 getline、按行解析或依赖末尾换行的程序。非规范或混合内容仍会原样回退。";
+                                    }
+                                }
+                                UpdateNumberStreamButton();
+                                UpdateLineBreakButton();
+                                UpdateModeDescription();
+                                ApplyDiv.appendChild(ModeDescription);
                                 let GetDataButton = document.createElement("button");
                                 GetDataButton.className = "ms-2 btn btn-outline-secondary";
                                 GetDataButton.innerText = "获取数据";
