@@ -5178,6 +5178,56 @@ async function main() {
                             let ApplyDiv = document.getElementById("apply_data").parentElement;
                             console.log("启动！！！");
                             if (UtilityEnabled("ApplyData")) {
+                                let base91Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@-'^_`{|}~\"";
+                                let base91Map = Object.fromEntries([...base91Alphabet].map((character, index) => [character, index]));
+
+                                function Base91Decode(input) {
+                                    let output = [];
+                                    let bitBuffer = 0;
+                                    let bitCount = 0;
+                                    let value = -1;
+                                    for (let character of input) {
+                                        let decoded = base91Map[character];
+                                        if (decoded === undefined) {
+                                            throw new Error("Invalid Base91 payload");
+                                        }
+                                        if (value < 0) {
+                                            value = decoded;
+                                        } else {
+                                            value += decoded * 91;
+                                            bitBuffer |= value << bitCount;
+                                            bitCount += (value & 8191) > 88 ? 13 : 14;
+                                            while (bitCount >= 8) {
+                                                output.push(bitBuffer & 255);
+                                                bitBuffer >>>= 8;
+                                                bitCount -= 8;
+                                            }
+                                            value = -1;
+                                        }
+                                    }
+                                    if (value >= 0) {
+                                        output.push((bitBuffer | value << bitCount) & 255);
+                                    }
+                                    return new Uint8Array(output);
+                                }
+
+                                async function GzipDecode(input) {
+                                    let stream = new Blob([input]).stream().pipeThrough(new DecompressionStream("gzip"));
+                                    return new TextDecoder().decode(await new Response(stream).arrayBuffer());
+                                }
+
+                                async function ExtractData(text) {
+                                    let result = [];
+                                    let pattern = /what\(\):  \[([^\]\r\n]+)\]$/gm;
+                                    let match;
+                                    while ((match = pattern.exec(text))) {
+                                        try {
+                                            result.push(await GzipDecode(Base91Decode(match[1])));
+                                        } catch {
+                                        }
+                                    }
+                                    return result;
+                                }
                                 let GetDataButton = document.createElement("button");
                                 GetDataButton.className = "ms-2 btn btn-outline-secondary";
                                 GetDataButton.innerText = "获取数据";
@@ -5200,38 +5250,48 @@ async function main() {
                                     if (localStorage.getItem(`UserScript-Problem-${PID}-IOFilename`) !== null) {
                                         Code = `#define IOFile "${localStorage.getItem(`UserScript-Problem-${PID}-IOFilename`)}"\n`;
                                     }
-                                    Code += `//XMOJ-Script 获取数据代码
-                            #include <bits/stdc++.h>
+                                    Code += `// XMOJ-Script 获取数据代码
+#include <bits/stdc++.h>
 using namespace std;
-string Base64Encode(string Input)
-{
-    const string Base64Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    string Output;
-    for (int i = 0; i < Input.length(); i += 3)
-    {
-        Output.push_back(i + 0 > Input.length() ? '=' : Base64Chars[(Input[i + 0] & 0xfc) >> 2]);
-        Output.push_back(i + 1 > Input.length() ? '=' : Base64Chars[((Input[i + 0] & 0x03) << 4) + ((Input[i + 1] & 0xf0) >> 4)]);
-        Output.push_back(i + 2 > Input.length() ? '=' : Base64Chars[((Input[i + 1] & 0x0f) << 2) + ((Input[i + 2] & 0xc0) >> 6)]);
-        Output.push_back(i + 3 > Input.length() ? '=' : Base64Chars[Input[i + 2] & 0x3f]);
-    }
-    return Output;
+struct W{string o;uint64_t b=0;int n=0;void p(uint32_t v,int k){b|=(uint64_t)v<<n;n+=k;while(n>=8)o+=char(b),b>>=8,n-=8;}void a(){if(n)o+=char(b),b=0,n=0;}string f(){a();return o;}};
+uint32_t rv(uint32_t x,int n){uint32_t y=0;while(n--)y=y*2+(x&1),x>>=1;return y;}
+struct T{int l,d;};
+int LB[]={3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258};
+int LE[]={0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0};
+int DB[]={1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577};
+int DE[]={0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13};
+int li(int l){int i=0;while(i<28&&l>=LB[i+1])i++;return i;}
+int di(int d){int i=0;while(i<29&&d>=DB[i+1])i++;return i;}
+vector<T> tok(const string&s){
+ int N=s.size(),Z=1<<16;vector<int>H(Z,-1),P(N,-1);vector<T>v;
+ auto hs=[&](int i){return ((uint32_t)(uint8_t)s[i]*251u*251u+(uint32_t)(uint8_t)s[i+1]*251u+(uint8_t)s[i+2])&(Z-1);};
+ auto in=[&](int i){if(i+2<N){int z=hs(i);P[i]=H[z];H[z]=i;}};
+ auto mt=[&](int i){int bl=0,bd=0;if(i+2>=N)return pair<int,int>{0,0};int c=H[hs(i)],mx=min(258,N-i);for(int q=0;c>=0&&i-c<=32768&&q<4096;c=P[c],q++){if(bl<mx&&s[c+bl]!=s[i+bl])continue;int l=0;while(l<mx&&s[c+l]==s[i+l])l++;if(l>bl&&l>=3)bl=l,bd=i-c;if(l==mx)break;}return pair<int,int>{bl,bd};};
+ for(int i=0;i<N;){auto [l,d]=mt(i);in(i);if(l>=3&&i+1<N){auto [l2,d2]=mt(i+1);if(l2>l){v.push_back({(uint8_t)s[i],0});i++;continue;}}if(l>=3){v.push_back({l,d});for(int j=1;j<l;j++)in(i+j);i+=l;}else v.push_back({(uint8_t)s[i++],0});}return v;
 }
-int main()
-{
+bool lens(vector<uint64_t>f,int M,vector<int>&L){
+ int n=f.size();L.assign(n,0);priority_queue<pair<uint64_t,int>,vector<pair<uint64_t,int>>,greater<pair<uint64_t,int>>>q;vector<int>a(2*n,-1),b(2*n,-1);for(int i=0;i<n;i++)if(f[i])q.push({f[i],i});if(q.empty())return 0;if(q.size()==1){L[q.top().second]=1;return 1;}int z=n;while(q.size()>1){auto[x,i]=q.top();q.pop();auto[y,j]=q.top();q.pop();a[z]=i;b[z]=j;q.push({x+y,z++});}function<void(int,int)>go=[&](int x,int d){if(x<n)L[x]=d;else go(a[x],d+1),go(b[x],d+1);};go(q.top().second,0);return *max_element(L.begin(),L.end())<=M;
+}
+vector<uint32_t> code(const vector<int>&L,int M){vector<int>c(M+1),n(M+1);for(int x:L)if(x)c[x]++;int z=0;for(int i=1;i<=M;i++)z=(z+c[i-1])<<1,n[i]=z;vector<uint32_t>r(L.size());for(int i=0;i<(int)L.size();i++)if(L[i])r[i]=rv(n[L[i]]++,L[i]);return r;}
+void sy(W&w,int s,const vector<int>&L,const vector<uint32_t>&C){w.p(C[s],L[s]);}
+void pm(W&w,int l,int d,const vector<int>&L,const vector<uint32_t>&C,const vector<int>&D,const vector<uint32_t>&E){int a=li(l),q=di(d);sy(w,257+a,L,C);if(LE[a])w.p(l-LB[a],LE[a]);sy(w,q,D,E);if(DE[q])w.p(d-DB[q],DE[q]);}
+string fx(const vector<T>&v){vector<int>L(288),D(32,5);for(int i=0;i<144;i++)L[i]=8;for(int i=144;i<256;i++)L[i]=9;for(int i=256;i<280;i++)L[i]=7;for(int i=280;i<288;i++)L[i]=8;auto C=code(L,15),E=code(D,15);W w;w.p(1,1);w.p(1,2);for(auto t:v)if(t.d)pm(w,t.l,t.d,L,C,D,E);else sy(w,t.l,L,C);sy(w,256,L,C);return w.f();}
+struct R{int s,e,v;};
+vector<R> rle(const vector<int>&x){vector<R>r;for(int i=0,n=x.size();i<n;){int z=x[i],j=i+1;while(j<n&&x[j]==z)j++;int k=j-i;if(!z){while(k>=11){int q=min(k,138);r.push_back({18,7,q-11});k-=q;}if(k>=3){int q=min(k,10);r.push_back({17,3,q-3});k-=q;}while(k--)r.push_back({0,0,0});}else{r.push_back({z,0,0});k--;while(k>=3){int q=min(k,6);r.push_back({16,2,q-3});k-=q;}while(k--)r.push_back({z,0,0});}i=j;}return r;}
+string dy(const vector<T>&v){
+ vector<uint64_t>f(286),g(30);f[256]=1;for(auto t:v)if(t.d)f[257+li(t.l)]++,g[di(t.d)]++;else f[t.l]++;if(!accumulate(g.begin(),g.end(),0ull))g[0]=1;vector<int>L,D;if(!lens(f,15,L)||!lens(g,15,D))return {};
+ int nl=286;while(nl>257&&!L[nl-1])nl--;int nd=30;while(nd>1&&!D[nd-1])nd--;vector<int>x(L.begin(),L.begin()+nl);x.insert(x.end(),D.begin(),D.begin()+nd);auto rr=rle(x);vector<uint64_t>f2(19);for(auto z:rr)f2[z.s]++;vector<int>K;if(!lens(f2,7,K))return {};static int O[]={16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15};int nk=19;while(nk>4&&!K[O[nk-1]])nk--;auto C=code(L,15),E=code(D,15),Q=code(K,7);W w;w.p(1,1);w.p(2,2);w.p(nl-257,5);w.p(nd-1,5);w.p(nk-4,4);for(int i=0;i<nk;i++)w.p(K[O[i]],3);for(auto z:rr){sy(w,z.s,K,Q);if(z.e)w.p(z.v,z.e);}for(auto t:v)if(t.d)pm(w,t.l,t.d,L,C,D,E);else sy(w,t.l,L,C);sy(w,256,L,C);return w.f();
+}
+string st(const string&s){W w;int n=s.size();if(!n){w.p(1,1);w.p(0,2);w.a();w.o.append("\\0\\0\\xff\\xff",4);return w.o;}for(int p=0;p<n;){int k=min(65535,n-p),q=(~k)&65535;w.p(p+k==n,1);w.p(0,2);w.a();w.o+=char(k);w.o+=char(k>>8);w.o+=char(q);w.o+=char(q>>8);w.o.append(s.data()+p,k);p+=k;}return w.o;}
+uint32_t crc(const string&s){uint32_t c=~0u;for(uint8_t x:s){c^=x;for(int i=0;i<8;i++)c=c>>1^(0xedb88320u&-(int)(c&1));}return ~c;}
+string gz(const string&s){auto v=tok(s);string a=st(s),b=fx(v),c=dy(v),d=a;if(b.size()<d.size())d=b;if(!c.empty()&&c.size()<d.size())d=c;string o;uint8_t h[]={31,139,8,0,0,0,0,0,2,255};o.append((char*)h,10);o+=d;uint32_t q=crc(s),n=s.size();for(int i=0;i<4;i++)o+=char(q>>(8*i));for(int i=0;i<4;i++)o+=char(n>>(8*i));return o;}
+string b91(const string&s){static const char A[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@-'^_\`{|}~\\"";string o;uint32_t b=0;int n=0;for(uint8_t c:s){b|=(uint32_t)c<<n;n+=8;if(n>13){uint32_t v=b&8191;if(v>88)b>>=13,n-=13;else v=b&16383,b>>=14,n-=14;o+=A[v%91];o+=A[v/91];}}if(n){o+=A[b%91];if(n>7||b>90)o+=A[b/91];}return o;}
+int main(){
 #ifdef IOFile
-    freopen(IOFile ".in", "r", stdin);
-    freopen(IOFile ".out", "w", stdout);
+ freopen(IOFile ".in","rb",stdin);freopen(IOFile ".out","w",stdout);
 #endif
-    string Input;
-    while (1)
-    {
-        char Data = getchar();
-        if (Data == EOF)
-            break;
-        Input.push_back(Data);
-    }
-    throw logic_error("[" + Base64Encode(Input.c_str()) + "]");
-    return 0;
+ string s;for(int c;(c=getchar())!=EOF;)s+=char(c);
+ throw logic_error("["+b91(gz(s))+"]");
 }`;
 
                                     await fetch("https://www.xmoj.tech/submit.php", {
@@ -5265,17 +5325,17 @@ int main()
 
                                     await fetch(`https://www.xmoj.tech/reinfo.php?sid=${SID}`).then((Response) => {
                                         return Response.text();
-                                    }).then((Response) => {
+                                    }).then(async (Response) => {
                                         let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
                                         let ErrorData = ParsedDocument.getElementById("errtxt").innerText;
-                                        let MatchResult = ErrorData.match(/\what\(\):  \[([A-Za-z0-9+\/=]+)\]/g);
-                                        if (MatchResult === null) {
+                                        let dataList = await ExtractData(ErrorData);
+                                        if (dataList.length === 0) {
                                             GetDataButton.innerText = "获取数据失败";
                                             GetDataButton.disabled = false;
                                             return;
                                         }
-                                        for (let i = 0; i < MatchResult.length; i++) {
-                                            let Data = CryptoJS.enc.Base64.parse(MatchResult[i].substring(10, MatchResult[i].length - 1)).toString(CryptoJS.enc.Utf8);
+                                        for (let i = 0; i < dataList.length; i++) {
+                                            let Data = dataList[i];
                                             ApplyDiv.appendChild(document.createElement("hr"));
                                             ApplyDiv.appendChild(document.createTextNode("数据" + (i + 1) + "："));
                                             let CodeElement = document.createElement("div");
