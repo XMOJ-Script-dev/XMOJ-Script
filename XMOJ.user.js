@@ -5537,7 +5537,7 @@ async function main() {
 
                                 async function ExtractData(text) {
                                     let result = [];
-                                    let pattern = /what\(\):  \[([^\]\r\n]*)\]\r?$/gm;
+                                    let pattern = /^(?:what\(\):  )?\[([^\]\r\n]*)\]\r?$/gm;
                                     let match;
                                     while ((match = pattern.exec(text))) {
                                         try {
@@ -5632,7 +5632,7 @@ int main(){
 #ifdef IOFile
 if(!freopen(IOFile ".in","rb",stdin))return 0;
 #endif
-throw logic_error(b93(ns(rd())));}
+cerr<<b93(ns(rd()));return 1;}
 `;
                                     let GzipCode = `// XMOJ-Script 获取数据代码
 #include <bits/stdc++.h>
@@ -5660,7 +5660,7 @@ int main(){
 #ifdef IOFile
 if(!freopen(IOFile ".in","rb",stdin))return 0;
 #endif
-throw logic_error(b93(gz(rd())));}
+cerr<<b93(gz(rd()));return 1;}
 `;
                                     Code += NumberStreamEnabled ? NumberStreamCode : GzipCode;
 
