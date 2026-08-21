@@ -3707,7 +3707,7 @@
             "Notes": "修复提交记录中题目 ID 为 0 时的排版错误。"
         },
         "3.6.3": {
-            "UpdateDate": 1787301277425,
+            "UpdateDate": 1787301297359,
             "Prerelease": true,
             "UpdateContents": [
                 {
@@ -3715,7 +3715,7 @@
                     "Description": "feat: compress ApplyData payloads with gzip and Base93"
                 }
             ],
-            "Notes": "优化“获取数据”功能：使用 gzip + Base93 压缩传输输入数据，支持更大的输入，并修复部分混合内容导致解压失败的问题。"
+            "Notes": "优化“获取数据”功能：即使页面未提供数据申请区域，也会自动显示“获取数据”按钮；同时使用 gzip + Base93 压缩传输以支持更大的输入，并修复部分混合内容导致解压失败的问题。"
         }
     }
 }
