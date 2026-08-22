@@ -5176,12 +5176,7 @@ async function main() {
                         }
                         {
                             let ApplyDataElement = document.getElementById("apply_data");
-                            if (!ApplyDataElement) {
-                                ApplyDataElement = document.createElement("div");
-                                ApplyDataElement.id = "apply_data";
-                                document.getElementById("results").parentElement.appendChild(ApplyDataElement);
-                            }
-                            let ApplyDiv = ApplyDataElement.parentElement;
+                            let ApplyDiv = ApplyDataElement ? ApplyDataElement.parentElement : document.getElementById("results").parentElement;
                             console.log("启动！！！");
                             if (UtilityEnabled("ApplyData")) {
                                 let base93Alphabet = (() => {
@@ -5223,6 +5218,20 @@ async function main() {
                                         output.push((bitBuffer | value << bitCount) & 255);
                                     }
                                     return new Uint8Array(output);
+                                }
+
+                                function DecodeBytesForDisplay(input) {
+                                    try {
+                                        // Keep a leading UTF-8 BOM instead of silently discarding it.
+                                        return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(input);
+                                    } catch {
+                                        // Invalid UTF-8 is shown reversibly: every original byte becomes one \xNN escape.
+                                        let output = "";
+                                        for (let byte of input) {
+                                            output += "\\x" + byte.toString(16).padStart(2, "0");
+                                        }
+                                        return output;
+                                    }
                                 }
 
                                 function NumberStreamDecodeV1(input) {
@@ -5267,7 +5276,7 @@ async function main() {
                                         if (position + length > input.length) {
                                             throw new Error("Truncated number-stream payload");
                                         }
-                                        return new TextDecoder().decode(input.subarray(position, position + length));
+                                        return DecodeBytesForDisplay(input.subarray(position, position + length));
                                     }
                                     let numberCount = ReadSize();
                                     let lineCount = ReadSize();
@@ -5489,7 +5498,7 @@ async function main() {
                                         if (position + length > input.length) {
                                             throw new Error("Truncated number-stream payload");
                                         }
-                                        return new TextDecoder().decode(input.subarray(position, position + length));
+                                        return DecodeBytesForDisplay(input.subarray(position, position + length));
                                     }
                                     let numberCount = ReadSize();
                                     let lineCount = ReadSize();
@@ -5532,7 +5541,7 @@ async function main() {
                                     if (rawData.length >= 4 && rawData[0] === 78 && rawData[1] === 83 && rawData[2] === 67 && (rawData[3] === 49 || rawData[3] === 51)) {
                                         return NumberStreamDecode(rawData);
                                     }
-                                    return new TextDecoder().decode(await GzipDecode(rawData));
+                                    return DecodeBytesForDisplay(await GzipDecode(rawData));
                                 }
 
                                 async function ExtractData(text) {
@@ -5573,7 +5582,7 @@ async function main() {
                                     LineBreakButton.disabled = !NumberStreamEnabled;
                                     LineBreakButton.classList.toggle("btn-outline-secondary", PreserveLineBreaks || !NumberStreamEnabled);
                                     LineBreakButton.classList.toggle("btn-outline-warning", !PreserveLineBreaks && NumberStreamEnabled);
-                                    LineBreakButton.setAttribute("aria-pressed", String(!PreserveLineBreaks));
+                                    LineBreakButton.setAttribute("aria-pressed", String(PreserveLineBreaks));
                                 }
                                 LineBreakButton.addEventListener("click", () => {
                                     PreserveLineBreaks = !PreserveLineBreaks;
@@ -5585,7 +5594,7 @@ async function main() {
                                 ModeDescription.className = "small text-secondary mt-2";
                                 function UpdateModeDescription() {
                                     if (!NumberStreamEnabled) {
-                                        ModeDescription.innerText = "默认模式（gzip + Base93）：逐字节压缩并精确保留任意输入，适合文本、Unicode、混合内容，以及使用 getline 或按字符读取的程序。";
+                                        ModeDescription.innerText = "默认模式（gzip + Base93）：逐字节压缩并精确保留任意输入，适合文本、Unicode、混合内容，以及使用 getline 或按字符读取的程序。无效 UTF-8 会以可逆的逐字节 \\xNN 形式显示。";
                                     } else if (PreserveLineBreaks) {
                                         ModeDescription.innerText = "高速数值模式（保留换行）：NSC3 同时压缩 long long 数值和每行数值个数，精确恢复规范数值输入的空格、空行、换行和末尾换行；非规范或混合内容会原样回退。大量随机行长仍可能超过评测输出限制。";
                                     } else {
@@ -5737,12 +5746,14 @@ cerr<<b93(gz(rd()))<<endl;abort();}
                                     });
                                 });
                             }
-                            ApplyDataElement.addEventListener("click", () => {
-                                let ApplyElements = document.getElementsByClassName("data");
-                                for (let i = 0; i < ApplyElements.length; i++) {
-                                    ApplyElements[i].style.display = (ApplyElements[i].style.display == "block" ? "" : "block");
-                                }
-                            });
+                            if (ApplyDataElement) {
+                                ApplyDataElement.addEventListener("click", () => {
+                                    let ApplyElements = document.getElementsByClassName("data");
+                                    for (let i = 0; i < ApplyElements.length; i++) {
+                                        ApplyElements[i].style.display = (ApplyElements[i].style.display == "block" ? "" : "block");
+                                    }
+                                });
+                            }
                         }
                         let ApplyElements = document.getElementsByClassName("data");
                         for (let i = 0; i < ApplyElements.length; i++) {
