@@ -29,6 +29,7 @@
 // @connect      api.xmoj-bbs.tech
 // @connect      api.xmoj-bbs.me
 // @connect      api.xmoj-script.uk
+// @connect      captcha.xmoj-script.uk
 // @connect      challenges.cloudflare.com
 // @connect      cppinsights.io
 // @connect      cdnjs.cloudflare.com
@@ -551,6 +552,12 @@ let _earlyObs = null;
 })();
 
 const CaptchaSiteKey = "0x4AAAAAAALBT58IhyDViNmv";
+// XMOJ turns on its own image captcha (vcode.php) whenever the judge queue is busy. submitpage.php
+// renders the field at >10 pending solutions but submit.php only enforces it at >50, so the two can
+// disagree; see GetCaptchaParameter below for how that gap is handled.
+// Recognises the 4 digit variant only: https://github.com/boomzero/captchaSolve
+// workers.dev is unreachable from mainland China, so this has to stay on a custom domain.
+const CaptchaSolverURL = "https://captcha.xmoj-script.uk/";
 // 0.53.0 leaks its minified helper variables (m, r, o, ...) into the global scope from every
 // chunk file, so whichever chunk happens to be evaluated last clobbers the others and the
 // editor randomly fails to load (microsoft/monaco-editor#5015). 0.52.2 ships a single bundle
@@ -2855,6 +2862,8 @@ async function main() {
                         }, {"ID": "DownloadPlayback", "Type": "A", "Name": "回放视频增加下载功能"}, {
                             "ID": "ImproveACRate", "Type": "A", "Name": "自动提交已AC题目以提高AC率"
                         }, {"ID": "AutoO2", "Type": "F", "Name": "代码提交界面自动选择O2优化"}, {
+                            "ID": "AutoCaptcha", "Type": "A", "Name": "自动识别提交界面的验证码（识别失败时仍可手动填写）"
+                        }, {
                             "ID": "Beautify", "Type": "F", "Name": "美化界面", "Children": [{
                                 "ID": "NewTopBar", "Type": "F", "Name": "使用新的顶部导航栏"
                             }, {
@@ -4084,6 +4093,13 @@ async function main() {
                     }
                 } else if (location.pathname == "/submitpage.php") {
                     document.title = "提交代码: " + (SearchParams.get("id") != null ? "题目" + Number(SearchParams.get("id")) : "比赛" + Number(SearchParams.get("cid")));
+                    // submitpage.php only renders the vcode field while the judge queue is busy, and the
+                    // custom page below throws the server markup away, so read it before that happens.
+                    // The queue is idle almost all of the time, so the only other way to reach this state
+                    // is to flood the judge; localStorage UserScript-ForceCaptcha=true forces it instead.
+                    const NativeCaptchaShown = document.querySelector("input[name='vcode']") != null ||
+                        document.querySelector("img#vcode") != null ||
+                        localStorage.getItem("UserScript-ForceCaptcha") === "true";
                     document.querySelector("body > div > div.mt-3").innerHTML = `<center class="mb-3" id="_submitPageHeader"></center>
     <div id="MonacoEditor" style="width:100%; height:550px; display: grid; place-items: center;">
       <p id="loadEditor">Loading...</p>
@@ -4092,6 +4108,12 @@ async function main() {
     <center class="mt-3">
         <input id="enable_O2" name="enable_O2" type="checkbox"><label for="enable_O2">打开O2开关</label>
         <br>
+        <div id="CaptchaElement" class="mt-2" style="display: none">
+            <label class="me-1" for="vcode">验证码</label>
+            <input id="vcode" name="vcode" class="form-control form-control-sm d-inline w-auto align-middle" type="text" maxlength="8" size="8" autocomplete="off">
+            <img id="CaptchaImage" class="ms-1 align-middle" style="cursor: pointer" alt="验证码" title="点击更换验证码">
+            <div id="CaptchaStatus" class="form-text mt-1"></div>
+        </div>
         <input id="Submit" class="btn btn-info mt-2" type="button" value="提交">
         <div id="ErrorElement" class="mt-2" style="display: none; text-align: left; padding: 10px;">
             <div id="ErrorMessage" style="white-space: pre; background-color: rgba(0, 0, 0, 0.1); padding: 10px; border-radius: 5px;"></div>
@@ -4210,6 +4232,111 @@ async function main() {
                             });
                     }
 
+                    // vcode.php writes the expected answer into the PHP session every time it is
+                    // requested, so the challenge must be downloaded exactly once and that same copy
+                    // shown to the user: letting the <img> load it separately would leave the picture on
+                    // screen one challenge behind whatever the session actually expects.
+                    let CaptchaObjectURL = null;
+                    let CaptchaRequestID = 0;
+                    const SetCaptchaStatus = (Message) => {
+                        document.querySelector("#CaptchaStatus").innerText = Message;
+                    };
+                    // Byte 6-7 of a GIF header is the little endian width. vcode.php sizes the image as
+                    // 15px per character, so 60px means the easy 4 digit challenge while a wider image is
+                    // the 8 character alphanumeric one the server switches to after a failed attempt.
+                    const GetCaptchaLength = async (ImageBlob) => {
+                        const Header = new Uint8Array(await ImageBlob.slice(0, 8).arrayBuffer());
+                        return Math.round((Header[6] | (Header[7] << 8)) / 15);
+                    };
+                    const RequestCaptchaSolver = (ImageBlob) => new Promise((Resolve) => {
+                        GM_xmlhttpRequest({
+                            method: "POST",
+                            url: CaptchaSolverURL,
+                            headers: {"Content-Type": "application/octet-stream"},
+                            data: ImageBlob,
+                            timeout: 15000,
+                            onload: (Response) => {
+                                Resolve(Response.status === 200 ? String(Response.responseText) : null);
+                            },
+                            onerror: () => Resolve(null),
+                            ontimeout: () => Resolve(null)
+                        });
+                    });
+                    // The model sometimes reads five or six digits out of a four digit image, so anything
+                    // that is not exactly four digits is discarded rather than submitted. Asking again for
+                    // the same picture is pointless because the solver runs at temperature 0, so the user
+                    // is told to type it or click the image for a different challenge instead.
+                    const SolveCaptcha = async (ImageBlob) => {
+                        const SolverText = await RequestCaptchaSolver(ImageBlob);
+                        if (SolverText === null) return null;
+                        if (UtilityEnabled("DebugMode")) {
+                            console.log("Captcha solver returned:", SolverText);
+                        }
+                        const Digits = SolverText.replace(/\D/g, "");
+                        return /^\d{4}$/.test(Digits) ? Digits : null;
+                    };
+                    const RefreshCaptcha = async (StatusMessage) => {
+                        const RequestID = ++CaptchaRequestID;
+                        const CaptchaInput = document.querySelector("#vcode");
+                        document.querySelector("#CaptchaElement").style.display = "block";
+                        CaptchaInput.value = "";
+                        SetCaptchaStatus(StatusMessage || "");
+                        let ImageBlob;
+                        try {
+                            const CaptchaResponse = await fetch("https://www.xmoj.tech/vcode.php?" + Math.random(), {cache: "no-store"});
+                            ImageBlob = await CaptchaResponse.blob();
+                        } catch (e) {
+                            console.error(e);
+                            SetCaptchaStatus("验证码加载失败，请点击图片重试");
+                            return;
+                        }
+                        if (RequestID !== CaptchaRequestID) return;
+                        if (CaptchaObjectURL !== null) URL.revokeObjectURL(CaptchaObjectURL);
+                        CaptchaObjectURL = URL.createObjectURL(ImageBlob);
+                        document.querySelector("#CaptchaImage").src = CaptchaObjectURL;
+                        if (!UtilityEnabled("AutoCaptcha")) return;
+                        let CaptchaLength = 4;
+                        try {
+                            CaptchaLength = await GetCaptchaLength(ImageBlob);
+                        } catch (e) {
+                            console.error(e);
+                        }
+                        if (CaptchaLength !== 4) {
+                            SetCaptchaStatus("本次为 " + CaptchaLength + " 位字母验证码，无法自动识别，请手动输入");
+                            return;
+                        }
+                        SetCaptchaStatus("正在自动识别验证码...");
+                        const Answer = await SolveCaptcha(ImageBlob);
+                        if (RequestID !== CaptchaRequestID) return;
+                        if (Answer === null) {
+                            SetCaptchaStatus("自动识别失败，请手动输入，或点击图片更换验证码");
+                            return;
+                        }
+                        // Never overwrite what the user has already started typing.
+                        if (CaptchaInput.value !== "") return;
+                        CaptchaInput.value = Answer;
+                        SetCaptchaStatus("已自动识别，若与图片不符请手动修改");
+                    };
+                    document.querySelector("#CaptchaImage").addEventListener("click", () => {
+                        RefreshCaptcha("");
+                    });
+                    document.querySelector("#vcode").addEventListener("keydown", (KeyEvent) => {
+                        if (KeyEvent.key === "Enter") {
+                            KeyEvent.preventDefault();
+                            Submit.click();
+                        }
+                    });
+                    // submit.php ignores an unexpected vcode field, so sending it whenever the user has
+                    // one costs nothing and covers the case where the queue grew past the enforcement
+                    // threshold after this page was rendered.
+                    const GetCaptchaParameter = () => {
+                        const CaptchaValue = document.querySelector("#vcode").value.trim();
+                        return CaptchaValue === "" ? "" : "&vcode=" + encodeURIComponent(CaptchaValue);
+                    };
+                    if (NativeCaptchaShown) {
+                        RefreshCaptcha("");
+                    }
+
                     PassCheck.addEventListener("click", async () => {
                         ErrorElement.style.display = "none";
                         document.querySelector("#Submit").disabled = true;
@@ -4222,12 +4349,33 @@ async function main() {
                             },
                             "referrer": location.href,
                             "method": "POST",
-                            "body": (SearchParams.get("id") != null ? "id=" + SearchParams.get("id") : "cid=" + SearchParams.get("cid") + "&pid=" + SearchParams.get("pid")) + "&language=1&" + "source=" + encodeURIComponent(CodeMirrorElement.getValue()) + o2Switch
+                            "body": (SearchParams.get("id") != null ? "id=" + SearchParams.get("id") : "cid=" + SearchParams.get("cid") + "&pid=" + SearchParams.get("pid")) + "&language=1&" + "source=" + encodeURIComponent(CodeMirrorElement.getValue()) + o2Switch + GetCaptchaParameter()
                         }).then(async (Response) => {
                             if (Response.redirected) {
                                 location.href = Response.url;
                             } else {
                                 const text = await Response.text();
+                                // The queue can cross submit.php's enforcement threshold after this page
+                                // was rendered, so the field may not have been on screen at all yet.
+                                if (text.indexOf("验证码错误") !== -1) {
+                                    if (UtilityEnabled("DebugMode")) {
+                                        console.log("Submission rejected by captcha check.");
+                                    }
+                                    await RefreshCaptcha("");
+                                    ErrorElement.style.display = "block";
+                                    ErrorMessage.style.color = "red";
+                                    try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
+                                        console.error(e);
+                                        if (UtilityEnabled("DebugMode")) {
+                                            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                        }
+                                    }
+                                    ErrorMessage.innerText = "验证码错误！请填写上方的验证码后重新提交。";
+                                    Submit.disabled = false;
+                                    Submit.value = "提交";
+                                    document.querySelector("#vcode").focus();
+                                    return;
+                                }
                                 if (text.indexOf("没有这个比赛！") !== -1 && new URL(location.href).searchParams.get("pid") !== null) {
                                     // Credit: https://github.com/boomzero/quicksubmit/blob/main/index.ts
                                     // Also licensed under GPL-3.0
@@ -4277,7 +4425,7 @@ async function main() {
                                         },
                                         "referrer": location.href,
                                         "method": "POST",
-                                        "body": "id=" + rPID + "&language=1&" + "source=" + encodeURIComponent(CodeMirrorElement.getValue()) + o2Switch
+                                        "body": "id=" + rPID + "&language=1&" + "source=" + encodeURIComponent(CodeMirrorElement.getValue()) + o2Switch + GetCaptchaParameter()
                                     }).then(async (Response) => {
                                         if (Response.redirected) {
                                             location.href = Response.url;
@@ -4309,6 +4457,24 @@ async function main() {
                         ErrorElement.style.display = "none";
                         document.querySelector("#Submit").disabled = true;
                         document.querySelector("#Submit").value = "正在检查...";
+                        // Submitting a blank answer makes the server mark the session as having failed the
+                        // check, which swaps the 4 digit challenge for an 8 character one until the session
+                        // ends. Stop here instead of spending the attempt.
+                        if (document.querySelector("#CaptchaElement").style.display !== "none" && document.querySelector("#vcode").value.trim() === "") {
+                            ErrorElement.style.display = "block";
+                            ErrorMessage.style.color = "red";
+                            try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
+                                console.error(e);
+                                if (UtilityEnabled("DebugMode")) {
+                                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                }
+                            }
+                            ErrorMessage.innerText = "当前评测队列繁忙，请先填写上方的验证码。";
+                            Submit.disabled = false;
+                            Submit.value = "提交";
+                            document.querySelector("#vcode").focus();
+                            return;
+                        }
                         let Source = CodeMirrorElement.getValue();
                         let PID = 0;
                         let IOFilename = "";
