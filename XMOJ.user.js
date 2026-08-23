@@ -4216,78 +4216,77 @@ async function main() {
                             } else {
                                 const text = await Response.text();
                                 if (text.indexOf("没有这个比赛！") !== -1 && new URL(location.href).searchParams.get("pid") !== null) {
-                                    // Credit: https://github.com/boomzero/quicksubmit/blob/main/index.ts
-                                    // Also licensed under GPL-3.0
-                                    const contestReq = await fetch("https://www.xmoj.tech/contest.php?cid=" + new URL(location.href).searchParams.get("cid"));
+                                    const cid = new URL(location.href).searchParams.get("cid");
+                                    const pidIndex = new URL(location.href).searchParams.get("pid");
+                                    const contestReq = await fetch("https://www.xmoj.tech/contest.php?cid=" + cid);
                                     const res = await contestReq.text();
-                                    if (
-                                        contestReq.status !== 200 ||
-                                        res.indexOf("比赛尚未开始或私有，不能查看题目。") !== -1
-                                    ) {
-                                        console.error(`Failed to get contest page!`);
+                                    if (contestReq.status !== 200 || res.indexOf("比赛尚未开始或私有，不能查看题目。") !== -1) {
+                                        console.error("Failed to get contest page!");
+                                        ErrorElement.style.display = "block";
+                                        ErrorMessage.style.color = "red";
+                                        ErrorMessage.innerText = "无法获取比赛信息，请手动提交。";
+                                        Submit.disabled = false;
+                                        Submit.value = "提交";
                                         return;
                                     }
-                                    const parser = new DOMParser();
-                                    const dom = parser.parseFromString(res, "text/html");
-                                    const contestProblems = [];
-                                    const rows = (dom.querySelector(
-                                        "#problemset > tbody",
-                                    )).rows;
-                                    for (let i = 0; i < rows.length; i++) {
-                                        contestProblems.push(
-                                            rows[i].children[1].textContent.substring(2, 6).replaceAll(
-                                                "\t",
-                                                "",
-                                            ),
-                                        );
-                                    }
-                                    rPID = contestProblems[new URL(location.href).searchParams.get("pid")];
-                                    if (UtilityEnabled("DebugMode")) {
-                                        console.log("Contest Problems:", contestProblems);
-                                        console.log("Real PID:", rPID);
-                                    }
+    
+                                const parser = new DOMParser();
+                                const dom = parser.parseFromString(res, "text/html");
+                                const rows = dom.querySelector("#problemset > tbody").rows;
+                                const contestProblems = [];
+                                for (let i = 0; i < rows.length; i++) {
+                                    const cell = rows[i].children[1]; // 题号列
+                                    const textContent = cell.textContent.trim();
+                                    const match = textContent.match(/\d+/);
+                                    contestProblems.push(match ? match[0] : null);
+                                }
+    
+                                const rPID = contestProblems[parseInt(pidIndex)];
+                                if (!rPID) {
                                     ErrorElement.style.display = "block";
                                     ErrorMessage.style.color = "red";
-                                    try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
-                                        console.error(e);
-                                        if (UtilityEnabled("DebugMode")) {
-                                            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
-                                        }
-                                    }
-                                    ErrorMessage.innerText = "比赛已结束, 正在尝试向题目 " + rPID + " 提交";
-                                    console.log("比赛已结束, 正在尝试向题目 " + rPID + " 提交");
-                                    let o2Switch = "&enable_O2=on";
-                                    if (!document.querySelector("#enable_O2").checked) o2Switch = "";
-                                    await fetch("https://www.xmoj.tech/submit.php", {
-                                        "headers": {
-                                            "content-type": "application/x-www-form-urlencoded"
-                                        },
-                                        "referrer": location.href,
-                                        "method": "POST",
-                                        "body": "id=" + rPID + "&language=1&" + "source=" + encodeURIComponent(CodeMirrorElement.getValue()) + o2Switch
-                                    }).then(async (Response) => {
-                                        if (Response.redirected) {
-                                            location.href = Response.url;
-                                        }
-                                        console.log(await Response.text());
-                                    });
-
-                                }
-                                if (UtilityEnabled("DebugMode")) {
-                                    console.log("Submission failed! Response:", text);
+                                    ErrorMessage.innerText = "无法解析真实题目 ID，请手动提交。";
+                                    Submit.disabled = false;
+                                    Submit.value = "提交";
+                                    return;
                                 }
                                 ErrorElement.style.display = "block";
-                                ErrorMessage.style.color = "red";
-                                try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
-                                    console.error(e);
-                                    if (UtilityEnabled("DebugMode")) {
-                                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
-                                    }
+                                ErrorMessage.style.color = "yellow";
+                                ErrorMessage.innerText = "比赛已结束，正在尝试向题目 " + rPID + " 提交…";
+                                console.log("比赛已结束，正在尝试向题目 " + rPID + " 提交");
+                                let o2Switch = "&enable_O2=on";
+                                if (!document.querySelector("#enable_O2").checked) o2Switch = "";
+    
+                                const retryResp = await fetch("https://www.xmoj.tech/submit.php", {
+        "headers": {
+            "content-type": "application/x-www-form-urlencoded"
+        },
+        "referrer": location.href,
+        "method": "POST",
+        "body": "id=" + rPID + "&language=1&source=" + encodeURIComponent(CodeMirrorElement.getValue()) + o2Switch
+    });
+                            if (retryResp.redirected) {
+                                location.href = retryResp.url;
+                                return;
+                            } else {
+                                const retryText = await retryResp.text();
+                                if (retryText.indexOf("提交成功") !== -1 || 
+                                    retryText.indexOf("Solution") !== -1 || 
+                                    retryText.indexOf("status.php") !== -1) {
+                                ErrorMessage.style.color = "green";
+                                ErrorMessage.innerText = "✅ 回退提交成功！请查看状态。";
+                                Submit.disabled = true;
+                                Submit.value = "已提交";
+                                return;
+                                } else {
+                                    ErrorMessage.style.color = "red";
+                                    ErrorMessage.innerText = "❌ 回退提交失败：" + retryText.substring(0, 200);
+                                    Submit.disabled = false;
+                                    Submit.value = "提交";
+                                    return;
                                 }
-                                ErrorMessage.innerText = "提交失败！请关闭脚本后重试！";
-                                Submit.disabled = false;
-                                Submit.value = "提交";
                             }
+                        }
                         })
                     });
 
