@@ -4295,45 +4295,35 @@ if ((text.indexOf("没有这个比赛！") !== -1 || text.indexOf("比赛已结�
     });
 
     // 检查是否提交成功（重定向 或 响应含成功标记）
-    if (retryResp.redirected) {
-        location.href = retryResp.url;
-        return;
-    } else {
-        const retryText = await retryResp.text();
-        // 检查响应中是否包含成功标记
-        if (retryText.indexOf("提交成功") !== -1 ||
-            retryText.indexOf("Solution") !== -1 ||
-            retryText.indexOf("status.php") !== -1) {
-            // 提交成功，显示成功信息并禁用提交按钮
-            _xmoj_disposeErrorMessageEditors();
-            ErrorElement.style.display = "block";
-            ErrorMessage.style.color = "green";
-            ErrorMessage.innerText = "✅ 回退提交成功！请查看状态。";
-            Submit.disabled = true;
-            Submit.value = "已提交";
-            return;
+    // 检查是否提交成功（重定向 或 响应含成功标记）
+if (retryResp.redirected) {
+    location.href = retryResp.url;
+    return;
+} else {
+    const retryText = await retryResp.text();
+    // ❌ 删除这里的成功关键词判断 —— 进入 else 就是失败
+    
+    // ✅ 直接从响应中提取错误信息
+    let errorMsg = "提交失败，请重试。";
+    try {
+        const dom2 = new DOMParser().parseFromString(retryText, "text/html");
+        const jumbotron = dom2.querySelector(".jumbotron");
+        if (jumbotron) {
+            errorMsg = jumbotron.textContent.trim();
         } else {
-            // 真正的失败：从响应中提取错误信息
-            let errorMsg = "提交失败，请重试。";
-            try {
-                const dom2 = new DOMParser().parseFromString(retryText, "text/html");
-                const jumbotron = dom2.querySelector(".jumbotron");
-                if (jumbotron) {
-                    errorMsg = jumbotron.textContent.trim();
-                } else {
-                    const textOnly = retryText.replace(/<[^>]*>/g, "").trim();
-                    errorMsg = textOnly.substring(0, 100) || errorMsg;
-                }
-            } catch (_) {
-                // 解析失败则使用默认信息
-            }
-            _xmoj_disposeErrorMessageEditors();
-            ErrorElement.style.display = "block";
-            ErrorMessage.style.color = "red";
-            ErrorMessage.innerText = "❌ 回退提交失败：" + errorMsg;
-            Submit.disabled = false;
-            Submit.value = "提交";
-            return;
+            const textOnly = retryText.replace(/<[^>]*>/g, "").trim();
+            errorMsg = textOnly.substring(0, 100) || errorMsg;
+        }
+    } catch (_) {
+        // 解析失败则使用默认信息
+    }
+    _xmoj_disposeErrorMessageEditors();
+    ErrorElement.style.display = "block";
+    ErrorMessage.style.color = "red";
+    ErrorMessage.innerText = "❌ 回退提交失败：" + errorMsg;
+    Submit.disabled = false;
+    Submit.value = "提交";
+    return;
         }
     }
 }
