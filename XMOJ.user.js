@@ -4287,7 +4287,7 @@ async function main() {
                                 }
                             }
                         }
-                    });
+                    };
 
                     Submit.addEventListener("click", async () => {
                         PassCheck.style.display = "none";
