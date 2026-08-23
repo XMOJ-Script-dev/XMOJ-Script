@@ -4446,11 +4446,37 @@ async function main() {
                         const CaptchaValue = document.querySelector("#vcode").value.trim();
                         return CaptchaValue === "" ? "" : "&vcode=" + encodeURIComponent(CaptchaValue);
                     };
+                    // Submitting a blank answer makes the server mark the session as having failed the
+                    // check, which swaps the 4 digit challenge for an 8 character one until the session
+                    // ends. This has to be re-checked immediately before the POST rather than only when
+                    // 提交 is pressed: a warning leaves 强制提交 on screen, and the captcha can be cleared
+                    // in between by refreshing the image or emptying the box by hand.
+                    const CaptchaIsMissing = () => {
+                        if (document.querySelector("#CaptchaElement").style.display === "none") return false;
+                        if (document.querySelector("#vcode").value.trim() !== "") return false;
+                        PassCheck.style.display = "none";
+                        ErrorElement.style.display = "block";
+                        ErrorMessage.style.color = "red";
+                        try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
+                            console.error(e);
+                            if (UtilityEnabled("DebugMode")) {
+                                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                            }
+                        }
+                        ErrorMessage.innerText = "当前评测队列繁忙，请先填写上方的验证码。";
+                        Submit.disabled = false;
+                        Submit.value = "提交";
+                        document.querySelector("#vcode").focus();
+                        return true;
+                    };
                     if (NativeCaptchaShown) {
                         RefreshCaptcha("");
                     }
 
                     PassCheck.addEventListener("click", async () => {
+                        // This is the request that actually reaches submit.php, so the captcha is checked
+                        // here as well as in the 提交 handler above.
+                        if (CaptchaIsMissing()) return;
                         ErrorElement.style.display = "none";
                         document.querySelector("#Submit").disabled = true;
                         document.querySelector("#Submit").value = "正在提交...";
@@ -4570,24 +4596,7 @@ async function main() {
                         ErrorElement.style.display = "none";
                         document.querySelector("#Submit").disabled = true;
                         document.querySelector("#Submit").value = "正在检查...";
-                        // Submitting a blank answer makes the server mark the session as having failed the
-                        // check, which swaps the 4 digit challenge for an 8 character one until the session
-                        // ends. Stop here instead of spending the attempt.
-                        if (document.querySelector("#CaptchaElement").style.display !== "none" && document.querySelector("#vcode").value.trim() === "") {
-                            ErrorElement.style.display = "block";
-                            ErrorMessage.style.color = "red";
-                            try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
-                                console.error(e);
-                                if (UtilityEnabled("DebugMode")) {
-                                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
-                                }
-                            }
-                            ErrorMessage.innerText = "当前评测队列繁忙，请先填写上方的验证码。";
-                            Submit.disabled = false;
-                            Submit.value = "提交";
-                            document.querySelector("#vcode").focus();
-                            return;
-                        }
+                        if (CaptchaIsMissing()) return;
                         let Source = CodeMirrorElement.getValue();
                         let PID = 0;
                         let IOFilename = "";
