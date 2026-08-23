@@ -4287,7 +4287,6 @@ async function main() {
                                 }
                             }
                         }
-                        })
                     });
 
                     Submit.addEventListener("click", async () => {
