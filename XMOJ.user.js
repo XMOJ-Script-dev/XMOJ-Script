@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      3.6.0
+// @version      3.6.3
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -3502,7 +3502,20 @@ async function main() {
                             SolutionIDs.push(SID);
                             if (UtilityEnabled("ResetType")) {
                                 Temp[i].childNodes[0].remove();
-                                Temp[i].childNodes[0].innerHTML = "<a href=\"https://www.xmoj.tech/showsource.php?id=" + SID + "\">" + SID + "</a> " + "<a href=\"" + Temp[i].childNodes[6].children[1].href + "\">重交</a>";
+                                let resubmitLink = Temp[i].childNodes[6].children[1] ?? null;
+                                let sourceCell = Temp[i].childNodes[0];
+                                let sourceLink = document.createElement("a");
+                                sourceLink.href = "https://www.xmoj.tech/showsource.php?id=" + SID;
+                                sourceLink.innerText = SID;
+                                sourceCell.replaceChildren(sourceLink);
+                                // Submissions with PID 0 do not have a resubmit link.
+                                if (resubmitLink != null) {
+                                    let newResubmitLink = document.createElement("a");
+                                    newResubmitLink.href = resubmitLink.href;
+                                    newResubmitLink.innerText = "重交";
+                                    sourceCell.appendChild(document.createTextNode(" "));
+                                    sourceCell.appendChild(newResubmitLink);
+                                }
                                 Temp[i].childNodes[1].remove();
                                 Temp[i].childNodes[1].children[0].removeAttribute("class");
                                 Temp[i].childNodes[3].childNodes[0].innerText = SizeToStringSize(Temp[i].childNodes[3].childNodes[0].innerText);
@@ -4968,6 +4981,10 @@ async function main() {
                         </div>
                         <div id="CompareElement" style="width:100%; height:550px; display: grid; place-items: center;"></div>`;
 
+                            let compareElementStyle = document.createElement("style");
+                            compareElementStyle.textContent = `#CompareElement .monaco-merge-host { height: 95%; }`;
+                            document.head.appendChild(compareElementStyle);
+
                             let LeftCode = "";
                             await fetch("https://www.xmoj.tech/getsource.php?id=" + SearchParams.get("left"))
                                 .then((Response) => {
@@ -5155,10 +5172,437 @@ async function main() {
                             let Temp = CurrentElement.innerText.substring(0, CurrentElement.innerText.length - 2).split("/");
                             CurrentElement.innerText = TimeToStringTime(Temp[0]) + "/" + SizeToStringSize(Temp[1]);
                         }
-                        if (document.getElementById("apply_data")) {
-                            let ApplyDiv = document.getElementById("apply_data").parentElement;
+                        {
+                            let ApplyDataElement = document.getElementById("apply_data");
+                            let ApplyDiv = ApplyDataElement ? ApplyDataElement.parentElement : document.getElementById("results").parentElement;
                             console.log("启动！！！");
                             if (UtilityEnabled("ApplyData")) {
+                                let base93Alphabet = (() => {
+                                    let result = "";
+                                    for (let code = 32; code < 127; code++) {
+                                        if (code !== 91 && code !== 93) {
+                                            result += String.fromCharCode(code);
+                                        }
+                                    }
+                                    return result;
+                                })();
+                                let base93Map = Object.fromEntries([...base93Alphabet].map((character, index) => [character, index]));
+
+                                function Base93Decode(input) {
+                                    let output = [];
+                                    let bitBuffer = 0;
+                                    let bitCount = 0;
+                                    let value = -1;
+                                    for (let character of input) {
+                                        let decoded = base93Map[character];
+                                        if (decoded === undefined) {
+                                            throw new Error("Invalid Base93 payload");
+                                        }
+                                        if (value < 0) {
+                                            value = decoded;
+                                            continue;
+                                        }
+                                        value += decoded * 93;
+                                        bitBuffer |= value << bitCount;
+                                        bitCount += (value & 8191) > 456 ? 13 : 14;
+                                        while (bitCount >= 8) {
+                                            output.push(bitBuffer & 255);
+                                            bitBuffer >>>= 8;
+                                            bitCount -= 8;
+                                        }
+                                        value = -1;
+                                    }
+                                    if (value >= 0) {
+                                        output.push((bitBuffer | value << bitCount) & 255);
+                                    }
+                                    return new Uint8Array(output);
+                                }
+
+                                function DecodeBytesForDisplay(input) {
+                                    try {
+                                        // Keep a leading UTF-8 BOM instead of silently discarding it.
+                                        return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(input);
+                                    } catch {
+                                        // Invalid UTF-8 is shown reversibly: every original byte becomes one \xNN escape.
+                                        let output = "";
+                                        for (let byte of input) {
+                                            output += "\\x" + byte.toString(16).padStart(2, "0");
+                                        }
+                                        return output;
+                                    }
+                                }
+
+                                function NumberStreamDecodeV1(input) {
+                                    let position = 4;
+                                    if (input.length < 5 || input[0] !== 78 || input[1] !== 83 || input[2] !== 67 || input[3] !== 49) {
+                                        throw new Error("Invalid number-stream payload");
+                                    }
+                                    function ReadByte() {
+                                        if (position >= input.length) {
+                                            throw new Error("Truncated number-stream payload");
+                                        }
+                                        return input[position++];
+                                    }
+                                    function ReadVarint() {
+                                        let value = 0n;
+                                        let shift = 0n;
+                                        while (true) {
+                                            let byte = ReadByte();
+                                            value |= BigInt(byte & 127) << shift;
+                                            if (!(byte & 128)) {
+                                                return value;
+                                            }
+                                            shift += 7n;
+                                            if (shift > 63n) {
+                                                throw new Error("Invalid number-stream varint");
+                                            }
+                                        }
+                                    }
+                                    function ReadSize() {
+                                        let value = ReadVarint();
+                                        if (value > BigInt(Number.MAX_SAFE_INTEGER)) {
+                                            throw new Error("Number-stream payload is too large");
+                                        }
+                                        return Number(value);
+                                    }
+                                    function Unzig(value) {
+                                        return (value >> 1n) ^ -(value & 1n);
+                                    }
+                                    let flags = ReadByte();
+                                    if (flags & 1) {
+                                        let length = ReadSize();
+                                        if (position + length > input.length) {
+                                            throw new Error("Truncated number-stream payload");
+                                        }
+                                        return DecodeBytesForDisplay(input.subarray(position, position + length));
+                                    }
+                                    let numberCount = ReadSize();
+                                    let lineCount = ReadSize();
+                                    let lineLengths = [];
+                                    let mode = ReadByte();
+                                    if (mode === 1) {
+                                        let length = ReadSize();
+                                        let lastLength = ReadSize();
+                                        for (let i = 0; i + 1 < lineCount; i++) {
+                                            lineLengths.push(length);
+                                        }
+                                        if (lineCount) {
+                                            lineLengths.push(lastLength);
+                                        }
+                                    } else if (mode === 2) {
+                                        for (let i = 0; i < lineCount; i++) {
+                                            lineLengths.push(ReadSize());
+                                        }
+                                    } else {
+                                        throw new Error("Invalid number-stream line mode");
+                                    }
+                                    let values = [];
+                                    let previous = 0n;
+                                    while (values.length < numberCount) {
+                                        let count = Math.min(128, numberCount - values.length);
+                                        let useDelta = ReadByte() !== 0;
+                                        let width = ReadByte();
+                                        if (width > 64) {
+                                            throw new Error("Invalid number-stream bit width");
+                                        }
+                                        if (width === 0) {
+                                            for (let i = 0; i < count; i++) {
+                                                let value = useDelta ? previous : 0n;
+                                                values.push(value);
+                                                previous = value;
+                                            }
+                                            continue;
+                                        }
+                                        let byteCount = Math.ceil(count * width / 8);
+                                        if (position + byteCount > input.length) {
+                                            throw new Error("Truncated number-stream payload");
+                                        }
+                                        let end = position + byteCount;
+                                        let buffer = 0n;
+                                        let bitCount = 0;
+                                        function ReadBits(bits) {
+                                            while (bitCount < bits) {
+                                                buffer |= BigInt(input[position++]) << BigInt(bitCount);
+                                                bitCount += 8;
+                                            }
+                                            let value = buffer & ((1n << BigInt(bits)) - 1n);
+                                            buffer >>= BigInt(bits);
+                                            bitCount -= bits;
+                                            return value;
+                                        }
+                                        for (let i = 0; i < count; i++) {
+                                            let decoded = Unzig(ReadBits(width));
+                                            let value = useDelta ? BigInt.asIntN(64, previous + decoded) : decoded;
+                                            values.push(value);
+                                            previous = value;
+                                        }
+                                        position = end;
+                                    }
+                                    if (lineLengths.reduce((sum, length) => sum + length, 0) !== numberCount) {
+                                        throw new Error("Invalid number-stream structure");
+                                    }
+                                    let output = "";
+                                    let valueIndex = 0;
+                                    for (let i = 0; i < lineLengths.length; i++) {
+                                        if (i) {
+                                            output += "\n";
+                                        }
+                                        let line = [];
+                                        for (let j = 0; j < lineLengths[i]; j++) {
+                                            line.push(values[valueIndex++].toString());
+                                        }
+                                        output += line.join(" ");
+                                    }
+                                    if (flags & 2) {
+                                        output += "\n";
+                                    }
+                                    return output;
+                                }
+
+                                function NumberStreamDecode(input) {
+                                    if (input[3] === 49) {
+                                        return NumberStreamDecodeV1(input);
+                                    }
+                                    let position = 4;
+                                    if (input.length < 5 || input[0] !== 78 || input[1] !== 83 || input[2] !== 67 || input[3] !== 51) {
+                                        throw new Error("Invalid number-stream payload");
+                                    }
+                                    function ReadByte() {
+                                        if (position >= input.length) {
+                                            throw new Error("Truncated number-stream payload");
+                                        }
+                                        return input[position++];
+                                    }
+                                    function ReadVarint() {
+                                        let value = 0n;
+                                        let shift = 0n;
+                                        while (true) {
+                                            let byte = ReadByte();
+                                            value |= BigInt(byte & 127) << shift;
+                                            if (!(byte & 128)) {
+                                                return value;
+                                            }
+                                            shift += 7n;
+                                            if (shift > 63n) {
+                                                throw new Error("Invalid number-stream varint");
+                                            }
+                                        }
+                                    }
+                                    function ReadSize() {
+                                        let value = ReadVarint();
+                                        if (value > 4294967296n) {
+                                            throw new Error("Number-stream payload is too large");
+                                        }
+                                        return Number(value);
+                                    }
+                                    function Unzig(value) {
+                                        return (value >> 1n) ^ -(value & 1n);
+                                    }
+                                    function DecodeStream(length) {
+                                        let output = [];
+                                        let definitions = [];
+                                        let sequence = [];
+                                        let previousDefinition = -1;
+                                        let previous = 0n;
+                                        function Emit(definition, count) {
+                                            if (definition.count !== count) {
+                                                throw new Error("Invalid number-stream block size");
+                                            }
+                                            let buffer = 0n;
+                                            let bitCount = 0;
+                                            let payloadPosition = 0;
+                                            function ReadBits(bits) {
+                                                while (bitCount < bits) {
+                                                    buffer |= BigInt(definition.payload[payloadPosition++]) << BigInt(bitCount);
+                                                    bitCount += 8;
+                                                }
+                                                let value = buffer & ((1n << BigInt(bits)) - 1n);
+                                                buffer >>= BigInt(bits);
+                                                bitCount -= bits;
+                                                return value;
+                                            }
+                                            for (let i = 0; i < count; i++) {
+                                                let packed = definition.width ? ReadBits(definition.width) : 0n;
+                                                let value;
+                                                if (definition.mode === 4) {
+                                                    value = BigInt.asIntN(64, definition.base + packed);
+                                                } else if (definition.mode === 1) {
+                                                    value = BigInt.asIntN(64, previous + Unzig(packed));
+                                                } else {
+                                                    value = Unzig(packed);
+                                                }
+                                                output.push(value);
+                                                previous = value;
+                                            }
+                                        }
+                                        while (output.length < length) {
+                                            let count = Math.min(128, length - output.length);
+                                            let operation = ReadByte();
+                                            if (operation === 3) {
+                                                let repeats = ReadSize();
+                                                if (previousDefinition < 0 || repeats === 0) {
+                                                    throw new Error("Invalid number-stream run");
+                                                }
+                                                for (let i = 0; i < repeats; i++) {
+                                                    if (output.length >= length) {
+                                                        throw new Error("Number-stream run is too long");
+                                                    }
+                                                    count = Math.min(128, length - output.length);
+                                                    Emit(definitions[previousDefinition], count);
+                                                    sequence.push(previousDefinition);
+                                                }
+                                                continue;
+                                            }
+                                            if (operation === 2) {
+                                                let distance = ReadSize();
+                                                if (!distance || distance > sequence.length) {
+                                                    throw new Error("Invalid number-stream back-reference");
+                                                }
+                                                previousDefinition = sequence[sequence.length - distance];
+                                                Emit(definitions[previousDefinition], count);
+                                                sequence.push(previousDefinition);
+                                                continue;
+                                            }
+                                            if (operation !== 0 && operation !== 1 && operation !== 4) {
+                                                throw new Error("Invalid number-stream opcode");
+                                            }
+                                            let width = ReadByte();
+                                            if (width > 64) {
+                                                throw new Error("Invalid number-stream bit width");
+                                            }
+                                            let base = operation === 4 ? Unzig(ReadVarint()) : 0n;
+                                            let byteCount = Math.ceil(count * width / 8);
+                                            if (position + byteCount > input.length) {
+                                                throw new Error("Truncated number-stream payload");
+                                            }
+                                            let definition = {
+                                                mode: operation,
+                                                width,
+                                                count,
+                                                base,
+                                                payload: input.subarray(position, position + byteCount)
+                                            };
+                                            position += byteCount;
+                                            Emit(definition, count);
+                                            definitions.push(definition);
+                                            previousDefinition = definitions.length - 1;
+                                            sequence.push(previousDefinition);
+                                        }
+                                        return output;
+                                    }
+                                    let flags = ReadByte();
+                                    if (flags & 1) {
+                                        let length = ReadSize();
+                                        if (position + length > input.length) {
+                                            throw new Error("Truncated number-stream payload");
+                                        }
+                                        return DecodeBytesForDisplay(input.subarray(position, position + length));
+                                    }
+                                    let numberCount = ReadSize();
+                                    let lineCount = ReadSize();
+                                    let lineValues = DecodeStream(lineCount);
+                                    let values = DecodeStream(numberCount);
+                                    let lineLengths = lineValues.map((value) => {
+                                        if (value < 0n || value > BigInt(Number.MAX_SAFE_INTEGER)) {
+                                            throw new Error("Invalid number-stream line length");
+                                        }
+                                        return Number(value);
+                                    });
+                                    if (lineLengths.reduce((sum, length) => sum + length, 0) !== numberCount) {
+                                        throw new Error("Invalid number-stream structure");
+                                    }
+                                    let output = "";
+                                    let valueIndex = 0;
+                                    for (let i = 0; i < lineLengths.length; i++) {
+                                        if (i) {
+                                            output += "\n";
+                                        }
+                                        let line = [];
+                                        for (let j = 0; j < lineLengths[i]; j++) {
+                                            line.push(values[valueIndex++].toString());
+                                        }
+                                        output += line.join(" ");
+                                    }
+                                    if (flags & 2) {
+                                        output += "\n";
+                                    }
+                                    return output;
+                                }
+
+                                async function GzipDecode(input) {
+                                    let stream = new Blob([input]).stream().pipeThrough(new DecompressionStream("gzip"));
+                                    return new Uint8Array(await new Response(stream).arrayBuffer());
+                                }
+
+                                async function DecodePayload(payload) {
+                                    let rawData = Base93Decode(payload);
+                                    if (rawData.length >= 4 && rawData[0] === 78 && rawData[1] === 83 && rawData[2] === 67 && (rawData[3] === 49 || rawData[3] === 51)) {
+                                        return NumberStreamDecode(rawData);
+                                    }
+                                    return DecodeBytesForDisplay(await GzipDecode(rawData));
+                                }
+
+                                async function ExtractData(text) {
+                                    let result = [];
+                                    let pattern = /^(?:what\(\):  )?\[([^\]\r\n]*)\]\r?$/gm;
+                                    let match;
+                                    while ((match = pattern.exec(text))) {
+                                        try {
+                                            result.push(await DecodePayload(match[1]));
+                                        } catch {
+                                        }
+                                    }
+                                    return result;
+                                }
+                                let NumberStreamEnabled = false;
+                                let NumberStreamButton = document.createElement("button");
+                                NumberStreamButton.className = "ms-2 btn btn-outline-secondary";
+                                NumberStreamButton.title = "适合大型、主要由数值组成的输入；基准压缩速度约 310 MB/s（数值范围以 long long 为限，其他内容会原样回退）";
+                                function UpdateNumberStreamButton() {
+                                    NumberStreamButton.innerText = "高速数值模式：" + (NumberStreamEnabled ? "开启" : "关闭");
+                                    NumberStreamButton.classList.toggle("btn-outline-secondary", !NumberStreamEnabled);
+                                    NumberStreamButton.classList.toggle("btn-outline-success", NumberStreamEnabled);
+                                    NumberStreamButton.setAttribute("aria-pressed", String(NumberStreamEnabled));
+                                }
+                                NumberStreamButton.addEventListener("click", () => {
+                                    NumberStreamEnabled = !NumberStreamEnabled;
+                                    UpdateNumberStreamButton();
+                                    UpdateLineBreakButton();
+                                    UpdateModeDescription();
+                                });
+                                ApplyDiv.appendChild(NumberStreamButton);
+                                let PreserveLineBreaks = true;
+                                let LineBreakButton = document.createElement("button");
+                                LineBreakButton.className = "ms-2 btn btn-outline-secondary";
+                                LineBreakButton.title = "使用 cin >> 等空白不敏感的读取方式时可关闭；关闭后不保留原输入换行，可避免大量随机行长超过评测输出限制";
+                                function UpdateLineBreakButton() {
+                                    LineBreakButton.innerText = "保留换行：" + (PreserveLineBreaks ? "是" : "否");
+                                    LineBreakButton.disabled = !NumberStreamEnabled;
+                                    LineBreakButton.classList.toggle("btn-outline-secondary", PreserveLineBreaks || !NumberStreamEnabled);
+                                    LineBreakButton.classList.toggle("btn-outline-warning", !PreserveLineBreaks && NumberStreamEnabled);
+                                    LineBreakButton.setAttribute("aria-pressed", String(PreserveLineBreaks));
+                                }
+                                LineBreakButton.addEventListener("click", () => {
+                                    PreserveLineBreaks = !PreserveLineBreaks;
+                                    UpdateLineBreakButton();
+                                    UpdateModeDescription();
+                                });
+                                ApplyDiv.appendChild(LineBreakButton);
+                                let ModeDescription = document.createElement("div");
+                                ModeDescription.className = "small text-secondary mt-2";
+                                function UpdateModeDescription() {
+                                    if (!NumberStreamEnabled) {
+                                        ModeDescription.innerText = "默认模式（gzip + Base93）：逐字节压缩并精确保留任意输入，适合文本、Unicode、混合内容，以及使用 getline 或按字符读取的程序。无效 UTF-8 会以可逆的逐字节 \\xNN 形式显示。";
+                                    } else if (PreserveLineBreaks) {
+                                        ModeDescription.innerText = "高速数值模式（保留换行）：NSC3 同时压缩 long long 数值和每行数值个数，精确恢复规范数值输入的空格、空行、换行和末尾换行；非规范或混合内容会原样回退。大量随机行长仍可能超过评测输出限制。";
+                                    } else {
+                                        ModeDescription.innerText = "高速数值模式（不保留换行）：丢弃规范数值输入的行边界，恢复为单行空格分隔的数据，可避开随机行长开销。仅适合 cin >> 或 scanf 等空白不敏感读取；不要用于 getline、按行解析或依赖末尾换行的程序。非规范或混合内容仍会原样回退。";
+                                    }
+                                }
+                                UpdateNumberStreamButton();
+                                UpdateLineBreakButton();
+                                UpdateModeDescription();
+                                ApplyDiv.appendChild(ModeDescription);
                                 let GetDataButton = document.createElement("button");
                                 GetDataButton.className = "ms-2 btn btn-outline-secondary";
                                 GetDataButton.innerText = "获取数据";
@@ -5181,39 +5625,66 @@ async function main() {
                                     if (localStorage.getItem(`UserScript-Problem-${PID}-IOFilename`) !== null) {
                                         Code = `#define IOFile "${localStorage.getItem(`UserScript-Problem-${PID}-IOFilename`)}"\n`;
                                     }
-                                    Code += `//XMOJ-Script 获取数据代码
-                            #include <bits/stdc++.h>
+                                    if (NumberStreamEnabled && !PreserveLineBreaks) {
+                                        Code += "#define NSC_IGNORE_LINES\n";
+                                    }
+                                    let NumberStreamCode = String.raw`// XMOJ-Script 获取数值数据代码 (NSC3)
+#include <bits/stdc++.h>
 using namespace std;
-string Base64Encode(string Input)
-{
-    const string Base64Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    string Output;
-    for (int i = 0; i < Input.length(); i += 3)
-    {
-        Output.push_back(i + 0 > Input.length() ? '=' : Base64Chars[(Input[i + 0] & 0xfc) >> 2]);
-        Output.push_back(i + 1 > Input.length() ? '=' : Base64Chars[((Input[i + 0] & 0x03) << 4) + ((Input[i + 1] & 0xf0) >> 4)]);
-        Output.push_back(i + 2 > Input.length() ? '=' : Base64Chars[((Input[i + 1] & 0x0f) << 2) + ((Input[i + 2] & 0xc0) >> 6)]);
-        Output.push_back(i + 3 > Input.length() ? '=' : Base64Chars[Input[i + 2] & 0x3f]);
-    }
-    return Output;
-}
-int main()
-{
-#ifdef IOFile
-    freopen(IOFile ".in", "r", stdin);
-    freopen(IOFile ".out", "w", stdout);
+typedef uint8_t U8;typedef uint64_t U64;typedef int64_t I64;const size_t NB=128,DC=1u<<16;
+U64 zz(I64 v){return(U64(v)<<1)^U64(v>>63);}int bf(U64 v){int n=0;while(v)n++,v>>=1;return n;}void pv(vector<U8>&o,U64 v){while(v>=128)o.push_back(U8(v)|128),v>>=7;o.push_back(U8(v));}
+struct NP{vector<I64>v,l;bool nl,ok;NP():nl(0),ok(1){}};
+NP pn(const string&s){NP r;size_t n=s.size();if(!n)return r;r.nl=s[n-1]=='\n';size_t e=r.nl?n-1:n;const char*p=s.data();r.v.reserve(e/3+8);size_t i=0;I64 z=0;bool a=1;while(i<e){char c=p[i];if(c=='\n'){r.l.push_back(z);z=0;a=1;i++;continue;}if(!a){if(c!=' '){r.ok=0;return r;}i++;if(i>=e||p[i]==' '||p[i]=='\n'){r.ok=0;return r;}c=p[i];}bool neg=0;if(c=='-'){neg=1;if(++i>=e){r.ok=0;return r;}c=p[i];}if(c<'0'||c>'9'){r.ok=0;return r;}if(c=='0'&&(neg||(i+1<e&&p[i+1]>='0'&&p[i+1]<='9'))){r.ok=0;return r;}U64 m=0;size_t b=i;while(i<e){unsigned d=unsigned(p[i])-unsigned('0');if(d>9)break;m=m*10+d;i++;}if(i-b>19){r.ok=0;return r;}if(i-b==19){U64 q=0;for(size_t j=b;j<i;j++){unsigned d=unsigned(p[j])-unsigned('0');if(q>(~U64(0)-d)/10){r.ok=0;return r;}q=q*10+d;}m=q;}U64 lim=neg?U64(1)<<63:(U64(1)<<63)-1;if(m>lim){r.ok=0;return r;}r.v.push_back(neg?I64(~m+1):I64(m));z++;a=0;}r.l.push_back(z);return r;}
+struct BW{vector<U8>&o;U64 a;int n;BW(vector<U8>&O):o(O),a(0),n(0){}void p(U64 v,int k){while(k){int t=min(k,64-n);U64 m=t==64?~U64(0):(U64(1)<<t)-1;a|=(v&m)<<n;n+=t;v=t==64?0:v>>t;k-=t;if(n==64){for(int i=0;i<8;i++)o.push_back(U8(a>>(8*i)));a=0;n=0;}}}void f(){if(n)for(int i=0;i<(n+7)/8;i++)o.push_back(U8(a>>(8*i)));}};
+void bp(vector<U8>&q,U8&m,U8&k,I64&base,const I64*v,size_t n,I64 prev){U64 mr=0,md=0;I64 lo=v[0],hi=v[0],p=prev;for(size_t i=0;i<n;i++){mr=max(mr,zz(v[i]));md=max(md,zz(I64(U64(v[i])-U64(p))));lo=min(lo,v[i]);hi=max(hi,v[i]);p=v[i];}int kr=bf(mr),kd=bf(md),kf=bf(U64(hi)-U64(lo));size_t cr=size_t(kr)*n,cd=size_t(kd)*n,cf=size_t(kf)*n+80;if(cf<cr&&cf<cd)m=4,k=kf,base=lo;else if(cd<cr)m=1,k=kd,base=0;else m=0,k=kr,base=0;q.clear();if(!k)return;BW w(q);p=prev;for(size_t i=0;i<n;i++){U64 x=m==4?U64(v[i])-U64(base):m==1?zz(I64(U64(v[i])-U64(p))):zz(v[i]);w.p(x,k);p=v[i];}w.f();}
+void hd(string&d,U8 m,U8 k,size_t n,I64 base){d.assign(1,char(m));d+=char(k);d+=char(n);d+=char(n>>8);for(int b=0;b<8;b++)d+=char(U8(U64(base)>>(8*b)));}
+void es(vector<U8>&o,const vector<I64>&v){unordered_map<string,size_t>dict;vector<string>defs;vector<size_t>seq;string cur;vector<U8>q;q.reserve(NB*8+8);size_t pending=0,prevDef=size_t(-1);I64 prev=0;for(size_t i=0;i<v.size();i+=NB){size_t n=min(NB,v.size()-i);U8 m,k;I64 base;bp(q,m,k,base,&v[i],n,prev);prev=v[i+n-1];hd(cur,m,k,n,base);if(!q.empty())cur.append((char*)&q[0],q.size());if(prevDef!=size_t(-1)&&defs[prevDef]==cur){pending++;seq.push_back(prevDef);continue;}if(pending){o.push_back(3);pv(o,pending);pending=0;}unordered_map<string,size_t>::iterator it=dict.find(cur);if(it!=dict.end()){size_t at=it->second;o.push_back(2);pv(o,seq.size()-at);prevDef=seq[at];seq.push_back(prevDef);it->second=seq.size()-1;continue;}o.push_back(m);o.push_back(k);if(m==4)pv(o,zz(base));o.insert(o.end(),q.begin(),q.end());defs.push_back(cur);prevDef=defs.size()-1;seq.push_back(prevDef);if(dict.size()<DC)dict[cur]=seq.size()-1;}if(pending){o.push_back(3);pv(o,pending);}}
+string ns(const string&s){vector<U8>o;o.push_back('N');o.push_back('S');o.push_back('C');o.push_back('3');NP p=pn(s);bool raw=!p.ok;
+#ifdef NSC_IGNORE_LINES
+if(!raw){p.nl=0;p.l.clear();if(!p.v.empty())p.l.push_back(I64(p.v.size()));}
 #endif
-    string Input;
-    while (1)
-    {
-        char Data = getchar();
-        if (Data == EOF)
-            break;
-        Input.push_back(Data);
-    }
-    throw logic_error("[" + Base64Encode(Input.c_str()) + "]");
-    return 0;
-}`;
+o.push_back(U8(raw|(p.nl?2:0)));if(raw){pv(o,s.size());o.insert(o.end(),s.begin(),s.end());return string((char*)&o[0],o.size());}pv(o,p.v.size());pv(o,p.l.size());es(o,p.l);es(o,p.v);return string((char*)&o[0],o.size());}
+string b93(const string&s){static string A=[](){string a;for(int c=32;c<127;c++)if(c!=91&&c!=93)a+=char(c);return a;}();string o="[";o.reserve(s.size()*5/4+3);uint32_t b=0;int n=0;for(size_t i=0;i<s.size();i++){uint8_t c=s[i];b|=(uint32_t)c<<n;n+=8;if(n>13){uint32_t v=b&8191;if(v>456)b>>=13,n-=13;else v=b&16383,b>>=14,n-=14;o+=A[v%93];o+=A[v/93];}}if(n){o+=A[b%93];if(n>7||b>92)o+=A[b/93];}o+=']';return o;}
+string rd(){string s;
+#ifdef IOFile
+if(!fseek(stdin,0,SEEK_END)){long n=ftell(stdin);rewind(stdin);if(n>=0){s.resize((size_t)n);if(n){size_t q=fread(&s[0],1,(size_t)n,stdin);s.resize(q);}return s;}}
+#endif
+char b[65536];size_t q;while((q=fread(b,1,sizeof b,stdin))!=0)s.append(b,q);return s;}
+int main(){
+#ifdef IOFile
+if(!freopen(IOFile ".in","rb",stdin))return 0;
+#endif
+cerr<<b93(ns(rd()))<<endl;abort();}
+`;
+                                    let GzipCode = `// XMOJ-Script 获取数据代码
+#include <bits/stdc++.h>
+using namespace std;
+struct W{string o;uint64_t b;int n;W():b(0),n(0){}void p(uint32_t v,int k){b|=(uint64_t)v<<n;n+=k;while(n>=8)o+=char(b),b>>=8,n-=8;}void a(){if(n)o+=char(b),b=0,n=0;}string f(){a();return o;}};uint32_t R(uint32_t x,int n){uint32_t y=0;while(n--)y=y*2+(x&1),x>>=1;return y;}struct T{uint16_t l,d;T(int L=0,int D=0):l(L),d(D){}};
+int Lb[]={3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258},Le[]={0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0},Db[]={1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577},De[]={0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13};
+int li(int x){int i=0;while(i<28&&x>=Lb[i+1])i++;return i;}int di(int x){int i=0;while(i<29&&x>=Db[i+1])i++;return i;}
+vector<T> tk(const string&s){int N=s.size(),Z=1<<16;vector<int>h(Z,-1),p(1<<15,-1);vector<T>v;v.reserve(N/5+1);auto H=[&](int i){return ((uint32_t)(uint8_t)s[i]*63001u+(uint32_t)(uint8_t)s[i+1]*251u+(uint8_t)s[i+2])&(Z-1);};auto I=[&](int i){if(i+2<N){int z=H(i);p[i&32767]=h[z];h[z]=i;}};auto M=[&](int i){int l=0,d=0;if(i+2>=N)return make_pair(0,0);int c=h[H(i)],m=min(258,N-i),q=0;const char*a=s.data()+i;while(c>=0&&i-c<=32768){int lim=l>=8?64:128;if(q++>=lim)break;const char*b=s.data()+c;if(b[0]!=a[0]||b[1]!=a[1]||b[2]!=a[2]){c=p[c&32767];continue;}if(l>=3&&(b[l]!=a[l]||memcmp(a,b,l))){c=p[c&32767];continue;}int z=l>=3?l+1:3;while(z+8<=m){uint64_t x,y;memcpy(&x,a+z,8);memcpy(&y,b+z,8);if(x!=y)break;z+=8;}while(z<m&&a[z]==b[z])z++;if(z>l)l=z,d=i-c;if(z>=128||z==m)break;c=p[c&32767];}return make_pair(l,d);};for(int i=0;i<N;){pair<int,int>u=M(i);int l=u.first,d=u.second;I(i);if(l>=3&&l<16&&i+1<N){pair<int,int>q=M(i+1);if(q.first>l){v.push_back(T((uint8_t)s[i++],0));continue;}}if(l>=3){v.push_back(T(l,d));for(int j=1;j<l;j++)I(i+j);i+=l;}else v.push_back(T((uint8_t)s[i++],0));}return v;}
+bool ln(vector<uint64_t>f,int M,vector<int>&L){int n=f.size();L.assign(n,0);priority_queue<pair<uint64_t,int>,vector<pair<uint64_t,int> >,greater<pair<uint64_t,int> > >q;vector<int>a(2*n,-1),b(2*n,-1);for(int i=0;i<n;i++)if(f[i])q.push(make_pair(f[i],i));if(q.empty())return 0;if(q.size()==1)return L[q.top().second]=1,1;int z=n;while(q.size()>1){pair<uint64_t,int>x=q.top();q.pop();pair<uint64_t,int>y=q.top();q.pop();a[z]=x.second;b[z]=y.second;q.push(make_pair(x.first+y.first,z++));}function<void(int,int)>F=[&](int x,int d){if(x<n)L[x]=d;else F(a[x],d+1),F(b[x],d+1);};F(q.top().second,0);return *max_element(L.begin(),L.end())<=M;}
+vector<uint32_t> cd(const vector<int>&L,int M){vector<int>c(M+1),n(M+1);for(size_t i=0;i<L.size();i++)if(L[i])c[L[i]]++;int z=0;for(int i=1;i<=M;i++)z=(z+c[i-1])<<1,n[i]=z;vector<uint32_t>r(L.size());for(size_t i=0;i<L.size();i++)if(L[i])r[i]=R(n[L[i]]++,L[i]);return r;}void sy(W&w,int s,const vector<int>&L,const vector<uint32_t>&C){w.p(C[s],L[s]);}
+void pm(W&w,int l,int d,const vector<int>&L,const vector<uint32_t>&C,const vector<int>&D,const vector<uint32_t>&E){int a=li(l),q=di(d);sy(w,257+a,L,C);if(Le[a])w.p(l-Lb[a],Le[a]);sy(w,q,D,E);if(De[q])w.p(d-Db[q],De[q]);}
+string fx(const vector<T>&v){vector<int>L(288),D(32,5);for(int i=0;i<144;i++)L[i]=8;for(int i=144;i<256;i++)L[i]=9;for(int i=256;i<280;i++)L[i]=7;for(int i=280;i<288;i++)L[i]=8;vector<uint32_t>C=cd(L,15),E=cd(D,15);W w;w.o.reserve(v.size());w.p(1,1);w.p(1,2);for(size_t i=0;i<v.size();i++)v[i].d?pm(w,v[i].l,v[i].d,L,C,D,E):sy(w,v[i].l,L,C);sy(w,256,L,C);return w.f();}
+struct Q{int s,e,v;Q(int S=0,int E=0,int V=0):s(S),e(E),v(V){}};vector<Q> rl(const vector<int>&x){vector<Q>r;for(int i=0,n=x.size();i<n;){int z=x[i],j=i+1;while(j<n&&x[j]==z)j++;int k=j-i;if(!z){while(k>=11){int q=min(k,138);r.push_back(Q(18,7,q-11));k-=q;}if(k>=3){int q=min(k,10);r.push_back(Q(17,3,q-3));k-=q;}while(k--)r.push_back(Q(0,0,0));}else{r.push_back(Q(z,0,0));k--;while(k>=3){int q=min(k,6);r.push_back(Q(16,2,q-3));k-=q;}while(k--)r.push_back(Q(z,0,0));}i=j;}return r;}
+string dy(const vector<T>&v){vector<uint64_t>f(286),g(30);f[256]=1;for(size_t i=0;i<v.size();i++)v[i].d?(f[257+li(v[i].l)]++,g[di(v[i].d)]++):f[v[i].l]++;if(!accumulate(g.begin(),g.end(),0ull))g[0]=1;vector<int>L,D;if(!ln(f,15,L)||!ln(g,15,D))return string();int nl=286,nd=30;while(nl>257&&!L[nl-1])nl--;while(nd>1&&!D[nd-1])nd--;vector<int>x(L.begin(),L.begin()+nl);x.insert(x.end(),D.begin(),D.begin()+nd);vector<Q>r=rl(x);vector<uint64_t>f2(19);for(size_t i=0;i<r.size();i++)f2[r[i].s]++;vector<int>K;if(!ln(f2,7,K))return string();static int O[]={16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15};int nk=19;while(nk>4&&!K[O[nk-1]])nk--;vector<uint32_t>C=cd(L,15),E=cd(D,15),J=cd(K,7);W w;w.o.reserve(v.size());w.p(1,1);w.p(2,2);w.p(nl-257,5);w.p(nd-1,5);w.p(nk-4,4);for(int i=0;i<nk;i++)w.p(K[O[i]],3);for(size_t i=0;i<r.size();i++){sy(w,r[i].s,K,J);if(r[i].e)w.p(r[i].v,r[i].e);}for(size_t i=0;i<v.size();i++)v[i].d?pm(w,v[i].l,v[i].d,L,C,D,E):sy(w,v[i].l,L,C);sy(w,256,L,C);return w.f();}
+string st(const string&s){W w;int n=s.size();w.o.reserve(n+n/65535*5+5);if(!n){w.p(1,1);w.p(0,2);w.a();w.o.append("\\0\\0\\xff\\xff",4);return w.o;}for(int p=0;p<n;){int k=min(65535,n-p),q=(~k)&65535;w.p(p+k==n,1);w.p(0,2);w.a();w.o+=char(k);w.o+=char(k>>8);w.o+=char(q);w.o+=char(q>>8);w.o.append(s.data()+p,k);p+=k;}return w.o;}
+uint32_t cr(const string&s){static uint32_t t[256];static int z=0;if(!z){for(int i=0;i<256;i++){uint32_t c=i;for(int j=0;j<8;j++)c=c>>1^(0xedb88320u&-(int)(c&1));t[i]=c;}z=1;}uint32_t c=~0u;for(size_t i=0;i<s.size();i++)c=t[(c^(uint8_t)s[i])&255]^(c>>8);return ~c;}
+string gz(const string&s){vector<T>v=tk(s);string b=fx(v),c=dy(v),d;c.size()&&c.size()<b.size()?d.swap(c):d.swap(b);size_t z=s.size()+5*max<size_t>(1,(s.size()+65534)/65535);if(z<d.size())d=st(s);string o("\\x1f\\x8b\\x08\\0\\0\\0\\0\\0\\x02\\xff",10);o.reserve(d.size()+18);o+=d;uint32_t q=cr(s),n=s.size();for(int i=0;i<4;i++)o+=char(q>>8*i);for(int i=0;i<4;i++)o+=char(n>>8*i);return o;}
+string b93(const string&s){static string A=[](){string a;for(int c=32;c<127;c++)if(c!=91&&c!=93)a+=char(c);return a;}();string o="[";o.reserve(s.size()*5/4+3);uint32_t b=0;int n=0;for(size_t i=0;i<s.size();i++){uint8_t c=s[i];b|=(uint32_t)c<<n;n+=8;if(n>13){uint32_t v=b&8191;if(v>456)b>>=13,n-=13;else v=b&16383,b>>=14,n-=14;o+=A[v%93];o+=A[v/93];}}if(n){o+=A[b%93];if(n>7||b>92)o+=A[b/93];}o+=']';return o;}
+string rd(){string s;
+#ifdef IOFile
+if(!fseek(stdin,0,SEEK_END)){long n=ftell(stdin);rewind(stdin);if(n>=0){s.resize((size_t)n);if(n){size_t q=fread(&s[0],1,(size_t)n,stdin);s.resize(q);}return s;}}
+#endif
+char b[65536];size_t q;while((q=fread(b,1,sizeof b,stdin))!=0)s.append(b,q);return s;}
+int main(){
+#ifdef IOFile
+if(!freopen(IOFile ".in","rb",stdin))return 0;
+#endif
+cerr<<b93(gz(rd()))<<endl;abort();}
+`;
+                                    Code += NumberStreamEnabled ? NumberStreamCode : GzipCode;
 
                                     await fetch("https://www.xmoj.tech/submit.php", {
                                         "headers": {
@@ -5246,17 +5717,17 @@ int main()
 
                                     await fetch(`https://www.xmoj.tech/reinfo.php?sid=${SID}`).then((Response) => {
                                         return Response.text();
-                                    }).then((Response) => {
+                                    }).then(async (Response) => {
                                         let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
                                         let ErrorData = ParsedDocument.getElementById("errtxt").innerText;
-                                        let MatchResult = ErrorData.match(/\what\(\):  \[([A-Za-z0-9+\/=]+)\]/g);
-                                        if (MatchResult === null) {
+                                        let dataList = await ExtractData(ErrorData);
+                                        if (dataList.length === 0) {
                                             GetDataButton.innerText = "获取数据失败";
                                             GetDataButton.disabled = false;
                                             return;
                                         }
-                                        for (let i = 0; i < MatchResult.length; i++) {
-                                            let Data = CryptoJS.enc.Base64.parse(MatchResult[i].substring(10, MatchResult[i].length - 1)).toString(CryptoJS.enc.Utf8);
+                                        for (let i = 0; i < dataList.length; i++) {
+                                            let Data = dataList[i];
                                             ApplyDiv.appendChild(document.createElement("hr"));
                                             ApplyDiv.appendChild(document.createTextNode("数据" + (i + 1) + "："));
                                             let CodeElement = document.createElement("div");
@@ -5273,12 +5744,14 @@ int main()
                                     });
                                 });
                             }
-                            document.getElementById("apply_data").addEventListener("click", () => {
-                                let ApplyElements = document.getElementsByClassName("data");
-                                for (let i = 0; i < ApplyElements.length; i++) {
-                                    ApplyElements[i].style.display = (ApplyElements[i].style.display == "block" ? "" : "block");
-                                }
-                            });
+                            if (ApplyDataElement) {
+                                ApplyDataElement.addEventListener("click", () => {
+                                    let ApplyElements = document.getElementsByClassName("data");
+                                    for (let i = 0; i < ApplyElements.length; i++) {
+                                        ApplyElements[i].style.display = (ApplyElements[i].style.display == "block" ? "" : "block");
+                                    }
+                                });
+                            }
                         }
                         let ApplyElements = document.getElementsByClassName("data");
                         for (let i = 0; i < ApplyElements.length; i++) {
@@ -7108,3 +7581,4 @@ console.log("XMOJ-Script loaded successfully!");
 })().catch(e => {
     console.error("[XMOJ-Script] Initialization error:", e);
 });
+
