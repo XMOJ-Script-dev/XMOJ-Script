@@ -557,7 +557,13 @@ const CaptchaSiteKey = "0x4AAAAAAALBT58IhyDViNmv";
 // disagree; see GetCaptchaParameter below for how that gap is handled.
 // Recognises the 4 digit variant only: https://github.com/boomzero/captchaSolve
 // workers.dev is unreachable from mainland China, so this has to stay on a custom domain.
+// AutoCaptcha defaults to off: every Workers AI vision model tried so far reads these images wrong
+// (llava-1.5-7b, llama-4-scout and mistral-small-3.1 all missed on known samples), and a confidently
+// wrong four digit guess is worse than an empty box because it burns the attempt and trips vfail.
 const CaptchaSolverURL = "https://captcha.xmoj-script.uk/";
+// Settings that start off rather than on. Both UtilityEnabled and the settings list seed missing
+// values, so they have to agree or whichever runs first decides the default.
+const DefaultOffSettings = ["DebugMode", "SuperDebug", "ReplaceXM", "AutoCaptcha"];
 // 0.53.0 leaks its minified helper variables (m, r, o, ...) into the global scope from every
 // chunk file, so whichever chunk happens to be evaluated last clobbers the others and the
 // editor randomly fails to load (microsoft/monaco-editor#5015). 0.52.2 ships a single bundle
@@ -1498,8 +1504,7 @@ let TidyTable = (Table) => {
 let UtilityEnabled = (Name) => {
     try {
         if (localStorage.getItem("UserScript-Setting-" + Name) == null) {
-            const defaultOffItems = ["DebugMode", "SuperDebug", "ReplaceXM"];
-            localStorage.setItem("UserScript-Setting-" + Name, defaultOffItems.includes(Name) ? "false" : "true");
+            localStorage.setItem("UserScript-Setting-" + Name, DefaultOffSettings.includes(Name) ? "false" : "true");
         }
         return localStorage.getItem("UserScript-Setting-" + Name) == "true";
     } catch (e) {
@@ -2814,7 +2819,7 @@ async function main() {
                                     CheckBox.type = "checkbox";
                                     CheckBox.id = Data[i].ID;
                                     if (localStorage.getItem("UserScript-Setting-" + Data[i].ID) == null) {
-                                        localStorage.setItem("UserScript-Setting-" + Data[i].ID, "true");
+                                        localStorage.setItem("UserScript-Setting-" + Data[i].ID, DefaultOffSettings.includes(Data[i].ID) ? "false" : "true");
                                     }
                                     if (localStorage.getItem("UserScript-Setting-" + Data[i].ID) == "false") {
                                         CheckBox.checked = false;
@@ -2862,7 +2867,7 @@ async function main() {
                         }, {"ID": "DownloadPlayback", "Type": "A", "Name": "回放视频增加下载功能"}, {
                             "ID": "ImproveACRate", "Type": "A", "Name": "自动提交已AC题目以提高AC率"
                         }, {"ID": "AutoO2", "Type": "F", "Name": "代码提交界面自动选择O2优化"}, {
-                            "ID": "AutoCaptcha", "Type": "A", "Name": "自动识别提交界面的验证码（识别失败时仍可手动填写）"
+                            "ID": "AutoCaptcha", "Type": "A", "Name": "自动识别提交界面的验证码（实验性，当前模型准确率极低，默认关闭）"
                         }, {
                             "ID": "Beautify", "Type": "F", "Name": "美化界面", "Children": [{
                                 "ID": "NewTopBar", "Type": "F", "Name": "使用新的顶部导航栏"
