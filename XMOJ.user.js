@@ -4474,6 +4474,20 @@ async function main() {
                     }
 
                     PassCheck.addEventListener("click", async () => {
+    ErrorElement.style.display = "none";
+    document.querySelector("#Submit").disabled = true;
+    document.querySelector("#Submit").value = "正在提交...";
+    let o2Switch = "&enable_O2=on";
+    if (!document.querySelector("#enable_O2").checked) o2Switch = "";
+
+    const response = await fetch("https://www.xmoj.tech/submit.php", {
+        "headers": {
+            "content-type": "application/x-www-form-urlencoded"
+        },
+        "referrer": location.href,
+        "method": "POST",
+        "body": (SearchParams.get("id") != null ? "id=" + SearchParams.get("id") : "cid=" + SearchParams.get("cid") + "&pid=" + SearchParams.get("pid")) + "&language=1&" + "source=" + encodeURIComponent(CodeMirrorElement.getValue()) + o2Switch
+    });
                         // This is the request that actually reaches submit.php, so the captcha is checked
                         // here as well as in the 提交 handler above.
                         if (CaptchaIsMissing()) return;
@@ -4571,25 +4585,91 @@ async function main() {
                                         }
                                         console.log(await Response.text());
                                     });
-
-                                }
-                                if (UtilityEnabled("DebugMode")) {
-                                    console.log("Submission failed! Response:", text);
-                                }
-                                ErrorElement.style.display = "block";
-                                ErrorMessage.style.color = "red";
-                                try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
-                                    console.error(e);
-                                    if (UtilityEnabled("DebugMode")) {
-                                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                    if (response.redirected) {
+                                        location.href = response.url;
+                                        return;
                                     }
-                                }
-                                ErrorMessage.innerText = "提交失败！请关闭脚本后重试！";
-                                Submit.disabled = false;
-                                Submit.value = "提交";
-                            }
-                        })
-                    });
+                                    const text = await response.text();
+                                    if ((text.indexOf("没有这个比赛！") !== -1 || text.indexOf("比赛已结束") !== -1) && new URL(location.href).searchParams.get("pid") !== null) {
+                                        // Credit: https://github.com/boomzero/quicksubmit/blob/main/index.ts (GPL-3.0)
+                                        const cid = new URL(location.href).searchParams.get("cid");
+                                        const pidIndex = new URL(location.href).searchParams.get("pid");
+                                        const contestReq = await fetch("https://www.xmoj.tech/contest.php?cid=" + cid);
+                                        const res = await contestReq.text();
+                                        if (contestReq.status !== 200 || res.indexOf("比赛尚未开始或私有，不能查看题目。") !== -1) {
+                                            console.error("Failed to get contest page!");
+                                            _xmoj_disposeErrorMessageEditors();
+                                            ErrorElement.style.display = "block";
+                                            ErrorMessage.style.color = "red";
+                                            ErrorMessage.innerText = "无法获取比赛信息，请手动提交。";
+                                            Submit.disabled = false; Submit.value = "提交";
+                                            return;
+                                        }
+                                        const parser = new DOMParser();
+                                                                                const dom = parser.parseFromString(res, "text/html");
+                                        const rows = dom.querySelector("#problemset > tbody").rows;
+                                        const contestProblems = [];
+                                        
+                                        for (let i = 0; i < rows.length; i++) {
+                                            const cell = rows[i].children[1];
+                                            const textContent = cell.textContent.trim();
+                                            const match = textContent.match(/\d+/);
+                                            contestProblems.push(match ? match[0] : null);
+                                        }
+                                        
+                                        const rPID = contestProblems[parseInt(pidIndex)];
+                                        if (!rPID) {
+                                            _xmoj_disposeErrorMessageEditors();
+                                            ErrorElement.style.display = "block";
+                                            ErrorMessage.style.color = "red";
+                                            ErrorMessage.innerText = "无法解析真实题目 ID，请手动提交。";
+                                            Submit.disabled = false;
+                                            Submit.value = "提交";
+                                            return;
+                                        }
+                                        
+                                    _xmoj_disposeErrorMessageEditors();
+                                    ErrorElement.style.display = "block";
+                                    ErrorMessage.style.color = "orange";
+                                    ErrorMessage.innerText = "比赛已结束，正在尝试向题目 " + rPID + " 提交…";
+                                    console.log("比赛已结束，正在尝试向题目 " + rPID + " 提交");
+                                        
+                                    let o2Switch2 = "&enable_O2=on";
+                                    if (!document.querySelector("#enable_O2").checked) o2Switch2 = "";
+                                        
+                                    const retryResp = await fetch("https://www.xmoj.tech/submit.php", {
+                                            "headers": {
+                                                "content-type": "application/x-www-form-urlencoded"
+                                            },
+                                            "referrer": location.href,
+                                            "method": "POST",
+                                            "body": "id=" + rPID + "&language=1&source=" + encodeURIComponent(CodeMirrorElement.getValue()) + o2Switch2
+                                    });
+                                if (retryResp.redirected) {
+                                    location.href = retryResp.url;
+                                    return;
+                                    const retryText = await retryResp.text();
+                                    let errorMsg = "提交失败，请重试。";
+                                    try {
+                                            const dom2 = new DOMParser().parseFromString(retryText, "text/html");
+                                            const jumbotron = dom2.querySelector(".jumbotron");
+                                            if (jumbotron) {
+                                                errorMsg = jumbotron.textContent.trim();
+                                            } else {
+                                                const textOnly = retryText.replace(/<[^>]*>/g, "").trim();
+                                                errorMsg = textOnly.substring(0, 100) || errorMsg;
+                                            }
+                                    } catch (_) {
+                                            // 解析失败则使用默认信息
+                                    }
+                                        
+                                _xmoj_disposeErrorMessageEditors();
+                                    ErrorElement.style.display = "block";
+                                    ErrorMessage.style.color = "red";
+                                    ErrorMessage.innerText = "❌ 回退提交失败：" + errorMsg;
+                                    Submit.disabled = false;
+                                    Submit.value = "提交";
+                                    return;
 
                     Submit.addEventListener("click", async () => {
                         PassCheck.style.display = "none";
