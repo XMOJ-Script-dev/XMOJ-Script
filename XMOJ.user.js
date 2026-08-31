@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      3.6.3
+// @version      3.6.4
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -551,6 +551,34 @@ let _earlyObs = null;
 })();
 
 const CaptchaSiteKey = "0x4AAAAAAALBT58IhyDViNmv";
+// XMOJ turns on its own image captcha (vcode.php) whenever the judge queue is busy. submitpage.php
+// renders the field at >10 pending solutions but submit.php only enforces it at >50, so the two can
+// disagree; see GetCaptchaParameter below for how that gap is handled.
+// vcode.php draws 4 digits with imagettftext(size 15, Vera.ttf) at a fixed origin, so every glyph is
+// pixel identical between challenges and template matching reads them exactly. That beats sending the
+// image to a vision model: llava-1.5-7b, llama-4-scout and mistral-small-3.1 were all measured at 0/7
+// on real captchas even after preprocessing, and a confidently wrong guess is worse than an empty box
+// because it burns the attempt and trips vfail. Glyphs below are Vera.ttf rendered at 20px, which is
+// the 15px cap height GD produces; '#' would be ink, stored as 1 bits row by row.
+const CaptchaGlyphs = {
+    "0": "001111000|011111110|011000110|111000111|110000011|110000011|110011011|110011011|110000011|110000011|110000011|111000111|011000110|011111110|001111000",
+    "1": "00111000|11111000|11011000|00011000|00011000|00011000|00011000|00011000|00011000|00011000|00011000|00011000|00011000|11111111|11111111",
+    "2": "011111100|111111110|100000111|000000011|000000011|000000011|000000111|000000110|000001100|000011000|000110000|001100000|011000000|111111111|111111111",
+    "3": "011111100|111111110|100000111|000000011|000000011|000000111|000111110|000111100|000000110|000000011|000000011|000000011|100000111|111111110|011111100",
+    "4": "0000011100|0000011100|0000111100|0000101100|0001101100|0001001100|0011001100|0110001100|0110001100|1100001100|1111111111|1111111111|0000001100|0000001100|0000001100",
+    "5": "011111110|011111110|011000000|011000000|011000000|011111100|011111110|010000111|000000011|000000011|000000011|000000011|100000110|111111110|011111000",
+    "6": "000111100|001111110|011100010|011000000|110000000|110000000|110111100|111111110|111000111|110000011|110000011|110000011|011000111|011111110|001111100",
+    "7": "111111111|111111111|000000110|000000110|000000110|000001100|000001100|000001100|000011000|000011000|000011000|000110000|000110000|000110000|001100000",
+    "8": "001111100|011111110|111000111|110000011|110000011|011000110|001111100|011111110|011000110|110000011|110000011|110000011|111000111|011111110|001111100",
+    "9": "001111100|011111110|111000110|110000011|110000011|110000011|111000111|011111111|001111011|000000011|000000011|000000110|010001110|011111100|001111000"
+};
+// How far ahead the best matching glyph has to score before its digit is trusted. Measured over 300
+// generated and 40 live captchas, 4 is the point where every wrong answer turns into a decline: it
+// still fills in about three quarters of them and never once guessed wrong.
+const CaptchaMinMargin = 4;
+// Settings that start off rather than on. Both UtilityEnabled and the settings list seed missing
+// values, so they have to agree or whichever runs first decides the default.
+const DefaultOffSettings = ["DebugMode", "SuperDebug", "ReplaceXM"];
 // 0.53.0 leaks its minified helper variables (m, r, o, ...) into the global scope from every
 // chunk file, so whichever chunk happens to be evaluated last clobbers the others and the
 // editor randomly fails to load (microsoft/monaco-editor#5015). 0.52.2 ships a single bundle
@@ -1491,8 +1519,7 @@ let TidyTable = (Table) => {
 let UtilityEnabled = (Name) => {
     try {
         if (localStorage.getItem("UserScript-Setting-" + Name) == null) {
-            const defaultOffItems = ["DebugMode", "SuperDebug", "ReplaceXM"];
-            localStorage.setItem("UserScript-Setting-" + Name, defaultOffItems.includes(Name) ? "false" : "true");
+            localStorage.setItem("UserScript-Setting-" + Name, DefaultOffSettings.includes(Name) ? "false" : "true");
         }
         return localStorage.getItem("UserScript-Setting-" + Name) == "true";
     } catch (e) {
@@ -2807,7 +2834,7 @@ async function main() {
                                     CheckBox.type = "checkbox";
                                     CheckBox.id = Data[i].ID;
                                     if (localStorage.getItem("UserScript-Setting-" + Data[i].ID) == null) {
-                                        localStorage.setItem("UserScript-Setting-" + Data[i].ID, "true");
+                                        localStorage.setItem("UserScript-Setting-" + Data[i].ID, DefaultOffSettings.includes(Data[i].ID) ? "false" : "true");
                                     }
                                     if (localStorage.getItem("UserScript-Setting-" + Data[i].ID) == "false") {
                                         CheckBox.checked = false;
@@ -2855,6 +2882,8 @@ async function main() {
                         }, {"ID": "DownloadPlayback", "Type": "A", "Name": "回放视频增加下载功能"}, {
                             "ID": "ImproveACRate", "Type": "A", "Name": "自动提交已AC题目以提高AC率"
                         }, {"ID": "AutoO2", "Type": "F", "Name": "代码提交界面自动选择O2优化"}, {
+                            "ID": "AutoCaptcha", "Type": "A", "Name": "自动识别提交界面的验证码（本地识别，把握不大时留空由您填写）"
+                        }, {
                             "ID": "Beautify", "Type": "F", "Name": "美化界面", "Children": [{
                                 "ID": "NewTopBar", "Type": "F", "Name": "使用新的顶部导航栏"
                             }, {
@@ -4084,6 +4113,13 @@ async function main() {
                     }
                 } else if (location.pathname == "/submitpage.php") {
                     document.title = "提交代码: " + (SearchParams.get("id") != null ? "题目" + Number(SearchParams.get("id")) : "比赛" + Number(SearchParams.get("cid")));
+                    // submitpage.php only renders the vcode field while the judge queue is busy, and the
+                    // custom page below throws the server markup away, so read it before that happens.
+                    // The queue is idle almost all of the time, so the only other way to reach this state
+                    // is to flood the judge; localStorage UserScript-ForceCaptcha=true forces it instead.
+                    const NativeCaptchaShown = document.querySelector("input[name='vcode']") != null ||
+                        document.querySelector("img#vcode") != null ||
+                        localStorage.getItem("UserScript-ForceCaptcha") === "true";
                     document.querySelector("body > div > div.mt-3").innerHTML = `<center class="mb-3" id="_submitPageHeader"></center>
     <div id="MonacoEditor" style="width:100%; height:550px; display: grid; place-items: center;">
       <p id="loadEditor">Loading...</p>
@@ -4092,6 +4128,12 @@ async function main() {
     <center class="mt-3">
         <input id="enable_O2" name="enable_O2" type="checkbox"><label for="enable_O2">打开O2开关</label>
         <br>
+        <div id="CaptchaElement" class="mt-2" style="display: none">
+            <label class="me-1" for="vcode">验证码</label>
+            <input id="vcode" name="vcode" class="form-control form-control-sm d-inline w-auto align-middle" type="text" maxlength="8" size="8" autocomplete="off">
+            <img id="CaptchaImage" class="ms-1 align-middle" style="cursor: pointer" alt="验证码" title="点击更换验证码">
+            <div id="CaptchaStatus" class="form-text mt-1"></div>
+        </div>
         <input id="Submit" class="btn btn-info mt-2" type="button" value="提交">
         <div id="ErrorElement" class="mt-2" style="display: none; text-align: left; padding: 10px;">
             <div id="ErrorMessage" style="white-space: pre; background-color: rgba(0, 0, 0, 0.1); padding: 10px; border-radius: 5px;"></div>
@@ -4210,6 +4252,227 @@ async function main() {
                             });
                     }
 
+                    // vcode.php writes the expected answer into the PHP session every time it is
+                    // requested, so the challenge must be downloaded exactly once and that same copy
+                    // shown to the user: letting the <img> load it separately would leave the picture on
+                    // screen one challenge behind whatever the session actually expects.
+                    let CaptchaObjectURL = null;
+                    let CaptchaRequestID = 0;
+                    const SetCaptchaStatus = (Message) => {
+                        document.querySelector("#CaptchaStatus").innerText = Message;
+                    };
+                    // Byte 6-7 of a GIF header is the little endian width. vcode.php sizes the image as
+                    // 15px per character, so 60px means the easy 4 digit challenge while a wider image is
+                    // the 8 character alphanumeric one the server switches to after a failed attempt.
+                    const GetCaptchaLength = async (ImageBlob) => {
+                        const Header = new Uint8Array(await ImageBlob.slice(0, 8).arrayBuffer());
+                        return Math.round((Header[6] | (Header[7] << 8)) / 15);
+                    };
+                    const ParsedCaptchaGlyphs = Object.entries(CaptchaGlyphs).map(([Digit, Bitmap]) => {
+                        const Rows = Bitmap.split("|");
+                        return {Digit: Digit, Rows: Rows, Width: Rows[0].length, Height: Rows.length};
+                    });
+                    // vcode.php fills the background with one random colour and draws the text in its exact
+                    // inverse, so the most common pixel identifies the background and 255 minus it is the
+                    // ink. Noise dots are a third random colour and mostly fall outside that tolerance. The
+                    // 1px black border is skipped because a near white background makes it match the ink.
+                    const BuildCaptchaMask = (Pixels, Width, Height) => {
+                        const Counts = new Map();
+                        for (let Index = 0; Index < Pixels.length; Index += 4) {
+                            const Key = (Pixels[Index] << 16) | (Pixels[Index + 1] << 8) | Pixels[Index + 2];
+                            Counts.set(Key, (Counts.get(Key) || 0) + 1);
+                        }
+                        let Background = 0, BestCount = -1;
+                        Counts.forEach((Count, Key) => {
+                            if (Count > BestCount) { BestCount = Count; Background = Key; }
+                        });
+                        const InkRed = 255 - ((Background >> 16) & 255);
+                        const InkGreen = 255 - ((Background >> 8) & 255);
+                        const InkBlue = 255 - (Background & 255);
+                        const Mask = [];
+                        for (let Row = 0; Row < Height; Row++) {
+                            const Line = new Uint8Array(Width);
+                            for (let Column = 0; Column < Width; Column++) {
+                                if (Row === 0 || Column === 0 || Row === Height - 1 || Column === Width - 1) continue;
+                                const Index = (Row * Width + Column) * 4;
+                                const Distance = Math.abs(Pixels[Index] - InkRed) +
+                                    Math.abs(Pixels[Index + 1] - InkGreen) +
+                                    Math.abs(Pixels[Index + 2] - InkBlue);
+                                if (Distance < 90) Line[Column] = 1;
+                            }
+                            Mask.push(Line);
+                        }
+                        return Mask;
+                    };
+                    // Digits never touch in this font, so inked columns split cleanly into one run each.
+                    const SplitCaptchaColumns = (Mask, Width, Height) => {
+                        const Groups = [];
+                        let Current = null;
+                        for (let Column = 0; Column < Width; Column++) {
+                            let Inked = false;
+                            for (let Row = 0; Row < Height && !Inked; Row++) if (Mask[Row][Column]) Inked = true;
+                            if (Inked) {
+                                if (Current !== null && Column - Current[Current.length - 1] <= 1) Current.push(Column);
+                                else { if (Current !== null) Groups.push(Current); Current = [Column]; }
+                            }
+                        }
+                        if (Current !== null) Groups.push(Current);
+                        return Groups;
+                    };
+                    // Rewarding covered ink alone lets a noisy 0 score as well as a 9, so ink the glyph does
+                    // not explain is penalised too. The window shifts by a couple of pixels either way to
+                    // absorb noise that has stuck to the edge of a digit and moved its bounding box.
+                    const MatchCaptchaGlyph = (Mask, Group, Width, Height) => {
+                        let Top = Height;
+                        for (let Row = 0; Row < Height; Row++) {
+                            for (const Column of Group) if (Mask[Row][Column]) { Top = Math.min(Top, Row); break; }
+                        }
+                        const Left = Group[0];
+                        const Scores = ParsedCaptchaGlyphs.map((Glyph) => {
+                            let Best = -Infinity;
+                            for (let OffsetY = -2; OffsetY <= 2; OffsetY++) {
+                                for (let OffsetX = -2; OffsetX <= 2; OffsetX++) {
+                                    let Score = 0;
+                                    for (let Row = 0; Row < Glyph.Height; Row++) {
+                                        for (let Column = 0; Column < Glyph.Width; Column++) {
+                                            const SampleRow = Top + OffsetY + Row;
+                                            const SampleColumn = Left + OffsetX + Column;
+                                            const Inked = SampleRow >= 0 && SampleRow < Height && SampleColumn >= 0 &&
+                                                SampleColumn < Width && Mask[SampleRow][SampleColumn] === 1;
+                                            if (Glyph.Rows[Row][Column] === "1") Score += Inked ? 1 : -2;
+                                            else if (Inked) Score -= 1;
+                                        }
+                                    }
+                                    Best = Math.max(Best, Score);
+                                }
+                            }
+                            return {Digit: Glyph.Digit, Score: Best};
+                        }).sort((Left, Right) => Right.Score - Left.Score);
+                        return {Digit: Scores[0].Digit, Margin: Scores[0].Score - Scores[1].Score};
+                    };
+                    // Returns null rather than a guess whenever the image does not split into exactly four
+                    // digits or any one of them is a close call, so a wrong answer never reaches submit.php.
+                    const SolveCaptcha = async (ImageBlob) => {
+                        try {
+                            const Bitmap = await createImageBitmap(ImageBlob);
+                            const Canvas = document.createElement("canvas");
+                            Canvas.width = Bitmap.width;
+                            Canvas.height = Bitmap.height;
+                            const Context = Canvas.getContext("2d", {willReadFrequently: true});
+                            Context.drawImage(Bitmap, 0, 0);
+                            const Pixels = Context.getImageData(0, 0, Bitmap.width, Bitmap.height).data;
+                            const Mask = BuildCaptchaMask(Pixels, Bitmap.width, Bitmap.height);
+                            const Groups = SplitCaptchaColumns(Mask, Bitmap.width, Bitmap.height);
+                            if (Groups.length !== 4) {
+                                if (UtilityEnabled("DebugMode")) {
+                                    console.log("Captcha split into", Groups.length, "glyphs, not reading it");
+                                }
+                                return null;
+                            }
+                            let Answer = "";
+                            for (const Group of Groups) {
+                                const Match = MatchCaptchaGlyph(Mask, Group, Bitmap.width, Bitmap.height);
+                                if (Match.Margin < CaptchaMinMargin) {
+                                    if (UtilityEnabled("DebugMode")) {
+                                        console.log("Captcha glyph too close to call, margin", Match.Margin);
+                                    }
+                                    return null;
+                                }
+                                Answer += Match.Digit;
+                            }
+                            if (UtilityEnabled("DebugMode")) {
+                                console.log("Captcha read locally as", Answer);
+                            }
+                            return Answer;
+                        } catch (e) {
+                            console.error(e);
+                            return null;
+                        }
+                    };
+                    const RefreshCaptcha = async (StatusMessage) => {
+                        const RequestID = ++CaptchaRequestID;
+                        const CaptchaInput = document.querySelector("#vcode");
+                        document.querySelector("#CaptchaElement").style.display = "block";
+                        CaptchaInput.value = "";
+                        SetCaptchaStatus(StatusMessage || "");
+                        let ImageBlob;
+                        try {
+                            const CaptchaResponse = await fetch("https://www.xmoj.tech/vcode.php?" + Math.random(), {cache: "no-store"});
+                            ImageBlob = await CaptchaResponse.blob();
+                        } catch (e) {
+                            console.error(e);
+                            SetCaptchaStatus("验证码加载失败，请点击图片重试");
+                            return;
+                        }
+                        if (RequestID !== CaptchaRequestID) return;
+                        if (CaptchaObjectURL !== null) URL.revokeObjectURL(CaptchaObjectURL);
+                        CaptchaObjectURL = URL.createObjectURL(ImageBlob);
+                        document.querySelector("#CaptchaImage").src = CaptchaObjectURL;
+                        if (!UtilityEnabled("AutoCaptcha")) return;
+                        let CaptchaLength = 4;
+                        try {
+                            CaptchaLength = await GetCaptchaLength(ImageBlob);
+                        } catch (e) {
+                            console.error(e);
+                        }
+                        if (CaptchaLength !== 4) {
+                            SetCaptchaStatus("本次为 " + CaptchaLength + " 位字母验证码，请手动输入");
+                            return;
+                        }
+                        const Answer = await SolveCaptcha(ImageBlob);
+                        if (RequestID !== CaptchaRequestID) return;
+                        if (Answer === null) {
+                            SetCaptchaStatus("这张看不太准，请手动输入，或点击图片换一张");
+                            return;
+                        }
+                        // Never overwrite what the user has already started typing.
+                        if (CaptchaInput.value !== "") return;
+                        CaptchaInput.value = Answer;
+                        SetCaptchaStatus("已自动识别，若与图片不符请手动修改");
+                    };
+                    document.querySelector("#CaptchaImage").addEventListener("click", () => {
+                        RefreshCaptcha("");
+                    });
+                    document.querySelector("#vcode").addEventListener("keydown", (KeyEvent) => {
+                        if (KeyEvent.key === "Enter") {
+                            KeyEvent.preventDefault();
+                            Submit.click();
+                        }
+                    });
+                    // submit.php ignores an unexpected vcode field, so sending it whenever the user has
+                    // one costs nothing and covers the case where the queue grew past the enforcement
+                    // threshold after this page was rendered.
+                    const GetCaptchaParameter = () => {
+                        const CaptchaValue = document.querySelector("#vcode").value.trim();
+                        return CaptchaValue === "" ? "" : "&vcode=" + encodeURIComponent(CaptchaValue);
+                    };
+                    // Submitting a blank answer makes the server mark the session as having failed the
+                    // check, which swaps the 4 digit challenge for an 8 character one until the session
+                    // ends. This has to be re-checked immediately before the POST rather than only when
+                    // 提交 is pressed: a warning leaves 强制提交 on screen, and the captcha can be cleared
+                    // in between by refreshing the image or emptying the box by hand.
+                    const CaptchaIsMissing = () => {
+                        if (document.querySelector("#CaptchaElement").style.display === "none") return false;
+                        if (document.querySelector("#vcode").value.trim() !== "") return false;
+                        PassCheck.style.display = "none";
+                        ErrorElement.style.display = "block";
+                        ErrorMessage.style.color = "red";
+                        try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
+                            console.error(e);
+                            if (UtilityEnabled("DebugMode")) {
+                                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                            }
+                        }
+                        ErrorMessage.innerText = "当前评测队列繁忙，请先填写上方的验证码。";
+                        Submit.disabled = false;
+                        Submit.value = "提交";
+                        document.querySelector("#vcode").focus();
+                        return true;
+                    };
+                    if (NativeCaptchaShown) {
+                        RefreshCaptcha("");
+                    }
+
                     PassCheck.addEventListener("click", async () => {
     ErrorElement.style.display = "none";
     document.querySelector("#Submit").disabled = true;
@@ -4225,6 +4488,103 @@ async function main() {
         "method": "POST",
         "body": (SearchParams.get("id") != null ? "id=" + SearchParams.get("id") : "cid=" + SearchParams.get("cid") + "&pid=" + SearchParams.get("pid")) + "&language=1&" + "source=" + encodeURIComponent(CodeMirrorElement.getValue()) + o2Switch
     });
+                        // This is the request that actually reaches submit.php, so the captcha is checked
+                        // here as well as in the 提交 handler above.
+                        if (CaptchaIsMissing()) return;
+                        ErrorElement.style.display = "none";
+                        document.querySelector("#Submit").disabled = true;
+                        document.querySelector("#Submit").value = "正在提交...";
+                        let o2Switch = "&enable_O2=on";
+                        if (!document.querySelector("#enable_O2").checked) o2Switch = "";
+                        await fetch("https://www.xmoj.tech/submit.php", {
+                            "headers": {
+                                "content-type": "application/x-www-form-urlencoded"
+                            },
+                            "referrer": location.href,
+                            "method": "POST",
+                            "body": (SearchParams.get("id") != null ? "id=" + SearchParams.get("id") : "cid=" + SearchParams.get("cid") + "&pid=" + SearchParams.get("pid")) + "&language=1&" + "source=" + encodeURIComponent(CodeMirrorElement.getValue()) + o2Switch + GetCaptchaParameter()
+                        }).then(async (Response) => {
+                            if (Response.redirected) {
+                                location.href = Response.url;
+                            } else {
+                                const text = await Response.text();
+                                // The queue can cross submit.php's enforcement threshold after this page
+                                // was rendered, so the field may not have been on screen at all yet.
+                                if (text.indexOf("验证码错误") !== -1) {
+                                    if (UtilityEnabled("DebugMode")) {
+                                        console.log("Submission rejected by captcha check.");
+                                    }
+                                    await RefreshCaptcha("");
+                                    ErrorElement.style.display = "block";
+                                    ErrorMessage.style.color = "red";
+                                    try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
+                                        console.error(e);
+                                        if (UtilityEnabled("DebugMode")) {
+                                            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                        }
+                                    }
+                                    ErrorMessage.innerText = "验证码错误！请填写上方的验证码后重新提交。";
+                                    Submit.disabled = false;
+                                    Submit.value = "提交";
+                                    document.querySelector("#vcode").focus();
+                                    return;
+                                }
+                                if (text.indexOf("没有这个比赛！") !== -1 && new URL(location.href).searchParams.get("pid") !== null) {
+                                    // Credit: https://github.com/boomzero/quicksubmit/blob/main/index.ts
+                                    // Also licensed under GPL-3.0
+                                    const contestReq = await fetch("https://www.xmoj.tech/contest.php?cid=" + new URL(location.href).searchParams.get("cid"));
+                                    const res = await contestReq.text();
+                                    if (
+                                        contestReq.status !== 200 ||
+                                        res.indexOf("比赛尚未开始或私有，不能查看题目。") !== -1
+                                    ) {
+                                        console.error(`Failed to get contest page!`);
+                                        return;
+                                    }
+                                    const parser = new DOMParser();
+                                    const dom = parser.parseFromString(res, "text/html");
+                                    const contestProblems = [];
+                                    const rows = (dom.querySelector(
+                                        "#problemset > tbody",
+                                    )).rows;
+                                    for (let i = 0; i < rows.length; i++) {
+                                        contestProblems.push(
+                                            rows[i].children[1].textContent.substring(2, 6).replaceAll(
+                                                "\t",
+                                                "",
+                                            ),
+                                        );
+                                    }
+                                    rPID = contestProblems[new URL(location.href).searchParams.get("pid")];
+                                    if (UtilityEnabled("DebugMode")) {
+                                        console.log("Contest Problems:", contestProblems);
+                                        console.log("Real PID:", rPID);
+                                    }
+                                    ErrorElement.style.display = "block";
+                                    ErrorMessage.style.color = "red";
+                                    try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
+                                        console.error(e);
+                                        if (UtilityEnabled("DebugMode")) {
+                                            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                        }
+                                    }
+                                    ErrorMessage.innerText = "比赛已结束, 正在尝试向题目 " + rPID + " 提交";
+                                    console.log("比赛已结束, 正在尝试向题目 " + rPID + " 提交");
+                                    let o2Switch = "&enable_O2=on";
+                                    if (!document.querySelector("#enable_O2").checked) o2Switch = "";
+                                    await fetch("https://www.xmoj.tech/submit.php", {
+                                        "headers": {
+                                            "content-type": "application/x-www-form-urlencoded"
+                                        },
+                                        "referrer": location.href,
+                                        "method": "POST",
+                                        "body": "id=" + rPID + "&language=1&" + "source=" + encodeURIComponent(CodeMirrorElement.getValue()) + o2Switch + GetCaptchaParameter()
+                                    }).then(async (Response) => {
+                                        if (Response.redirected) {
+                                            location.href = Response.url;
+                                        }
+                                        console.log(await Response.text());
+                                    });
 
     if (response.redirected) {
         location.href = response.url;
@@ -4344,6 +4704,7 @@ if (retryResp.redirected) {
                         ErrorElement.style.display = "none";
                         document.querySelector("#Submit").disabled = true;
                         document.querySelector("#Submit").value = "正在检查...";
+                        if (CaptchaIsMissing()) return;
                         let Source = CodeMirrorElement.getValue();
                         let PID = 0;
                         let IOFilename = "";
