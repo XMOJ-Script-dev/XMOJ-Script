@@ -4530,6 +4530,11 @@ async function main() {
                         // XMOJ rejects anything submitted within a few seconds of the previous submission
                         // with 请勿重复提交, so wait the cooldown out instead of silently dropping the code.
                         for (let Attempt = 0; Attempt < 5; Attempt++) {
+                            // The captcha field stays editable while we fetch contest.php and while we wait
+                            // out a cooldown, so re-check it before every POST rather than trusting the
+                            // check the 提交 handler did. Sending a blank answer would burn the session.
+                            // CaptchaIsMissing() already shows its own message and restores the button.
+                            if (CaptchaIsMissing()) return {Success: false, Handled: true, Message: ""};
                             ReportStatus("比赛已结束, 正在尝试向题目 " + RealPID + " 提交");
                             const SubmitResponse = await fetch("https://www.xmoj.tech/submit.php", {
                                 "headers": {
@@ -4617,7 +4622,7 @@ async function main() {
                                 let FailMessage = "提交失败！请关闭脚本后重试！";
                                 if (text.indexOf("没有这个比赛！") !== -1 && SearchParams.get("pid") !== null) {
                                     const FallbackResult = await SubmitToEndedContestProblem(CodeMirrorElement.getValue(), o2Switch, ShowSubmitStatus);
-                                    if (FallbackResult.Success) {
+                                    if (FallbackResult.Success || FallbackResult.Handled) {
                                         return;
                                     }
                                     FailMessage = FallbackResult.Message;
