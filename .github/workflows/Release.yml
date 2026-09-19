@@ -1,10 +1,12 @@
 name: Release
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
     paths:
       - XMOJ.user.js
+      - .github/workflows/Release.yml
 jobs:
   Release:
     runs-on: ubuntu-latest
@@ -18,7 +20,7 @@ jobs:
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 22
           registry-url: https://registry.npmjs.org/
       - uses: actions/checkout@v6
         with:
@@ -36,12 +38,11 @@ jobs:
           draft: false
           prerelease: false
           files: XMOJ.user.js
-      - uses: cloudflare/pages-action@v1
+      - uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: 89969bdf9d5ab8202f8ad8b8ae2c40b8
-          projectName: xmoj-script
-          directory: .
+          command: pages deploy . --project-name=xmoj-script --branch=master
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
