@@ -4473,6 +4473,102 @@ async function main() {
                         RefreshCaptcha("");
                     }
 
+                    const ShowSubmitStatus = (Message) => {
+                        ErrorElement.style.display = "block";
+                        ErrorMessage.style.color = "red";
+                        try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
+                            console.error(e);
+                            if (UtilityEnabled("DebugMode")) {
+                                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                            }
+                        }
+                        ErrorMessage.innerText = Message;
+                        console.log(Message);
+                    };
+
+                    // Credit: https://github.com/boomzero/quicksubmit/blob/main/index.ts
+                    // Also licensed under GPL-3.0
+                    // The contest is over, so submit.php refuses the cid+pid submission. Look up the
+                    // real problem number on the contest page and submit to that problem instead.
+                    // Returns {Success, Message}; Success means a submission record was created.
+                    async function SubmitToEndedContestProblem(Source, O2Switch, ReportStatus) {
+                        const ContestID = new URL(location.href).searchParams.get("cid");
+                        const ProblemNumber = new URL(location.href).searchParams.get("pid");
+                        const ContestResponse = await fetch("https://www.xmoj.tech/contest.php?cid=" + ContestID);
+                        const ContestPage = await ContestResponse.text();
+                        if (ContestResponse.status !== 200 || ContestPage.indexOf("比赛尚未开始或私有，不能查看题目。") !== -1) {
+                            console.error("Failed to get contest page!");
+                            return {Success: false, Message: "无法读取比赛页面，未能找到原题题号！"};
+                        }
+                        let RealPID = undefined;
+                        try {
+                            const ContestDocument = new DOMParser().parseFromString(ContestPage, "text/html");
+                            const ProblemTable = ContestDocument.querySelector("#problemset > tbody");
+                            if (ProblemTable === null) {
+                                console.error("Failed to find the problem list of the contest!");
+                                return {Success: false, Message: "无法解析比赛题目列表，未能找到原题题号！"};
+                            }
+                            const ContestProblems = [];
+                            for (let i = 0; i < ProblemTable.rows.length; i++) {
+                                // The 题号 cell is padded with newlines and tabs; a fixed substring(2, 6)
+                                // truncates any problem number that is not exactly four digits.
+                                const ProblemNumberMatch = ProblemTable.rows[i].children[1].textContent.match(/\d+/);
+                                ContestProblems.push(ProblemNumberMatch === null ? "" : ProblemNumberMatch[0]);
+                            }
+                            RealPID = ContestProblems[ProblemNumber];
+                            if (UtilityEnabled("DebugMode")) {
+                                console.log("Contest Problems:", ContestProblems);
+                                console.log("Real PID:", RealPID);
+                            }
+                        } catch (e) {
+                            console.error(e);
+                            return {Success: false, Message: "无法解析比赛题目列表，未能找到原题题号！"};
+                        }
+                        if (RealPID === undefined || RealPID === "") {
+                            return {Success: false, Message: "无法确定原题题号，请手动前往原题提交！"};
+                        }
+                        // XMOJ rejects anything submitted within a few seconds of the previous submission
+                        // with 请勿重复提交, so wait the cooldown out instead of silently dropping the code.
+                        for (let Attempt = 0; Attempt < 5; Attempt++) {
+                            ReportStatus("比赛已结束, 正在尝试向题目 " + RealPID + " 提交");
+                            const SubmitResponse = await fetch("https://www.xmoj.tech/submit.php", {
+                                "headers": {
+                                    "content-type": "application/x-www-form-urlencoded"
+                                },
+                                "referrer": location.href,
+                                "method": "POST",
+                                "body": "id=" + RealPID + "&language=1&" + "source=" + encodeURIComponent(Source) + O2Switch + GetCaptchaParameter()
+                            });
+                            if (SubmitResponse.redirected) {
+                                location.href = SubmitResponse.url;
+                                return {Success: true, Message: ""};
+                            }
+                            const SubmitPage = await SubmitResponse.text();
+                            if (UtilityEnabled("DebugMode")) {
+                                console.log("Direct submission response:", SubmitPage);
+                            }
+                            // Retrying cannot help here: the answer that was sent has already been spent.
+                            if (SubmitPage.indexOf("验证码错误") !== -1) {
+                                await RefreshCaptcha("");
+                                document.querySelector("#vcode").focus();
+                                return {Success: false, Message: "验证码错误！请填写上方的验证码后重新提交。"};
+                            }
+                            if (SubmitPage.indexOf("请勿重复提交") === -1) {
+                                let ServerMessage = "";
+                                try {
+                                    const MessageElement = new DOMParser().parseFromString(SubmitPage, "text/html").querySelector(".jumbotron");
+                                    if (MessageElement !== null) ServerMessage = MessageElement.textContent.trim();
+                                } catch (e) {
+                                    console.error(e);
+                                }
+                                return {Success: false, Message: "向题目 " + RealPID + " 提交失败！" + (ServerMessage === "" ? "请关闭脚本后重试！" : ServerMessage)};
+                            }
+                            ReportStatus("提交过于频繁, 3 秒后重新尝试向题目 " + RealPID + " 提交");
+                            await new Promise((Resolve) => setTimeout(Resolve, 3000));
+                        }
+                        return {Success: false, Message: "向题目 " + RealPID + " 提交失败！提交过于频繁，请稍后手动重试！"};
+                    }
+
                     PassCheck.addEventListener("click", async () => {
                         // This is the request that actually reaches submit.php, so the captcha is checked
                         // here as well as in the 提交 handler above.
@@ -4515,76 +4611,18 @@ async function main() {
                                     document.querySelector("#vcode").focus();
                                     return;
                                 }
-                                if (text.indexOf("没有这个比赛！") !== -1 && new URL(location.href).searchParams.get("pid") !== null) {
-                                    // Credit: https://github.com/boomzero/quicksubmit/blob/main/index.ts
-                                    // Also licensed under GPL-3.0
-                                    const contestReq = await fetch("https://www.xmoj.tech/contest.php?cid=" + new URL(location.href).searchParams.get("cid"));
-                                    const res = await contestReq.text();
-                                    if (
-                                        contestReq.status !== 200 ||
-                                        res.indexOf("比赛尚未开始或私有，不能查看题目。") !== -1
-                                    ) {
-                                        console.error(`Failed to get contest page!`);
-                                        return;
-                                    }
-                                    const parser = new DOMParser();
-                                    const dom = parser.parseFromString(res, "text/html");
-                                    const contestProblems = [];
-                                    const rows = (dom.querySelector(
-                                        "#problemset > tbody",
-                                    )).rows;
-                                    for (let i = 0; i < rows.length; i++) {
-                                        contestProblems.push(
-                                            rows[i].children[1].textContent.substring(2, 6).replaceAll(
-                                                "\t",
-                                                "",
-                                            ),
-                                        );
-                                    }
-                                    rPID = contestProblems[new URL(location.href).searchParams.get("pid")];
-                                    if (UtilityEnabled("DebugMode")) {
-                                        console.log("Contest Problems:", contestProblems);
-                                        console.log("Real PID:", rPID);
-                                    }
-                                    ErrorElement.style.display = "block";
-                                    ErrorMessage.style.color = "red";
-                                    try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
-                                        console.error(e);
-                                        if (UtilityEnabled("DebugMode")) {
-                                            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
-                                        }
-                                    }
-                                    ErrorMessage.innerText = "比赛已结束, 正在尝试向题目 " + rPID + " 提交";
-                                    console.log("比赛已结束, 正在尝试向题目 " + rPID + " 提交");
-                                    let o2Switch = "&enable_O2=on";
-                                    if (!document.querySelector("#enable_O2").checked) o2Switch = "";
-                                    await fetch("https://www.xmoj.tech/submit.php", {
-                                        "headers": {
-                                            "content-type": "application/x-www-form-urlencoded"
-                                        },
-                                        "referrer": location.href,
-                                        "method": "POST",
-                                        "body": "id=" + rPID + "&language=1&" + "source=" + encodeURIComponent(CodeMirrorElement.getValue()) + o2Switch + GetCaptchaParameter()
-                                    }).then(async (Response) => {
-                                        if (Response.redirected) {
-                                            location.href = Response.url;
-                                        }
-                                        console.log(await Response.text());
-                                    });
-
-                                }
                                 if (UtilityEnabled("DebugMode")) {
                                     console.log("Submission failed! Response:", text);
                                 }
-                                ErrorElement.style.display = "block";
-                                ErrorMessage.style.color = "red";
-                                try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
-                                    console.error(e);
-                                    if (UtilityEnabled("DebugMode")) {
-                                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                let FailMessage = "提交失败！请关闭脚本后重试！";
+                                if (text.indexOf("没有这个比赛！") !== -1 && SearchParams.get("pid") !== null) {
+                                    const FallbackResult = await SubmitToEndedContestProblem(CodeMirrorElement.getValue(), o2Switch, ShowSubmitStatus);
+                                    if (FallbackResult.Success) {
+                                        return;
                                     }
+                                    FailMessage = FallbackResult.Message;
                                 }
-                                ErrorMessage.innerText = "提交失败！请关闭脚本后重试！";
+                                ShowSubmitStatus(FailMessage);
                                 Submit.disabled = false;
                                 Submit.value = "提交";
                             }
