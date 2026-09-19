@@ -4494,8 +4494,17 @@ async function main() {
                     async function SubmitToEndedContestProblem(Source, O2Switch, ReportStatus) {
                         const ContestID = new URL(location.href).searchParams.get("cid");
                         const ProblemNumber = new URL(location.href).searchParams.get("pid");
-                        const ContestResponse = await fetch("https://www.xmoj.tech/contest.php?cid=" + ContestID);
-                        const ContestPage = await ContestResponse.text();
+                        // A rejected fetch here would unwind all the way out of the click handler, which
+                        // has no catch, leaving 提交 stuck on 正在提交... with the error box still hidden.
+                        let ContestResponse = undefined;
+                        let ContestPage = "";
+                        try {
+                            ContestResponse = await fetch("https://www.xmoj.tech/contest.php?cid=" + ContestID);
+                            ContestPage = await ContestResponse.text();
+                        } catch (e) {
+                            console.error(e);
+                            return {Success: false, Message: "无法读取比赛页面，未能找到原题题号！"};
+                        }
                         if (ContestResponse.status !== 200 || ContestPage.indexOf("比赛尚未开始或私有，不能查看题目。") !== -1) {
                             console.error("Failed to get contest page!");
                             return {Success: false, Message: "无法读取比赛页面，未能找到原题题号！"};
@@ -4536,19 +4545,25 @@ async function main() {
                             // CaptchaIsMissing() already shows its own message and restores the button.
                             if (CaptchaIsMissing()) return {Success: false, Handled: true, Message: ""};
                             ReportStatus("比赛已结束, 正在尝试向题目 " + RealPID + " 提交");
-                            const SubmitResponse = await fetch("https://www.xmoj.tech/submit.php", {
-                                "headers": {
-                                    "content-type": "application/x-www-form-urlencoded"
-                                },
-                                "referrer": location.href,
-                                "method": "POST",
-                                "body": "id=" + RealPID + "&language=1&" + "source=" + encodeURIComponent(Source) + O2Switch + GetCaptchaParameter()
-                            });
-                            if (SubmitResponse.redirected) {
-                                location.href = SubmitResponse.url;
-                                return {Success: true, Message: ""};
+                            let SubmitPage = "";
+                            try {
+                                const SubmitResponse = await fetch("https://www.xmoj.tech/submit.php", {
+                                    "headers": {
+                                        "content-type": "application/x-www-form-urlencoded"
+                                    },
+                                    "referrer": location.href,
+                                    "method": "POST",
+                                    "body": "id=" + RealPID + "&language=1&" + "source=" + encodeURIComponent(Source) + O2Switch + GetCaptchaParameter()
+                                });
+                                if (SubmitResponse.redirected) {
+                                    location.href = SubmitResponse.url;
+                                    return {Success: true, Message: ""};
+                                }
+                                SubmitPage = await SubmitResponse.text();
+                            } catch (e) {
+                                console.error(e);
+                                return {Success: false, Message: "向题目 " + RealPID + " 提交失败！网络错误，请稍后重试！"};
                             }
-                            const SubmitPage = await SubmitResponse.text();
                             if (UtilityEnabled("DebugMode")) {
                                 console.log("Direct submission response:", SubmitPage);
                             }
