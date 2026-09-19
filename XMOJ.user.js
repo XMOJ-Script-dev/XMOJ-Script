@@ -4400,26 +4400,36 @@ async function main() {
                         // Only a submitted answer counts against the session, so fetching another image is
                         // free: when the solver declines one it is cheaper to ask for a fresh challenge than
                         // to make the user type it. Each fetch replaces the answer the session expects, so
-                        // this stops as soon as the user starts typing against the image on screen.
+                        // this stops if the user starts typing against the image on screen before the next one.
                         for (let Attempt = 1; Attempt <= CaptchaMaxAttempts; Attempt++) {
                             if (Attempt > 1) {
                                 await new Promise((Resolve) => setTimeout(Resolve, 300));
                                 if (RequestID !== CaptchaRequestID || CaptchaInput.value !== "") return;
                                 SetCaptchaStatus("这张看不太准，正在自动换一张（" + Attempt + "/" + CaptchaMaxAttempts + "）");
                             }
+                            // From the moment vcode.php is requested the image on screen no longer matches the
+                            // session, so anything typed from it would be a guaranteed wrong answer. The box is
+                            // locked until the new image replaces it. A newer call that takes over leaves the
+                            // lock to be released by that call rather than by this one.
+                            CaptchaInput.readOnly = true;
                             let ImageBlob;
                             try {
                                 const CaptchaResponse = await fetch("https://www.xmoj.tech/vcode.php?" + Math.random(), {cache: "no-store"});
                                 ImageBlob = await CaptchaResponse.blob();
                             } catch (e) {
                                 console.error(e);
-                                if (RequestID === CaptchaRequestID) SetCaptchaStatus("验证码加载失败，请点击图片重试");
+                                if (RequestID === CaptchaRequestID) {
+                                    CaptchaInput.readOnly = false;
+                                    SetCaptchaStatus("验证码加载失败，请点击图片重试");
+                                }
                                 return;
                             }
                             if (RequestID !== CaptchaRequestID) return;
                             if (CaptchaObjectURL !== null) URL.revokeObjectURL(CaptchaObjectURL);
                             CaptchaObjectURL = URL.createObjectURL(ImageBlob);
                             document.querySelector("#CaptchaImage").src = CaptchaObjectURL;
+                            CaptchaInput.value = "";
+                            CaptchaInput.readOnly = false;
                             if (!UtilityEnabled("AutoCaptcha")) return;
                             let CaptchaLength = 4;
                             try {
