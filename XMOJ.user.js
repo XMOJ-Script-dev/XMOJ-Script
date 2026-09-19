@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      3.6.0
+// @version      3.7.0
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -551,6 +551,36 @@ let _earlyObs = null;
 })();
 
 const CaptchaSiteKey = "0x4AAAAAAALBT58IhyDViNmv";
+// XMOJ turns on its own image captcha (vcode.php) whenever the judge queue is busy. submitpage.php
+// renders the field at >10 pending solutions but submit.php only enforces it at >50, so the two can
+// disagree; see GetCaptchaParameter below for how that gap is handled.
+// vcode.php draws 4 digits with imagettftext(size 15, Vera.ttf) at a fixed origin, so every glyph is
+// pixel identical between challenges and template matching reads them exactly. That beats sending the
+// image to a vision model: llava-1.5-7b, llama-4-scout and mistral-small-3.1 were all measured at 0/7
+// on real captchas even after preprocessing, and a confidently wrong guess is worse than an empty box
+// because it burns the attempt and trips vfail. Glyphs below are Vera.ttf rendered at 20px, which is
+// the 15px cap height GD produces; '#' would be ink, stored as 1 bits row by row.
+const CaptchaGlyphs = {
+    "0": "001111000|011111110|011000110|111000111|110000011|110000011|110011011|110011011|110000011|110000011|110000011|111000111|011000110|011111110|001111000",
+    "1": "00111000|11111000|11011000|00011000|00011000|00011000|00011000|00011000|00011000|00011000|00011000|00011000|00011000|11111111|11111111",
+    "2": "011111100|111111110|100000111|000000011|000000011|000000011|000000111|000000110|000001100|000011000|000110000|001100000|011000000|111111111|111111111",
+    "3": "011111100|111111110|100000111|000000011|000000011|000000111|000111110|000111100|000000110|000000011|000000011|000000011|100000111|111111110|011111100",
+    "4": "0000011100|0000011100|0000111100|0000101100|0001101100|0001001100|0011001100|0110001100|0110001100|1100001100|1111111111|1111111111|0000001100|0000001100|0000001100",
+    "5": "011111110|011111110|011000000|011000000|011000000|011111100|011111110|010000111|000000011|000000011|000000011|000000011|100000110|111111110|011111000",
+    "6": "000111100|001111110|011100010|011000000|110000000|110000000|110111100|111111110|111000111|110000011|110000011|110000011|011000111|011111110|001111100",
+    "7": "111111111|111111111|000000110|000000110|000000110|000001100|000001100|000001100|000011000|000011000|000011000|000110000|000110000|000110000|001100000",
+    "8": "001111100|011111110|111000111|110000011|110000011|011000110|001111100|011111110|011000110|110000011|110000011|110000011|111000111|011111110|001111100",
+    "9": "001111100|011111110|111000110|110000011|110000011|110000011|111000111|011111111|001111011|000000011|000000011|000000110|010001110|011111100|001111000"
+};
+// How far ahead the best matching glyph has to score before its digit is trusted. Measured over 300
+// generated and 40 live captchas, 4 is the point where every wrong answer turns into a decline: it
+// still fills in about three quarters of them and never once guessed wrong.
+const CaptchaMinMargin = 4;
+// With about three quarters of challenges read, five images leave well under a 1% chance of giving up.
+const CaptchaMaxAttempts = 5;
+// Settings that start off rather than on. Both UtilityEnabled and the settings list seed missing
+// values, so they have to agree or whichever runs first decides the default.
+const DefaultOffSettings = ["DebugMode", "SuperDebug", "ReplaceXM"];
 // 0.53.0 leaks its minified helper variables (m, r, o, ...) into the global scope from every
 // chunk file, so whichever chunk happens to be evaluated last clobbers the others and the
 // editor randomly fails to load (microsoft/monaco-editor#5015). 0.52.2 ships a single bundle
@@ -1491,8 +1521,7 @@ let TidyTable = (Table) => {
 let UtilityEnabled = (Name) => {
     try {
         if (localStorage.getItem("UserScript-Setting-" + Name) == null) {
-            const defaultOffItems = ["DebugMode", "SuperDebug", "ReplaceXM"];
-            localStorage.setItem("UserScript-Setting-" + Name, defaultOffItems.includes(Name) ? "false" : "true");
+            localStorage.setItem("UserScript-Setting-" + Name, DefaultOffSettings.includes(Name) ? "false" : "true");
         }
         return localStorage.getItem("UserScript-Setting-" + Name) == "true";
     } catch (e) {
@@ -2807,7 +2836,7 @@ async function main() {
                                     CheckBox.type = "checkbox";
                                     CheckBox.id = Data[i].ID;
                                     if (localStorage.getItem("UserScript-Setting-" + Data[i].ID) == null) {
-                                        localStorage.setItem("UserScript-Setting-" + Data[i].ID, "true");
+                                        localStorage.setItem("UserScript-Setting-" + Data[i].ID, DefaultOffSettings.includes(Data[i].ID) ? "false" : "true");
                                     }
                                     if (localStorage.getItem("UserScript-Setting-" + Data[i].ID) == "false") {
                                         CheckBox.checked = false;
@@ -2855,6 +2884,8 @@ async function main() {
                         }, {"ID": "DownloadPlayback", "Type": "A", "Name": "回放视频增加下载功能"}, {
                             "ID": "ImproveACRate", "Type": "A", "Name": "自动提交已AC题目以提高AC率"
                         }, {"ID": "AutoO2", "Type": "F", "Name": "代码提交界面自动选择O2优化"}, {
+                            "ID": "AutoCaptcha", "Type": "A", "Name": "自动识别提交界面的验证码（本地识别，把握不大时留空由您填写）"
+                        }, {
                             "ID": "Beautify", "Type": "F", "Name": "美化界面", "Children": [{
                                 "ID": "NewTopBar", "Type": "F", "Name": "使用新的顶部导航栏"
                             }, {
@@ -3502,7 +3533,20 @@ async function main() {
                             SolutionIDs.push(SID);
                             if (UtilityEnabled("ResetType")) {
                                 Temp[i].childNodes[0].remove();
-                                Temp[i].childNodes[0].innerHTML = "<a href=\"https://www.xmoj.tech/showsource.php?id=" + SID + "\">" + SID + "</a> " + "<a href=\"" + Temp[i].childNodes[6].children[1].href + "\">重交</a>";
+                                let resubmitLink = Temp[i].childNodes[6].children[1] ?? null;
+                                let sourceCell = Temp[i].childNodes[0];
+                                let sourceLink = document.createElement("a");
+                                sourceLink.href = "https://www.xmoj.tech/showsource.php?id=" + SID;
+                                sourceLink.innerText = SID;
+                                sourceCell.replaceChildren(sourceLink);
+                                // Submissions with PID 0 do not have a resubmit link.
+                                if (resubmitLink != null) {
+                                    let newResubmitLink = document.createElement("a");
+                                    newResubmitLink.href = resubmitLink.href;
+                                    newResubmitLink.innerText = "重交";
+                                    sourceCell.appendChild(document.createTextNode(" "));
+                                    sourceCell.appendChild(newResubmitLink);
+                                }
                                 Temp[i].childNodes[1].remove();
                                 Temp[i].childNodes[1].children[0].removeAttribute("class");
                                 Temp[i].childNodes[3].childNodes[0].innerText = SizeToStringSize(Temp[i].childNodes[3].childNodes[0].innerText);
@@ -4071,6 +4115,13 @@ async function main() {
                     }
                 } else if (location.pathname == "/submitpage.php") {
                     document.title = "提交代码: " + (SearchParams.get("id") != null ? "题目" + Number(SearchParams.get("id")) : "比赛" + Number(SearchParams.get("cid")));
+                    // submitpage.php only renders the vcode field while the judge queue is busy, and the
+                    // custom page below throws the server markup away, so read it before that happens.
+                    // The queue is idle almost all of the time, so the only other way to reach this state
+                    // is to flood the judge; localStorage UserScript-ForceCaptcha=true forces it instead.
+                    const NativeCaptchaShown = document.querySelector("input[name='vcode']") != null ||
+                        document.querySelector("img#vcode") != null ||
+                        localStorage.getItem("UserScript-ForceCaptcha") === "true";
                     document.querySelector("body > div > div.mt-3").innerHTML = `<center class="mb-3" id="_submitPageHeader"></center>
     <div id="MonacoEditor" style="width:100%; height:550px; display: grid; place-items: center;">
       <p id="loadEditor">Loading...</p>
@@ -4079,6 +4130,12 @@ async function main() {
     <center class="mt-3">
         <input id="enable_O2" name="enable_O2" type="checkbox"><label for="enable_O2">打开O2开关</label>
         <br>
+        <div id="CaptchaElement" class="mt-2" style="display: none">
+            <label class="me-1" for="vcode">验证码</label>
+            <input id="vcode" name="vcode" class="form-control form-control-sm d-inline w-auto align-middle" type="text" maxlength="8" size="8" autocomplete="off">
+            <img id="CaptchaImage" class="ms-1 align-middle" style="cursor: pointer" alt="验证码" title="点击更换验证码">
+            <div id="CaptchaStatus" class="form-text mt-1"></div>
+        </div>
         <input id="Submit" class="btn btn-info mt-2" type="button" value="提交">
         <div id="ErrorElement" class="mt-2" style="display: none; text-align: left; padding: 10px;">
             <div id="ErrorMessage" style="white-space: pre; background-color: rgba(0, 0, 0, 0.1); padding: 10px; border-radius: 5px;"></div>
@@ -4197,7 +4254,368 @@ async function main() {
                             });
                     }
 
+                    // vcode.php writes the expected answer into the PHP session every time it is
+                    // requested, so the challenge must be downloaded exactly once and that same copy
+                    // shown to the user: letting the <img> load it separately would leave the picture on
+                    // screen one challenge behind whatever the session actually expects.
+                    let CaptchaObjectURL = null;
+                    let CaptchaRequestID = 0;
+                    const SetCaptchaStatus = (Message) => {
+                        document.querySelector("#CaptchaStatus").innerText = Message;
+                    };
+                    // Byte 6-7 of a GIF header is the little endian width. vcode.php sizes the image as
+                    // 15px per character, so 60px means the easy 4 digit challenge while a wider image is
+                    // the 8 character alphanumeric one the server switches to after a failed attempt.
+                    const GetCaptchaLength = async (ImageBlob) => {
+                        const Header = new Uint8Array(await ImageBlob.slice(0, 8).arrayBuffer());
+                        return Math.round((Header[6] | (Header[7] << 8)) / 15);
+                    };
+                    const ParsedCaptchaGlyphs = Object.entries(CaptchaGlyphs).map(([Digit, Bitmap]) => {
+                        const Rows = Bitmap.split("|");
+                        return {Digit: Digit, Rows: Rows, Width: Rows[0].length, Height: Rows.length};
+                    });
+                    // vcode.php fills the background with one random colour and draws the text in its exact
+                    // inverse, so the most common pixel identifies the background and 255 minus it is the
+                    // ink. Noise dots are a third random colour and mostly fall outside that tolerance. The
+                    // 1px black border is skipped because a near white background makes it match the ink.
+                    const BuildCaptchaMask = (Pixels, Width, Height) => {
+                        const Counts = new Map();
+                        for (let Index = 0; Index < Pixels.length; Index += 4) {
+                            const Key = (Pixels[Index] << 16) | (Pixels[Index + 1] << 8) | Pixels[Index + 2];
+                            Counts.set(Key, (Counts.get(Key) || 0) + 1);
+                        }
+                        let Background = 0, BestCount = -1;
+                        Counts.forEach((Count, Key) => {
+                            if (Count > BestCount) { BestCount = Count; Background = Key; }
+                        });
+                        const InkRed = 255 - ((Background >> 16) & 255);
+                        const InkGreen = 255 - ((Background >> 8) & 255);
+                        const InkBlue = 255 - (Background & 255);
+                        const Mask = [];
+                        for (let Row = 0; Row < Height; Row++) {
+                            const Line = new Uint8Array(Width);
+                            for (let Column = 0; Column < Width; Column++) {
+                                if (Row === 0 || Column === 0 || Row === Height - 1 || Column === Width - 1) continue;
+                                const Index = (Row * Width + Column) * 4;
+                                const Distance = Math.abs(Pixels[Index] - InkRed) +
+                                    Math.abs(Pixels[Index + 1] - InkGreen) +
+                                    Math.abs(Pixels[Index + 2] - InkBlue);
+                                if (Distance < 90) Line[Column] = 1;
+                            }
+                            Mask.push(Line);
+                        }
+                        return Mask;
+                    };
+                    // Digits never touch in this font, so inked columns split cleanly into one run each.
+                    const SplitCaptchaColumns = (Mask, Width, Height) => {
+                        const Groups = [];
+                        let Current = null;
+                        for (let Column = 0; Column < Width; Column++) {
+                            let Inked = false;
+                            for (let Row = 0; Row < Height && !Inked; Row++) if (Mask[Row][Column]) Inked = true;
+                            if (Inked) {
+                                if (Current !== null && Column - Current[Current.length - 1] <= 1) Current.push(Column);
+                                else { if (Current !== null) Groups.push(Current); Current = [Column]; }
+                            }
+                        }
+                        if (Current !== null) Groups.push(Current);
+                        return Groups;
+                    };
+                    // Rewarding covered ink alone lets a noisy 0 score as well as a 9, so ink the glyph does
+                    // not explain is penalised too. The window shifts by a couple of pixels either way to
+                    // absorb noise that has stuck to the edge of a digit and moved its bounding box.
+                    const MatchCaptchaGlyph = (Mask, Group, Width, Height) => {
+                        let Top = Height;
+                        for (let Row = 0; Row < Height; Row++) {
+                            for (const Column of Group) if (Mask[Row][Column]) { Top = Math.min(Top, Row); break; }
+                        }
+                        const Left = Group[0];
+                        const Scores = ParsedCaptchaGlyphs.map((Glyph) => {
+                            let Best = -Infinity;
+                            for (let OffsetY = -2; OffsetY <= 2; OffsetY++) {
+                                for (let OffsetX = -2; OffsetX <= 2; OffsetX++) {
+                                    let Score = 0;
+                                    for (let Row = 0; Row < Glyph.Height; Row++) {
+                                        for (let Column = 0; Column < Glyph.Width; Column++) {
+                                            const SampleRow = Top + OffsetY + Row;
+                                            const SampleColumn = Left + OffsetX + Column;
+                                            const Inked = SampleRow >= 0 && SampleRow < Height && SampleColumn >= 0 &&
+                                                SampleColumn < Width && Mask[SampleRow][SampleColumn] === 1;
+                                            if (Glyph.Rows[Row][Column] === "1") Score += Inked ? 1 : -2;
+                                            else if (Inked) Score -= 1;
+                                        }
+                                    }
+                                    Best = Math.max(Best, Score);
+                                }
+                            }
+                            return {Digit: Glyph.Digit, Score: Best};
+                        }).sort((Left, Right) => Right.Score - Left.Score);
+                        return {Digit: Scores[0].Digit, Margin: Scores[0].Score - Scores[1].Score};
+                    };
+                    // Returns null rather than a guess whenever the image does not split into exactly four
+                    // digits or any one of them is a close call, so a wrong answer never reaches submit.php.
+                    const SolveCaptcha = async (ImageBlob) => {
+                        try {
+                            const Bitmap = await createImageBitmap(ImageBlob);
+                            const Canvas = document.createElement("canvas");
+                            Canvas.width = Bitmap.width;
+                            Canvas.height = Bitmap.height;
+                            const Context = Canvas.getContext("2d", {willReadFrequently: true});
+                            Context.drawImage(Bitmap, 0, 0);
+                            const Pixels = Context.getImageData(0, 0, Bitmap.width, Bitmap.height).data;
+                            const Mask = BuildCaptchaMask(Pixels, Bitmap.width, Bitmap.height);
+                            const Groups = SplitCaptchaColumns(Mask, Bitmap.width, Bitmap.height);
+                            if (Groups.length !== 4) {
+                                if (UtilityEnabled("DebugMode")) {
+                                    console.log("Captcha split into", Groups.length, "glyphs, not reading it");
+                                }
+                                return null;
+                            }
+                            let Answer = "";
+                            for (const Group of Groups) {
+                                const Match = MatchCaptchaGlyph(Mask, Group, Bitmap.width, Bitmap.height);
+                                if (Match.Margin < CaptchaMinMargin) {
+                                    if (UtilityEnabled("DebugMode")) {
+                                        console.log("Captcha glyph too close to call, margin", Match.Margin);
+                                    }
+                                    return null;
+                                }
+                                Answer += Match.Digit;
+                            }
+                            if (UtilityEnabled("DebugMode")) {
+                                console.log("Captcha read locally as", Answer);
+                            }
+                            return Answer;
+                        } catch (e) {
+                            console.error(e);
+                            return null;
+                        }
+                    };
+                    const RefreshCaptcha = async (StatusMessage) => {
+                        const RequestID = ++CaptchaRequestID;
+                        const CaptchaInput = document.querySelector("#vcode");
+                        document.querySelector("#CaptchaElement").style.display = "block";
+                        CaptchaInput.value = "";
+                        SetCaptchaStatus(StatusMessage || "");
+                        // Only a submitted answer counts against the session, so fetching another image is
+                        // free: when the solver declines one it is cheaper to ask for a fresh challenge than
+                        // to make the user type it. Each fetch replaces the answer the session expects, so
+                        // this stops if the user starts typing against the image on screen before the next one.
+                        for (let Attempt = 1; Attempt <= CaptchaMaxAttempts; Attempt++) {
+                            if (Attempt > 1) {
+                                await new Promise((Resolve) => setTimeout(Resolve, 300));
+                                if (RequestID !== CaptchaRequestID || CaptchaInput.value !== "") return;
+                                SetCaptchaStatus("这张看不太准，正在自动换一张（" + Attempt + "/" + CaptchaMaxAttempts + "）");
+                            }
+                            // From the moment vcode.php is requested the image on screen no longer matches the
+                            // session, so anything typed from it would be a guaranteed wrong answer. The box is
+                            // locked until the new image replaces it. A newer call that takes over leaves the
+                            // lock to be released by that call rather than by this one.
+                            CaptchaInput.readOnly = true;
+                            let ImageBlob;
+                            try {
+                                const CaptchaResponse = await fetch("https://www.xmoj.tech/vcode.php?" + Math.random(), {cache: "no-store"});
+                                ImageBlob = await CaptchaResponse.blob();
+                            } catch (e) {
+                                console.error(e);
+                                if (RequestID === CaptchaRequestID) {
+                                    CaptchaInput.readOnly = false;
+                                    SetCaptchaStatus("验证码加载失败，请点击图片重试");
+                                }
+                                return;
+                            }
+                            if (RequestID !== CaptchaRequestID) return;
+                            if (CaptchaObjectURL !== null) URL.revokeObjectURL(CaptchaObjectURL);
+                            CaptchaObjectURL = URL.createObjectURL(ImageBlob);
+                            document.querySelector("#CaptchaImage").src = CaptchaObjectURL;
+                            CaptchaInput.value = "";
+                            CaptchaInput.readOnly = false;
+                            if (!UtilityEnabled("AutoCaptcha")) return;
+                            let CaptchaLength = 4;
+                            try {
+                                CaptchaLength = await GetCaptchaLength(ImageBlob);
+                            } catch (e) {
+                                console.error(e);
+                            }
+                            if (CaptchaLength !== 4) {
+                                SetCaptchaStatus("本次为 " + CaptchaLength + " 位字母验证码，请手动输入");
+                                return;
+                            }
+                            const Answer = await SolveCaptcha(ImageBlob);
+                            if (RequestID !== CaptchaRequestID) return;
+                            // Never overwrite what the user has already started typing.
+                            if (CaptchaInput.value !== "") return;
+                            if (Answer !== null) {
+                                CaptchaInput.value = Answer;
+                                SetCaptchaStatus("已自动识别，若与图片不符请手动修改");
+                                return;
+                            }
+                        }
+                        SetCaptchaStatus("连续几张都看不太准，请手动输入，或点击图片换一张");
+                    };
+                    document.querySelector("#CaptchaImage").addEventListener("click", () => {
+                        RefreshCaptcha("");
+                    });
+                    document.querySelector("#vcode").addEventListener("keydown", (KeyEvent) => {
+                        if (KeyEvent.key === "Enter") {
+                            KeyEvent.preventDefault();
+                            Submit.click();
+                        }
+                    });
+                    // submit.php ignores an unexpected vcode field, so sending it whenever the user has
+                    // one costs nothing and covers the case where the queue grew past the enforcement
+                    // threshold after this page was rendered.
+                    const GetCaptchaParameter = () => {
+                        const CaptchaValue = document.querySelector("#vcode").value.trim();
+                        return CaptchaValue === "" ? "" : "&vcode=" + encodeURIComponent(CaptchaValue);
+                    };
+                    // Submitting a blank answer makes the server mark the session as having failed the
+                    // check, which swaps the 4 digit challenge for an 8 character one until the session
+                    // ends. This has to be re-checked immediately before the POST rather than only when
+                    // 提交 is pressed: a warning leaves 强制提交 on screen, and the captcha can be cleared
+                    // in between by refreshing the image or emptying the box by hand.
+                    const CaptchaIsMissing = () => {
+                        if (document.querySelector("#CaptchaElement").style.display === "none") return false;
+                        if (document.querySelector("#vcode").value.trim() !== "") return false;
+                        PassCheck.style.display = "none";
+                        ErrorElement.style.display = "block";
+                        ErrorMessage.style.color = "red";
+                        try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
+                            console.error(e);
+                            if (UtilityEnabled("DebugMode")) {
+                                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                            }
+                        }
+                        ErrorMessage.innerText = "当前评测队列繁忙，请先填写上方的验证码。";
+                        Submit.disabled = false;
+                        Submit.value = "提交";
+                        document.querySelector("#vcode").focus();
+                        return true;
+                    };
+                    if (NativeCaptchaShown) {
+                        RefreshCaptcha("");
+                    }
+
+                    const ShowSubmitStatus = (Message) => {
+                        ErrorElement.style.display = "block";
+                        ErrorMessage.style.color = "red";
+                        try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
+                            console.error(e);
+                            if (UtilityEnabled("DebugMode")) {
+                                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                            }
+                        }
+                        ErrorMessage.innerText = Message;
+                        console.log(Message);
+                    };
+
+                    // Credit: https://github.com/boomzero/quicksubmit/blob/main/index.ts
+                    // Also licensed under GPL-3.0
+                    // The contest is over, so submit.php refuses the cid+pid submission. Look up the
+                    // real problem number on the contest page and submit to that problem instead.
+                    // Returns {Success, Message}; Success means a submission record was created.
+                    async function SubmitToEndedContestProblem(Source, O2Switch, ReportStatus) {
+                        const ContestID = new URL(location.href).searchParams.get("cid");
+                        const ProblemNumber = new URL(location.href).searchParams.get("pid");
+                        // A rejected fetch here would unwind all the way out of the click handler, which
+                        // has no catch, leaving 提交 stuck on 正在提交... with the error box still hidden.
+                        let ContestResponse = undefined;
+                        let ContestPage = "";
+                        try {
+                            ContestResponse = await fetch("https://www.xmoj.tech/contest.php?cid=" + ContestID);
+                            ContestPage = await ContestResponse.text();
+                        } catch (e) {
+                            console.error(e);
+                            return {Success: false, Message: "无法读取比赛页面，未能找到原题题号！"};
+                        }
+                        if (ContestResponse.status !== 200 || ContestPage.indexOf("比赛尚未开始或私有，不能查看题目。") !== -1) {
+                            console.error("Failed to get contest page!");
+                            return {Success: false, Message: "无法读取比赛页面，未能找到原题题号！"};
+                        }
+                        let RealPID = undefined;
+                        try {
+                            const ContestDocument = new DOMParser().parseFromString(ContestPage, "text/html");
+                            const ProblemTable = ContestDocument.querySelector("#problemset > tbody");
+                            if (ProblemTable === null) {
+                                console.error("Failed to find the problem list of the contest!");
+                                return {Success: false, Message: "无法解析比赛题目列表，未能找到原题题号！"};
+                            }
+                            const ContestProblems = [];
+                            for (let i = 0; i < ProblemTable.rows.length; i++) {
+                                // The 题号 cell is padded with newlines and tabs; a fixed substring(2, 6)
+                                // truncates any problem number that is not exactly four digits.
+                                const ProblemNumberMatch = ProblemTable.rows[i].children[1].textContent.match(/\d+/);
+                                ContestProblems.push(ProblemNumberMatch === null ? "" : ProblemNumberMatch[0]);
+                            }
+                            RealPID = ContestProblems[ProblemNumber];
+                            if (UtilityEnabled("DebugMode")) {
+                                console.log("Contest Problems:", ContestProblems);
+                                console.log("Real PID:", RealPID);
+                            }
+                        } catch (e) {
+                            console.error(e);
+                            return {Success: false, Message: "无法解析比赛题目列表，未能找到原题题号！"};
+                        }
+                        if (RealPID === undefined || RealPID === "") {
+                            return {Success: false, Message: "无法确定原题题号，请手动前往原题提交！"};
+                        }
+                        // XMOJ rejects anything submitted within a few seconds of the previous submission
+                        // with 请勿重复提交, so wait the cooldown out instead of silently dropping the code.
+                        for (let Attempt = 0; Attempt < 5; Attempt++) {
+                            // The captcha field stays editable while we fetch contest.php and while we wait
+                            // out a cooldown, so re-check it before every POST rather than trusting the
+                            // check the 提交 handler did. Sending a blank answer would burn the session.
+                            // CaptchaIsMissing() already shows its own message and restores the button.
+                            if (CaptchaIsMissing()) return {Success: false, Handled: true, Message: ""};
+                            ReportStatus("比赛已结束, 正在尝试向题目 " + RealPID + " 提交");
+                            let SubmitPage = "";
+                            try {
+                                const SubmitResponse = await fetch("https://www.xmoj.tech/submit.php", {
+                                    "headers": {
+                                        "content-type": "application/x-www-form-urlencoded"
+                                    },
+                                    "referrer": location.href,
+                                    "method": "POST",
+                                    "body": "id=" + RealPID + "&language=1&" + "source=" + encodeURIComponent(Source) + O2Switch + GetCaptchaParameter()
+                                });
+                                if (SubmitResponse.redirected) {
+                                    location.href = SubmitResponse.url;
+                                    return {Success: true, Message: ""};
+                                }
+                                SubmitPage = await SubmitResponse.text();
+                            } catch (e) {
+                                console.error(e);
+                                return {Success: false, Message: "向题目 " + RealPID + " 提交失败！网络错误，请稍后重试！"};
+                            }
+                            if (UtilityEnabled("DebugMode")) {
+                                console.log("Direct submission response:", SubmitPage);
+                            }
+                            // Retrying cannot help here: the answer that was sent has already been spent.
+                            if (SubmitPage.indexOf("验证码错误") !== -1) {
+                                await RefreshCaptcha("");
+                                document.querySelector("#vcode").focus();
+                                return {Success: false, Message: "验证码错误！请填写上方的验证码后重新提交。"};
+                            }
+                            if (SubmitPage.indexOf("请勿重复提交") === -1) {
+                                let ServerMessage = "";
+                                try {
+                                    const MessageElement = new DOMParser().parseFromString(SubmitPage, "text/html").querySelector(".jumbotron");
+                                    if (MessageElement !== null) ServerMessage = MessageElement.textContent.trim();
+                                } catch (e) {
+                                    console.error(e);
+                                }
+                                return {Success: false, Message: "向题目 " + RealPID + " 提交失败！" + (ServerMessage === "" ? "请关闭脚本后重试！" : ServerMessage)};
+                            }
+                            ReportStatus("提交过于频繁, 3 秒后重新尝试向题目 " + RealPID + " 提交");
+                            await new Promise((Resolve) => setTimeout(Resolve, 3000));
+                        }
+                        return {Success: false, Message: "向题目 " + RealPID + " 提交失败！提交过于频繁，请稍后手动重试！"};
+                    }
+
                     PassCheck.addEventListener("click", async () => {
+                        // This is the request that actually reaches submit.php, so the captcha is checked
+                        // here as well as in the 提交 handler above.
+                        if (CaptchaIsMissing()) return;
                         ErrorElement.style.display = "none";
                         document.querySelector("#Submit").disabled = true;
                         document.querySelector("#Submit").value = "正在提交...";
@@ -4209,43 +4627,19 @@ async function main() {
                             },
                             "referrer": location.href,
                             "method": "POST",
-                            "body": (SearchParams.get("id") != null ? "id=" + SearchParams.get("id") : "cid=" + SearchParams.get("cid") + "&pid=" + SearchParams.get("pid")) + "&language=1&" + "source=" + encodeURIComponent(CodeMirrorElement.getValue()) + o2Switch
+                            "body": (SearchParams.get("id") != null ? "id=" + SearchParams.get("id") : "cid=" + SearchParams.get("cid") + "&pid=" + SearchParams.get("pid")) + "&language=1&" + "source=" + encodeURIComponent(CodeMirrorElement.getValue()) + o2Switch + GetCaptchaParameter()
                         }).then(async (Response) => {
                             if (Response.redirected) {
                                 location.href = Response.url;
                             } else {
                                 const text = await Response.text();
-                                if (text.indexOf("没有这个比赛！") !== -1 && new URL(location.href).searchParams.get("pid") !== null) {
-                                    // Credit: https://github.com/boomzero/quicksubmit/blob/main/index.ts
-                                    // Also licensed under GPL-3.0
-                                    const contestReq = await fetch("https://www.xmoj.tech/contest.php?cid=" + new URL(location.href).searchParams.get("cid"));
-                                    const res = await contestReq.text();
-                                    if (
-                                        contestReq.status !== 200 ||
-                                        res.indexOf("比赛尚未开始或私有，不能查看题目。") !== -1
-                                    ) {
-                                        console.error(`Failed to get contest page!`);
-                                        return;
-                                    }
-                                    const parser = new DOMParser();
-                                    const dom = parser.parseFromString(res, "text/html");
-                                    const contestProblems = [];
-                                    const rows = (dom.querySelector(
-                                        "#problemset > tbody",
-                                    )).rows;
-                                    for (let i = 0; i < rows.length; i++) {
-                                        contestProblems.push(
-                                            rows[i].children[1].textContent.substring(2, 6).replaceAll(
-                                                "\t",
-                                                "",
-                                            ),
-                                        );
-                                    }
-                                    rPID = contestProblems[new URL(location.href).searchParams.get("pid")];
+                                // The queue can cross submit.php's enforcement threshold after this page
+                                // was rendered, so the field may not have been on screen at all yet.
+                                if (text.indexOf("验证码错误") !== -1) {
                                     if (UtilityEnabled("DebugMode")) {
-                                        console.log("Contest Problems:", contestProblems);
-                                        console.log("Real PID:", rPID);
+                                        console.log("Submission rejected by captcha check.");
                                     }
+                                    await RefreshCaptcha("");
                                     ErrorElement.style.display = "block";
                                     ErrorMessage.style.color = "red";
                                     try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
@@ -4254,37 +4648,24 @@ async function main() {
                                             SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
                                         }
                                     }
-                                    ErrorMessage.innerText = "比赛已结束, 正在尝试向题目 " + rPID + " 提交";
-                                    console.log("比赛已结束, 正在尝试向题目 " + rPID + " 提交");
-                                    let o2Switch = "&enable_O2=on";
-                                    if (!document.querySelector("#enable_O2").checked) o2Switch = "";
-                                    await fetch("https://www.xmoj.tech/submit.php", {
-                                        "headers": {
-                                            "content-type": "application/x-www-form-urlencoded"
-                                        },
-                                        "referrer": location.href,
-                                        "method": "POST",
-                                        "body": "id=" + rPID + "&language=1&" + "source=" + encodeURIComponent(CodeMirrorElement.getValue()) + o2Switch
-                                    }).then(async (Response) => {
-                                        if (Response.redirected) {
-                                            location.href = Response.url;
-                                        }
-                                        console.log(await Response.text());
-                                    });
-
+                                    ErrorMessage.innerText = "验证码错误！请填写上方的验证码后重新提交。";
+                                    Submit.disabled = false;
+                                    Submit.value = "提交";
+                                    document.querySelector("#vcode").focus();
+                                    return;
                                 }
                                 if (UtilityEnabled("DebugMode")) {
                                     console.log("Submission failed! Response:", text);
                                 }
-                                ErrorElement.style.display = "block";
-                                ErrorMessage.style.color = "red";
-                                try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
-                                    console.error(e);
-                                    if (UtilityEnabled("DebugMode")) {
-                                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                let FailMessage = "提交失败！请关闭脚本后重试！";
+                                if (text.indexOf("没有这个比赛！") !== -1 && SearchParams.get("pid") !== null) {
+                                    const FallbackResult = await SubmitToEndedContestProblem(CodeMirrorElement.getValue(), o2Switch, ShowSubmitStatus);
+                                    if (FallbackResult.Success || FallbackResult.Handled) {
+                                        return;
                                     }
+                                    FailMessage = FallbackResult.Message;
                                 }
-                                ErrorMessage.innerText = "提交失败！请关闭脚本后重试！";
+                                ShowSubmitStatus(FailMessage);
                                 Submit.disabled = false;
                                 Submit.value = "提交";
                             }
@@ -4296,6 +4677,7 @@ async function main() {
                         ErrorElement.style.display = "none";
                         document.querySelector("#Submit").disabled = true;
                         document.querySelector("#Submit").value = "正在检查...";
+                        if (CaptchaIsMissing()) return;
                         let Source = CodeMirrorElement.getValue();
                         let PID = 0;
                         let IOFilename = "";
@@ -4970,6 +5352,10 @@ async function main() {
                         </div>
                         <div id="CompareElement" style="width:100%; height:550px; display: grid; place-items: center;"></div>`;
 
+                            let compareElementStyle = document.createElement("style");
+                            compareElementStyle.textContent = `#CompareElement .monaco-merge-host { height: 95%; }`;
+                            document.head.appendChild(compareElementStyle);
+
                             let LeftCode = "";
                             await fetch("https://www.xmoj.tech/getsource.php?id=" + SearchParams.get("left"))
                                 .then((Response) => {
@@ -5157,10 +5543,437 @@ async function main() {
                             let Temp = CurrentElement.innerText.substring(0, CurrentElement.innerText.length - 2).split("/");
                             CurrentElement.innerText = TimeToStringTime(Temp[0]) + "/" + SizeToStringSize(Temp[1]);
                         }
-                        if (document.getElementById("apply_data")) {
-                            let ApplyDiv = document.getElementById("apply_data").parentElement;
+                        {
+                            let ApplyDataElement = document.getElementById("apply_data");
+                            let ApplyDiv = ApplyDataElement ? ApplyDataElement.parentElement : document.getElementById("results").parentElement;
                             console.log("启动！！！");
                             if (UtilityEnabled("ApplyData")) {
+                                let base93Alphabet = (() => {
+                                    let result = "";
+                                    for (let code = 32; code < 127; code++) {
+                                        if (code !== 91 && code !== 93) {
+                                            result += String.fromCharCode(code);
+                                        }
+                                    }
+                                    return result;
+                                })();
+                                let base93Map = Object.fromEntries([...base93Alphabet].map((character, index) => [character, index]));
+
+                                function Base93Decode(input) {
+                                    let output = [];
+                                    let bitBuffer = 0;
+                                    let bitCount = 0;
+                                    let value = -1;
+                                    for (let character of input) {
+                                        let decoded = base93Map[character];
+                                        if (decoded === undefined) {
+                                            throw new Error("Invalid Base93 payload");
+                                        }
+                                        if (value < 0) {
+                                            value = decoded;
+                                            continue;
+                                        }
+                                        value += decoded * 93;
+                                        bitBuffer |= value << bitCount;
+                                        bitCount += (value & 8191) > 456 ? 13 : 14;
+                                        while (bitCount >= 8) {
+                                            output.push(bitBuffer & 255);
+                                            bitBuffer >>>= 8;
+                                            bitCount -= 8;
+                                        }
+                                        value = -1;
+                                    }
+                                    if (value >= 0) {
+                                        output.push((bitBuffer | value << bitCount) & 255);
+                                    }
+                                    return new Uint8Array(output);
+                                }
+
+                                function DecodeBytesForDisplay(input) {
+                                    try {
+                                        // Keep a leading UTF-8 BOM instead of silently discarding it.
+                                        return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(input);
+                                    } catch {
+                                        // Invalid UTF-8 is shown reversibly: every original byte becomes one \xNN escape.
+                                        let output = "";
+                                        for (let byte of input) {
+                                            output += "\\x" + byte.toString(16).padStart(2, "0");
+                                        }
+                                        return output;
+                                    }
+                                }
+
+                                function NumberStreamDecodeV1(input) {
+                                    let position = 4;
+                                    if (input.length < 5 || input[0] !== 78 || input[1] !== 83 || input[2] !== 67 || input[3] !== 49) {
+                                        throw new Error("Invalid number-stream payload");
+                                    }
+                                    function ReadByte() {
+                                        if (position >= input.length) {
+                                            throw new Error("Truncated number-stream payload");
+                                        }
+                                        return input[position++];
+                                    }
+                                    function ReadVarint() {
+                                        let value = 0n;
+                                        let shift = 0n;
+                                        while (true) {
+                                            let byte = ReadByte();
+                                            value |= BigInt(byte & 127) << shift;
+                                            if (!(byte & 128)) {
+                                                return value;
+                                            }
+                                            shift += 7n;
+                                            if (shift > 63n) {
+                                                throw new Error("Invalid number-stream varint");
+                                            }
+                                        }
+                                    }
+                                    function ReadSize() {
+                                        let value = ReadVarint();
+                                        if (value > BigInt(Number.MAX_SAFE_INTEGER)) {
+                                            throw new Error("Number-stream payload is too large");
+                                        }
+                                        return Number(value);
+                                    }
+                                    function Unzig(value) {
+                                        return (value >> 1n) ^ -(value & 1n);
+                                    }
+                                    let flags = ReadByte();
+                                    if (flags & 1) {
+                                        let length = ReadSize();
+                                        if (position + length > input.length) {
+                                            throw new Error("Truncated number-stream payload");
+                                        }
+                                        return DecodeBytesForDisplay(input.subarray(position, position + length));
+                                    }
+                                    let numberCount = ReadSize();
+                                    let lineCount = ReadSize();
+                                    let lineLengths = [];
+                                    let mode = ReadByte();
+                                    if (mode === 1) {
+                                        let length = ReadSize();
+                                        let lastLength = ReadSize();
+                                        for (let i = 0; i + 1 < lineCount; i++) {
+                                            lineLengths.push(length);
+                                        }
+                                        if (lineCount) {
+                                            lineLengths.push(lastLength);
+                                        }
+                                    } else if (mode === 2) {
+                                        for (let i = 0; i < lineCount; i++) {
+                                            lineLengths.push(ReadSize());
+                                        }
+                                    } else {
+                                        throw new Error("Invalid number-stream line mode");
+                                    }
+                                    let values = [];
+                                    let previous = 0n;
+                                    while (values.length < numberCount) {
+                                        let count = Math.min(128, numberCount - values.length);
+                                        let useDelta = ReadByte() !== 0;
+                                        let width = ReadByte();
+                                        if (width > 64) {
+                                            throw new Error("Invalid number-stream bit width");
+                                        }
+                                        if (width === 0) {
+                                            for (let i = 0; i < count; i++) {
+                                                let value = useDelta ? previous : 0n;
+                                                values.push(value);
+                                                previous = value;
+                                            }
+                                            continue;
+                                        }
+                                        let byteCount = Math.ceil(count * width / 8);
+                                        if (position + byteCount > input.length) {
+                                            throw new Error("Truncated number-stream payload");
+                                        }
+                                        let end = position + byteCount;
+                                        let buffer = 0n;
+                                        let bitCount = 0;
+                                        function ReadBits(bits) {
+                                            while (bitCount < bits) {
+                                                buffer |= BigInt(input[position++]) << BigInt(bitCount);
+                                                bitCount += 8;
+                                            }
+                                            let value = buffer & ((1n << BigInt(bits)) - 1n);
+                                            buffer >>= BigInt(bits);
+                                            bitCount -= bits;
+                                            return value;
+                                        }
+                                        for (let i = 0; i < count; i++) {
+                                            let decoded = Unzig(ReadBits(width));
+                                            let value = useDelta ? BigInt.asIntN(64, previous + decoded) : decoded;
+                                            values.push(value);
+                                            previous = value;
+                                        }
+                                        position = end;
+                                    }
+                                    if (lineLengths.reduce((sum, length) => sum + length, 0) !== numberCount) {
+                                        throw new Error("Invalid number-stream structure");
+                                    }
+                                    let output = "";
+                                    let valueIndex = 0;
+                                    for (let i = 0; i < lineLengths.length; i++) {
+                                        if (i) {
+                                            output += "\n";
+                                        }
+                                        let line = [];
+                                        for (let j = 0; j < lineLengths[i]; j++) {
+                                            line.push(values[valueIndex++].toString());
+                                        }
+                                        output += line.join(" ");
+                                    }
+                                    if (flags & 2) {
+                                        output += "\n";
+                                    }
+                                    return output;
+                                }
+
+                                function NumberStreamDecode(input) {
+                                    if (input[3] === 49) {
+                                        return NumberStreamDecodeV1(input);
+                                    }
+                                    let position = 4;
+                                    if (input.length < 5 || input[0] !== 78 || input[1] !== 83 || input[2] !== 67 || input[3] !== 51) {
+                                        throw new Error("Invalid number-stream payload");
+                                    }
+                                    function ReadByte() {
+                                        if (position >= input.length) {
+                                            throw new Error("Truncated number-stream payload");
+                                        }
+                                        return input[position++];
+                                    }
+                                    function ReadVarint() {
+                                        let value = 0n;
+                                        let shift = 0n;
+                                        while (true) {
+                                            let byte = ReadByte();
+                                            value |= BigInt(byte & 127) << shift;
+                                            if (!(byte & 128)) {
+                                                return value;
+                                            }
+                                            shift += 7n;
+                                            if (shift > 63n) {
+                                                throw new Error("Invalid number-stream varint");
+                                            }
+                                        }
+                                    }
+                                    function ReadSize() {
+                                        let value = ReadVarint();
+                                        if (value > 4294967296n) {
+                                            throw new Error("Number-stream payload is too large");
+                                        }
+                                        return Number(value);
+                                    }
+                                    function Unzig(value) {
+                                        return (value >> 1n) ^ -(value & 1n);
+                                    }
+                                    function DecodeStream(length) {
+                                        let output = [];
+                                        let definitions = [];
+                                        let sequence = [];
+                                        let previousDefinition = -1;
+                                        let previous = 0n;
+                                        function Emit(definition, count) {
+                                            if (definition.count !== count) {
+                                                throw new Error("Invalid number-stream block size");
+                                            }
+                                            let buffer = 0n;
+                                            let bitCount = 0;
+                                            let payloadPosition = 0;
+                                            function ReadBits(bits) {
+                                                while (bitCount < bits) {
+                                                    buffer |= BigInt(definition.payload[payloadPosition++]) << BigInt(bitCount);
+                                                    bitCount += 8;
+                                                }
+                                                let value = buffer & ((1n << BigInt(bits)) - 1n);
+                                                buffer >>= BigInt(bits);
+                                                bitCount -= bits;
+                                                return value;
+                                            }
+                                            for (let i = 0; i < count; i++) {
+                                                let packed = definition.width ? ReadBits(definition.width) : 0n;
+                                                let value;
+                                                if (definition.mode === 4) {
+                                                    value = BigInt.asIntN(64, definition.base + packed);
+                                                } else if (definition.mode === 1) {
+                                                    value = BigInt.asIntN(64, previous + Unzig(packed));
+                                                } else {
+                                                    value = Unzig(packed);
+                                                }
+                                                output.push(value);
+                                                previous = value;
+                                            }
+                                        }
+                                        while (output.length < length) {
+                                            let count = Math.min(128, length - output.length);
+                                            let operation = ReadByte();
+                                            if (operation === 3) {
+                                                let repeats = ReadSize();
+                                                if (previousDefinition < 0 || repeats === 0) {
+                                                    throw new Error("Invalid number-stream run");
+                                                }
+                                                for (let i = 0; i < repeats; i++) {
+                                                    if (output.length >= length) {
+                                                        throw new Error("Number-stream run is too long");
+                                                    }
+                                                    count = Math.min(128, length - output.length);
+                                                    Emit(definitions[previousDefinition], count);
+                                                    sequence.push(previousDefinition);
+                                                }
+                                                continue;
+                                            }
+                                            if (operation === 2) {
+                                                let distance = ReadSize();
+                                                if (!distance || distance > sequence.length) {
+                                                    throw new Error("Invalid number-stream back-reference");
+                                                }
+                                                previousDefinition = sequence[sequence.length - distance];
+                                                Emit(definitions[previousDefinition], count);
+                                                sequence.push(previousDefinition);
+                                                continue;
+                                            }
+                                            if (operation !== 0 && operation !== 1 && operation !== 4) {
+                                                throw new Error("Invalid number-stream opcode");
+                                            }
+                                            let width = ReadByte();
+                                            if (width > 64) {
+                                                throw new Error("Invalid number-stream bit width");
+                                            }
+                                            let base = operation === 4 ? Unzig(ReadVarint()) : 0n;
+                                            let byteCount = Math.ceil(count * width / 8);
+                                            if (position + byteCount > input.length) {
+                                                throw new Error("Truncated number-stream payload");
+                                            }
+                                            let definition = {
+                                                mode: operation,
+                                                width,
+                                                count,
+                                                base,
+                                                payload: input.subarray(position, position + byteCount)
+                                            };
+                                            position += byteCount;
+                                            Emit(definition, count);
+                                            definitions.push(definition);
+                                            previousDefinition = definitions.length - 1;
+                                            sequence.push(previousDefinition);
+                                        }
+                                        return output;
+                                    }
+                                    let flags = ReadByte();
+                                    if (flags & 1) {
+                                        let length = ReadSize();
+                                        if (position + length > input.length) {
+                                            throw new Error("Truncated number-stream payload");
+                                        }
+                                        return DecodeBytesForDisplay(input.subarray(position, position + length));
+                                    }
+                                    let numberCount = ReadSize();
+                                    let lineCount = ReadSize();
+                                    let lineValues = DecodeStream(lineCount);
+                                    let values = DecodeStream(numberCount);
+                                    let lineLengths = lineValues.map((value) => {
+                                        if (value < 0n || value > BigInt(Number.MAX_SAFE_INTEGER)) {
+                                            throw new Error("Invalid number-stream line length");
+                                        }
+                                        return Number(value);
+                                    });
+                                    if (lineLengths.reduce((sum, length) => sum + length, 0) !== numberCount) {
+                                        throw new Error("Invalid number-stream structure");
+                                    }
+                                    let output = "";
+                                    let valueIndex = 0;
+                                    for (let i = 0; i < lineLengths.length; i++) {
+                                        if (i) {
+                                            output += "\n";
+                                        }
+                                        let line = [];
+                                        for (let j = 0; j < lineLengths[i]; j++) {
+                                            line.push(values[valueIndex++].toString());
+                                        }
+                                        output += line.join(" ");
+                                    }
+                                    if (flags & 2) {
+                                        output += "\n";
+                                    }
+                                    return output;
+                                }
+
+                                async function GzipDecode(input) {
+                                    let stream = new Blob([input]).stream().pipeThrough(new DecompressionStream("gzip"));
+                                    return new Uint8Array(await new Response(stream).arrayBuffer());
+                                }
+
+                                async function DecodePayload(payload) {
+                                    let rawData = Base93Decode(payload);
+                                    if (rawData.length >= 4 && rawData[0] === 78 && rawData[1] === 83 && rawData[2] === 67 && (rawData[3] === 49 || rawData[3] === 51)) {
+                                        return NumberStreamDecode(rawData);
+                                    }
+                                    return DecodeBytesForDisplay(await GzipDecode(rawData));
+                                }
+
+                                async function ExtractData(text) {
+                                    let result = [];
+                                    let pattern = /^(?:what\(\):  )?\[([^\]\r\n]*)\]\r?$/gm;
+                                    let match;
+                                    while ((match = pattern.exec(text))) {
+                                        try {
+                                            result.push(await DecodePayload(match[1]));
+                                        } catch {
+                                        }
+                                    }
+                                    return result;
+                                }
+                                let NumberStreamEnabled = false;
+                                let NumberStreamButton = document.createElement("button");
+                                NumberStreamButton.className = "ms-2 btn btn-outline-secondary";
+                                NumberStreamButton.title = "适合大型、主要由数值组成的输入；基准压缩速度约 310 MB/s（数值范围以 long long 为限，其他内容会原样回退）";
+                                function UpdateNumberStreamButton() {
+                                    NumberStreamButton.innerText = "高速数值模式：" + (NumberStreamEnabled ? "开启" : "关闭");
+                                    NumberStreamButton.classList.toggle("btn-outline-secondary", !NumberStreamEnabled);
+                                    NumberStreamButton.classList.toggle("btn-outline-success", NumberStreamEnabled);
+                                    NumberStreamButton.setAttribute("aria-pressed", String(NumberStreamEnabled));
+                                }
+                                NumberStreamButton.addEventListener("click", () => {
+                                    NumberStreamEnabled = !NumberStreamEnabled;
+                                    UpdateNumberStreamButton();
+                                    UpdateLineBreakButton();
+                                    UpdateModeDescription();
+                                });
+                                ApplyDiv.appendChild(NumberStreamButton);
+                                let PreserveLineBreaks = true;
+                                let LineBreakButton = document.createElement("button");
+                                LineBreakButton.className = "ms-2 btn btn-outline-secondary";
+                                LineBreakButton.title = "使用 cin >> 等空白不敏感的读取方式时可关闭；关闭后不保留原输入换行，可避免大量随机行长超过评测输出限制";
+                                function UpdateLineBreakButton() {
+                                    LineBreakButton.innerText = "保留换行：" + (PreserveLineBreaks ? "是" : "否");
+                                    LineBreakButton.disabled = !NumberStreamEnabled;
+                                    LineBreakButton.classList.toggle("btn-outline-secondary", PreserveLineBreaks || !NumberStreamEnabled);
+                                    LineBreakButton.classList.toggle("btn-outline-warning", !PreserveLineBreaks && NumberStreamEnabled);
+                                    LineBreakButton.setAttribute("aria-pressed", String(PreserveLineBreaks));
+                                }
+                                LineBreakButton.addEventListener("click", () => {
+                                    PreserveLineBreaks = !PreserveLineBreaks;
+                                    UpdateLineBreakButton();
+                                    UpdateModeDescription();
+                                });
+                                ApplyDiv.appendChild(LineBreakButton);
+                                let ModeDescription = document.createElement("div");
+                                ModeDescription.className = "small text-secondary mt-2";
+                                function UpdateModeDescription() {
+                                    if (!NumberStreamEnabled) {
+                                        ModeDescription.innerText = "默认模式（gzip + Base93）：逐字节压缩并精确保留任意输入，适合文本、Unicode、混合内容，以及使用 getline 或按字符读取的程序。无效 UTF-8 会以可逆的逐字节 \\xNN 形式显示。";
+                                    } else if (PreserveLineBreaks) {
+                                        ModeDescription.innerText = "高速数值模式（保留换行）：NSC3 同时压缩 long long 数值和每行数值个数，精确恢复规范数值输入的空格、空行、换行和末尾换行；非规范或混合内容会原样回退。大量随机行长仍可能超过评测输出限制。";
+                                    } else {
+                                        ModeDescription.innerText = "高速数值模式（不保留换行）：丢弃规范数值输入的行边界，恢复为单行空格分隔的数据，可避开随机行长开销。仅适合 cin >> 或 scanf 等空白不敏感读取；不要用于 getline、按行解析或依赖末尾换行的程序。非规范或混合内容仍会原样回退。";
+                                    }
+                                }
+                                UpdateNumberStreamButton();
+                                UpdateLineBreakButton();
+                                UpdateModeDescription();
+                                ApplyDiv.appendChild(ModeDescription);
                                 let GetDataButton = document.createElement("button");
                                 GetDataButton.className = "ms-2 btn btn-outline-secondary";
                                 GetDataButton.innerText = "获取数据";
@@ -5183,39 +5996,66 @@ async function main() {
                                     if (localStorage.getItem(`UserScript-Problem-${PID}-IOFilename`) !== null) {
                                         Code = `#define IOFile "${localStorage.getItem(`UserScript-Problem-${PID}-IOFilename`)}"\n`;
                                     }
-                                    Code += `//XMOJ-Script 获取数据代码
-                            #include <bits/stdc++.h>
+                                    if (NumberStreamEnabled && !PreserveLineBreaks) {
+                                        Code += "#define NSC_IGNORE_LINES\n";
+                                    }
+                                    let NumberStreamCode = String.raw`// XMOJ-Script 获取数值数据代码 (NSC3)
+#include <bits/stdc++.h>
 using namespace std;
-string Base64Encode(string Input)
-{
-    const string Base64Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    string Output;
-    for (int i = 0; i < Input.length(); i += 3)
-    {
-        Output.push_back(i + 0 > Input.length() ? '=' : Base64Chars[(Input[i + 0] & 0xfc) >> 2]);
-        Output.push_back(i + 1 > Input.length() ? '=' : Base64Chars[((Input[i + 0] & 0x03) << 4) + ((Input[i + 1] & 0xf0) >> 4)]);
-        Output.push_back(i + 2 > Input.length() ? '=' : Base64Chars[((Input[i + 1] & 0x0f) << 2) + ((Input[i + 2] & 0xc0) >> 6)]);
-        Output.push_back(i + 3 > Input.length() ? '=' : Base64Chars[Input[i + 2] & 0x3f]);
-    }
-    return Output;
-}
-int main()
-{
-#ifdef IOFile
-    freopen(IOFile ".in", "r", stdin);
-    freopen(IOFile ".out", "w", stdout);
+typedef uint8_t U8;typedef uint64_t U64;typedef int64_t I64;const size_t NB=128,DC=1u<<16;
+U64 zz(I64 v){return(U64(v)<<1)^U64(v>>63);}int bf(U64 v){int n=0;while(v)n++,v>>=1;return n;}void pv(vector<U8>&o,U64 v){while(v>=128)o.push_back(U8(v)|128),v>>=7;o.push_back(U8(v));}
+struct NP{vector<I64>v,l;bool nl,ok;NP():nl(0),ok(1){}};
+NP pn(const string&s){NP r;size_t n=s.size();if(!n)return r;r.nl=s[n-1]=='\n';size_t e=r.nl?n-1:n;const char*p=s.data();r.v.reserve(e/3+8);size_t i=0;I64 z=0;bool a=1;while(i<e){char c=p[i];if(c=='\n'){r.l.push_back(z);z=0;a=1;i++;continue;}if(!a){if(c!=' '){r.ok=0;return r;}i++;if(i>=e||p[i]==' '||p[i]=='\n'){r.ok=0;return r;}c=p[i];}bool neg=0;if(c=='-'){neg=1;if(++i>=e){r.ok=0;return r;}c=p[i];}if(c<'0'||c>'9'){r.ok=0;return r;}if(c=='0'&&(neg||(i+1<e&&p[i+1]>='0'&&p[i+1]<='9'))){r.ok=0;return r;}U64 m=0;size_t b=i;while(i<e){unsigned d=unsigned(p[i])-unsigned('0');if(d>9)break;m=m*10+d;i++;}if(i-b>19){r.ok=0;return r;}if(i-b==19){U64 q=0;for(size_t j=b;j<i;j++){unsigned d=unsigned(p[j])-unsigned('0');if(q>(~U64(0)-d)/10){r.ok=0;return r;}q=q*10+d;}m=q;}U64 lim=neg?U64(1)<<63:(U64(1)<<63)-1;if(m>lim){r.ok=0;return r;}r.v.push_back(neg?I64(~m+1):I64(m));z++;a=0;}r.l.push_back(z);return r;}
+struct BW{vector<U8>&o;U64 a;int n;BW(vector<U8>&O):o(O),a(0),n(0){}void p(U64 v,int k){while(k){int t=min(k,64-n);U64 m=t==64?~U64(0):(U64(1)<<t)-1;a|=(v&m)<<n;n+=t;v=t==64?0:v>>t;k-=t;if(n==64){for(int i=0;i<8;i++)o.push_back(U8(a>>(8*i)));a=0;n=0;}}}void f(){if(n)for(int i=0;i<(n+7)/8;i++)o.push_back(U8(a>>(8*i)));}};
+void bp(vector<U8>&q,U8&m,U8&k,I64&base,const I64*v,size_t n,I64 prev){U64 mr=0,md=0;I64 lo=v[0],hi=v[0],p=prev;for(size_t i=0;i<n;i++){mr=max(mr,zz(v[i]));md=max(md,zz(I64(U64(v[i])-U64(p))));lo=min(lo,v[i]);hi=max(hi,v[i]);p=v[i];}int kr=bf(mr),kd=bf(md),kf=bf(U64(hi)-U64(lo));size_t cr=size_t(kr)*n,cd=size_t(kd)*n,cf=size_t(kf)*n+80;if(cf<cr&&cf<cd)m=4,k=kf,base=lo;else if(cd<cr)m=1,k=kd,base=0;else m=0,k=kr,base=0;q.clear();if(!k)return;BW w(q);p=prev;for(size_t i=0;i<n;i++){U64 x=m==4?U64(v[i])-U64(base):m==1?zz(I64(U64(v[i])-U64(p))):zz(v[i]);w.p(x,k);p=v[i];}w.f();}
+void hd(string&d,U8 m,U8 k,size_t n,I64 base){d.assign(1,char(m));d+=char(k);d+=char(n);d+=char(n>>8);for(int b=0;b<8;b++)d+=char(U8(U64(base)>>(8*b)));}
+void es(vector<U8>&o,const vector<I64>&v){unordered_map<string,size_t>dict;vector<string>defs;vector<size_t>seq;string cur;vector<U8>q;q.reserve(NB*8+8);size_t pending=0,prevDef=size_t(-1);I64 prev=0;for(size_t i=0;i<v.size();i+=NB){size_t n=min(NB,v.size()-i);U8 m,k;I64 base;bp(q,m,k,base,&v[i],n,prev);prev=v[i+n-1];hd(cur,m,k,n,base);if(!q.empty())cur.append((char*)&q[0],q.size());if(prevDef!=size_t(-1)&&defs[prevDef]==cur){pending++;seq.push_back(prevDef);continue;}if(pending){o.push_back(3);pv(o,pending);pending=0;}unordered_map<string,size_t>::iterator it=dict.find(cur);if(it!=dict.end()){size_t at=it->second;o.push_back(2);pv(o,seq.size()-at);prevDef=seq[at];seq.push_back(prevDef);it->second=seq.size()-1;continue;}o.push_back(m);o.push_back(k);if(m==4)pv(o,zz(base));o.insert(o.end(),q.begin(),q.end());defs.push_back(cur);prevDef=defs.size()-1;seq.push_back(prevDef);if(dict.size()<DC)dict[cur]=seq.size()-1;}if(pending){o.push_back(3);pv(o,pending);}}
+string ns(const string&s){vector<U8>o;o.push_back('N');o.push_back('S');o.push_back('C');o.push_back('3');NP p=pn(s);bool raw=!p.ok;
+#ifdef NSC_IGNORE_LINES
+if(!raw){p.nl=0;p.l.clear();if(!p.v.empty())p.l.push_back(I64(p.v.size()));}
 #endif
-    string Input;
-    while (1)
-    {
-        char Data = getchar();
-        if (Data == EOF)
-            break;
-        Input.push_back(Data);
-    }
-    throw logic_error("[" + Base64Encode(Input.c_str()) + "]");
-    return 0;
-}`;
+o.push_back(U8(raw|(p.nl?2:0)));if(raw){pv(o,s.size());o.insert(o.end(),s.begin(),s.end());return string((char*)&o[0],o.size());}pv(o,p.v.size());pv(o,p.l.size());es(o,p.l);es(o,p.v);return string((char*)&o[0],o.size());}
+string b93(const string&s){static string A=[](){string a;for(int c=32;c<127;c++)if(c!=91&&c!=93)a+=char(c);return a;}();string o="[";o.reserve(s.size()*5/4+3);uint32_t b=0;int n=0;for(size_t i=0;i<s.size();i++){uint8_t c=s[i];b|=(uint32_t)c<<n;n+=8;if(n>13){uint32_t v=b&8191;if(v>456)b>>=13,n-=13;else v=b&16383,b>>=14,n-=14;o+=A[v%93];o+=A[v/93];}}if(n){o+=A[b%93];if(n>7||b>92)o+=A[b/93];}o+=']';return o;}
+string rd(){string s;
+#ifdef IOFile
+if(!fseek(stdin,0,SEEK_END)){long n=ftell(stdin);rewind(stdin);if(n>=0){s.resize((size_t)n);if(n){size_t q=fread(&s[0],1,(size_t)n,stdin);s.resize(q);}return s;}}
+#endif
+char b[65536];size_t q;while((q=fread(b,1,sizeof b,stdin))!=0)s.append(b,q);return s;}
+int main(){
+#ifdef IOFile
+if(!freopen(IOFile ".in","rb",stdin))return 0;
+#endif
+cerr<<b93(ns(rd()))<<endl;abort();}
+`;
+                                    let GzipCode = `// XMOJ-Script 获取数据代码
+#include <bits/stdc++.h>
+using namespace std;
+struct W{string o;uint64_t b;int n;W():b(0),n(0){}void p(uint32_t v,int k){b|=(uint64_t)v<<n;n+=k;while(n>=8)o+=char(b),b>>=8,n-=8;}void a(){if(n)o+=char(b),b=0,n=0;}string f(){a();return o;}};uint32_t R(uint32_t x,int n){uint32_t y=0;while(n--)y=y*2+(x&1),x>>=1;return y;}struct T{uint16_t l,d;T(int L=0,int D=0):l(L),d(D){}};
+int Lb[]={3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258},Le[]={0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0},Db[]={1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577},De[]={0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13};
+int li(int x){int i=0;while(i<28&&x>=Lb[i+1])i++;return i;}int di(int x){int i=0;while(i<29&&x>=Db[i+1])i++;return i;}
+vector<T> tk(const string&s){int N=s.size(),Z=1<<16;vector<int>h(Z,-1),p(1<<15,-1);vector<T>v;v.reserve(N/5+1);auto H=[&](int i){return ((uint32_t)(uint8_t)s[i]*63001u+(uint32_t)(uint8_t)s[i+1]*251u+(uint8_t)s[i+2])&(Z-1);};auto I=[&](int i){if(i+2<N){int z=H(i);p[i&32767]=h[z];h[z]=i;}};auto M=[&](int i){int l=0,d=0;if(i+2>=N)return make_pair(0,0);int c=h[H(i)],m=min(258,N-i),q=0;const char*a=s.data()+i;while(c>=0&&i-c<=32768){int lim=l>=8?64:128;if(q++>=lim)break;const char*b=s.data()+c;if(b[0]!=a[0]||b[1]!=a[1]||b[2]!=a[2]){c=p[c&32767];continue;}if(l>=3&&(b[l]!=a[l]||memcmp(a,b,l))){c=p[c&32767];continue;}int z=l>=3?l+1:3;while(z+8<=m){uint64_t x,y;memcpy(&x,a+z,8);memcpy(&y,b+z,8);if(x!=y)break;z+=8;}while(z<m&&a[z]==b[z])z++;if(z>l)l=z,d=i-c;if(z>=128||z==m)break;c=p[c&32767];}return make_pair(l,d);};for(int i=0;i<N;){pair<int,int>u=M(i);int l=u.first,d=u.second;I(i);if(l>=3&&l<16&&i+1<N){pair<int,int>q=M(i+1);if(q.first>l){v.push_back(T((uint8_t)s[i++],0));continue;}}if(l>=3){v.push_back(T(l,d));for(int j=1;j<l;j++)I(i+j);i+=l;}else v.push_back(T((uint8_t)s[i++],0));}return v;}
+bool ln(vector<uint64_t>f,int M,vector<int>&L){int n=f.size();L.assign(n,0);priority_queue<pair<uint64_t,int>,vector<pair<uint64_t,int> >,greater<pair<uint64_t,int> > >q;vector<int>a(2*n,-1),b(2*n,-1);for(int i=0;i<n;i++)if(f[i])q.push(make_pair(f[i],i));if(q.empty())return 0;if(q.size()==1)return L[q.top().second]=1,1;int z=n;while(q.size()>1){pair<uint64_t,int>x=q.top();q.pop();pair<uint64_t,int>y=q.top();q.pop();a[z]=x.second;b[z]=y.second;q.push(make_pair(x.first+y.first,z++));}function<void(int,int)>F=[&](int x,int d){if(x<n)L[x]=d;else F(a[x],d+1),F(b[x],d+1);};F(q.top().second,0);return *max_element(L.begin(),L.end())<=M;}
+vector<uint32_t> cd(const vector<int>&L,int M){vector<int>c(M+1),n(M+1);for(size_t i=0;i<L.size();i++)if(L[i])c[L[i]]++;int z=0;for(int i=1;i<=M;i++)z=(z+c[i-1])<<1,n[i]=z;vector<uint32_t>r(L.size());for(size_t i=0;i<L.size();i++)if(L[i])r[i]=R(n[L[i]]++,L[i]);return r;}void sy(W&w,int s,const vector<int>&L,const vector<uint32_t>&C){w.p(C[s],L[s]);}
+void pm(W&w,int l,int d,const vector<int>&L,const vector<uint32_t>&C,const vector<int>&D,const vector<uint32_t>&E){int a=li(l),q=di(d);sy(w,257+a,L,C);if(Le[a])w.p(l-Lb[a],Le[a]);sy(w,q,D,E);if(De[q])w.p(d-Db[q],De[q]);}
+string fx(const vector<T>&v){vector<int>L(288),D(32,5);for(int i=0;i<144;i++)L[i]=8;for(int i=144;i<256;i++)L[i]=9;for(int i=256;i<280;i++)L[i]=7;for(int i=280;i<288;i++)L[i]=8;vector<uint32_t>C=cd(L,15),E=cd(D,15);W w;w.o.reserve(v.size());w.p(1,1);w.p(1,2);for(size_t i=0;i<v.size();i++)v[i].d?pm(w,v[i].l,v[i].d,L,C,D,E):sy(w,v[i].l,L,C);sy(w,256,L,C);return w.f();}
+struct Q{int s,e,v;Q(int S=0,int E=0,int V=0):s(S),e(E),v(V){}};vector<Q> rl(const vector<int>&x){vector<Q>r;for(int i=0,n=x.size();i<n;){int z=x[i],j=i+1;while(j<n&&x[j]==z)j++;int k=j-i;if(!z){while(k>=11){int q=min(k,138);r.push_back(Q(18,7,q-11));k-=q;}if(k>=3){int q=min(k,10);r.push_back(Q(17,3,q-3));k-=q;}while(k--)r.push_back(Q(0,0,0));}else{r.push_back(Q(z,0,0));k--;while(k>=3){int q=min(k,6);r.push_back(Q(16,2,q-3));k-=q;}while(k--)r.push_back(Q(z,0,0));}i=j;}return r;}
+string dy(const vector<T>&v){vector<uint64_t>f(286),g(30);f[256]=1;for(size_t i=0;i<v.size();i++)v[i].d?(f[257+li(v[i].l)]++,g[di(v[i].d)]++):f[v[i].l]++;if(!accumulate(g.begin(),g.end(),0ull))g[0]=1;vector<int>L,D;if(!ln(f,15,L)||!ln(g,15,D))return string();int nl=286,nd=30;while(nl>257&&!L[nl-1])nl--;while(nd>1&&!D[nd-1])nd--;vector<int>x(L.begin(),L.begin()+nl);x.insert(x.end(),D.begin(),D.begin()+nd);vector<Q>r=rl(x);vector<uint64_t>f2(19);for(size_t i=0;i<r.size();i++)f2[r[i].s]++;vector<int>K;if(!ln(f2,7,K))return string();static int O[]={16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15};int nk=19;while(nk>4&&!K[O[nk-1]])nk--;vector<uint32_t>C=cd(L,15),E=cd(D,15),J=cd(K,7);W w;w.o.reserve(v.size());w.p(1,1);w.p(2,2);w.p(nl-257,5);w.p(nd-1,5);w.p(nk-4,4);for(int i=0;i<nk;i++)w.p(K[O[i]],3);for(size_t i=0;i<r.size();i++){sy(w,r[i].s,K,J);if(r[i].e)w.p(r[i].v,r[i].e);}for(size_t i=0;i<v.size();i++)v[i].d?pm(w,v[i].l,v[i].d,L,C,D,E):sy(w,v[i].l,L,C);sy(w,256,L,C);return w.f();}
+string st(const string&s){W w;int n=s.size();w.o.reserve(n+n/65535*5+5);if(!n){w.p(1,1);w.p(0,2);w.a();w.o.append("\\0\\0\\xff\\xff",4);return w.o;}for(int p=0;p<n;){int k=min(65535,n-p),q=(~k)&65535;w.p(p+k==n,1);w.p(0,2);w.a();w.o+=char(k);w.o+=char(k>>8);w.o+=char(q);w.o+=char(q>>8);w.o.append(s.data()+p,k);p+=k;}return w.o;}
+uint32_t cr(const string&s){static uint32_t t[256];static int z=0;if(!z){for(int i=0;i<256;i++){uint32_t c=i;for(int j=0;j<8;j++)c=c>>1^(0xedb88320u&-(int)(c&1));t[i]=c;}z=1;}uint32_t c=~0u;for(size_t i=0;i<s.size();i++)c=t[(c^(uint8_t)s[i])&255]^(c>>8);return ~c;}
+string gz(const string&s){vector<T>v=tk(s);string b=fx(v),c=dy(v),d;c.size()&&c.size()<b.size()?d.swap(c):d.swap(b);size_t z=s.size()+5*max<size_t>(1,(s.size()+65534)/65535);if(z<d.size())d=st(s);string o("\\x1f\\x8b\\x08\\0\\0\\0\\0\\0\\x02\\xff",10);o.reserve(d.size()+18);o+=d;uint32_t q=cr(s),n=s.size();for(int i=0;i<4;i++)o+=char(q>>8*i);for(int i=0;i<4;i++)o+=char(n>>8*i);return o;}
+string b93(const string&s){static string A=[](){string a;for(int c=32;c<127;c++)if(c!=91&&c!=93)a+=char(c);return a;}();string o="[";o.reserve(s.size()*5/4+3);uint32_t b=0;int n=0;for(size_t i=0;i<s.size();i++){uint8_t c=s[i];b|=(uint32_t)c<<n;n+=8;if(n>13){uint32_t v=b&8191;if(v>456)b>>=13,n-=13;else v=b&16383,b>>=14,n-=14;o+=A[v%93];o+=A[v/93];}}if(n){o+=A[b%93];if(n>7||b>92)o+=A[b/93];}o+=']';return o;}
+string rd(){string s;
+#ifdef IOFile
+if(!fseek(stdin,0,SEEK_END)){long n=ftell(stdin);rewind(stdin);if(n>=0){s.resize((size_t)n);if(n){size_t q=fread(&s[0],1,(size_t)n,stdin);s.resize(q);}return s;}}
+#endif
+char b[65536];size_t q;while((q=fread(b,1,sizeof b,stdin))!=0)s.append(b,q);return s;}
+int main(){
+#ifdef IOFile
+if(!freopen(IOFile ".in","rb",stdin))return 0;
+#endif
+cerr<<b93(gz(rd()))<<endl;abort();}
+`;
+                                    Code += NumberStreamEnabled ? NumberStreamCode : GzipCode;
 
                                     await fetch("https://www.xmoj.tech/submit.php", {
                                         "headers": {
@@ -5248,17 +6088,17 @@ int main()
 
                                     await fetch(`https://www.xmoj.tech/reinfo.php?sid=${SID}`).then((Response) => {
                                         return Response.text();
-                                    }).then((Response) => {
+                                    }).then(async (Response) => {
                                         let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
                                         let ErrorData = ParsedDocument.getElementById("errtxt").innerText;
-                                        let MatchResult = ErrorData.match(/\what\(\):  \[([A-Za-z0-9+\/=]+)\]/g);
-                                        if (MatchResult === null) {
+                                        let dataList = await ExtractData(ErrorData);
+                                        if (dataList.length === 0) {
                                             GetDataButton.innerText = "获取数据失败";
                                             GetDataButton.disabled = false;
                                             return;
                                         }
-                                        for (let i = 0; i < MatchResult.length; i++) {
-                                            let Data = CryptoJS.enc.Base64.parse(MatchResult[i].substring(10, MatchResult[i].length - 1)).toString(CryptoJS.enc.Utf8);
+                                        for (let i = 0; i < dataList.length; i++) {
+                                            let Data = dataList[i];
                                             ApplyDiv.appendChild(document.createElement("hr"));
                                             ApplyDiv.appendChild(document.createTextNode("数据" + (i + 1) + "："));
                                             let CodeElement = document.createElement("div");
@@ -5275,12 +6115,14 @@ int main()
                                     });
                                 });
                             }
-                            document.getElementById("apply_data").addEventListener("click", () => {
-                                let ApplyElements = document.getElementsByClassName("data");
-                                for (let i = 0; i < ApplyElements.length; i++) {
-                                    ApplyElements[i].style.display = (ApplyElements[i].style.display == "block" ? "" : "block");
-                                }
-                            });
+                            if (ApplyDataElement) {
+                                ApplyDataElement.addEventListener("click", () => {
+                                    let ApplyElements = document.getElementsByClassName("data");
+                                    for (let i = 0; i < ApplyElements.length; i++) {
+                                        ApplyElements[i].style.display = (ApplyElements[i].style.display == "block" ? "" : "block");
+                                    }
+                                });
+                            }
                         }
                         let ApplyElements = document.getElementsByClassName("data");
                         for (let i = 0; i < ApplyElements.length; i++) {
@@ -7110,3 +7952,4 @@ console.log("XMOJ-Script loaded successfully!");
 })().catch(e => {
     console.error("[XMOJ-Script] Initialization error:", e);
 });
+
