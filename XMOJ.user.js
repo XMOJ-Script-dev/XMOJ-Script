@@ -576,6 +576,8 @@ const CaptchaGlyphs = {
 // generated and 40 live captchas, 4 is the point where every wrong answer turns into a decline: it
 // still fills in about three quarters of them and never once guessed wrong.
 const CaptchaMinMargin = 4;
+// With about three quarters of challenges read, five images leave well under a 1% chance of giving up.
+const CaptchaMaxAttempts = 5;
 // Settings that start off rather than on. Both UtilityEnabled and the settings list seed missing
 // values, so they have to agree or whichever runs first decides the default.
 const DefaultOffSettings = ["DebugMode", "SuperDebug", "ReplaceXM"];
@@ -4395,40 +4397,51 @@ async function main() {
                         document.querySelector("#CaptchaElement").style.display = "block";
                         CaptchaInput.value = "";
                         SetCaptchaStatus(StatusMessage || "");
-                        let ImageBlob;
-                        try {
-                            const CaptchaResponse = await fetch("https://www.xmoj.tech/vcode.php?" + Math.random(), {cache: "no-store"});
-                            ImageBlob = await CaptchaResponse.blob();
-                        } catch (e) {
-                            console.error(e);
-                            SetCaptchaStatus("验证码加载失败，请点击图片重试");
-                            return;
+                        // Only a submitted answer counts against the session, so fetching another image is
+                        // free: when the solver declines one it is cheaper to ask for a fresh challenge than
+                        // to make the user type it. Each fetch replaces the answer the session expects, so
+                        // this stops as soon as the user starts typing against the image on screen.
+                        for (let Attempt = 1; Attempt <= CaptchaMaxAttempts; Attempt++) {
+                            if (Attempt > 1) {
+                                await new Promise((Resolve) => setTimeout(Resolve, 300));
+                                if (RequestID !== CaptchaRequestID || CaptchaInput.value !== "") return;
+                                SetCaptchaStatus("这张看不太准，正在自动换一张（" + Attempt + "/" + CaptchaMaxAttempts + "）");
+                            }
+                            let ImageBlob;
+                            try {
+                                const CaptchaResponse = await fetch("https://www.xmoj.tech/vcode.php?" + Math.random(), {cache: "no-store"});
+                                ImageBlob = await CaptchaResponse.blob();
+                            } catch (e) {
+                                console.error(e);
+                                if (RequestID === CaptchaRequestID) SetCaptchaStatus("验证码加载失败，请点击图片重试");
+                                return;
+                            }
+                            if (RequestID !== CaptchaRequestID) return;
+                            if (CaptchaObjectURL !== null) URL.revokeObjectURL(CaptchaObjectURL);
+                            CaptchaObjectURL = URL.createObjectURL(ImageBlob);
+                            document.querySelector("#CaptchaImage").src = CaptchaObjectURL;
+                            if (!UtilityEnabled("AutoCaptcha")) return;
+                            let CaptchaLength = 4;
+                            try {
+                                CaptchaLength = await GetCaptchaLength(ImageBlob);
+                            } catch (e) {
+                                console.error(e);
+                            }
+                            if (CaptchaLength !== 4) {
+                                SetCaptchaStatus("本次为 " + CaptchaLength + " 位字母验证码，请手动输入");
+                                return;
+                            }
+                            const Answer = await SolveCaptcha(ImageBlob);
+                            if (RequestID !== CaptchaRequestID) return;
+                            // Never overwrite what the user has already started typing.
+                            if (CaptchaInput.value !== "") return;
+                            if (Answer !== null) {
+                                CaptchaInput.value = Answer;
+                                SetCaptchaStatus("已自动识别，若与图片不符请手动修改");
+                                return;
+                            }
                         }
-                        if (RequestID !== CaptchaRequestID) return;
-                        if (CaptchaObjectURL !== null) URL.revokeObjectURL(CaptchaObjectURL);
-                        CaptchaObjectURL = URL.createObjectURL(ImageBlob);
-                        document.querySelector("#CaptchaImage").src = CaptchaObjectURL;
-                        if (!UtilityEnabled("AutoCaptcha")) return;
-                        let CaptchaLength = 4;
-                        try {
-                            CaptchaLength = await GetCaptchaLength(ImageBlob);
-                        } catch (e) {
-                            console.error(e);
-                        }
-                        if (CaptchaLength !== 4) {
-                            SetCaptchaStatus("本次为 " + CaptchaLength + " 位字母验证码，请手动输入");
-                            return;
-                        }
-                        const Answer = await SolveCaptcha(ImageBlob);
-                        if (RequestID !== CaptchaRequestID) return;
-                        if (Answer === null) {
-                            SetCaptchaStatus("这张看不太准，请手动输入，或点击图片换一张");
-                            return;
-                        }
-                        // Never overwrite what the user has already started typing.
-                        if (CaptchaInput.value !== "") return;
-                        CaptchaInput.value = Answer;
-                        SetCaptchaStatus("已自动识别，若与图片不符请手动修改");
+                        SetCaptchaStatus("连续几张都看不太准，请手动输入，或点击图片换一张");
                     };
                     document.querySelector("#CaptchaImage").addEventListener("click", () => {
                         RefreshCaptcha("");
