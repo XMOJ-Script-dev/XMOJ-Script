@@ -44,8 +44,8 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-// The /web application owns its DOM and Bootstrap 3 event handlers. Never run
-// the legacy body.innerHTML rewrites or Bootstrap replacement inside it.
+// The /web application owns its DOM. Never run the legacy body.innerHTML rewrites
+// inside it; InitializeContestWebApp maps its Bootstrap 3 markup to Bootstrap 5.
 function IsContestWebApp(pathname = location.pathname) {
     return pathname === "/web" || pathname.startsWith("/web/");
 }
@@ -557,10 +557,8 @@ let _earlyObs = null;
 // the saved theme and inject Bootstrap CSS + the skin CSS before the first paint,
 // and we block the page's own old stylesheets from loading at all.
 (() => {
-    if (IsContestWebApp()) {
-        ApplyContestWebTheme();
-        return;
-    }
+    // /web gets the same Bootstrap 5 and skin setup below as the legacy pages.
+    if (IsContestWebApp()) ApplyContestWebTheme();
     try {
         let get = (k) => {
             let v = localStorage.getItem("UserScript-Setting-" + k);
@@ -2059,8 +2057,88 @@ GM_registerMenuCommand("重置数据", () => {
     }
 });
 
+// The ResetType user menu. Shared by the legacy navbar and the /web app so both
+// menus offer the same entries and animate the same way.
+function CreateUserMenuItems() {
+    let Entries = [
+        ["修改帐号", () => { location.href = "https://www.xmoj.tech/modifypage.php"; }],
+        ["个人中心", () => { location.href = "https://www.xmoj.tech/userinfo.php?user=" + CurrentUsername; }],
+        ["短消息", () => { location.href = "https://www.xmoj.tech/mail.php"; }],
+        ["插件设置", () => { location.href = "https://www.xmoj.tech/index.php?ByUserScript=1"; }],
+        ["插件更新日志", () => { location.href = "https://www.xmoj.tech/modifypage.php?ByUserScript=1"; }],
+        ["注销", () => {
+            clearCredential();
+            GM.cookie.set({
+                name: 'PHPSESSID',
+                value: (Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)).substring(0, 28),
+                path: "/"
+            })
+                .then(() => {
+                    console.log('Reset PHPSESSID successfully.');
+                })
+                .catch((error) => {
+                    console.error(error);
+                }); //We can no longer rely of the server to set the cookie for us
+            location.href = "https://www.xmoj.tech/logout.php";
+        }]
+    ];
+    return Entries.map(([Text, Action]) => {
+        let Item = document.createElement("li");
+        Item.className = "dropdown-item";
+        Item.innerText = Text;
+        Item.addEventListener("click", Action);
+        return Item;
+    });
+}
+
+function InitializeUserMenu(PopupUL, ParentLi, Items) {
+    PopupUL.style.cursor = 'pointer';
+    Items.forEach(item => {
+        item.style.opacity = 0;
+        item.style.transform = 'translateY(-16px)';
+        item.style.transition = UtilityEnabled("MonochromeUI") ? 'transform 100ms ease, opacity 100ms ease' : 'transform 0.3s ease, opacity 0.5s ease';
+    });
+    let showDropdownItems = () => {
+        PopupUL.style.display = 'block';
+        Items.forEach((item, index) => {
+            clearTimeout(item._timeout);
+            item.style.opacity = 0;
+            item.style.transform = 'translateY(-4px)';
+            item._timeout = setTimeout(() => {
+                item.style.opacity = 1;
+                item.style.transform = 'translateY(2px)';
+            }, index * (UtilityEnabled("MonochromeUI") ? 20 : 36));
+        });
+    };
+    let hideDropdownItems = () => {
+        Items.forEach((item) => {
+            clearTimeout(item._timeout);
+            item.style.opacity = 0;
+            item.style.transform = 'translateY(-16px)';
+        });
+        setTimeout(() => {
+            PopupUL.style.display = 'none';
+        }, UtilityEnabled("MonochromeUI") ? 80 : 100);
+    };
+    let toggleDropdownItems = () => {
+        if (PopupUL.style.display === 'block') {
+            hideDropdownItems();
+        } else {
+            showDropdownItems();
+        }
+    };
+    ParentLi.addEventListener("click", toggleDropdownItems);
+    document.addEventListener("click", (event) => {
+        if (!ParentLi.contains(event.target) && PopupUL.style.display === 'block') {
+            hideDropdownItems();
+        }
+    });
+}
+
 // Synchronous and dependency-free: paint the saved theme before Vue, API
 // responses, fonts, or any CDN resources are ready. Reused for later changes.
+// With NewBootstrap the early block gives /web the same Bootstrap 5 and skin CSS
+// as the legacy pages, so this only adds what the app's own markup still needs.
 function ApplyContestWebTheme() {
     const get = name => {
         const value = localStorage.getItem("UserScript-Setting-" + name);
@@ -2078,13 +2156,32 @@ function ApplyContestWebTheme() {
     document.documentElement.setAttribute("data-bs-theme", dark ? "dark" : "light");
     localStorage.setItem("UserScript-Setting-DarkMode", String(dark));
     const modern = get("NewBootstrap");
-    const mono = modern && get("MonochromeUI");
-    // Keep the site's Bootstrap 3 CSS: the new navbar and Vue markup need it.
-    style.textContent = (modern ? (mono ? MonochromeSkinCSS : NewBootstrapSkinCSS) : "") + `
+    style.textContent = `
         html[data-bs-theme='dark'] { background: #1a1a1a !important; color-scheme: dark; }
         html[data-bs-theme='light'] { background: #fff; color-scheme: light; }
-        :root { --bs-secondary-bg: #f5f5f5; --bs-emphasis-color: #222; --bs-primary: #337ab7; }
-        [data-bs-theme='dark'] { --bs-secondary-bg: #292929; --bs-emphasis-color: #eee; --bs-primary: #8cbcff; }
+        #app .xmoj-script-tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+        #app .copy-btn { margin-left: 10px; }
+        #app .xmoj-script-countdown { margin-left: 8px; white-space: nowrap; }
+        #app .xmoj-script-editor { margin: 12px 0; }
+        #app .xmoj-script-has-editors .syntaxhighlighter,
+        #app .xmoj-script-has-editors .xmoj-std-code { display: none !important; }
+        #app .xmoj-std-overlay { pointer-events: none; }
+        #app .xmoj-script-code-ready { display: none !important; }
+        #app #rank td.well { color: #222 !important; }
+        #app .xmoj-script-switcher { position: sticky; top: 0; z-index: 990; padding: 8px; background: var(--bs-secondary-bg); }
+        @media (max-width: 600px) { #app .in-out { flex-direction: column; } #app .in-out-item { margin: 0 !important; } }
+        #app .dropdown-menu[data-xmoj-script-menu] > li:not([data-xmoj-script]) { display: none !important; }
+    ` + (modern ? `
+        /* The app still renders Bootstrap 3 markup. Its classes are mapped to
+           Bootstrap 5 in InitializeContestWebApp; these cover the layout-only ones. */
+        #app .navbar-header { display: flex; align-items: center; justify-content: space-between; }
+        #app .navbar .icon-bar, #app .navbar .caret { display: none; }
+        #app .well { padding: 1rem; margin-bottom: 1rem; background-color: var(--bs-secondary-bg); border: var(--bs-border-width) solid var(--bs-border-color); border-radius: var(--bs-border-radius); }
+        #app .form-inline { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+        #app .form-inline .form-control { width: auto; }
+    ` : `
+        :root { --bs-secondary-bg: #f5f5f5; }
+        [data-bs-theme='dark'] { --bs-secondary-bg: #292929; }
         [data-bs-theme='dark'] body, [data-bs-theme='dark'] #app .jumbotron,
         [data-bs-theme='dark'] #app .navbar, [data-bs-theme='dark'] #app .dropdown-menu,
         [data-bs-theme='dark'] #app .form-control, [data-bs-theme='dark'] #app pre {
@@ -2100,42 +2197,18 @@ function ApplyContestWebTheme() {
         [data-bs-theme='dark'] #app .dropdown-menu > li > a:hover,
         [data-bs-theme='dark'] #app .table-striped > tbody > tr:nth-of-type(odd),
         [data-bs-theme='dark'] #app .table-hover > tbody > tr:hover { background: #292929; }
-        [data-bs-theme='dark'] #app .btn-default { background: #292929; color: #eee; border-color: #737373; }
-        #app .xmoj-script-tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
-        #app .xmoj-script-copy { margin-left: 10px; }
-        #app .xmoj-script-countdown { margin-left: 8px; white-space: nowrap; }
-        #app .xmoj-script-editor { margin: 12px 0; }
-        #app .xmoj-script-has-editors .syntaxhighlighter,
-        #app .xmoj-script-has-editors .xmoj-std-code { display: none !important; }
-        #app .xmoj-std-overlay { pointer-events: none; }
-        #app .xmoj-script-code-ready { display: none !important; }
-        #app #rank td.well { color: #222 !important; }
-        #app .xmoj-script-switcher { position: sticky; top: 0; z-index: 990; padding: 8px; background: var(--bs-secondary-bg); }
-        @media (max-width: 600px) { #app .in-out { flex-direction: column; } #app .in-out-item { margin: 0 !important; } }
-    ` + (modern ? `
-        #app .jumbotron { background: transparent; padding: 16px 0; font-size: 16px; }
-        #app .jumbotron p { font-size: inherit; font-weight: normal; }
-        #app .cnt-row-head { font-size: 18px; }
-        #app .navbar .nav-link, #app thead th { font-size: 14px !important; }
-        #app .table { font-size: 14px; }
-        #app .xmoj-status { display: inline-block; min-width: 26px; padding: 2px 6px; border: 1px solid; }
-    ` : "") + (mono ? `
-        #app .navbar-nav > li > a, #app .dropdown-menu > li > a { color: var(--mono-black) !important; }
-        #app .navbar-nav > .active > a, #app .dropdown-menu > li > a:hover { background: var(--mono-black) !important; color: var(--mono-white) !important; }
-        #app thead td { background: var(--mono-black); color: var(--mono-white); }
-        #app thead a { color: var(--mono-white) !important; }
-        #app .navbar-toggle .icon-bar { background: var(--mono-black); }
-    ` : "") + (get("NewTopBar") ? `
-        #app > .navbar { position: sticky; top: 0; z-index: 1000; }
-        #app .xmoj-script-switcher { top: 60px; }
-    ` : "");
-    if (get("AddColorText")) style.textContent += ".red {color: #e64747;} .green {color: #399a39;} .blue {color: #428bca;}";
-    if (get("AddAnimation")) style.textContent += "#app .btn, #app .xmoj-status {transition: background-color 100ms, color 100ms;}";
+        [data-bs-theme='dark'] #app .btn { background: #292929; color: #eee; border-color: #737373; }
+    `);
+    // Like the legacy pages, which remove the broadcast marquee.
+    if (get("RemoveUseless")) style.textContent += "#app .xmoj-broadcast { display: none !important; }";
+    // With NewBootstrap the early block already adds these to the skin CSS.
+    if (!modern && get("AddColorText")) style.textContent += ".red {color: #e64747;} .green {color: #399a39;} .blue {color: #428bca;}";
+    if (!modern && get("AddAnimation")) style.textContent += "#app .btn {transition: background-color 100ms, color 100ms;}";
     return dark;
 }
 
-// Enhancements for the Vue contest app. Only our own controls are replaced;
-// Vue's elements, router links, and Bootstrap 3 handlers retain their identity.
+// Enhancements for the Vue contest app. Vue's elements and router links keep their
+// identity: only Bootstrap 5 classes and our own controls are added to them.
 async function InitializeContestWebApp() {
     const root = document.getElementById("app");
     if (!root) return;
@@ -2157,6 +2230,24 @@ async function InitializeContestWebApp() {
     initTheme();
     prefersDark.addEventListener("change", initTheme);
     InitializeImageEnlarger();
+    if (UtilityEnabled("NewBootstrap") && !_earlyBootstrapInjected) {
+        // The @resource was not cached yet (first install/update): load Bootstrap 5
+        // and the skin the same way the legacy pages do.
+        const blocked = ["bootstrap.min.css", "white.css", "semantic.min.css", "bootstrap-theme.min.css", "problem.css"];
+        for (const link of document.querySelectorAll("link")) {
+            if (blocked.some(name => link.href && link.href.indexOf(name) !== -1)) link.remove();
+        }
+        const bootstrap = document.createElement("link");
+        bootstrap.rel = "stylesheet";
+        bootstrap.href = "https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css";
+        document.head.appendChild(bootstrap);
+        const mono = UtilityEnabled("MonochromeUI");
+        const skin = document.createElement("style");
+        skin.textContent = mono ? MonochromeSkinCSS : NewBootstrapSkinCSS;
+        if (UtilityEnabled("AddAnimation")) skin.textContent += `.status, .test-case { transition: ${mono ? "100ms ease" : "0.5s"} !important; }`;
+        if (UtilityEnabled("AddColorText")) skin.textContent += `.red { color: red !important; } .green { color: green !important; } .blue { color: blue !important; }`;
+        document.head.appendChild(skin);
+    }
 
     function MakeControl(tag, name, text) {
         const node = document.createElement(tag);
@@ -2164,23 +2255,23 @@ async function InitializeContestWebApp() {
         node.textContent = text;
         if (tag === "button") {
             node.type = "button";
-            node.className = "btn btn-default btn-sm";
+            node.className = "btn btn-outline-secondary";
         }
         return node;
     }
 
-    function AddLink(parent, name, label, href) {
+    function AddLink(parent, name, label, href, className = "btn btn-outline-secondary") {
         if (parent.querySelector(`[${owned}="${name}"]`)) return;
         const link = MakeControl("a", name, label);
         link.href = href;
-        link.className = "btn btn-default btn-sm";
+        link.className = className;
         parent.appendChild(link);
     }
 
     function AddCopy(parent, name, readText) {
         if (parent.querySelector(`[${owned}="${name}"]`)) return;
         const button = MakeControl("button", name, "复制");
-        button.classList.add("xmoj-script-copy");
+        button.className = "btn btn-sm btn-outline-secondary copy-btn";
         button.addEventListener("click", () => {
             GM_setClipboard(readText());
             button.textContent = "复制成功";
@@ -2189,11 +2280,71 @@ async function InitializeContestWebApp() {
         parent.appendChild(button);
     }
 
+    // Mirrors the legacy navbar conversion in main(), plus the other Bootstrap 3
+    // classes the app renders. Runs on every render, because Vue rewrites the class
+    // attribute of elements whose classes are bound (e.g. the active tab).
+    function ApplyBootstrap5Markup() {
+        const nav = root.querySelector(".navbar");
+        if (nav) {
+            nav.classList.add("navbar-expand-lg", "bg-body-tertiary");
+            nav.querySelector("#xmoj-navbar > .navbar-nav:not(.navbar-right)")?.classList.add("me-auto", "mb-2", "mb-lg-0");
+            for (const item of nav.querySelectorAll(".navbar-nav > li")) {
+                item.classList.add("nav-item");
+                const link = item.firstElementChild;
+                if (!link) continue;
+                link.classList.add("nav-link");
+                link.classList.toggle("active", item.classList.contains("active"));
+            }
+            for (const toggle of nav.querySelectorAll('[data-toggle="dropdown"]')) {
+                toggle.setAttribute("data-bs-toggle", "dropdown");
+                toggle.removeAttribute("data-toggle");
+                toggle.parentElement.classList.add("dropdown");
+            }
+            const toggler = nav.querySelector(".navbar-toggle");
+            if (toggler) {
+                toggler.classList.add("navbar-toggler");
+                if (toggler.hasAttribute("data-toggle")) {
+                    toggler.setAttribute("data-bs-toggle", "collapse");
+                    toggler.setAttribute("data-bs-target", toggler.getAttribute("data-target") || "#xmoj-navbar");
+                    toggler.removeAttribute("data-toggle");
+                    toggler.removeAttribute("data-target");
+                }
+                if (!toggler.querySelector(".navbar-toggler-icon")) {
+                    const icon = MakeControl("span", "toggler-icon", "");
+                    icon.className = "navbar-toggler-icon";
+                    toggler.appendChild(icon);
+                }
+            }
+        }
+        for (const node of root.querySelectorAll(".dropdown-menu > li > a")) node.classList.add("dropdown-item");
+        for (const node of root.querySelectorAll(".btn-default")) node.classList.add("btn-outline-secondary");
+        for (const node of root.querySelectorAll(".btn-xs")) node.classList.add("btn-sm");
+        for (const node of root.querySelectorAll(".sr-only")) node.classList.add("visually-hidden");
+        for (const node of root.querySelectorAll(".label")) node.classList.add("badge");
+        for (const node of root.querySelectorAll(".label-info")) node.classList.add("text-bg-info");
+        for (const item of root.querySelectorAll(".pagination > li")) {
+            item.classList.add("page-item");
+            item.firstElementChild?.classList.add("page-link");
+        }
+    }
+
     function EnhanceNav() {
         const nav = root.querySelector("#xmoj-navbar");
         if (!nav) return;
         const menu = nav.querySelector(".dropdown-menu");
-        if (menu && !menu.querySelector(`[${owned}="settings"]`)) {
+        if (menu && UtilityEnabled("ResetType")) {
+            if (!menu.hasAttribute("data-xmoj-script-menu")) {
+                // Same menu as the legacy navbar. Vue keeps rendering its own items, so
+                // they are hidden by CSS instead of replacing the list.
+                menu.setAttribute("data-xmoj-script-menu", "");
+                const items = CreateUserMenuItems();
+                for (const item of items) {
+                    item.setAttribute(owned, "user-menu");
+                    menu.appendChild(item);
+                }
+                InitializeUserMenu(menu, menu.parentElement, items);
+            }
+        } else if (menu && !menu.querySelector(`[${owned}="settings"]`)) {
             const item = MakeControl("li", "settings", "");
             const link = document.createElement("a");
             link.href = "/index.php?ByUserScript=1";
@@ -2210,6 +2361,13 @@ async function InitializeContestWebApp() {
             item.appendChild(link);
             links.appendChild(item);
         }
+        if (UtilityEnabled("Translate")) {
+            // Same rename as the legacy navbar. Edit the text node Vue renders, so
+            // switching the app's language can still replace it.
+            const problems = nav.querySelector(".navbar-nav > li:nth-child(2) > a");
+            const text = problems && [...problems.childNodes].find(node => node.nodeType === Node.TEXT_NODE && node.nodeValue.trim() === "问题");
+            if (text) text.nodeValue = text.nodeValue.replace("问题", "题库");
+        }
     }
 
     function ClearRoute() {
@@ -2220,7 +2378,7 @@ async function InitializeContestWebApp() {
             entry.original?.classList.remove("xmoj-script-code-ready", "xmoj-script-has-editors");
         }
         editors = [];
-        root.querySelectorAll(`[${owned}]:not([${owned}="settings"]):not([${owned}="discussion-nav"])`).forEach(node => node.remove());
+        root.querySelectorAll(`[${owned}]:not([${owned}="settings"]):not([${owned}="discussion-nav"]):not([${owned}="toggler-icon"]):not([${owned}="user-menu"])`).forEach(node => node.remove());
         routeData = null;
     }
 
@@ -2296,9 +2454,13 @@ async function InitializeContestWebApp() {
                 AddCountdown(row.cells[2], ParseServerTime(status.state === "pending" ? status.startTime : status.endTime), status.state === "pending" ? "距开始 " : "剩余 ");
             }
             const creator = row.cells[4];
-            if (creator && !creator.querySelector("a") && data.createdBy) {
-                // This cell is plain text in Vue; leave its text node in place.
-                AddLink(creator, "creator", "个人主页", "/userinfo.php?user=" + encodeURIComponent(data.createdBy));
+            if (creator && data.createdBy) {
+                // Like the legacy contest list, the creator's name becomes the link. The
+                // name is a text node Vue owns: blank it rather than removing it.
+                for (const node of creator.childNodes) {
+                    if (node.nodeType === Node.TEXT_NODE && node.nodeValue.trim() === data.createdBy) node.nodeValue = "";
+                }
+                AddLink(creator, "creator", data.createdBy, "/userinfo.php?user=" + encodeURIComponent(data.createdBy), "");
             }
         }
     }
@@ -2338,7 +2500,7 @@ async function InitializeContestWebApp() {
                 if (!num || row.querySelector('a[href$="/std"]')) continue;
                 const headers = Array.from(table.tHead.rows[0].cells);
                 const index = headers.findIndex(cell => /标程|Std/.test(cell.textContent));
-                if (index >= 0) AddLink(row.cells[index], "std-link", "打开", GetContestProblemURL(route.cid, num) + "/std");
+                if (index >= 0) AddLink(row.cells[index], "std-link", "打开", GetContestProblemURL(route.cid, num) + "/std", "");
             }
         }
     }
@@ -2389,7 +2551,10 @@ async function InitializeContestWebApp() {
             const heading = root.querySelector(".xmoj-problem-head h2");
             if (heading && !heading.querySelector(`[${owned}="problem-id"]`)) heading.appendChild(MakeControl("small", "problem-id", " (" + problem.problemId + ")"));
             if (UtilityEnabled("Discussion")) {
-                for (const actions of root.querySelectorAll(".xmoj-problem-actions")) AddLink(actions, "discuss-problem", "讨论", "/discuss3/discuss.php?pid=" + encodeURIComponent(problem.problemId));
+                for (const actions of root.querySelectorAll(".xmoj-problem-actions")) {
+                    AddLink(actions, "discuss-problem", "讨论", "/discuss3/discuss.php?pid=" + encodeURIComponent(problem.problemId));
+                    if (actions.querySelector(`.btn-sm:not([${owned}])`)) actions.querySelector(`[${owned}="discuss-problem"]`)?.classList.add("btn-sm");
+                }
             }
         }
         if (UtilityEnabled("CopyMD")) {
@@ -2458,6 +2623,7 @@ async function InitializeContestWebApp() {
                 entry.original?.classList.remove("xmoj-script-code-ready", "xmoj-script-has-editors");
                 return false;
             });
+            if (UtilityEnabled("NewBootstrap")) ApplyBootstrap5Markup();
             EnhanceNav();
             if (!route) return;
             if (route.page === "list") EnhanceList();
@@ -2472,7 +2638,7 @@ async function InitializeContestWebApp() {
                 }
             }
             UpdateCountdowns();
-        } finally { observer.observe(root, {childList: true, subtree: true, characterData: true}); }
+        } finally { observer.observe(root, {childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["class"]}); }
     }
 
     function ScheduleEnhance() {
@@ -2481,7 +2647,16 @@ async function InitializeContestWebApp() {
     const observer = new MutationObserver(ScheduleEnhance);
     Enhance();
     window.addEventListener("popstate", ScheduleEnhance);
-    setInterval(UpdateCountdowns, 1000);
+    setInterval(() => {
+        UpdateCountdowns();
+        if (UtilityEnabled("NewTopBar")) {
+            new NavbarStyler();
+            // Keep the sticky problem switcher below the fixed top bar.
+            const bar = root.querySelector(".navbar.fixed-top");
+            const switcher = root.querySelector(".xmoj-script-switcher");
+            if (bar && switcher) switcher.style.top = bar.offsetTop + bar.offsetHeight + 8 + "px";
+        }
+    }, 1000);
     window.addEventListener("focus", () => {
         if (!UtilityEnabled("AutoRefresh") || !["list", "contest", "rank"].includes(route?.page)) return;
         if (root.querySelector('input:focus, textarea:focus') || root.querySelector(`[${owned}="resubmit"]:disabled`)) return;
@@ -2505,73 +2680,6 @@ async function InitializeContestWebApp() {
         setInterval(PeriodicCloudSync, 60 * 60 * 1000);
     } catch (error) { console.error("[XMOJ-Script] Navigation API:", error); }
 }
-
-// Wrapped in an async IIFE so that `await` is valid in Violentmonkey,
-// which executes userscripts as classic scripts (not ES modules).
-(async () => {
-if (document.readyState === "loading") {
-    await new Promise(r => document.addEventListener("DOMContentLoaded", r, { once: true }));
-}
-if (IsContestWebApp()) {
-    await InitializeContestWebApp();
-    return;
-}
-// Reveal the page now that DOMContentLoaded has fired. Remove any old Bootstrap
-// stylesheets the preload scanner fetched (un-applies them from the CSSOM), then
-// remove the FOUC hide so the user sees the correct final state immediately.
-if (_earlyObs) { _earlyObs.disconnect(); _earlyObs = null; }
-if (_foucStyle) {
-    let _blocked = ["bootstrap.min.css", "white.css", "semantic.min.css", "bootstrap-theme.min.css", "problem.css"];
-    for (let _link of document.querySelectorAll("link")) {
-        if (_blocked.some(h => _link.href && _link.href.indexOf(h) !== -1)) _link.remove();
-    }
-    _foucStyle.remove(); _foucStyle = null;
-}
-//otherwise CurrentUsername might be undefined
-let loginStatus;
-await fetch("https://www.xmoj.tech/loginpage.php")
-    .then((response) => response.text())
-    .then((data) => (loginStatus = data));
-const logined = loginStatus == "<a href=logout.php>Please logout First!</a>";
-if (UtilityEnabled("AutoLogin") && document.querySelector("body > a:nth-child(1)") != null && document.querySelector("body > a:nth-child(1)").innerText == "请登录后继续操作") {
-    localStorage.setItem("UserScript-LastPage", location.pathname + location.search);
-    location.href = "https://www.xmoj.tech/loginpage.php";
-    return;
-}
-
-SearchParams = new URLSearchParams(location.search);
-let ServerURL = (UtilityEnabled("DebugMode") ? "https://ghpages.xmoj-script.uk/" : "https://www.xmoj-script.uk")
-const profileElement = document.querySelector("#profile");
-if (profileElement === null) {
-    if (!logined) {
-        location.href = "https://www.xmoj.tech/loginpage.php";
-    }
-    return;
-}
-CurrentUsername = profileElement.innerText;
-CurrentUsername = CurrentUsername.replaceAll(/[^a-zA-Z0-9]/g, "");
-let IsAdmin = AdminUserList.indexOf(CurrentUsername) !== -1;
-
-const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
-const applyTheme = (theme) => {
-    if (document.querySelector("html") != null) document.querySelector("html").setAttribute("data-bs-theme", theme);
-    localStorage.setItem("UserScript-Setting-DarkMode", theme === "dark" ? "true" : "false");
-};
-const applySystemTheme = (e) => applyTheme(e.matches ? "dark" : "light");
-initTheme = () => {
-    const saved = localStorage.getItem("UserScript-Setting-Theme") || "auto";
-    if (saved === "auto") {
-        applyTheme(prefersDark.matches ? "dark" : "light");
-        prefersDark.addEventListener("change", applySystemTheme);
-    } else {
-        applyTheme(saved);
-        prefersDark.removeEventListener("change", applySystemTheme);
-    }
-};
-initTheme();
-PeriodicCloudSync();
-setInterval(PeriodicCloudSync, 60 * 60 * 1000);
-
 
 class NavbarStyler {
     constructor() {
@@ -2715,6 +2823,73 @@ class NavbarStyler {
         }
     }
 }
+
+// Wrapped in an async IIFE so that `await` is valid in Violentmonkey,
+// which executes userscripts as classic scripts (not ES modules).
+(async () => {
+if (document.readyState === "loading") {
+    await new Promise(r => document.addEventListener("DOMContentLoaded", r, { once: true }));
+}
+// Reveal the page now that DOMContentLoaded has fired. Remove any old Bootstrap
+// stylesheets the preload scanner fetched (un-applies them from the CSSOM), then
+// remove the FOUC hide so the user sees the correct final state immediately.
+if (_earlyObs) { _earlyObs.disconnect(); _earlyObs = null; }
+if (_foucStyle) {
+    let _blocked = ["bootstrap.min.css", "white.css", "semantic.min.css", "bootstrap-theme.min.css", "problem.css"];
+    for (let _link of document.querySelectorAll("link")) {
+        if (_blocked.some(h => _link.href && _link.href.indexOf(h) !== -1)) _link.remove();
+    }
+    _foucStyle.remove(); _foucStyle = null;
+}
+if (IsContestWebApp()) {
+    await InitializeContestWebApp();
+    return;
+}
+//otherwise CurrentUsername might be undefined
+let loginStatus;
+await fetch("https://www.xmoj.tech/loginpage.php")
+    .then((response) => response.text())
+    .then((data) => (loginStatus = data));
+const logined = loginStatus == "<a href=logout.php>Please logout First!</a>";
+if (UtilityEnabled("AutoLogin") && document.querySelector("body > a:nth-child(1)") != null && document.querySelector("body > a:nth-child(1)").innerText == "请登录后继续操作") {
+    localStorage.setItem("UserScript-LastPage", location.pathname + location.search);
+    location.href = "https://www.xmoj.tech/loginpage.php";
+    return;
+}
+
+SearchParams = new URLSearchParams(location.search);
+let ServerURL = (UtilityEnabled("DebugMode") ? "https://ghpages.xmoj-script.uk/" : "https://www.xmoj-script.uk")
+const profileElement = document.querySelector("#profile");
+if (profileElement === null) {
+    if (!logined) {
+        location.href = "https://www.xmoj.tech/loginpage.php";
+    }
+    return;
+}
+CurrentUsername = profileElement.innerText;
+CurrentUsername = CurrentUsername.replaceAll(/[^a-zA-Z0-9]/g, "");
+let IsAdmin = AdminUserList.indexOf(CurrentUsername) !== -1;
+
+const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
+const applyTheme = (theme) => {
+    if (document.querySelector("html") != null) document.querySelector("html").setAttribute("data-bs-theme", theme);
+    localStorage.setItem("UserScript-Setting-DarkMode", theme === "dark" ? "true" : "false");
+};
+const applySystemTheme = (e) => applyTheme(e.matches ? "dark" : "light");
+initTheme = () => {
+    const saved = localStorage.getItem("UserScript-Setting-Theme") || "auto";
+    if (saved === "auto") {
+        applyTheme(prefersDark.matches ? "dark" : "light");
+        prefersDark.addEventListener("change", applySystemTheme);
+    } else {
+        applyTheme(saved);
+        prefersDark.removeEventListener("change", applySystemTheme);
+    }
+};
+initTheme();
+PeriodicCloudSync();
+setInterval(PeriodicCloudSync, 60 * 60 * 1000);
+
 
 function replaceMarkdownImages(text, string) {
     return text.replace(/!\[.*?\]\(.*?\)/g, string);
@@ -2945,84 +3120,10 @@ async function main() {
                             });
                         } else if (document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul") != undefined && document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul > li:nth-child(2)") != null && document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul > li:nth-child(2)").innerText != "个人中心") {
                             let PopupUL = document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul");
-                            PopupUL.style.cursor = 'pointer';
-                            PopupUL.innerHTML = `<li class="dropdown-item">修改帐号</li>
-                                             <li class="dropdown-item">个人中心</li>
-                                             <li class="dropdown-item">短消息</li>
-                                             <li class="dropdown-item">插件设置</li>
-                                             <li class="dropdown-item">插件更新日志</li>
-                                             <li class="dropdown-item">注销</li>`;
-                            PopupUL.children[0].addEventListener("click", () => {
-                                location.href = "https://www.xmoj.tech/modifypage.php";
-                            });
-                            PopupUL.children[1].addEventListener("click", () => {
-                                location.href = "https://www.xmoj.tech/userinfo.php?user=" + CurrentUsername;
-                            });
-                            PopupUL.children[2].addEventListener("click", () => {
-                                location.href = "https://www.xmoj.tech/mail.php";
-                            });
-                            PopupUL.children[3].addEventListener("click", () => {
-                                location.href = "https://www.xmoj.tech/index.php?ByUserScript=1";
-                            });
-                            PopupUL.children[4].addEventListener("click", () => {
-                                location.href = "https://www.xmoj.tech/modifypage.php?ByUserScript=1";
-                            });
-                            PopupUL.children[5].addEventListener("click", () => {
-                                clearCredential();
-                                GM.cookie.set({
-                                    name: 'PHPSESSID',
-                                    value: (Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)).substring(0, 28),
-                                    path: "/"
-                                })
-                                    .then(() => {
-                                        console.log('Reset PHPSESSID successfully.');
-                                    })
-                                    .catch((error) => {
-                                        console.error(error);
-                                    }); //We can no longer rely of the server to set the cookie for us
-                                location.href = "https://www.xmoj.tech/logout.php";
-                            });
-                            Array.from(PopupUL.children).forEach(item => {
-                                item.style.opacity = 0;
-                                item.style.transform = 'translateY(-16px)';
-                                item.style.transition = UtilityEnabled("MonochromeUI") ? 'transform 100ms ease, opacity 100ms ease' : 'transform 0.3s ease, opacity 0.5s ease';
-                            });
-                            let showDropdownItems = () => {
-                                PopupUL.style.display = 'block';
-                                Array.from(PopupUL.children).forEach((item, index) => {
-                                    clearTimeout(item._timeout);
-                                    item.style.opacity = 0;
-                                    item.style.transform = 'translateY(-4px)';
-                                    item._timeout = setTimeout(() => {
-                                        item.style.opacity = 1;
-                                        item.style.transform = 'translateY(2px)';
-                                    }, index * (UtilityEnabled("MonochromeUI") ? 20 : 36));
-                                });
-                            };
-                            let hideDropdownItems = () => {
-                                Array.from(PopupUL.children).forEach((item) => {
-                                    clearTimeout(item._timeout);
-                                    item.style.opacity = 0;
-                                    item.style.transform = 'translateY(-16px)';
-                                });
-                                setTimeout(() => {
-                                    PopupUL.style.display = 'none';
-                                }, UtilityEnabled("MonochromeUI") ? 80 : 100);
-                            };
-                            let toggleDropdownItems = () => {
-                                if (PopupUL.style.display === 'block') {
-                                    hideDropdownItems();
-                                } else {
-                                    showDropdownItems();
-                                }
-                            };
-                            let parentLi = document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li");
-                            parentLi.addEventListener("click", toggleDropdownItems);
-                            document.addEventListener("click", (event) => {
-                                if (!parentLi.contains(event.target) && PopupUL.style.display === 'block') {
-                                    hideDropdownItems();
-                                }
-                            });
+                            PopupUL.innerHTML = "";
+                            let MenuItems = CreateUserMenuItems();
+                            for (let Item of MenuItems) PopupUL.appendChild(Item);
+                            InitializeUserMenu(PopupUL, document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li"), MenuItems);
                         }
                     }
                     if (UtilityEnabled("AutoCountdown")) {
