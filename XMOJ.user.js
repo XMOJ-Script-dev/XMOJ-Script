@@ -334,6 +334,12 @@ const MonochromeSkinCSS = `
                     letter-spacing: 0.05em !important;
                     font-size: 0.85rem !important;
                 }
+                /* Header cells are inverted, so their links must be too: the global link
+                   color would otherwise match the header background. */
+                thead th a, thead td a, th.header a, th.headerSortUp a, th.headerSortDown a {
+                    color: var(--mono-white) !important;
+                    border-bottom-color: var(--mono-white) !important;
+                }
                 td, th {
                     border-color: var(--mono-gray-300) !important;
                     text-align: center !important;
