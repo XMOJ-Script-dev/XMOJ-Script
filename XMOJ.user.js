@@ -2916,14 +2916,16 @@ if (document.readyState === "loading") {
 // Remove any old Bootstrap stylesheets the preload scanner fetched (un-applies them
 // from the CSSOM). The page stays hidden until it is styled: main() and the /web app
 // call RevealPage once the navbar is in its final state, so there is no unstyled frame
-// or navbar jump. The timeout makes sure the page is shown even if that never happens.
+// or navbar jump. The timeouts make sure the page is shown even if that never happens:
+// 1.5 seconds after main() starts (it first waits for the login check), and at the
+// latest 4 seconds after DOMContentLoaded.
 if (_earlyObs) { _earlyObs.disconnect(); _earlyObs = null; }
 if (_foucStyle) {
     let _blocked = ["bootstrap.min.css", "white.css", "semantic.min.css", "bootstrap-theme.min.css", "problem.css"];
     for (let _link of document.querySelectorAll("link")) {
         if (_blocked.some(h => _link.href && _link.href.indexOf(h) !== -1)) _link.remove();
     }
-    setTimeout(RevealPage, 1500);
+    setTimeout(RevealPage, 4000);
 }
 if (IsContestWebApp()) {
     await InitializeContestWebApp();
@@ -7621,6 +7623,7 @@ cerr<<b93(gz(rd()))<<endl;abort();}
     }
 }
 
+setTimeout(RevealPage, 1500);
 await main();
 RevealPage();
 console.log("XMOJ-Script loaded successfully!");
