@@ -80,17 +80,13 @@ function CacheContestProblems(cid, data) {
     if (!Array.isArray(data.problems)) return;
     const prefix = "UserScript-Contest-" + cid;
     if (data.contest) localStorage.setItem(prefix + "-Name", data.contest.title || "");
-    const problems = data.problems.map(problem => {
+    for (const problem of data.problems) {
         const index = GetContestProblemIndex(problem.num);
-        const title = problem.problemTitle || problem.title || problem.num;
         if (index >= 0 && problem.problemId) {
             localStorage.setItem(prefix + "-Problem-" + index + "-PID", problem.problemId);
-            localStorage.setItem("UserScript-Problem-" + problem.problemId + "-Name", title);
+            localStorage.setItem("UserScript-Problem-" + problem.problemId + "-Name", problem.problemTitle || problem.title || problem.num);
         }
-        return {title, url: new URL(GetContestProblemURL(cid, problem.num), location.origin).href};
-    });
-    localStorage.setItem(prefix + "-ProblemCount", problems.length);
-    localStorage.setItem(prefix + "-ProblemList", JSON.stringify(problems));
+    }
 }
 
 // The contest pages moved to the /web app and the site no longer links to the old
@@ -497,10 +493,6 @@ const MonochromeSkinCSS = `
                         display: none !important;
                     }
                 }
-                .refreshList {
-                    cursor: pointer;
-                }
-
                 /* Contain images */
                 img {
                     max-width: 100% !important;
@@ -564,11 +556,6 @@ const NewBootstrapSkinCSS = `
                     border: 1px solid var(--bs-secondary-bg);
                     border-top: none;
                     border-radius: 0 0 0.3rem 0.3rem;
-                }
-                .refreshList {
-                    cursor: pointer;
-                    color: #6c757d;
-                    text-decoration: none;
                 }`;
 
 // Set to true by the early block if Bootstrap CSS was injected from the @resource
@@ -1780,18 +1767,6 @@ let PeriodicCloudSync = () => {
     });
 };
 
-unsafeWindow.GetContestProblemList = async function(RefreshList) {
-    try {
-        const cid = GetContestRoute()?.cid || new URLSearchParams(location.search).get("cid");
-        if (!cid) return;
-        const data = await FetchContestAPI("contest/" + encodeURIComponent(cid));
-        CacheContestProblems(cid, data);
-        if (RefreshList) location.reload();
-    } catch (e) {
-        console.error(e);
-    }
-}
-
 // WebSocket Notification System
 let NotificationSocket = null;
 let NotificationSocketReconnectAttempts = 0;
@@ -2118,14 +2093,6 @@ function CreateProblemSwitcher(ProblemList, IsCurrent) {
     problemSwitcher.style.flexDirection = "column";
     problemSwitcher.style.zIndex = "990";
 
-    let Refresh = document.createElement("a");
-    Refresh.title = "刷新列表";
-    Refresh.className = "refreshList mb-2";
-    Refresh.style.textAlign = "center";
-    Refresh.style.cursor = "pointer";
-    Refresh.textContent = "刷新";
-    Refresh.addEventListener("click", () => unsafeWindow.GetContestProblemList(true));
-    problemSwitcher.appendChild(Refresh);
     for (let i = 0; i < ProblemList.length; i++) {
         let Label = GetContestRoute(ProblemList[i].url)?.num;
         if (!Label) Label = i < 26 ? String.fromCharCode(65 + i) : String.fromCharCode(97 + (i - 26));
@@ -2648,8 +2615,9 @@ async function InitializeContestWebApp() {
                 if (heading && body && !body.querySelector(".sampledata")) AddCopy(heading, "copy-section", () => GetMDText(body).trim());
             }
         }
-        if (UtilityEnabled("ProblemSwitcher") && !document.querySelector(`[${owned}="problem-switcher"]`)) {
-            const list = JSON.parse(localStorage.getItem("UserScript-Contest-" + route.cid + "-ProblemList") || "null") || [];
+        // Built from this page's API response rather than a cached copy.
+        if (UtilityEnabled("ProblemSwitcher") && Array.isArray(routeData?.problems) && !document.querySelector(`[${owned}="problem-switcher"]`)) {
+            const list = routeData.problems.map(item => ({title: item.problemTitle || item.title || item.num, url: new URL(GetContestProblemURL(route.cid, item.num), location.origin).href}));
             if (list.length) {
                 const switcher = CreateProblemSwitcher(list, (index, item) => GetContestRoute(item.url)?.num === route.num);
                 switcher.setAttribute(owned, "problem-switcher");

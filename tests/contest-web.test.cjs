@@ -56,10 +56,10 @@ test('maps API letters to submit indexes without relying on row order', () => {
     assert.equal(storage.get('UserScript-Contest-123-Problem-2-PID'), '12345');
     assert.equal(storage.get('UserScript-Contest-123-Problem-0-PID'), '98765');
     assert.equal(storage.get('UserScript-Contest-123-Name'), 'Contest');
-    assert.deepEqual(JSON.parse(storage.get('UserScript-Contest-123-ProblemList')), [
-        {title: '<Title>', url: 'https://www.xmoj.tech/web/contest/123/C'},
-        {title: 'First', url: 'https://www.xmoj.tech/web/contest/123/A'}
-    ]);
+    assert.equal(storage.get('UserScript-Problem-12345-Name'), '<Title>');
+    assert.equal(storage.get('UserScript-Problem-98765-Name'), 'First');
+    // The problem list itself is not cached: the switcher uses the API response.
+    assert.equal(storage.get('UserScript-Contest-123-ProblemList'), undefined);
     assert.equal(scope.GetContestProblemURL('123', '['), '/web/contest/123/%5B');
 });
 
