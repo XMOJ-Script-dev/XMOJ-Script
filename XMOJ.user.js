@@ -654,6 +654,10 @@ let _earlyObs = null;
                         node.remove();
         });
         _earlyObs.observe(document.documentElement, { childList: true, subtree: true });
+        // The script can start after the parser has already read <head>: the observer
+        // only sees links added from now on, so remove the ones already there as well.
+        for (let link of document.querySelectorAll("link"))
+            if (blocked.some(h => link.href && link.href.indexOf(h) !== -1)) link.remove();
     } catch (e) {
         console.error("[XMOJ-Script] early init error:", e);
     }
@@ -2237,6 +2241,14 @@ function ApplyContestWebTheme() {
         #app .xmoj-std-overlay { pointer-events: none; }
         #app .xmoj-script-code-ready { display: none !important; }
         #app #rank td.well { color: #222 !important; }
+        #app .xmoj-problem-head h3 { font-size: 1rem; font-weight: inherit !important; font-family: inherit !important; margin: 0; }
+        #app .xmoj-problem-actions .btn { margin: 0 5px; }
+        #app .xmoj-problem-body pre { font-size: 1rem; padding: 0.3em 0.5em; margin: 0.5em 0; }
+        #app .in-out { overflow: hidden; display: flex; padding: 0.5em 0; }
+        #app .in-out .in-out-item { flex: 1; overflow: hidden; }
+        #app .cnt-row .title { font-weight: bolder; font-size: 1.1rem; }
+        #app a.copy-btn { float: right; margin-left: 0; padding: 0 0.4em; border: 1px solid var(--bs-primary, #337ab7); border-radius: 3px; color: var(--bs-primary, #337ab7); cursor: pointer; text-decoration: none; }
+        #app a.copy-btn:hover { background-color: var(--bs-secondary-bg, #f5f5f5); }
         @media (max-width: 600px) { #app .in-out { flex-direction: column; } #app .in-out-item { margin: 0 !important; } }
         #app .dropdown-menu[data-xmoj-script-menu] > li:not([data-xmoj-script]) { display: none !important; }
     ` + (modern ? `
@@ -2625,10 +2637,22 @@ async function InitializeContestWebApp() {
             if (UtilityEnabled("Discussion")) {
                 for (const actions of root.querySelectorAll(".xmoj-problem-actions")) {
                     AddLink(actions, "discuss-problem", "讨论", "/discuss3/discuss.php?pid=" + encodeURIComponent(problem.problemId));
-                    if (actions.querySelector(`.btn-sm:not([${owned}])`)) actions.querySelector(`[${owned}="discuss-problem"]`)?.classList.add("btn-sm");
                 }
             }
         }
+        // Same buttons as the legacy problem page: full size and all outlined.
+        for (const button of root.querySelectorAll(".xmoj-problem-actions .btn")) {
+            button.classList.remove("btn-sm", "btn-primary", "btn-default");
+            button.classList.add("btn-outline-secondary");
+        }
+        // The legacy page removes the repeated buttons below the statement.
+        if (UtilityEnabled("RemoveUseless")) {
+            for (const head of root.querySelectorAll(".xmoj-problem-head")) {
+                if (!head.querySelector("h2") && head.querySelector(".xmoj-problem-actions")) head.style.display = "none";
+            }
+        }
+        // Sample boxes are cards, as on the legacy page.
+        for (const pre of root.querySelectorAll(".xmoj-problem-body .in-out pre")) pre.classList.add("card");
         if (UtilityEnabled("CopyMD")) {
             for (const section of root.querySelectorAll(".xmoj-problem-body .cnt-row")) {
                 const heading = section.querySelector(".cnt-row-head");
