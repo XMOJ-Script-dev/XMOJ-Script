@@ -717,6 +717,12 @@ let GetUserInfo = async (Username) => {
             const ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
             let Rating = (ParsedDocument.querySelector("#statics > tbody > tr:nth-child(4) > td:nth-child(2)") != null && ParsedDocument.querySelector("#statics > tbody > tr:nth-child(3) > td:nth-child(2)") != null) ? (parseInt(ParsedDocument.querySelector("#statics > tbody > tr:nth-child(4) > td:nth-child(2)").innerText.trim()) / parseInt(ParsedDocument.querySelector("#statics > tbody > tr:nth-child(3) > td:nth-child(2)").innerText.trim())).toFixed(3) * 1000 : 0;
             let Temp = (ParsedDocument.querySelector("#statics > tbody") != null) ? ParsedDocument.querySelector("#statics > tbody").children : [];
+            //页面结构异常（如403/404页面）时返回默认值，不写入缓存
+            if (Temp.length == 0) {
+                return {
+                    "Rating": Rating, "EmailHash": undefined
+                }
+            }
             let Email = Temp[Temp.length - 1].children[1].innerText.trim();
             let EmailHash = CryptoJS.MD5(Email).toString();
             localStorage.setItem("UserScript-User-" + Username + "-UserRating", Rating);
@@ -3470,7 +3476,10 @@ async function main() {
                                     for (let i = 0; i < Temp.length; i++) {
                                         ACProblems.push(Number(Temp[i].substring(2, Temp[i].indexOf(","))));
                                     }
-                                    ImproveACRateButton.disabled = false;
+                                    //没有解析到已通过的题目时保持禁用，避免用无效的题号提交
+                                    if (ACProblems.length > 0) {
+                                        ImproveACRateButton.disabled = false;
+                                    }
                                 });
                             ImproveACRateButton.addEventListener("click", async () => {
                                 ImproveACRateButton.disabled = true;
