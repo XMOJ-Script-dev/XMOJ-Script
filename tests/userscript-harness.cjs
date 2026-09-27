@@ -68,7 +68,9 @@ function Shims(resources) {
 
 // Userscript managers only inject on @match pages, wrap each script in a function,
 // and run document-start scripts once <html> exists. Playwright's init scripts run
-// earlier and in every frame, so do the same here.
+// earlier and in every frame, so do the same here. Waiting for <html> is done with a
+// task rather than inside the MutationObserver callback: Chromium's renderer crashes
+// when a page navigates (the script's old contest page redirects) from that callback.
 function InitScript(requires, resources) {
     return [
         "if (location.hostname === 'www.xmoj.tech') {",
@@ -76,7 +78,7 @@ function InitScript(requires, resources) {
         Shims(resources), requires.join("\n;\n"), ";", SOURCE,
         "};",
         "if (document.documentElement) __harnessRun.call(window);",
-        "else new MutationObserver((m, o) => { if (document.documentElement) { o.disconnect(); __harnessRun.call(window); } }).observe(document, { childList: true });",
+        "else new MutationObserver((m, o) => { if (document.documentElement) { o.disconnect(); setTimeout(() => __harnessRun.call(window), 0); } }).observe(document, { childList: true });",
         "}"
     ].join("\n");
 }
@@ -110,11 +112,11 @@ async function Download(request, url) {
 
     const requires = [];
     for (const url of REQUIRES) {
-        try { requires.push(await Download(context.request, url)); } catch (e) { console.warn(e.message + ", skipped"); }
+        try { requires.push(await Download(context.request, url)); } catch (e) { console.warn("Could not download " + url + " (" + e.message.split("\n")[0] + "), skipped"); }
     }
     const resources = {};
     for (const [name, url] of Object.entries(RESOURCES)) {
-        try { resources[name] = await Download(context.request, url); } catch (e) { console.warn(e.message + ", skipped"); }
+        try { resources[name] = await Download(context.request, url); } catch (e) { console.warn("Could not download " + url + " (" + e.message.split("\n")[0] + "), skipped"); }
     }
 
     const blocked = new Set();
