@@ -45,6 +45,8 @@ const BLOCKED_POSTS = /\/(submit|modify|login|logout)(\.php)?$|\/api\/logout$/;
 function Shims(resources) {
     return `
   try { for (const [k, v] of Object.entries(${JSON.stringify(SETTINGS)})) localStorage.setItem("UserScript-Setting-" + k, String(v)); } catch (e) {}
+  // Start as a user who has already seen this version's changelog dialog.
+  try { localStorage.setItem("UserScript-Update-LastVersion", ${JSON.stringify((META.match(/@version\s+(\S+)/) || [])[1] || "")}); } catch (e) {}
   window.unsafeWindow = window;
   window.GM_info = { script: { version: ${JSON.stringify((META.match(/@version\s+(\S+)/) || [])[1] || "")} } };
   window.GM_registerMenuCommand = () => {};
@@ -203,10 +205,25 @@ async function Download(request, url) {
         await Check("web std A");
         await Visit("/web/contest/" + cid + "/A/solution");
         await Check("web solution A");
-        await Visit("/problem.php?cid=" + cid + "&pid=0");
-        await Check("legacy contest problem");
-        await MenuCheck("legacy user menu");
+        // The old contest pages are no longer linked from the site: they must
+        // redirect to the /web app.
+        for (const [from, to] of [
+            ["/contest.php", "/web/contest"],
+            ["/contest.php?cid=" + cid, "/web/contest/" + cid],
+            ["/problem.php?cid=" + cid + "&pid=1", "/web/contest/" + cid + "/B"],
+            ["/problem_std.php?cid=" + cid + "&pid=0", "/web/contest/" + cid + "/A/std"],
+            ["/problem_solution.php?cid=" + cid + "&pid=0", "/web/contest/" + cid + "/A/solution"],
+            ["/contestrank-correct.php?cid=" + cid, "/web/contest/" + cid + "/rank-correct"]
+        ]) {
+            await Visit(from);
+            await page.waitForURL(url => url.pathname === to.split("?")[0], { timeout: 15000 }).catch(() => {});
+            const landed = new URL(page.url());
+            report.push({ label: "redirect " + from, landed: landed.pathname + landed.search, ok: landed.pathname + landed.search === to, errors: errors.splice(0) });
+        }
     }
+    await Visit("/problem.php?id=1000");
+    await Check("legacy problem", async () => ({ discussButton: await page.evaluate(() => [...document.querySelectorAll("button")].some(b => b.textContent.trim().startsWith("讨论"))) }));
+    await MenuCheck("legacy user menu");
     await Visit("/problemset.php");
     await Check("legacy problemset");
     report.push({ label: "blocked requests", blocked: [...blocked] });

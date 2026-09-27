@@ -119,3 +119,28 @@ test('dark mode works with both skin settings disabled and never requests Bootst
     assert.doesNotMatch(styles[0].textContent, /--mono-black:/);
     assert.match(styles[0].textContent, /background: #1a1a1a !important/);
 });
+
+test('redirects the old contest pages to the /web app and leaves other pages alone', () => {
+    const {scope} = context();
+    const site = 'https://www.xmoj.tech';
+    for (const [from, to] of [
+        ['/contest.php', '/web/contest'],
+        ['/contest.php?page=3', '/web/contest?page=3'],
+        ['/contest.php?cid=9979', '/web/contest/9979'],
+        ['/problem.php?cid=9979&pid=0', '/web/contest/9979/A'],
+        ['/problem.php?cid=9979&pid=25', '/web/contest/9979/Z'],
+        ['/problem_std.php?cid=9979&pid=1', '/web/contest/9979/B/std'],
+        ['/problem_solution.php?cid=9979&pid=2', '/web/contest/9979/C/solution'],
+        ['/contestrank-correct.php?cid=9979', '/web/contest/9979/rank-correct'],
+        ['/contestrank-correct.php?cid=9979&user_id=a b', '/web/contest/9979/rank-correct?user_id=a%20b']
+    ]) {
+        assert.equal(scope.GetContestWebRedirect(site + from), site + to, from);
+    }
+    for (const url of [
+        '/problem.php?id=1000', '/problem.php?cid=9979', '/problem.php?cid=9979&pid=26', '/problem.php?cid=abc&pid=0',
+        '/contest.php?cid=x', '/contestrank-correct.php', '/contestrank-oi.php?cid=9979', '/submitpage.php?cid=9979&pid=0',
+        '/status.php?cid=9979', '/problem_solution.php?id=1000', '/web/contest/9979'
+    ]) {
+        assert.equal(scope.GetContestWebRedirect(site + url), null, url);
+    }
+});
