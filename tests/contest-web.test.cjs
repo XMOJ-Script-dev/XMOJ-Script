@@ -3,9 +3,20 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const source = fs.readFileSync(require('node:path').join(__dirname, '../XMOJ.user.js'), 'utf8');
-const helpers = source.slice(source.indexOf('function IsContestWebApp('), source.indexOf('const MonochromeSkinCSS'));
-const skins = source.slice(source.indexOf('const MonochromeSkinCSS'), source.indexOf('// Set to true by the early block'));
-const theme = source.slice(source.indexOf('function ApplyContestWebTheme('), source.indexOf('// Enhancements for the Vue contest app.'));
+// The tested code is cut out of the userscript between these markers. Each marker
+// must appear exactly once, so a rename or move fails here instead of silently
+// testing the wrong code.
+function between(start, end) {
+    for (const marker of [start, end]) {
+        assert.equal(source.split(marker).length - 1, 1, 'expected exactly one "' + marker + '" in XMOJ.user.js');
+    }
+    const from = source.indexOf(start), to = source.indexOf(end);
+    assert.ok(from < to, '"' + start + '" must come before "' + end + '"');
+    return source.slice(from, to);
+}
+const helpers = between('function IsContestWebApp(', 'const MonochromeSkinCSS');
+const skins = between('const MonochromeSkinCSS', '// Set to true by the early block');
+const theme = between('function ApplyContestWebTheme(', '// Enhancements for the Vue contest app.');
 
 function context(overrides = {}) {
     const storage = new Map();
@@ -143,4 +154,18 @@ test('redirects the old contest pages to the /web app and leaves other pages alo
     ]) {
         assert.equal(scope.GetContestWebRedirect(site + url), null, url);
     }
+});
+
+test('with NewBootstrap and without MonochromeUI, only the app-specific rules are added', () => {
+    const {scope, storage, styles} = context();
+    storage.set('UserScript-Setting-NewBootstrap', 'true');
+    storage.set('UserScript-Setting-MonochromeUI', 'false');
+    storage.set('UserScript-Setting-Theme', 'light');
+    assert.equal(scope.ApplyContestWebTheme(), false);
+    const css = styles[0].textContent;
+    // The skins come from the early block; the /web style only maps the app's markup.
+    assert.match(css, /#app \.navbar-header \{ display: flex;/);
+    assert.match(css, /html\[data-bs-theme='light'\] \{ background: var\(--mono-white, var\(--bs-body-bg, #fff\)\)/);
+    assert.doesNotMatch(css, /--mono-black:/);
+    assert.doesNotMatch(css, /\[data-bs-theme='dark'\] #app \.btn \{/);
 });

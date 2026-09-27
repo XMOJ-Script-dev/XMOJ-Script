@@ -5752,10 +5752,21 @@ async function main() {
                     if (document.querySelector("#results > div") == undefined) {
                         if (document.querySelector("#results") != null) document.querySelector("#results").parentElement.innerHTML = "没有测试点信息";
                     } else {
-                        for (let i = 0; document.querySelector("#results > div") != null && i < document.querySelector("#results > div").children.length; i++) {
-                            let CurrentElement = document.querySelector("#results > div").children[i].children[0].children[0].children[0];
-                            let Temp = CurrentElement.innerText.substring(0, CurrentElement.innerText.length - 2).split("/");
-                            CurrentElement.innerText = TimeToStringTime(Temp[0]) + "/" + SizeToStringSize(Temp[1]);
+                        // With several subtasks there are several result groups, and group
+                        // headers do not have the nested structure of a test point.
+                        let ResultGroups = document.querySelectorAll("#results > div");
+                        for (let j = 0; j < ResultGroups.length; j++) {
+                            for (let i = 0; i < ResultGroups[j].children.length; i++) {
+                                let CurrentElement = ResultGroups[j].children[i];
+                                for (let Depth = 0; Depth < 3 && CurrentElement != undefined; Depth++) {
+                                    CurrentElement = CurrentElement.children[0];
+                                }
+                                if (CurrentElement == undefined || CurrentElement.innerText.indexOf("/") == -1) {
+                                    continue;
+                                }
+                                let Temp = CurrentElement.innerText.substring(0, CurrentElement.innerText.length - 2).split("/");
+                                CurrentElement.innerText = TimeToStringTime(Temp[0]) + "/" + SizeToStringSize(Temp[1]);
+                            }
                         }
                         {
                             let ApplyDataElement = document.getElementById("apply_data");
