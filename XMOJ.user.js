@@ -558,6 +558,14 @@ const NewBootstrapSkinCSS = `
                     border-radius: 0 0 0.3rem 0.3rem;
                 }`;
 
+// Paints the theme's page background on the canvas, with a matching color-scheme,
+// so that while a page is hidden, and below short pages, a dark theme never shows
+// the browser's white default. Uses the active skin's background variable.
+const ThemeCanvasCSS = `
+        html[data-bs-theme='dark'] { background: var(--mono-white, var(--bs-body-bg, #1a1a1a)) !important; color-scheme: dark; }
+        html[data-bs-theme='light'] { background: var(--mono-white, var(--bs-body-bg, #fff)); color-scheme: light; }
+`;
+
 // Set to true by the early block if Bootstrap CSS was injected from the @resource
 // cache. Checked in the IIFE to decide whether a CDN fallback is needed.
 let _earlyBootstrapInjected = false;
@@ -565,6 +573,11 @@ let _earlyBootstrapInjected = false;
 // reveal and observer teardown at DOMContentLoaded time (more reliable than
 // adding a DOMContentLoaded listener inside the sandboxed early block).
 let _foucStyle = null;
+// Shows a page hidden by the early block. Called once the page reaches its styled
+// state (navbar converted, top bar applied), with a safety delay as a fallback.
+function RevealPage() {
+    if (_foucStyle) { _foucStyle.remove(); _foucStyle = null; }
+}
 let _earlyObs = null;
 
 // Runs synchronously at document-start. When NewBootstrap is enabled, we apply
@@ -613,15 +626,16 @@ let _earlyObs = null;
         let skinCSS = isMono ? MonochromeSkinCSS : NewBootstrapSkinCSS;
         if (get("AddAnimation")) skinCSS += `.status, .test-case { transition: ${isMono ? "100ms ease" : "0.5s"} !important; }`;
         if (get("AddColorText")) skinCSS += `.red { color: red !important; } .green { color: green !important; } .blue { color: blue !important; }`;
+        skinCSS += ThemeCanvasCSS;
         let skinStyle = document.createElement("style");
         skinStyle.textContent = skinCSS;
         head.appendChild(skinStyle);
 
-        // Hide the page until old stylesheets are evicted and our CSS is in place.
-        // Revealed by the IIFE right after its DOMContentLoaded wait (more reliable
-        // than a DOMContentLoaded listener here due to sandbox context differences).
+        // Hide the page until old stylesheets are evicted and the page is styled; see
+        // RevealPage. Only the body is hidden: opacity on the root would also hide the
+        // themed canvas and show the browser's white default instead.
         _foucStyle = document.createElement("style");
-        _foucStyle.textContent = "html { opacity: 0 !important; }";
+        _foucStyle.textContent = "body { visibility: hidden !important; }";
         head.appendChild(_foucStyle);
 
         let blocked = ["bootstrap.min.css", "white.css", "semantic.min.css", "bootstrap-theme.min.css", "problem.css"];
@@ -2205,9 +2219,7 @@ function ApplyContestWebTheme() {
     document.documentElement.setAttribute("data-bs-theme", dark ? "dark" : "light");
     localStorage.setItem("UserScript-Setting-DarkMode", String(dark));
     const modern = get("NewBootstrap");
-    style.textContent = `
-        html[data-bs-theme='dark'] { background: #1a1a1a !important; color-scheme: dark; }
-        html[data-bs-theme='light'] { background: #fff; color-scheme: light; }
+    style.textContent = ThemeCanvasCSS + `
         #app .xmoj-script-tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
         #app .copy-btn { margin-left: 10px; }
         #app .xmoj-script-countdown { margin-left: 8px; white-space: nowrap; }
@@ -2271,6 +2283,7 @@ async function InitializeContestWebApp() {
     let scheduled = false;
     let editors = [];
     let serverOffset = 0;
+    let revealed = false;
     const countdowns = new Map();
 
     initTheme = () => {
@@ -2694,6 +2707,12 @@ async function InitializeContestWebApp() {
             });
             if (UtilityEnabled("NewBootstrap")) ApplyBootstrap5Markup();
             EnhanceNav();
+            if (!revealed && root.querySelector(".navbar")) {
+                // As on the legacy pages: top bar first, then show the page.
+                revealed = true;
+                if (UtilityEnabled("NewTopBar")) new NavbarStyler();
+                RevealPage();
+            }
             if (!route) return;
             if (route.page === "list") EnhanceList();
             if (route.page === "contest") EnhanceContest();
@@ -2894,16 +2913,17 @@ if (GetContestWebRedirect()) return;
 if (document.readyState === "loading") {
     await new Promise(r => document.addEventListener("DOMContentLoaded", r, { once: true }));
 }
-// Reveal the page now that DOMContentLoaded has fired. Remove any old Bootstrap
-// stylesheets the preload scanner fetched (un-applies them from the CSSOM), then
-// remove the FOUC hide so the user sees the correct final state immediately.
+// Remove any old Bootstrap stylesheets the preload scanner fetched (un-applies them
+// from the CSSOM). The page stays hidden until it is styled: main() and the /web app
+// call RevealPage once the navbar is in its final state, so there is no unstyled frame
+// or navbar jump. The timeout makes sure the page is shown even if that never happens.
 if (_earlyObs) { _earlyObs.disconnect(); _earlyObs = null; }
 if (_foucStyle) {
     let _blocked = ["bootstrap.min.css", "white.css", "semantic.min.css", "bootstrap-theme.min.css", "problem.css"];
     for (let _link of document.querySelectorAll("link")) {
         if (_blocked.some(h => _link.href && _link.href.indexOf(h) !== -1)) _link.remove();
     }
-    _foucStyle.remove(); _foucStyle = null;
+    setTimeout(RevealPage, 1500);
 }
 if (IsContestWebApp()) {
     await InitializeContestWebApp();
@@ -2925,6 +2945,7 @@ SearchParams = new URLSearchParams(location.search);
 let ServerURL = (UtilityEnabled("DebugMode") ? "https://ghpages.xmoj-script.uk/" : "https://www.xmoj-script.uk")
 const profileElement = document.querySelector("#profile");
 if (profileElement === null) {
+    RevealPage();
     if (!logined) {
         location.href = "https://www.xmoj.tech/loginpage.php";
     }
@@ -3102,6 +3123,10 @@ async function main() {
                     }
                     if (document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > a") != null) document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > a").setAttribute("data-bs-toggle", "dropdown");
                     if (document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > a") != null) document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > a").removeAttribute("data-toggle");
+                    // The navbar is in its final state: apply the top bar now rather than on
+                    // the first interval tick, then show the page.
+                    if (UtilityEnabled("NewTopBar")) new NavbarStyler();
+                    RevealPage();
                 }
                 if (UtilityEnabled("RemoveUseless") && document.getElementsByTagName("marquee")[0] != undefined) {
                     document.getElementsByTagName("marquee")[0].remove();
@@ -7597,6 +7622,7 @@ cerr<<b93(gz(rd()))<<endl;abort();}
 }
 
 await main();
+RevealPage();
 console.log("XMOJ-Script loaded successfully!");
 })().catch(e => {
     console.error("[XMOJ-Script] Initialization error:", e);

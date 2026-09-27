@@ -94,7 +94,7 @@ test('sets dark canvas synchronously before head/body exist and reuses its style
     assert.equal(scope.ApplyContestWebTheme(), true);
     assert.equal(attributes.get('data-bs-theme'), 'dark');
     assert.equal(storage.get('UserScript-Setting-DarkMode'), 'true');
-    assert.match(styles[0].textContent, /html\[data-bs-theme='dark'\] \{ background: #1a1a1a !important; color-scheme: dark;/);
+    assert.match(styles[0].textContent, /html\[data-bs-theme='dark'\] \{ background: var\(--mono-white, var\(--bs-body-bg, #1a1a1a\)\) !important; color-scheme: dark;/);
     assert.doesNotMatch(styles[0].textContent, /opacity: 0 !important/);
     scope.ApplyContestWebTheme();
     assert.equal(styles.length, 1);
