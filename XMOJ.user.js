@@ -1681,7 +1681,9 @@ unsafeWindow.GetContestProblemList = async function(RefreshList) {
         if (contestReq.status === 200 && res.indexOf("比赛尚未开始或私有，不能查看题目。") === -1) {
             const parser = new DOMParser();
             const dom = parser.parseFromString(res, "text/html");
-            const rows = (dom.querySelector("#problemset > tbody")).rows;
+            const tbody = dom.querySelector("#problemset > tbody");
+            if (tbody == null) return;
+            const rows = tbody.rows;
             let problemList = [];
             for (let i = 0; i < rows.length; i++) {
                 problemList.push({
@@ -3145,7 +3147,7 @@ async function main() {
                     if (transEnZh !== null) transEnZh.remove();
 
                     await RenderMathJax();
-                    if (SearchParams.get("cid") != null && UtilityEnabled("ProblemSwitcher")) {
+                    if (SearchParams.get("cid") != null && UtilityEnabled("ProblemSwitcher") && document.querySelector("body > div > div.mt-3 > h2") == null) {
                         let pid = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + SearchParams.get("pid") + "-PID");
                         if (!pid) {
                             const contestReq = await fetch("https://www.xmoj.tech/contest.php?cid=" + SearchParams.get("cid"));
@@ -3153,7 +3155,8 @@ async function main() {
                             if (contestReq.status === 200 && res.indexOf("比赛尚未开始或私有，不能查看题目。") === -1) {
                                 const parser = new DOMParser();
                                 const dom = parser.parseFromString(res, "text/html");
-                                const rows = (dom.querySelector("#problemset > tbody")).rows;
+                                const tbody = dom.querySelector("#problemset > tbody");
+                                const rows = tbody ? tbody.rows : [];
                                 for (let i = 0; i < rows.length; i++) {
                                     let problemIdText = rows[i].children[1].innerText; // Get the text content
                                     let match = problemIdText.match(/\d+/); // Extract the number
@@ -3193,7 +3196,7 @@ async function main() {
                         problemSwitcher.style.display = "flex";
                         problemSwitcher.style.flexDirection = "column";
 
-                        let problemList = JSON.parse(ContestProblemList);
+                        let problemList = JSON.parse(ContestProblemList) || [];
                         problemSwitcher.innerHTML += `<a onclick="GetContestProblemList(true)" title="刷新列表" class="refreshList mb-2" style="text-align: center;" active>刷新</a>`;
                         for (let i = 0; i < problemList.length; i++) {
                             let buttonText = "";
@@ -3215,6 +3218,8 @@ async function main() {
                         setTimeout(() => {
                             location.href = "https://www.xmoj.tech/problemset.php";
                         }, 1000);
+                    } else if (document.querySelector("body > div > div.mt-3 > center") == null) {
+                        //其他错误页面（如无权限查看），保留原提示，不做处理
                     } else {
                         let PID = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + SearchParams.get("pid") + "-PID");
                         if (document.querySelector("body > div > div.mt-3 > center").lastElementChild !== null) {
@@ -3223,26 +3228,28 @@ async function main() {
                         //修复提交按钮
                         const links = document.querySelectorAll('.mt-3 > center:nth-child(1) > a');
                         const SubmitLink = Array.from(links).find(a => a.textContent.trim() === '提交');
-                        let SubmitButton = document.createElement('button');
-                        SubmitButton.id = 'SubmitButton';
-                        SubmitButton.className = 'btn btn-outline-secondary';
-                        SubmitButton.textContent = '提交';
-                        SubmitButton.href = SubmitLink.href;
-                        SubmitButton.onclick = function () {
-                            window.location.href = SubmitLink.href;
-                            console.log(SubmitLink.href);
-                        };
+                        if (SubmitLink != undefined) {
+                            let SubmitButton = document.createElement('button');
+                            SubmitButton.id = 'SubmitButton';
+                            SubmitButton.className = 'btn btn-outline-secondary';
+                            SubmitButton.textContent = '提交';
+                            SubmitButton.href = SubmitLink.href;
+                            SubmitButton.onclick = function () {
+                                window.location.href = SubmitLink.href;
+                                console.log(SubmitLink.href);
+                            };
 
-                        // Replace the <a> element with the button
-                        SubmitLink.parentNode.replaceChild(SubmitButton, SubmitLink);
-                        // Remove the button's outer []
-                        let str = document.querySelector('.mt-3 > center:nth-child(1)').innerHTML;
-                        let target = SubmitButton.outerHTML;
-                        document.querySelector('.mt-3 > center:nth-child(1)').innerHTML = str.replace(new RegExp(`(.?)${target}(.?)`, 'g'), target);
-                        document.querySelector('html body.placeholder-glow div.container div.mt-3 center button#SubmitButton.btn.btn-outline-secondary').onclick = function () {
-                            window.location.href = SubmitLink.href;
-                            console.log(SubmitLink.href);
-                        };
+                            // Replace the <a> element with the button
+                            SubmitLink.parentNode.replaceChild(SubmitButton, SubmitLink);
+                            // Remove the button's outer []
+                            let str = document.querySelector('.mt-3 > center:nth-child(1)').innerHTML;
+                            let target = SubmitButton.outerHTML;
+                            document.querySelector('.mt-3 > center:nth-child(1)').innerHTML = str.replace(new RegExp(`(.?)${target}(.?)`, 'g'), target);
+                            document.querySelector('html body.placeholder-glow div.container div.mt-3 center button#SubmitButton.btn.btn-outline-secondary').onclick = function () {
+                                window.location.href = SubmitLink.href;
+                                console.log(SubmitLink.href);
+                            };
+                        }
                         var Temp = document.querySelectorAll(".sampledata");
                         for (var i = 0; i < Temp.length; i++) {
                             Temp[i].parentElement.className = "card";
@@ -3710,7 +3717,8 @@ async function main() {
                             Temp[i].childNodes[4].innerHTML = "<a href=\"https://www.xmoj.tech/userinfo.php?user=" + Temp[i].childNodes[4].innerHTML + "\">" + Temp[i].childNodes[4].innerHTML + "</a>";
                             localStorage.setItem("UserScript-Contest-" + Temp[i].childNodes[0].innerText + "-Name", Temp[i].childNodes[1].innerText);
                         }
-                    } else {
+                    } else if (document.getElementsByTagName("h3")[0] != undefined && document.querySelector("body > div > div.mt-3 > center > div") != null) {
+                        //403/404页面（比赛私有、不存在等）没有比赛信息，跳过处理
                         document.getElementsByTagName("h3")[0].innerHTML = "比赛" + document.getElementsByTagName("h3")[0].innerHTML.substring(7);
                         if (document.querySelector("#time_left") != null) {
                             let EndTime = document.querySelector("body > div > div.mt-3 > center").childNodes[3].data;
@@ -5535,13 +5543,25 @@ async function main() {
                     }
                 } else if (location.pathname == "/reinfo.php") {
                     document.title = "测试点信息: " + SearchParams.get("sid");
-                    if (document.querySelector("#results > div") == undefined) {
+                    if (document.querySelector("#results") == null) {
+                        //无权查看等错误页面，保留原提示
+                    } else if (document.querySelector("#results > div") == undefined) {
                         document.querySelector("#results").parentElement.innerHTML = "没有测试点信息";
                     } else {
-                        for (let i = 0; i < document.querySelector("#results > div").children.length; i++) {
-                            let CurrentElement = document.querySelector("#results > div").children[i].children[0].children[0].children[0];
-                            let Temp = CurrentElement.innerText.substring(0, CurrentElement.innerText.length - 2).split("/");
-                            CurrentElement.innerText = TimeToStringTime(Temp[0]) + "/" + SizeToStringSize(Temp[1]);
+                        //多subtask时有多个分组，且分组标题等元素结构不同，逐个检查
+                        let ResultGroups = document.querySelectorAll("#results > div");
+                        for (let j = 0; j < ResultGroups.length; j++) {
+                            for (let i = 0; i < ResultGroups[j].children.length; i++) {
+                                let CurrentElement = ResultGroups[j].children[i];
+                                for (let k = 0; k < 3 && CurrentElement != undefined; k++) {
+                                    CurrentElement = CurrentElement.children[0];
+                                }
+                                if (CurrentElement == undefined || CurrentElement.innerText.indexOf("/") == -1) {
+                                    continue;
+                                }
+                                let Temp = CurrentElement.innerText.substring(0, CurrentElement.innerText.length - 2).split("/");
+                                CurrentElement.innerText = TimeToStringTime(Temp[0]) + "/" + SizeToStringSize(Temp[1]);
+                            }
                         }
                         {
                             let ApplyDataElement = document.getElementById("apply_data");
