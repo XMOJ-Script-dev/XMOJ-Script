@@ -3728,7 +3728,7 @@ async function main() {
                     </div>`;
                         RequestAPI("GetNotice", {}, (Response) => {
                             if (Response.Success) {
-                                if (document.querySelector("body > div.container > div > div > div.col-md-4 > div:nth-child(2) > div.cnt-row-body") != null) document.querySelector("body > div.container > div > div > div.col-md-4 > div:nth-child(2) > div.cnt-row-body").innerHTML = PurifyHTML(marked.parse(Response.Data["Notice"])).replaceAll(/@([a-zA-Z0-9]+)/g, `<b>@</b><span class="ms-1 Usernames">$1</span>`);
+                                if (document.querySelector("body > div.container > div > div > div.col-md-4 > div:nth-child(2) > div.cnt-row-body") != null) document.querySelector("body > div.container > div > div > div.col-md-4 > div:nth-child(2) > div.cnt-row-body").innerHTML = marked.parse(Response.Data["Notice"]).replaceAll(/@([a-zA-Z0-9]+)/g, `<b>@</b><span class="ms-1 Usernames">$1</span>`);
                                 RenderMathJax();
                                 let UsernameElements = document.getElementsByClassName("Usernames");
                                 for (let i = 0; i < UsernameElements.length; i++) {
