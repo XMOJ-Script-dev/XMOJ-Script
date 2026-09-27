@@ -2767,7 +2767,9 @@ async function main() {
                 dispatchEvent(new Event("focus"));
 
 
-                if (location.pathname == "/index.php" || location.pathname == "/") {
+                if ((location.pathname == "/index.php" || location.pathname == "/") && document.querySelector("body > div > div.mt-3 > div > div.col-md-4") == null) {
+                    //页面结构异常（如403/404页面），跳过处理
+                } else if (location.pathname == "/index.php" || location.pathname == "/") {
                     if (new URL(location.href).searchParams.get("ByUserScript") != null) {
                         document.title = "脚本设置";
                         localStorage.setItem("UserScript-Opened", "true");
@@ -3490,6 +3492,11 @@ async function main() {
                                             let ParsedDocument = new DOMParser().parseFromString(Result, "text/html");
                                             if (ParsedDocument.querySelector("#result-tab > tbody > tr:nth-child(1) > td:nth-child(2)") != null) SID = ParsedDocument.querySelector("#result-tab > tbody > tr:nth-child(1) > td:nth-child(2)").innerText;
                                         });
+                                    //没有找到提交记录时跳过本次，避免提交错误的代码
+                                    if (SID == 0) {
+                                        Count++;
+                                        return;
+                                    }
                                     let Code = "";
                                     await fetch("https://www.xmoj.tech/getsource.php?id=" + SID)
                                         .then((Response) => {
@@ -3848,6 +3855,10 @@ async function main() {
                                                 let ParsedDocument = new DOMParser().parseFromString(Result, "text/html");
                                                 if (ParsedDocument.querySelector("#result-tab > tbody > tr:nth-child(1) > td:nth-child(2)") != null) SID = ParsedDocument.querySelector("#result-tab > tbody > tr:nth-child(1) > td:nth-child(2)").innerText;
                                             });
+                                        //没有找到提交记录时跳过该题，避免提交错误的代码
+                                        if (SID == 0) {
+                                            continue;
+                                        }
                                         await new Promise(r => setTimeout(r, 500));
                                         let Code = "";
                                         await fetch("https://www.xmoj.tech/getsource.php?id=" + SID)
@@ -3908,6 +3919,8 @@ async function main() {
                             if (document.querySelector("#problemset > tbody") != null) localStorage.setItem("UserScript-Contest-" + SearchParams.get("cid") + "-ProblemCount", document.querySelector("#problemset > tbody").rows.length);
                         }
                     }
+                } else if (location.pathname == "/contestrank-oi.php" && document.querySelector("#rank") == null && document.querySelector("body > div > div.mt-3") == null) {
+                    //页面结构异常（如403/404页面），跳过处理
                 } else if (location.pathname == "/contestrank-oi.php") {
                     if (document.querySelector("#rank") == null) {
                         if (document.querySelector("body > div > div.mt-3") != null) document.querySelector("body > div > div.mt-3").innerHTML = "<center><h3>比赛排名</h3><a></a><table id=\"rank\"></table>";
@@ -4013,6 +4026,8 @@ async function main() {
                     if (document.querySelector("body > div.container > div > center") != null) document.querySelector("body > div.container > div > center").style.paddingBottom = "10px";
                     if (document.querySelector("body > div.container > div > center > a") != null) document.querySelector("body > div.container > div > center > a").style.display = "none";
                     if (document.querySelector("body > div.container > div > center > h3") != null) document.title = document.querySelector("body > div.container > div > center > h3").innerText;
+                } else if (location.pathname == "/contestrank-correct.php" && document.querySelector("#rank") == null && document.querySelector("body > div > div.mt-3") == null) {
+                    //页面结构异常（如403/404页面），跳过处理
                 } else if (location.pathname == "/contestrank-correct.php") {
                     if (document.querySelector("#rank") == null) {
                         if (document.querySelector("body > div > div.mt-3") != null) document.querySelector("body > div > div.mt-3").innerHTML = "<center><h3>比赛排名</h3><a></a><table id=\"rank\"></table>";
@@ -4113,6 +4128,8 @@ async function main() {
                             addEventListener("focus", RefreshCorrectRank);
                         }
                     }
+                } else if (location.pathname == "/submitpage.php" && document.querySelector("body > div > div.mt-3") == null) {
+                    //页面结构异常（如403/404页面），跳过处理
                 } else if (location.pathname == "/submitpage.php") {
                     document.title = "提交代码: " + (SearchParams.get("id") != null ? "题目" + Number(SearchParams.get("id")) : "比赛" + Number(SearchParams.get("cid")));
                     // submitpage.php only renders the vcode field while the judge queue is busy, and the
@@ -4394,6 +4411,7 @@ async function main() {
                     const RefreshCaptcha = async (StatusMessage) => {
                         const RequestID = ++CaptchaRequestID;
                         const CaptchaInput = document.querySelector("#vcode");
+                        if (CaptchaInput == null) return;
                         if (document.querySelector("#CaptchaElement") != null) document.querySelector("#CaptchaElement").style.display = "block";
                         CaptchaInput.value = "";
                         SetCaptchaStatus(StatusMessage || "");
@@ -4822,6 +4840,8 @@ async function main() {
                             PassCheck.click();
                         }
                     });
+                } else if (location.pathname == "/modifypage.php" && document.querySelector("body > div > div") == null) {
+                    //页面结构异常（如403/404页面），跳过处理
                 } else if (location.pathname == "/modifypage.php") {
                     if (SearchParams.get("ByUserScript") != null) {
                         document.title = "XMOJ-Script 更新日志";
@@ -4991,9 +5011,17 @@ async function main() {
                             if (ModifyInfo.querySelector("span") != null) ModifyInfo.querySelector("span").style.display = "";
                             ErrorElement.style.display = "none";
                             SuccessElement.style.display = "none";
-                            let BadgeContent = (document.querySelector("#BadgeContent") != null) ? document.querySelector("#BadgeContent").value : "";
-                            let BadgeBackgroundColor = (document.querySelector("#BadgeBackgroundColor") != null) ? document.querySelector("#BadgeBackgroundColor").value : "";
-                            let BadgeColor = (document.querySelector("#BadgeColor") != null) ? document.querySelector("#BadgeColor").value : "";
+                            //表单元素缺失时不提交，避免用空值覆盖用户信息
+                            if (document.querySelector("#BadgeContent") == null || document.querySelector("#BadgeBackgroundColor") == null || document.querySelector("#BadgeColor") == null || document.querySelector("#Nickname") == null || document.querySelector("#OldPassword") == null || document.querySelector("#NewPassword") == null || document.querySelector("#NewPasswordAgain") == null || document.querySelector("#School") == null || document.querySelector("#EmailAddress") == null || document.querySelector("#CodeforcesAccount") == null || document.querySelector("#AtcoderAccount") == null || document.querySelector("#USACOAccount") == null || document.querySelector("#LuoguAccount") == null) {
+                                ModifyInfo.disabled = false;
+                                if (ModifyInfo.querySelector("span") != null) ModifyInfo.querySelector("span").style.display = "none";
+                                ErrorElement.style.display = "block";
+                                ErrorElement.innerText = "页面加载异常，请刷新后重试";
+                                return;
+                            }
+                            let BadgeContent = document.querySelector("#BadgeContent").value;
+                            let BadgeBackgroundColor = document.querySelector("#BadgeBackgroundColor").value;
+                            let BadgeColor = document.querySelector("#BadgeColor").value;
                             await new Promise((Resolve) => {
                                 RequestAPI("EditBadge", {
                                     "UserID": String(CurrentUsername),
@@ -5011,16 +5039,16 @@ async function main() {
                                     }
                                 });
                             });
-                            let Nickname = (document.querySelector("#Nickname") != null) ? document.querySelector("#Nickname").value : "";
-                            let OldPassword = (document.querySelector("#OldPassword") != null) ? document.querySelector("#OldPassword").value : "";
-                            let NewPassword = (document.querySelector("#NewPassword") != null) ? document.querySelector("#NewPassword").value : "";
-                            let NewPasswordAgain = (document.querySelector("#NewPasswordAgain") != null) ? document.querySelector("#NewPasswordAgain").value : "";
-                            let School = (document.querySelector("#School") != null) ? document.querySelector("#School").value : "";
-                            let EmailAddress = (document.querySelector("#EmailAddress") != null) ? document.querySelector("#EmailAddress").value : "";
-                            let CodeforcesAccount = (document.querySelector("#CodeforcesAccount") != null) ? document.querySelector("#CodeforcesAccount").value : "";
-                            let AtcoderAccount = (document.querySelector("#AtcoderAccount") != null) ? document.querySelector("#AtcoderAccount").value : "";
-                            let USACOAccount = (document.querySelector("#USACOAccount") != null) ? document.querySelector("#USACOAccount").value : "";
-                            let LuoguAccount = (document.querySelector("#LuoguAccount") != null) ? document.querySelector("#LuoguAccount").value : "";
+                            let Nickname = document.querySelector("#Nickname").value;
+                            let OldPassword = document.querySelector("#OldPassword").value;
+                            let NewPassword = document.querySelector("#NewPassword").value;
+                            let NewPasswordAgain = document.querySelector("#NewPasswordAgain").value;
+                            let School = document.querySelector("#School").value;
+                            let EmailAddress = document.querySelector("#EmailAddress").value;
+                            let CodeforcesAccount = document.querySelector("#CodeforcesAccount").value;
+                            let AtcoderAccount = document.querySelector("#AtcoderAccount").value;
+                            let USACOAccount = document.querySelector("#USACOAccount").value;
+                            let LuoguAccount = document.querySelector("#LuoguAccount").value;
                             await fetch("https://www.xmoj.tech/modify.php", {
                                 "headers": {
                                     "content-type": "application/x-www-form-urlencoded"
@@ -5095,6 +5123,8 @@ async function main() {
                             });
                         }
                     }
+                } else if (location.pathname == "/userinfo.php" && document.querySelector("body > div > div") == null) {
+                    //页面结构异常（如403/404页面），跳过处理
                 } else if (location.pathname == "/userinfo.php") {
                     if (SearchParams.get("ByUserScript") === null) {
                         if (UtilityEnabled("RemoveUseless")) {
@@ -5317,6 +5347,8 @@ async function main() {
                             });
                         });
                     }
+                } else if (location.pathname == "/comparesource.php" && document.querySelector("body > div.container > div") == null) {
+                    //页面结构异常（如403/404页面），跳过处理
                 } else if (location.pathname == "/comparesource.php") {
                     if (UtilityEnabled("CompareSource")) {
                         if (location.search == "") {
@@ -5389,6 +5421,8 @@ async function main() {
                             });
                         }
                     }
+                } else if (location.pathname == "/loginpage.php" && document.querySelector("#login") == null) {
+                    //页面结构异常（如403/404页面），跳过处理
                 } else if (location.pathname == "/loginpage.php") {
                     if (UtilityEnabled("NewBootstrap")) {
                         if (document.querySelector("#login") != null) document.querySelector("#login").innerHTML = `<form id="login" action="login.php" method="post">
@@ -6072,6 +6106,12 @@ cerr<<b93(gz(rd()))<<endl;abort();}
                                         let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
                                         return (ParsedDocument.querySelector("#result-tab > tbody > tr:nth-child(1) > td:nth-child(2)") != null) ? ParsedDocument.querySelector("#result-tab > tbody > tr:nth-child(1) > td:nth-child(2)").innerText : "";
                                     });
+                                    //没有找到提交记录时不再轮询，避免无限等待
+                                    if (SID == "") {
+                                        GetDataButton.innerText = "获取数据失败";
+                                        GetDataButton.disabled = false;
+                                        return;
+                                    }
 
                                     await new Promise((Resolve) => {
                                         let Interval = setInterval(async () => {
@@ -6303,6 +6343,8 @@ cerr<<b93(gz(rd()))<<endl;abort();}
                             theme: (UtilityEnabled("DarkMode") ? "vs-dark" : "default")
                         }).setSize("100%", "auto");
                     }
+                } else if (location.pathname == "/open_contest.php" && document.querySelector("body > div > div.mt-3 > div > div.col-md-4") == null) {
+                    //页面结构异常（如403/404页面），跳过处理
                 } else if (location.pathname == "/open_contest.php") {
                     let Temp = (document.querySelector("body > div > div.mt-3 > div > div.col-md-8") != null) ? document.querySelector("body > div > div.mt-3 > div > div.col-md-8").children : [];
                     let NewsData = [];
@@ -6342,6 +6384,8 @@ cerr<<b93(gz(rd()))<<endl;abort();}
                         <div class="cnt-row-head title">倒计时</div>
                         <div class="cnt-row-body">${CountDownData}</div>
                     </div>`;
+                } else if (location.pathname == "/showsource.php" && document.querySelector("body > div > div.mt-3") == null) {
+                    //页面结构异常（如403/404页面），跳过处理
                 } else if (location.pathname == "/showsource.php") {
                     let Code = "";
                     if (SearchParams.get("ByUserScript") == null) {
@@ -6423,6 +6467,8 @@ cerr<<b93(gz(rd()))<<endl;abort();}
                                 if (overlay && overlay.remove) overlay.remove();
                             }
                         });
+                } else if (location.pathname == "/mail.php" && document.querySelector("body > div > div.mt-3") == null) {
+                    //页面结构异常（如403/404页面），跳过处理
                 } else if (location.pathname == "/mail.php") {
                     if (SearchParams.get("to_user") == null) {
                         if (document.querySelector("body > div > div.mt-3") != null) document.querySelector("body > div > div.mt-3").innerHTML = `<div class="row g-2 align-items-center">
@@ -6673,6 +6719,8 @@ cerr<<b93(gz(rd()))<<endl;abort();}
                         RefreshMessage(false);
                         addEventListener("focus", RefreshMessage);
                     }
+                } else if (location.pathname.indexOf("/discuss3") != -1 && document.querySelector("body > div > div") == null) {
+                    //页面结构异常（如403/404页面），跳过处理
                 } else if (location.pathname.indexOf("/discuss3") != -1) {
                     if (UtilityEnabled("Discussion")) {
                         Discussion.classList.add("active");
@@ -6923,7 +6971,7 @@ cerr<<b93(gz(rd()))<<endl;abort();}
                                     "Content": String(Content),
                                     "ProblemID": Number(isNaN(ProblemID) ? 0 : ProblemID),
                                     "CaptchaSecretKey": String(CaptchaSecretKey),
-                                    "BoardID": Number(document.querySelector("#Board input:checked") != null ? document.querySelector("#Board input:checked").value : "")
+                                    "BoardID": Number(document.querySelector("#Board input:checked").value)
                                 }, (ResponseData) => {
                                     SubmitElement.disabled = false;
                                     SubmitElement.children[0].style.display = "none";
