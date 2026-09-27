@@ -639,9 +639,11 @@ let _earlyObs = null;
 
         // Hide the page until old stylesheets are evicted and the page is styled; see
         // RevealPage. Only the body is hidden: opacity on the root would also hide the
-        // themed canvas and show the browser's white default instead.
+        // themed canvas and show the browser's white default instead. Opacity rather than
+        // visibility, because innerText skips invisible text and handlers read it before
+        // the reveal (for example the scores on status.php).
         _foucStyle = document.createElement("style");
-        _foucStyle.textContent = "body { visibility: hidden !important; }";
+        _foucStyle.textContent = "body { opacity: 0 !important; }";
         head.appendChild(_foucStyle);
 
         let blocked = ["bootstrap.min.css", "white.css", "semantic.min.css", "bootstrap-theme.min.css", "problem.css"];
@@ -4158,7 +4160,7 @@ async function main() {
                                 Rows[i].cells[2].className = "td_result";
                                 let SolutionID = SolutionIDs[i - 1];
                                 if (Rows[i].cells[2].children.length == 2) {
-                                    Points[SolutionID] = Rows[i].cells[2].children[1].innerText;
+                                    Points[SolutionID] = Rows[i].cells[2].children[1].textContent.trim();
                                     Rows[i].cells[2].children[1].remove();
                                 }
                                 Rows[i].cells[2].innerHTML += UtilityEnabled("MonochromeUI") ? "<span class=\"spinner-border spinner-border-sm ms-2\" role=\"status\"></span>" : "<img style=\"margin-left: 10px\" height=\"18\" width=\"18\" src=\"image/loader.gif\">";

@@ -169,3 +169,10 @@ test('with NewBootstrap and without MonochromeUI, only the app-specific rules ar
     assert.doesNotMatch(css, /--mono-black:/);
     assert.doesNotMatch(css, /\[data-bs-theme='dark'\] #app \.btn \{/);
 });
+
+test('the load-time hide keeps innerText readable for the page handlers', () => {
+    // innerText skips text under visibility: hidden, which emptied the status.php scores.
+    const hide = between('_foucStyle = document.createElement("style");', 'head.appendChild(_foucStyle);');
+    assert.match(hide, /body \{ opacity: 0 !important; \}/);
+    assert.doesNotMatch(hide, /visibility/);
+});
