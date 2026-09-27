@@ -172,7 +172,12 @@ async function Download(request, url) {
         report.push({ label, menuItems: items, errors: errors.splice(0) });
     }
     async function Visit(url) {
-        await page.goto(SITE + url, { waitUntil: "domcontentloaded" });
+        // The site can be slow to respond: allow a minute, and retry once.
+        try {
+            await page.goto(SITE + url, { waitUntil: "domcontentloaded", timeout: 60000 });
+        } catch (e) {
+            await page.goto(SITE + url, { waitUntil: "domcontentloaded", timeout: 60000 });
+        }
     }
 
     await Visit("/web/contest");
