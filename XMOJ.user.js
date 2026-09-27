@@ -2057,6 +2057,51 @@ GM_registerMenuCommand("重置数据", () => {
     }
 });
 
+// The contest problem switcher, fixed at the left edge. Shared by problem.php and
+// the /web app. Labels come from each problem's URL, since the list order does not
+// have to follow the problem letters.
+function CreateProblemSwitcher(ProblemList, IsCurrent) {
+    let problemSwitcher = document.createElement("div");
+    problemSwitcher.classList.add("problem-switcher-container");
+    problemSwitcher.style.position = "fixed";
+    problemSwitcher.style.top = "50%";
+    problemSwitcher.style.left = "0";
+    problemSwitcher.style.transform = "translateY(-50%)";
+    problemSwitcher.style.maxHeight = "80vh";
+    problemSwitcher.style.overflowY = "auto";
+    if (document.documentElement.getAttribute("data-bs-theme") == "dark") {
+        problemSwitcher.style.backgroundColor = UtilityEnabled("MonochromeUI") ? "#000" : "rgba(0, 0, 0, 0.8)";
+    } else {
+        problemSwitcher.style.backgroundColor = UtilityEnabled("MonochromeUI") ? "#FFF" : "rgba(255, 255, 255, 0.8)";
+    }
+    problemSwitcher.style.padding = "10px";
+    problemSwitcher.style.borderRadius = UtilityEnabled("MonochromeUI") ? "0" : "0 10px 10px 0";
+    if (UtilityEnabled("MonochromeUI")) problemSwitcher.style.borderRight = "4px solid";
+    problemSwitcher.style.display = "flex";
+    problemSwitcher.style.flexDirection = "column";
+    problemSwitcher.style.zIndex = "990";
+
+    let Refresh = document.createElement("a");
+    Refresh.title = "刷新列表";
+    Refresh.className = "refreshList mb-2";
+    Refresh.style.textAlign = "center";
+    Refresh.style.cursor = "pointer";
+    Refresh.textContent = "刷新";
+    Refresh.addEventListener("click", () => unsafeWindow.GetContestProblemList(true));
+    problemSwitcher.appendChild(Refresh);
+    for (let i = 0; i < ProblemList.length; i++) {
+        let Label = GetContestRoute(ProblemList[i].url)?.num;
+        if (!Label) Label = i < 26 ? String.fromCharCode(65 + i) : String.fromCharCode(97 + (i - 26));
+        let Button = document.createElement("a");
+        Button.href = ProblemList[i].url;
+        Button.title = String(ProblemList[i].title || "").trim();
+        Button.className = "btn btn-outline-secondary mb-2" + (IsCurrent(i, ProblemList[i]) ? " active" : "");
+        Button.textContent = Label;
+        problemSwitcher.appendChild(Button);
+    }
+    return problemSwitcher;
+}
+
 // The ResetType user menu. Shared by the legacy navbar and the /web app so both
 // menus offer the same entries and animate the same way.
 function CreateUserMenuItems() {
@@ -2168,7 +2213,6 @@ function ApplyContestWebTheme() {
         #app .xmoj-std-overlay { pointer-events: none; }
         #app .xmoj-script-code-ready { display: none !important; }
         #app #rank td.well { color: #222 !important; }
-        #app .xmoj-script-switcher { position: sticky; top: 0; z-index: 990; padding: 8px; background: var(--bs-secondary-bg); }
         @media (max-width: 600px) { #app .in-out { flex-direction: column; } #app .in-out-item { margin: 0 !important; } }
         #app .dropdown-menu[data-xmoj-script-menu] > li:not([data-xmoj-script]) { display: none !important; }
     ` + (modern ? `
@@ -2199,6 +2243,8 @@ function ApplyContestWebTheme() {
         [data-bs-theme='dark'] #app .table-hover > tbody > tr:hover { background: #292929; }
         [data-bs-theme='dark'] #app .btn { background: #292929; color: #eee; border-color: #737373; }
     `);
+    // The legacy problem switcher replaces the app's own problem bar.
+    if (get("ProblemSwitcher")) style.textContent += "#app .xmoj-problem-nav { display: none !important; }";
     // Like the legacy pages, which remove the broadcast marquee.
     if (get("RemoveUseless")) style.textContent += "#app .xmoj-broadcast { display: none !important; }";
     // With NewBootstrap the early block already adds these to the skin CSS.
@@ -2379,6 +2425,7 @@ async function InitializeContestWebApp() {
         }
         editors = [];
         root.querySelectorAll(`[${owned}]:not([${owned}="settings"]):not([${owned}="discussion-nav"]):not([${owned}="toggler-icon"]):not([${owned}="user-menu"])`).forEach(node => node.remove());
+        document.querySelectorAll(`[${owned}="problem-switcher"]`).forEach(node => node.remove());
         routeData = null;
     }
 
@@ -2564,8 +2611,25 @@ async function InitializeContestWebApp() {
                 if (heading && body && !body.querySelector(".sampledata")) AddCopy(heading, "copy-section", () => GetMDText(body).trim());
             }
         }
-        const switcher = root.querySelector(".xmoj-problem-nav");
-        if (switcher) switcher.classList.toggle("xmoj-script-switcher", UtilityEnabled("ProblemSwitcher"));
+        if (UtilityEnabled("ProblemSwitcher") && !document.querySelector(`[${owned}="problem-switcher"]`)) {
+            const list = JSON.parse(localStorage.getItem("UserScript-Contest-" + route.cid + "-ProblemList") || "null") || [];
+            if (list.length) {
+                const switcher = CreateProblemSwitcher(list, (index, item) => GetContestRoute(item.url)?.num === route.num);
+                switcher.setAttribute(owned, "problem-switcher");
+                // Switch problems through the app's own (hidden) router links, so the
+                // page does not reload.
+                switcher.addEventListener("click", event => {
+                    const link = event.target.closest("a[href]");
+                    const target = link && GetContestRoute(link.href);
+                    const routerLink = target && [...root.querySelectorAll(".xmoj-problem-nav a")].find(a => GetContestRoute(a.href)?.num === target.num);
+                    if (routerLink) {
+                        event.preventDefault();
+                        routerLink.click();
+                    }
+                });
+                document.body.appendChild(switcher);
+            }
+        }
     }
 
     function AddCodeEditor(parent, original, code) {
@@ -2649,13 +2713,7 @@ async function InitializeContestWebApp() {
     window.addEventListener("popstate", ScheduleEnhance);
     setInterval(() => {
         UpdateCountdowns();
-        if (UtilityEnabled("NewTopBar")) {
-            new NavbarStyler();
-            // Keep the sticky problem switcher below the fixed top bar.
-            const bar = root.querySelector(".navbar.fixed-top");
-            const switcher = root.querySelector(".xmoj-script-switcher");
-            if (bar && switcher) switcher.style.top = bar.offsetTop + bar.offsetHeight + 8 + "px";
-        }
+        if (UtilityEnabled("NewTopBar")) new NavbarStyler();
     }, 1000);
     window.addEventListener("focus", () => {
         if (!UtilityEnabled("AutoRefresh") || !["list", "contest", "rank"].includes(route?.page)) return;
@@ -3704,41 +3762,8 @@ async function main() {
                             ContestProblemList = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-ProblemList");
                         }
 
-                        let problemSwitcher = document.createElement("div");
-                        problemSwitcher.classList.add("problem-switcher-container");
-                        problemSwitcher.style.position = "fixed";
-                        problemSwitcher.style.top = "50%";
-                        problemSwitcher.style.left = "0";
-                        problemSwitcher.style.transform = "translateY(-50%)";
-                        problemSwitcher.style.maxHeight = "80vh";
-                        problemSwitcher.style.overflowY = "auto";
-                        if (document.querySelector("html") != null && document.querySelector("html").getAttribute("data-bs-theme") == "dark") {
-                            problemSwitcher.style.backgroundColor = UtilityEnabled("MonochromeUI") ? "#000" : "rgba(0, 0, 0, 0.8)";
-                        } else {
-                            problemSwitcher.style.backgroundColor = UtilityEnabled("MonochromeUI") ? "#FFF" : "rgba(255, 255, 255, 0.8)";
-                        }
-                        problemSwitcher.style.padding = "10px";
-                        problemSwitcher.style.borderRadius = UtilityEnabled("MonochromeUI") ? "0" : "0 10px 10px 0";
-                        if (UtilityEnabled("MonochromeUI")) problemSwitcher.style.borderRight = "4px solid";
-                        problemSwitcher.style.display = "flex";
-                        problemSwitcher.style.flexDirection = "column";
-
-                        let problemList = JSON.parse(ContestProblemList);
-                        problemSwitcher.innerHTML += `<a onclick="GetContestProblemList(true)" title="刷新列表" class="refreshList mb-2" style="text-align: center;" active>刷新</a>`;
-                        for (let i = 0; i < problemList.length; i++) {
-                            let buttonText = "";
-                            if (i < 26) {
-                                buttonText = String.fromCharCode(65 + i);
-                            } else {
-                                buttonText = String.fromCharCode(97 + (i - 26));
-                            }
-                            let activeClass = "";
-                            if (problemList[i].url === location.href) {
-                                activeClass = "active";
-                            }
-                            problemSwitcher.innerHTML += `<a href="${problemList[i].url}" title="${problemList[i].title.trim()}" class="btn btn-outline-secondary mb-2 ${activeClass}">${buttonText}</a>`;
-                        }
-                        document.body.appendChild(problemSwitcher);
+                        let problemList = JSON.parse(ContestProblemList) || [];
+                        document.body.appendChild(CreateProblemSwitcher(problemList, (Index, Problem) => Problem.url === location.href || GetContestProblemIndex(GetContestRoute(Problem.url)?.num) === Number(SearchParams.get("pid"))));
                     }
                     if (document.querySelector("body > div > div.mt-3 > h2") != null) {
                         if (document.querySelector("body > div > div.mt-3") != null) document.querySelector("body > div > div.mt-3").innerHTML = "没有此题目或题目对你不可见";
