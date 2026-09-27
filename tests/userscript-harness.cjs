@@ -16,7 +16,7 @@
 //   XMOJ_TRUSTED_SPKI         comma separated SPKI hashes of a TLS-intercepting proxy's CA
 //
 // The harness never submits code or changes settings: the script's backend
-// (xmoj-script.uk, xmoj-bbs) and POSTs to submit, modify, login and logout are blocked,
+// (api.xmoj-script.uk, xmoj-bbs) and POSTs to submit, modify, login and logout are blocked,
 // and GM_xmlhttpRequest / GM.cookie.set fail without sending anything.
 const fs = require("node:fs");
 const path = require("node:path");
@@ -37,7 +37,8 @@ const SOURCE = fs.readFileSync(path.join(__dirname, "../XMOJ.user.js"), "utf8");
 const META = SOURCE.slice(0, SOURCE.indexOf("// ==/UserScript=="));
 const REQUIRES = [...META.matchAll(/^\/\/ @require\s+(\S+)/gm)].map(m => m[1]);
 const RESOURCES = Object.fromEntries([...META.matchAll(/^\/\/ @resource\s+(\S+)\s+(\S+)/gm)].map(m => [m[1], m[2]]));
-const BLOCKED_HOSTS = /xmoj-bbs|xmoj-script\.uk/;
+// The script's backend. Static files such as Update.json stay reachable.
+const BLOCKED_HOSTS = /xmoj-bbs|^api\.xmoj-script\.uk$/;
 const BLOCKED_POSTS = /\/(submit|modify|login|logout)(\.php)?$|\/api\/logout$/;
 
 // Stand-ins for the userscript manager APIs the script grants.
@@ -129,7 +130,8 @@ async function Download(request, url) {
     const page = await context.newPage();
     const errors = [];
     page.on("pageerror", e => errors.push("pageerror: " + e.message));
-    page.on("console", m => { if (m.type() === "error" && !/Failed to load resource|ERR_FAILED/.test(m.text())) errors.push("console: " + m.text()); });
+    // Requests the harness blocks on purpose are not reported as errors.
+    page.on("console", m => { if (m.type() === "error" && !/Failed to load resource|ERR_FAILED|blocked by harness/.test(m.text())) errors.push("console: " + m.text()); });
     page.on("dialog", d => { errors.push("dialog: " + d.message().slice(0, 300)); d.dismiss(); });
 
     const report = [];
