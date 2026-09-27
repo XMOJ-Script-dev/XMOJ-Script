@@ -44,6 +44,67 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+// The /web application owns its DOM and Bootstrap 3 event handlers. Never run
+// the legacy body.innerHTML rewrites or Bootstrap replacement inside it.
+function IsContestWebApp(pathname = location.pathname) {
+    return pathname === "/web" || pathname.startsWith("/web/");
+}
+
+function GetContestRoute(url = location.href) {
+    const path = new URL(url, location.origin).pathname;
+    const match = path.match(/^\/web\/contest(?:\/(\d+)(?:\/([^/]+)(?:\/(std|solution))?)?)?\/?$/);
+    if (!match) return null;
+    const cid = match[1] || null;
+    const num = match[2] ? decodeURIComponent(match[2]) : null;
+    return {cid, num: num === "rank-correct" ? null : num,
+        page: !cid ? "list" : num === "rank-correct" ? "rank" : match[3] || (num ? "problem" : "contest")};
+}
+
+function GetContestProblemURL(cid, num) {
+    return "/web/contest/" + encodeURIComponent(cid) + (num == null ? "" : "/" + encodeURIComponent(num));
+}
+
+function GetContestProblemIndex(num) {
+    // XMOJ's new API uses the letter; submit.php still uses its zero-based index.
+    return typeof num === "string" && num.length === 1 ? num.charCodeAt(0) - 65 : -1;
+}
+
+async function FetchContestAPI(path, signal) {
+    const response = await fetch("/api/" + path, {credentials: "same-origin", signal});
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || "无法读取比赛数据 (" + response.status + ")");
+    return data;
+}
+
+function CacheContestProblems(cid, data) {
+    if (!Array.isArray(data.problems)) return;
+    const prefix = "UserScript-Contest-" + cid;
+    if (data.contest) localStorage.setItem(prefix + "-Name", data.contest.title || "");
+    const problems = data.problems.map(problem => {
+        const index = GetContestProblemIndex(problem.num);
+        const title = problem.problemTitle || problem.title || problem.num;
+        if (index >= 0 && problem.problemId) {
+            localStorage.setItem(prefix + "-Problem-" + index + "-PID", problem.problemId);
+            localStorage.setItem("UserScript-Problem-" + problem.problemId + "-Name", title);
+        }
+        return {title, url: new URL(GetContestProblemURL(cid, problem.num), location.origin).href};
+    });
+    localStorage.setItem(prefix + "-ProblemCount", problems.length);
+    localStorage.setItem(prefix + "-ProblemList", JSON.stringify(problems));
+}
+
+async function GetContestProblemData(cid, index, signal) {
+    if (!/^\d+$/.test(String(cid)) || !/^\d+$/.test(String(index))) throw new Error("无效的比赛题号");
+    const num = String.fromCharCode(65 + Number(index));
+    const data = await FetchContestAPI("contest/" + encodeURIComponent(cid) + "/" + encodeURIComponent(num), signal);
+    if (!data.problem || !data.problem.problemId) throw new Error("无法确定原题题号");
+    CacheContestProblems(cid, data);
+    localStorage.setItem("UserScript-Contest-" + cid + "-Problem-" + index + "-PID", data.problem.problemId);
+    localStorage.setItem("UserScript-Problem-" + data.problem.problemId + "-Name", data.problem.title || "");
+    localStorage.setItem("UserScript-Problem-" + data.problem.problemId + "-IOFilename", data.problem.name || "");
+    return data.problem;
+}
+
 const MonochromeSkinCSS = `
                 /* Fonts loaded via <link> to avoid layout shift */
 
@@ -496,6 +557,10 @@ let _earlyObs = null;
 // the saved theme and inject Bootstrap CSS + the skin CSS before the first paint,
 // and we block the page's own old stylesheets from loading at all.
 (() => {
+    if (IsContestWebApp()) {
+        ApplyContestWebTheme();
+        return;
+    }
     try {
         let get = (k) => {
             let v = localStorage.getItem("UserScript-Setting-" + k);
@@ -1682,22 +1747,11 @@ let PeriodicCloudSync = () => {
 
 unsafeWindow.GetContestProblemList = async function(RefreshList) {
     try {
-        const contestReq = await fetch("https://www.xmoj.tech/contest.php?cid=" + SearchParams.get("cid"));
-        const res = await contestReq.text();
-        if (contestReq.status === 200 && res.indexOf("比赛尚未开始或私有，不能查看题目。") === -1) {
-            const parser = new DOMParser();
-            const dom = parser.parseFromString(res, "text/html");
-            const rows = (dom.querySelector("#problemset > tbody")).rows;
-            let problemList = [];
-            for (let i = 0; i < rows.length; i++) {
-                problemList.push({
-                    "title": rows[i].children[2].innerText,
-                    "url": rows[i].children[2].children[0].href
-                });
-            }
-            localStorage.setItem("UserScript-Contest-" + SearchParams.get("cid") + "-ProblemList", JSON.stringify(problemList));
-            if (RefreshList) location.reload();
-        }
+        const cid = GetContestRoute()?.cid || new URLSearchParams(location.search).get("cid");
+        if (!cid) return;
+        const data = await FetchContestAPI("contest/" + encodeURIComponent(cid));
+        CacheContestProblems(cid, data);
+        if (RefreshList) location.reload();
     } catch (e) {
         console.error(e);
     }
@@ -2005,11 +2059,462 @@ GM_registerMenuCommand("重置数据", () => {
     }
 });
 
+// Synchronous and dependency-free: paint the saved theme before Vue, API
+// responses, fonts, or any CDN resources are ready. Reused for later changes.
+function ApplyContestWebTheme() {
+    const get = name => {
+        const value = localStorage.getItem("UserScript-Setting-" + name);
+        return value === null ? !["DebugMode", "SuperDebug", "ReplaceXM"].includes(name) : value === "true";
+    };
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
+    let style = document.getElementById("xmoj-web-style");
+    if (!style) {
+        style = document.createElement("style");
+        style.id = "xmoj-web-style";
+        (document.head || document.documentElement).appendChild(style);
+    }
+    const saved = localStorage.getItem("UserScript-Setting-Theme") || "auto";
+    const dark = saved === "auto" ? prefersDark.matches : saved === "dark";
+    document.documentElement.setAttribute("data-bs-theme", dark ? "dark" : "light");
+    localStorage.setItem("UserScript-Setting-DarkMode", String(dark));
+    const modern = get("NewBootstrap");
+    const mono = modern && get("MonochromeUI");
+    // Keep the site's Bootstrap 3 CSS: the new navbar and Vue markup need it.
+    style.textContent = (modern ? (mono ? MonochromeSkinCSS : NewBootstrapSkinCSS) : "") + `
+        html[data-bs-theme='dark'] { background: #1a1a1a !important; color-scheme: dark; }
+        html[data-bs-theme='light'] { background: #fff; color-scheme: light; }
+        :root { --bs-secondary-bg: #f5f5f5; --bs-emphasis-color: #222; --bs-primary: #337ab7; }
+        [data-bs-theme='dark'] { --bs-secondary-bg: #292929; --bs-emphasis-color: #eee; --bs-primary: #8cbcff; }
+        [data-bs-theme='dark'] body, [data-bs-theme='dark'] #app .jumbotron,
+        [data-bs-theme='dark'] #app .navbar, [data-bs-theme='dark'] #app .dropdown-menu,
+        [data-bs-theme='dark'] #app .form-control, [data-bs-theme='dark'] #app pre {
+            background: #1a1a1a !important; color: #eee !important;
+        }
+        [data-bs-theme='dark'] #app a { color: #b8d6ff; }
+        [data-bs-theme='dark'] #app .pagination > li > a,
+        [data-bs-theme='dark'] #app .pagination > li > span,
+        [data-bs-theme='dark'] #app .well { background-color: #292929; color: #eee; }
+        [data-bs-theme='dark'] #app .navbar-default .navbar-nav > li > a,
+        [data-bs-theme='dark'] #app .dropdown-menu > li > a { color: #eee; }
+        [data-bs-theme='dark'] #app .navbar-nav > .active > a,
+        [data-bs-theme='dark'] #app .dropdown-menu > li > a:hover,
+        [data-bs-theme='dark'] #app .table-striped > tbody > tr:nth-of-type(odd),
+        [data-bs-theme='dark'] #app .table-hover > tbody > tr:hover { background: #292929; }
+        [data-bs-theme='dark'] #app .btn-default { background: #292929; color: #eee; border-color: #737373; }
+        #app .xmoj-script-tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+        #app .xmoj-script-copy { margin-left: 10px; }
+        #app .xmoj-script-countdown { margin-left: 8px; white-space: nowrap; }
+        #app .xmoj-script-editor { margin: 12px 0; }
+        #app .xmoj-script-has-editors .syntaxhighlighter,
+        #app .xmoj-script-has-editors .xmoj-std-code { display: none !important; }
+        #app .xmoj-std-overlay { pointer-events: none; }
+        #app .xmoj-script-code-ready { display: none !important; }
+        #app #rank td.well { color: #222 !important; }
+        #app .xmoj-script-switcher { position: sticky; top: 0; z-index: 990; padding: 8px; background: var(--bs-secondary-bg); }
+        @media (max-width: 600px) { #app .in-out { flex-direction: column; } #app .in-out-item { margin: 0 !important; } }
+    ` + (modern ? `
+        #app .jumbotron { background: transparent; padding: 16px 0; font-size: 16px; }
+        #app .jumbotron p { font-size: inherit; font-weight: normal; }
+        #app .cnt-row-head { font-size: 18px; }
+        #app .navbar .nav-link, #app thead th { font-size: 14px !important; }
+        #app .table { font-size: 14px; }
+        #app .xmoj-status { display: inline-block; min-width: 26px; padding: 2px 6px; border: 1px solid; }
+    ` : "") + (mono ? `
+        #app .navbar-nav > li > a, #app .dropdown-menu > li > a { color: var(--mono-black) !important; }
+        #app .navbar-nav > .active > a, #app .dropdown-menu > li > a:hover { background: var(--mono-black) !important; color: var(--mono-white) !important; }
+        #app thead td { background: var(--mono-black); color: var(--mono-white); }
+        #app thead a { color: var(--mono-white) !important; }
+        #app .navbar-toggle .icon-bar { background: var(--mono-black); }
+    ` : "") + (get("NewTopBar") ? `
+        #app > .navbar { position: sticky; top: 0; z-index: 1000; }
+        #app .xmoj-script-switcher { top: 60px; }
+    ` : "");
+    if (get("AddColorText")) style.textContent += ".red {color: #e64747;} .green {color: #399a39;} .blue {color: #428bca;}";
+    if (get("AddAnimation")) style.textContent += "#app .btn, #app .xmoj-status {transition: background-color 100ms, color 100ms;}";
+    return dark;
+}
+
+// Enhancements for the Vue contest app. Only our own controls are replaced;
+// Vue's elements, router links, and Bootstrap 3 handlers retain their identity.
+async function InitializeContestWebApp() {
+    const root = document.getElementById("app");
+    if (!root) return;
+    const owned = "data-xmoj-script";
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
+    let routeKey = "";
+    let route = null;
+    let routeData = null;
+    let controller = null;
+    let scheduled = false;
+    let editors = [];
+    let serverOffset = 0;
+    const countdowns = new Map();
+
+    initTheme = () => {
+        const dark = ApplyContestWebTheme();
+        for (const entry of editors) entry.editor?._monacoEditor.updateOptions({theme: dark ? "vs-dark" : "vs"});
+    };
+    initTheme();
+    prefersDark.addEventListener("change", initTheme);
+    InitializeImageEnlarger();
+
+    function MakeControl(tag, name, text) {
+        const node = document.createElement(tag);
+        node.setAttribute(owned, name);
+        node.textContent = text;
+        if (tag === "button") {
+            node.type = "button";
+            node.className = "btn btn-default btn-sm";
+        }
+        return node;
+    }
+
+    function AddLink(parent, name, label, href) {
+        if (parent.querySelector(`[${owned}="${name}"]`)) return;
+        const link = MakeControl("a", name, label);
+        link.href = href;
+        link.className = "btn btn-default btn-sm";
+        parent.appendChild(link);
+    }
+
+    function AddCopy(parent, name, readText) {
+        if (parent.querySelector(`[${owned}="${name}"]`)) return;
+        const button = MakeControl("button", name, "复制");
+        button.classList.add("xmoj-script-copy");
+        button.addEventListener("click", () => {
+            GM_setClipboard(readText());
+            button.textContent = "复制成功";
+            setTimeout(() => { button.textContent = "复制"; }, 1000);
+        });
+        parent.appendChild(button);
+    }
+
+    function EnhanceNav() {
+        const nav = root.querySelector("#xmoj-navbar");
+        if (!nav) return;
+        const menu = nav.querySelector(".dropdown-menu");
+        if (menu && !menu.querySelector(`[${owned}="settings"]`)) {
+            const item = MakeControl("li", "settings", "");
+            const link = document.createElement("a");
+            link.href = "/index.php?ByUserScript=1";
+            link.textContent = "插件设置";
+            item.appendChild(link);
+            menu.appendChild(item);
+        }
+        const links = nav.querySelector("ul");
+        if (links && UtilityEnabled("Discussion") && !links.querySelector(`[${owned}="discussion-nav"]`)) {
+            const item = MakeControl("li", "discussion-nav", "");
+            const link = document.createElement("a");
+            link.href = "/discuss3/discuss.php";
+            link.textContent = "讨论";
+            item.appendChild(link);
+            links.appendChild(item);
+        }
+    }
+
+    function ClearRoute() {
+        controller?.abort();
+        countdowns.clear();
+        for (const entry of editors) {
+            entry.editor?.dispose();
+            entry.original?.classList.remove("xmoj-script-code-ready", "xmoj-script-has-editors");
+        }
+        editors = [];
+        root.querySelectorAll(`[${owned}]:not([${owned}="settings"]):not([${owned}="discussion-nav"])`).forEach(node => node.remove());
+        routeData = null;
+    }
+
+    function AddCountdown(parent, endTime, label) {
+        if (!UtilityEnabled("AutoCountdown") || !parent || !Number.isFinite(endTime)) return;
+        let node = parent.querySelector(`[${owned}="countdown"]`);
+        if (!node) {
+            node = MakeControl("span", "countdown", "");
+            node.className = "xmoj-script-countdown";
+            parent.appendChild(node);
+        }
+        countdowns.set(node, {endTime, label});
+    }
+
+    function ParseServerTime(value) {
+        // The API returns China local time without an offset, regardless of browser timezone.
+        return Date.parse(String(value || "").replace(" ", "T") + "+08:00");
+    }
+
+    function UpdateCountdowns() {
+        for (const [node, item] of countdowns) {
+            if (!node.isConnected) { countdowns.delete(node); continue; }
+            const seconds = Math.max(0, Math.ceil((item.endTime - Date.now() - serverOffset) / 1000));
+            const days = Math.floor(seconds / 86400);
+            const hours = String(Math.floor(seconds / 3600) % 24).padStart(2, "0");
+            const minutes = String(Math.floor(seconds / 60) % 60).padStart(2, "0");
+            const text = item.label + (days ? days + "天 " : "") + hours + ":" + minutes + ":" + String(seconds % 60).padStart(2, "0");
+            if (node.textContent !== text) node.textContent = text;
+        }
+    }
+
+    async function LoadRouteData(signal, key, current) {
+        try {
+            let path = "contest/" + current.cid;
+            if (current.page === "list") {
+                const query = new URL(key).searchParams;
+                path = "contest/list?" + new URLSearchParams({pageNum: query.get("page") || "1", pageSize: "20", keyword: query.get("keyword") || ""});
+            } else if (current.page === "rank") {
+                // The native view owns sorting and incremental ranking requests.
+                return;
+            } else if (current.num) {
+                path += "/" + encodeURIComponent(current.num) + (current.page === "problem" ? "" : "/" + current.page);
+            }
+            const data = await FetchContestAPI(path, signal);
+            if (signal.aborted || location.href !== key) return;
+            routeData = data;
+            if (data.serverTime) serverOffset = ParseServerTime(data.serverTime) - Date.now();
+            if (!Number.isFinite(serverOffset)) serverOffset = 0;
+            if (current.cid) CacheContestProblems(current.cid, data);
+            if (data.problem?.problemId) {
+                const problem = data.problem;
+                localStorage.setItem("UserScript-Contest-" + current.cid + "-Problem-" + GetContestProblemIndex(current.num) + "-PID", problem.problemId);
+                localStorage.setItem("UserScript-Problem-" + problem.problemId + "-IOFilename", problem.name || "");
+                localStorage.setItem("UserScript-Problem-" + problem.problemId + "-Name", problem.title || "");
+            }
+            ScheduleEnhance();
+        } catch (error) {
+            if (!signal.aborted) console.error("[XMOJ-Script] Contest API:", error);
+        }
+    }
+
+    function EnhanceList() {
+        if (!routeData?.list) return;
+        for (const row of root.querySelectorAll(".xmoj-scroll-x tbody tr")) {
+            const link = row.querySelector('a[href*="/web/contest/"]');
+            if (!link) continue;
+            const cid = GetContestRoute(link.href)?.cid;
+            const data = routeData.list.find(item => String(item.contestId) === cid);
+            if (!data) continue;
+            localStorage.setItem("UserScript-Contest-" + cid + "-Name", data.title);
+            const status = data.status;
+            if (status?.state === "pending" || status?.state === "running") {
+                AddCountdown(row.cells[2], ParseServerTime(status.state === "pending" ? status.startTime : status.endTime), status.state === "pending" ? "距开始 " : "剩余 ");
+            }
+            const creator = row.cells[4];
+            if (creator && !creator.querySelector("a") && data.createdBy) {
+                // This cell is plain text in Vue; leave its text node in place.
+                AddLink(creator, "creator", "个人主页", "/userinfo.php?user=" + encodeURIComponent(data.createdBy));
+            }
+        }
+    }
+
+    function EnhanceContest() {
+        const table = root.querySelector(".xmoj-problems-table");
+        if (!table || !routeData?.problems) return;
+        const head = root.querySelector(".xmoj-contest-head");
+        const contest = routeData.contest;
+        const timeline = contest?.myTimeline;
+        const state = contest?.status?.state;
+        if (timeline?.enabled || state === "running" || state === "pending") {
+            AddCountdown(head, ParseServerTime(timeline?.enabled ? timeline.endTime : state === "pending" ? contest.startTime : contest.endTime), state === "pending" ? "距开始 " : "剩余 ");
+        }
+        let toolbar = root.querySelector(`[${owned}="contest-tools"]`);
+        if (!toolbar) {
+            toolbar = MakeControl("div", "contest-tools", "");
+            toolbar.className = "xmoj-script-tools";
+            table.parentElement.before(toolbar);
+            if (UtilityEnabled("OpenAllProblem")) {
+                for (const unsolved of [false, true]) {
+                    const button = MakeControl("button", "open-problems", unsolved ? "打开未解决题目" : "打开全部题目");
+                    button.addEventListener("click", () => {
+                        for (const problem of routeData.problems) {
+                            if (!unsolved || problem.myStatus !== "AC") window.open(GetContestProblemURL(route.cid, problem.num), "_blank", "noopener");
+                        }
+                    });
+                    toolbar.appendChild(button);
+                }
+            }
+            if (UtilityEnabled("AutoCheat")) AddResubmitButton(toolbar);
+        }
+        if (UtilityEnabled("MoreSTD") && contest?.enableStd) {
+            for (const row of table.tBodies[0].rows) {
+                const link = row.querySelector('a[href*="/web/contest/"]');
+                const num = link && GetContestRoute(link.href)?.num;
+                if (!num || row.querySelector('a[href$="/std"]')) continue;
+                const headers = Array.from(table.tHead.rows[0].cells);
+                const index = headers.findIndex(cell => /标程|Std/.test(cell.textContent));
+                if (index >= 0) AddLink(row.cells[index], "std-link", "打开", GetContestProblemURL(route.cid, num) + "/std");
+            }
+        }
+    }
+
+    function AddResubmitButton(toolbar) {
+        const button = MakeControl("button", "resubmit", "自动提交当年代码");
+        toolbar.appendChild(button);
+        button.addEventListener("click", async () => {
+            if (!CurrentUsername || !routeData) return;
+            const current = route;
+            const signal = controller.signal;
+            const problems = routeData.problems;
+            button.disabled = true;
+            try {
+                for (const problem of problems) {
+                    if (signal.aborted) return;
+                    if (problem.myStatus === "AC" || !problem.problemId) continue;
+                    // Only retrieve this user's accepted code, never another user's submission.
+                    const query = new URLSearchParams({problem_id: problem.problemId, user_id: CurrentUsername, jresult: "4"});
+                    const response = await fetch("/status.php?" + query, {signal});
+                    if (!response.ok) throw new Error("无法读取提交记录");
+                    const page = new DOMParser().parseFromString(await response.text(), "text/html");
+                    const sid = page.querySelector("#result-tab > tbody > tr > td:nth-child(2)")?.textContent.trim();
+                    if (!/^\d+$/.test(sid || "")) continue;
+                    const sourceResponse = await fetch("/getsource.php?id=" + sid, {signal});
+                    if (!sourceResponse.ok) throw new Error("无法读取代码");
+                    const source = (await sourceResponse.text()).split("/**************************************************************")[0].trim();
+                    if (!source || /^\s*</.test(source)) continue;
+                    button.textContent = "正在提交 " + problem.problemId;
+                    const responseSubmit = await fetch("/submit.php", {method: "POST", signal,
+                        body: new URLSearchParams({cid: current.cid, pid: GetContestProblemIndex(problem.num), language: "1", source, enable_O2: "on"})});
+                    const result = await responseSubmit.text();
+                    if (!responseSubmit.ok || !/status\.php|solution_id/.test(result)) {
+                        throw new Error("提交未确认成功，请前往提交页面检查验证码或错误信息");
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+                button.textContent = "处理完成，请刷新查看状态";
+            } catch (error) {
+                if (!signal.aborted) button.textContent = error.message;
+            } finally { if (!signal.aborted) button.disabled = false; }
+        });
+    }
+
+    function EnhanceProblem() {
+        const problem = routeData?.problem;
+        if (problem?.problemId) {
+            const heading = root.querySelector(".xmoj-problem-head h2");
+            if (heading && !heading.querySelector(`[${owned}="problem-id"]`)) heading.appendChild(MakeControl("small", "problem-id", " (" + problem.problemId + ")"));
+            if (UtilityEnabled("Discussion")) {
+                for (const actions of root.querySelectorAll(".xmoj-problem-actions")) AddLink(actions, "discuss-problem", "讨论", "/discuss3/discuss.php?pid=" + encodeURIComponent(problem.problemId));
+            }
+        }
+        if (UtilityEnabled("CopyMD")) {
+            for (const section of root.querySelectorAll(".xmoj-problem-body .cnt-row")) {
+                const heading = section.querySelector(".cnt-row-head");
+                const body = section.querySelector(".cnt-row-body");
+                if (heading && body && !body.querySelector(".sampledata")) AddCopy(heading, "copy-section", () => GetMDText(body).trim());
+            }
+        }
+        const switcher = root.querySelector(".xmoj-problem-nav");
+        if (switcher) switcher.classList.toggle("xmoj-script-switcher", UtilityEnabled("ProblemSwitcher"));
+    }
+
+    function AddCodeEditor(parent, original, code) {
+        if (editors.some(entry => entry.original === original && entry.code === code)) return;
+        const host = MakeControl("div", "code-editor", "");
+        host.className = "xmoj-script-editor";
+        const codeHost = document.createElement("div");
+        const height = Math.max(100, Math.min(600, code.split("\n").length * 20 + 24));
+        codeHost.style.height = height + "px";
+        host.appendChild(codeHost);
+        AddCopy(host, "copy-code", () => code);
+        parent.appendChild(host);
+        const entry = {original, host, code, editor: null};
+        editors.push(entry);
+        const signal = controller.signal;
+        createMonacoEditor(codeHost, {value: code, language: "cpp", readOnly: true, height: height + "px", automaticLayout: true}).then(editor => {
+            if (signal.aborted || !host.isConnected) { editor.dispose(); return; }
+            entry.editor = editor;
+            original.classList.add(original.classList.contains("xmoj-std-stage") ? "xmoj-script-has-editors" : "xmoj-script-code-ready");
+        }).catch(error => {
+            host.remove();
+            console.error("[XMOJ-Script] Read-only editor:", error);
+        });
+    }
+
+    function EnhanceCode() {
+        if (route.page === "std" && routeData?.stdList) {
+            const stage = root.querySelector(".xmoj-std-stage");
+            const body = stage?.querySelector(".jumbotron");
+            if (body) for (const code of routeData.stdList) AddCodeEditor(body, stage, code);
+        }
+        if (route.page === "solution") {
+            const body = root.querySelector(".xmoj-solution-body");
+            const heading = root.querySelector(".xmoj-problem-head h2");
+            if (body && heading && UtilityEnabled("CopyMD")) AddCopy(heading, "copy-solution", () => GetMDText(body).trim());
+            if (body) for (const code of body.querySelectorAll("pre.prettyprint")) AddCodeEditor(code.parentElement, code, code.textContent);
+        }
+    }
+
+    function Enhance() {
+        scheduled = false;
+        observer.disconnect();
+        try {
+            if (routeKey !== location.href) {
+                ClearRoute();
+                routeKey = location.href;
+                route = GetContestRoute();
+                controller = new AbortController();
+                if (route) void LoadRouteData(controller.signal, routeKey, route);
+            }
+            // Vue can replace a loaded view on the same route (e.g. retry/language switch).
+            editors = editors.filter(entry => {
+                if (entry.host.isConnected) return true;
+                entry.editor?.dispose();
+                entry.original?.classList.remove("xmoj-script-code-ready", "xmoj-script-has-editors");
+                return false;
+            });
+            EnhanceNav();
+            if (!route) return;
+            if (route.page === "list") EnhanceList();
+            if (route.page === "contest") EnhanceContest();
+            if (route.page === "problem") EnhanceProblem();
+            if (route.page === "std" || route.page === "solution") EnhanceCode();
+            if (UtilityEnabled("NewBootstrap")) root.querySelector("#rank")?.classList.add("table", "table-hover");
+            if (UtilityEnabled("Translate")) {
+                const labels = {Rank: "排名", User: "用户", Nick: "昵称", Name: "姓名", Solved: "AC数", Mark: "得分"};
+                for (const cell of root.querySelectorAll("#rank thead th")) {
+                    if (labels[cell.textContent]) cell.textContent = labels[cell.textContent];
+                }
+            }
+            UpdateCountdowns();
+        } finally { observer.observe(root, {childList: true, subtree: true, characterData: true}); }
+    }
+
+    function ScheduleEnhance() {
+        if (!scheduled) { scheduled = true; requestAnimationFrame(Enhance); }
+    }
+    const observer = new MutationObserver(ScheduleEnhance);
+    Enhance();
+    window.addEventListener("popstate", ScheduleEnhance);
+    setInterval(UpdateCountdowns, 1000);
+    window.addEventListener("focus", () => {
+        if (!UtilityEnabled("AutoRefresh") || !["list", "contest", "rank"].includes(route?.page)) return;
+        if (root.querySelector('input:focus, textarea:focus') || root.querySelector(`[${owned}="resubmit"]:disabled`)) return;
+        // Reload lets Vue refresh both its data and sort state; editing its rendered
+        // table alone would cause stale rows to return on the next native sort.
+        location.reload();
+    });
+    // The app's #profile replacement arrives asynchronously. Authentication must
+    // come from /api/nav, never from the absence of the legacy DOM element.
+    try {
+        const nav = await FetchContestAPI("nav");
+        if (!nav.loggedIn) {
+            if (UtilityEnabled("AutoLogin")) {
+                localStorage.setItem("UserScript-LastPage", location.pathname + location.search + location.hash);
+                location.href = "/loginpage.php";
+            }
+            return;
+        }
+        CurrentUsername = nav.userId || "";
+        PeriodicCloudSync();
+        setInterval(PeriodicCloudSync, 60 * 60 * 1000);
+    } catch (error) { console.error("[XMOJ-Script] Navigation API:", error); }
+}
+
 // Wrapped in an async IIFE so that `await` is valid in Violentmonkey,
 // which executes userscripts as classic scripts (not ES modules).
 (async () => {
 if (document.readyState === "loading") {
     await new Promise(r => document.addEventListener("DOMContentLoaded", r, { once: true }));
+}
+if (IsContestWebApp()) {
+    await InitializeContestWebApp();
+    return;
 }
 // Reveal the page now that DOMContentLoaded has fired. Remove any old Bootstrap
 // stylesheets the preload scanner fetched (un-applies them from the CSSOM), then
@@ -2213,78 +2718,6 @@ class NavbarStyler {
 
 function replaceMarkdownImages(text, string) {
     return text.replace(/!\[.*?\]\(.*?\)/g, string);
-}
-
-function GetMDText(element) {
-    let result = '';
-    const blockTags = new Set([
-        'P', 'DIV', 'SECTION', 'ARTICLE', 'HEADER', 'FOOTER', 'NAV',
-        'UL', 'OL', 'LI', 'PRE', 'BLOCKQUOTE',
-        'H1', 'H2', 'H3', 'H4', 'H5', 'H6',
-        'TABLE', 'THEAD', 'TBODY', 'TFOOT', 'TR'
-    ]);
-    const cellTags = new Set(['TD', 'TH']);
-
-    function traverse(node) {
-        if (node.nodeType === Node.TEXT_NODE) {
-            result += node.textContent;
-            return;
-        }
-
-        if (node.nodeType !== Node.ELEMENT_NODE) {
-            return;
-        }
-
-        const tag = node.nodeName.toUpperCase();
-
-        // Preserve line breaks for <br>
-        if (tag === 'BR') {
-            result += '\n';
-            return;
-        }
-
-        // Convert images to Markdown
-        if (tag === 'IMG') {
-            const src = node.getAttribute('src');
-            if (src) {
-                let resolvedSrc = src;
-                try {
-                    resolvedSrc = new URL(src, location.href).href;
-                } catch (e) {
-                    // Fallback to the raw src if URL construction fails
-                }
-                result += `![](${resolvedSrc})`;
-            }
-            return;
-        }
-
-        const isBlock = blockTags.has(tag);
-        const isCell = cellTags.has(tag);
-
-        if (isBlock && !result.endsWith('\n')) {
-            result += '\n';
-        }
-
-        // Keep table cells visually separated when copied as plain text.
-        if (isCell && result.length > 0 && !result.endsWith('\n') && !result.endsWith('\t') && !result.endsWith(' ')) {
-            result += '\t';
-        }
-
-        for (let child of node.childNodes) {
-            traverse(child);
-        }
-
-        if (isCell && !result.endsWith('\n') && !result.endsWith('\t')) {
-            result += '\t';
-        }
-
-        if (isBlock && !result.endsWith('\n')) {
-            result += '\n';
-        }
-    }
-
-    traverse(element);
-    return result;
 }
 
 async function main() {
@@ -3156,22 +3589,10 @@ async function main() {
                     if (SearchParams.get("cid") != null && UtilityEnabled("ProblemSwitcher")) {
                         let pid = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + SearchParams.get("pid") + "-PID");
                         if (!pid) {
-                            const contestReq = await fetch("https://www.xmoj.tech/contest.php?cid=" + SearchParams.get("cid"));
-                            const res = await contestReq.text();
-                            if (contestReq.status === 200 && res.indexOf("比赛尚未开始或私有，不能查看题目。") === -1) {
-                                const parser = new DOMParser();
-                                const dom = parser.parseFromString(res, "text/html");
-                                const rows = (dom.querySelector("#problemset > tbody")).rows;
-                                for (let i = 0; i < rows.length; i++) {
-                                    let problemIdText = rows[i].children[1].innerText; // Get the text content
-                                    let match = problemIdText.match(/\d+/); // Extract the number
-                                    if (match) {
-                                        let extractedPid = match[0];
-                                        localStorage.setItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + i + "-PID", extractedPid);
-                                    }
-                                }
-                                pid = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + SearchParams.get("pid") + "-PID");
-                            }
+                            try {
+                                const problem = await GetContestProblemData(SearchParams.get("cid"), SearchParams.get("pid"));
+                                pid = String(problem.problemId);
+                            } catch (e) { console.error(e); }
                         }
                         if (pid) {
                             document.getElementsByTagName("h2")[0].innerHTML += " (" + pid + ")";
@@ -4544,44 +4965,13 @@ async function main() {
                     async function SubmitToEndedContestProblem(Source, O2Switch, ReportStatus) {
                         const ContestID = new URL(location.href).searchParams.get("cid");
                         const ProblemNumber = new URL(location.href).searchParams.get("pid");
-                        // A rejected fetch here would unwind all the way out of the click handler, which
-                        // has no catch, leaving 提交 stuck on 正在提交... with the error box still hidden.
-                        let ContestResponse = undefined;
-                        let ContestPage = "";
+                        let RealPID;
                         try {
-                            ContestResponse = await fetch("https://www.xmoj.tech/contest.php?cid=" + ContestID);
-                            ContestPage = await ContestResponse.text();
+                            const problem = await GetContestProblemData(ContestID, ProblemNumber);
+                            RealPID = String(problem.problemId);
                         } catch (e) {
                             console.error(e);
-                            return {Success: false, Message: "无法读取比赛页面，未能找到原题题号！"};
-                        }
-                        if (ContestResponse.status !== 200 || ContestPage.indexOf("比赛尚未开始或私有，不能查看题目。") !== -1) {
-                            console.error("Failed to get contest page!");
-                            return {Success: false, Message: "无法读取比赛页面，未能找到原题题号！"};
-                        }
-                        let RealPID = undefined;
-                        try {
-                            const ContestDocument = new DOMParser().parseFromString(ContestPage, "text/html");
-                            const ProblemTable = ContestDocument.querySelector("#problemset > tbody");
-                            if (ProblemTable === null) {
-                                console.error("Failed to find the problem list of the contest!");
-                                return {Success: false, Message: "无法解析比赛题目列表，未能找到原题题号！"};
-                            }
-                            const ContestProblems = [];
-                            for (let i = 0; i < ProblemTable.rows.length; i++) {
-                                // The 题号 cell is padded with newlines and tabs; a fixed substring(2, 6)
-                                // truncates any problem number that is not exactly four digits.
-                                const ProblemNumberMatch = ProblemTable.rows[i].children[1].textContent.match(/\d+/);
-                                ContestProblems.push(ProblemNumberMatch === null ? "" : ProblemNumberMatch[0]);
-                            }
-                            RealPID = ContestProblems[ProblemNumber];
-                            if (UtilityEnabled("DebugMode")) {
-                                console.log("Contest Problems:", ContestProblems);
-                                console.log("Real PID:", RealPID);
-                            }
-                        } catch (e) {
-                            console.error(e);
-                            return {Success: false, Message: "无法解析比赛题目列表，未能找到原题题号！"};
+                            return {Success: false, Message: "无法读取比赛题目，未能找到原题题号！"};
                         }
                         if (RealPID === undefined || RealPID === "") {
                             return {Success: false, Message: "无法确定原题题号，请手动前往原题提交！"};
@@ -4589,7 +4979,7 @@ async function main() {
                         // XMOJ rejects anything submitted within a few seconds of the previous submission
                         // with 请勿重复提交, so wait the cooldown out instead of silently dropping the code.
                         for (let Attempt = 0; Attempt < 5; Attempt++) {
-                            // The captcha field stays editable while we fetch contest.php and while we wait
+                            // The captcha field stays editable while we fetch the contest API and while we wait
                             // out a cooldown, so re-check it before every POST rather than trusting the
                             // check the 提交 handler did. Sending a blank answer would burn the session.
                             // CaptchaIsMissing() already shows its own message and restores the button.
@@ -7512,6 +7902,95 @@ cerr<<b93(gz(rd()))<<endl;abort();}
             }
         }
 
+        InitializeImageEnlarger();
+
+    } catch (e) {
+        console.error(e);
+        if (UtilityEnabled("DebugMode")) {
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+        }
+    }
+}
+
+await main();
+console.log("XMOJ-Script loaded successfully!");
+})().catch(e => {
+    console.error("[XMOJ-Script] Initialization error:", e);
+});
+
+function GetMDText(element) {
+    let result = '';
+    const blockTags = new Set([
+        'P', 'DIV', 'SECTION', 'ARTICLE', 'HEADER', 'FOOTER', 'NAV',
+        'UL', 'OL', 'LI', 'PRE', 'BLOCKQUOTE',
+        'H1', 'H2', 'H3', 'H4', 'H5', 'H6',
+        'TABLE', 'THEAD', 'TBODY', 'TFOOT', 'TR'
+    ]);
+    const cellTags = new Set(['TD', 'TH']);
+
+    function traverse(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+            result += node.textContent;
+            return;
+        }
+
+        if (node.nodeType !== Node.ELEMENT_NODE) {
+            return;
+        }
+
+        const tag = node.nodeName.toUpperCase();
+
+        // Preserve line breaks for <br>
+        if (tag === 'BR') {
+            result += '\n';
+            return;
+        }
+
+        // Convert images to Markdown
+        if (tag === 'IMG') {
+            const src = node.getAttribute('src');
+            if (src) {
+                let resolvedSrc = src;
+                try {
+                    resolvedSrc = new URL(src, location.href).href;
+                } catch (e) {
+                    // Fallback to the raw src if URL construction fails
+                }
+                result += `![](${resolvedSrc})`;
+            }
+            return;
+        }
+
+        const isBlock = blockTags.has(tag);
+        const isCell = cellTags.has(tag);
+
+        if (isBlock && !result.endsWith('\n')) {
+            result += '\n';
+        }
+
+        // Keep table cells visually separated when copied as plain text.
+        if (isCell && result.length > 0 && !result.endsWith('\n') && !result.endsWith('\t') && !result.endsWith(' ')) {
+            result += '\t';
+        }
+
+        for (let child of node.childNodes) {
+            traverse(child);
+        }
+
+        if (isCell && !result.endsWith('\n') && !result.endsWith('\t')) {
+            result += '\t';
+        }
+
+        if (isBlock && !result.endsWith('\n')) {
+            result += '\n';
+        }
+    }
+
+    traverse(element);
+    return result;
+}
+
+function InitializeImageEnlarger() {
         // Image Enlargement Feature
         if (UtilityEnabled("ImageEnlarger")) {
             try {
@@ -7996,17 +8475,5 @@ cerr<<b93(gz(rd()))<<endl;abort();}
                 }
             }
         }
-    } catch (e) {
-        console.error(e);
-        if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
-        }
-    }
 }
-
-await main();
-console.log("XMOJ-Script loaded successfully!");
-})().catch(e => {
-    console.error("[XMOJ-Script] Initialization error:", e);
-});
 
