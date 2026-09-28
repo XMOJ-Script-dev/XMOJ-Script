@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      3.7.0
+// @version      3.7.1
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -43,6 +43,90 @@
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
+
+// The /web application owns its DOM. Never run the legacy body.innerHTML rewrites
+// inside it; InitializeContestWebApp maps its Bootstrap 3 markup to Bootstrap 5.
+function IsContestWebApp(pathname = location.pathname) {
+    return pathname === "/web" || pathname.startsWith("/web/");
+}
+
+function GetContestRoute(url = location.href) {
+    const path = new URL(url, location.origin).pathname;
+    const match = path.match(/^\/web\/contest(?:\/(\d+)(?:\/([^/]+)(?:\/(std|solution))?)?)?\/?$/);
+    if (!match) return null;
+    const cid = match[1] || null;
+    const num = match[2] ? decodeURIComponent(match[2]) : null;
+    return {cid, num: num === "rank-correct" ? null : num,
+        page: !cid ? "list" : num === "rank-correct" ? "rank" : match[3] || (num ? "problem" : "contest")};
+}
+
+function GetContestProblemURL(cid, num) {
+    return "/web/contest/" + encodeURIComponent(cid) + (num == null ? "" : "/" + encodeURIComponent(num));
+}
+
+function GetContestProblemIndex(num) {
+    // XMOJ's new API uses the letter; submit.php still uses its zero-based index.
+    return typeof num === "string" && num.length === 1 ? num.charCodeAt(0) - 65 : -1;
+}
+
+async function FetchContestAPI(path, signal) {
+    const response = await fetch("/api/" + path, {credentials: "same-origin", signal});
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || "无法读取比赛数据 (" + response.status + ")");
+    return data;
+}
+
+function CacheContestProblems(cid, data) {
+    if (!Array.isArray(data.problems)) return;
+    const prefix = "UserScript-Contest-" + cid;
+    if (data.contest) localStorage.setItem(prefix + "-Name", data.contest.title || "");
+    for (const problem of data.problems) {
+        const index = GetContestProblemIndex(problem.num);
+        if (index >= 0 && problem.problemId) {
+            localStorage.setItem(prefix + "-Problem-" + index + "-PID", problem.problemId);
+            localStorage.setItem("UserScript-Problem-" + problem.problemId + "-Name", problem.problemTitle || problem.title || problem.num);
+        }
+    }
+}
+
+// The contest pages moved to the /web app and the site no longer links to the old
+// ones. Returns the new address for an old contest page, or null.
+function GetContestWebRedirect(url = location.href) {
+    const address = new URL(url, location.origin);
+    const cid = address.searchParams.get("cid");
+    const validCid = cid !== null && /^\d+$/.test(cid);
+    const pid = address.searchParams.get("pid");
+    const num = pid !== null && /^\d+$/.test(pid) && Number(pid) < 26 ? String.fromCharCode(65 + Number(pid)) : null;
+    let target = null;
+    if (address.pathname === "/contest.php") {
+        if (cid === null) {
+            const page = address.searchParams.get("page");
+            target = "/web/contest" + (page ? "?page=" + encodeURIComponent(page) : "");
+        } else if (validCid) {
+            target = GetContestProblemURL(cid);
+        }
+    } else if (address.pathname === "/contestrank-correct.php" && validCid) {
+        const user = address.searchParams.get("user_id");
+        target = GetContestProblemURL(cid) + "/rank-correct" + (user ? "?user_id=" + encodeURIComponent(user) : "");
+    } else if (validCid && num) {
+        if (address.pathname === "/problem.php") target = GetContestProblemURL(cid, num);
+        else if (address.pathname === "/problem_std.php") target = GetContestProblemURL(cid, num) + "/std";
+        else if (address.pathname === "/problem_solution.php") target = GetContestProblemURL(cid, num) + "/solution";
+    }
+    return target === null ? null : new URL(target, address.origin).href;
+}
+
+async function GetContestProblemData(cid, index, signal) {
+    if (!/^\d+$/.test(String(cid)) || !/^\d+$/.test(String(index))) throw new Error("无效的比赛题号");
+    const num = String.fromCharCode(65 + Number(index));
+    const data = await FetchContestAPI("contest/" + encodeURIComponent(cid) + "/" + encodeURIComponent(num), signal);
+    if (!data.problem || !data.problem.problemId) throw new Error("无法确定原题题号");
+    CacheContestProblems(cid, data);
+    localStorage.setItem("UserScript-Contest-" + cid + "-Problem-" + index + "-PID", data.problem.problemId);
+    localStorage.setItem("UserScript-Problem-" + data.problem.problemId + "-Name", data.problem.title || "");
+    localStorage.setItem("UserScript-Problem-" + data.problem.problemId + "-IOFilename", data.problem.name || "");
+    return data.problem;
+}
 
 const MonochromeSkinCSS = `
                 /* Fonts loaded via <link> to avoid layout shift */
@@ -250,6 +334,12 @@ const MonochromeSkinCSS = `
                     letter-spacing: 0.05em !important;
                     font-size: 0.85rem !important;
                 }
+                /* Header cells are inverted, so their links must be too: the global link
+                   color would otherwise match the header background. */
+                thead th a, thead td a, th.header a, th.headerSortUp a, th.headerSortDown a {
+                    color: var(--mono-white) !important;
+                    border-bottom-color: var(--mono-white) !important;
+                }
                 td, th {
                     border-color: var(--mono-gray-300) !important;
                     text-align: center !important;
@@ -409,10 +499,6 @@ const MonochromeSkinCSS = `
                         display: none !important;
                     }
                 }
-                .refreshList {
-                    cursor: pointer;
-                }
-
                 /* Contain images */
                 img {
                     max-width: 100% !important;
@@ -476,12 +562,15 @@ const NewBootstrapSkinCSS = `
                     border: 1px solid var(--bs-secondary-bg);
                     border-top: none;
                     border-radius: 0 0 0.3rem 0.3rem;
-                }
-                .refreshList {
-                    cursor: pointer;
-                    color: #6c757d;
-                    text-decoration: none;
                 }`;
+
+// Paints the theme's page background on the canvas, with a matching color-scheme,
+// so that while a page is hidden, and below short pages, a dark theme never shows
+// the browser's white default. Uses the active skin's background variable.
+const ThemeCanvasCSS = `
+        html[data-bs-theme='dark'] { background: var(--mono-white, var(--bs-body-bg, #1a1a1a)) !important; color-scheme: dark; }
+        html[data-bs-theme='light'] { background: var(--mono-white, var(--bs-body-bg, #fff)); color-scheme: light; }
+`;
 
 // Set to true by the early block if Bootstrap CSS was injected from the @resource
 // cache. Checked in the IIFE to decide whether a CDN fallback is needed.
@@ -490,12 +579,29 @@ let _earlyBootstrapInjected = false;
 // reveal and observer teardown at DOMContentLoaded time (more reliable than
 // adding a DOMContentLoaded listener inside the sandboxed early block).
 let _foucStyle = null;
+// Shows a page hidden by the early block. Called once the page reaches its styled
+// state (navbar converted, top bar applied), with a safety delay as a fallback.
+function RevealPage() {
+    if (_foucStyle) { _foucStyle.remove(); _foucStyle = null; }
+}
 let _earlyObs = null;
 
 // Runs synchronously at document-start. When NewBootstrap is enabled, we apply
 // the saved theme and inject Bootstrap CSS + the skin CSS before the first paint,
 // and we block the page's own old stylesheets from loading at all.
 (() => {
+    // Old contest pages: move to the /web app before anything is drawn.
+    const ContestWebRedirect = GetContestWebRedirect();
+    if (ContestWebRedirect) {
+        ApplyContestWebTheme();
+        const Hide = document.createElement("style");
+        Hide.textContent = "body { visibility: hidden !important; }";
+        (document.head || document.documentElement).appendChild(Hide);
+        location.replace(ContestWebRedirect);
+        return;
+    }
+    // /web gets the same Bootstrap 5 and skin setup below as the legacy pages.
+    if (IsContestWebApp()) ApplyContestWebTheme();
     try {
         let get = (k) => {
             let v = localStorage.getItem("UserScript-Setting-" + k);
@@ -526,15 +632,18 @@ let _earlyObs = null;
         let skinCSS = isMono ? MonochromeSkinCSS : NewBootstrapSkinCSS;
         if (get("AddAnimation")) skinCSS += `.status, .test-case { transition: ${isMono ? "100ms ease" : "0.5s"} !important; }`;
         if (get("AddColorText")) skinCSS += `.red { color: red !important; } .green { color: green !important; } .blue { color: blue !important; }`;
+        skinCSS += ThemeCanvasCSS;
         let skinStyle = document.createElement("style");
         skinStyle.textContent = skinCSS;
         head.appendChild(skinStyle);
 
-        // Hide the page until old stylesheets are evicted and our CSS is in place.
-        // Revealed by the IIFE right after its DOMContentLoaded wait (more reliable
-        // than a DOMContentLoaded listener here due to sandbox context differences).
+        // Hide the page until old stylesheets are evicted and the page is styled; see
+        // RevealPage. Only the body is hidden: opacity on the root would also hide the
+        // themed canvas and show the browser's white default instead. Opacity rather than
+        // visibility, because innerText skips invisible text and handlers read it before
+        // the reveal (for example the scores on status.php).
         _foucStyle = document.createElement("style");
-        _foucStyle.textContent = "html { opacity: 0 !important; }";
+        _foucStyle.textContent = "body { opacity: 0 !important; }";
         head.appendChild(_foucStyle);
 
         let blocked = ["bootstrap.min.css", "white.css", "semantic.min.css", "bootstrap-theme.min.css", "problem.css"];
@@ -545,6 +654,10 @@ let _earlyObs = null;
                         node.remove();
         });
         _earlyObs.observe(document.documentElement, { childList: true, subtree: true });
+        // The script can start after the parser has already read <head>: the observer
+        // only sees links added from now on, so remove the ones already there as well.
+        for (let link of document.querySelectorAll("link"))
+            if (blocked.some(h => link.href && link.href.indexOf(h) !== -1)) link.remove();
     } catch (e) {
         console.error("[XMOJ-Script] early init error:", e);
     }
@@ -715,8 +828,14 @@ let GetUserInfo = async (Username) => {
                 return null;
             }
             const ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
-            let Rating = (parseInt(ParsedDocument.querySelector("#statics > tbody > tr:nth-child(4) > td:nth-child(2)").innerText.trim()) / parseInt(ParsedDocument.querySelector("#statics > tbody > tr:nth-child(3) > td:nth-child(2)").innerText.trim())).toFixed(3) * 1000;
-            let Temp = ParsedDocument.querySelector("#statics > tbody").children;
+            let Rating = (ParsedDocument.querySelector("#statics > tbody > tr:nth-child(4) > td:nth-child(2)") != null && ParsedDocument.querySelector("#statics > tbody > tr:nth-child(3) > td:nth-child(2)") != null) ? (parseInt(ParsedDocument.querySelector("#statics > tbody > tr:nth-child(4) > td:nth-child(2)").innerText.trim()) / parseInt(ParsedDocument.querySelector("#statics > tbody > tr:nth-child(3) > td:nth-child(2)").innerText.trim())).toFixed(3) * 1000 : 0;
+            let Temp = (ParsedDocument.querySelector("#statics > tbody") != null) ? ParsedDocument.querySelector("#statics > tbody").children : [];
+            //页面结构异常（如403/404页面）时返回默认值，不写入缓存
+            if (Temp.length == 0) {
+                return {
+                    "Rating": Rating, "EmailHash": undefined
+                }
+            }
             let Email = Temp[Temp.length - 1].children[1].innerText.trim();
             let EmailHash = CryptoJS.MD5(Email).toString();
             localStorage.setItem("UserScript-User-" + Username + "-UserRating", Rating);
@@ -1674,29 +1793,6 @@ let PeriodicCloudSync = () => {
     });
 };
 
-unsafeWindow.GetContestProblemList = async function(RefreshList) {
-    try {
-        const contestReq = await fetch("https://www.xmoj.tech/contest.php?cid=" + SearchParams.get("cid"));
-        const res = await contestReq.text();
-        if (contestReq.status === 200 && res.indexOf("比赛尚未开始或私有，不能查看题目。") === -1) {
-            const parser = new DOMParser();
-            const dom = parser.parseFromString(res, "text/html");
-            const rows = (dom.querySelector("#problemset > tbody")).rows;
-            let problemList = [];
-            for (let i = 0; i < rows.length; i++) {
-                problemList.push({
-                    "title": rows[i].children[2].innerText,
-                    "url": rows[i].children[2].children[0].href
-                });
-            }
-            localStorage.setItem("UserScript-Contest-" + SearchParams.get("cid") + "-ProblemList", JSON.stringify(problemList));
-            if (RefreshList) location.reload();
-        }
-    } catch (e) {
-        console.error(e);
-    }
-}
-
 // WebSocket Notification System
 let NotificationSocket = null;
 let NotificationSocketReconnectAttempts = 0;
@@ -1999,68 +2095,705 @@ GM_registerMenuCommand("重置数据", () => {
     }
 });
 
-// Wrapped in an async IIFE so that `await` is valid in Violentmonkey,
-// which executes userscripts as classic scripts (not ES modules).
-(async () => {
-if (document.readyState === "loading") {
-    await new Promise(r => document.addEventListener("DOMContentLoaded", r, { once: true }));
-}
-// Reveal the page now that DOMContentLoaded has fired. Remove any old Bootstrap
-// stylesheets the preload scanner fetched (un-applies them from the CSSOM), then
-// remove the FOUC hide so the user sees the correct final state immediately.
-if (_earlyObs) { _earlyObs.disconnect(); _earlyObs = null; }
-if (_foucStyle) {
-    let _blocked = ["bootstrap.min.css", "white.css", "semantic.min.css", "bootstrap-theme.min.css", "problem.css"];
-    for (let _link of document.querySelectorAll("link")) {
-        if (_blocked.some(h => _link.href && _link.href.indexOf(h) !== -1)) _link.remove();
-    }
-    _foucStyle.remove(); _foucStyle = null;
-}
-//otherwise CurrentUsername might be undefined
-let loginStatus;
-await fetch("https://www.xmoj.tech/loginpage.php")
-    .then((response) => response.text())
-    .then((data) => (loginStatus = data));
-const logined = loginStatus == "<a href=logout.php>Please logout First!</a>";
-if (UtilityEnabled("AutoLogin") && document.querySelector("body > a:nth-child(1)") != null && document.querySelector("body > a:nth-child(1)").innerText == "请登录后继续操作") {
-    localStorage.setItem("UserScript-LastPage", location.pathname + location.search);
-    location.href = "https://www.xmoj.tech/loginpage.php";
-    return;
-}
-
-SearchParams = new URLSearchParams(location.search);
-let ServerURL = (UtilityEnabled("DebugMode") ? "https://ghpages.xmoj-script.uk/" : "https://www.xmoj-script.uk")
-const profileElement = document.querySelector("#profile");
-if (profileElement === null) {
-    if (!logined) {
-        location.href = "https://www.xmoj.tech/loginpage.php";
-    }
-    return;
-}
-CurrentUsername = profileElement.innerText;
-CurrentUsername = CurrentUsername.replaceAll(/[^a-zA-Z0-9]/g, "");
-let IsAdmin = AdminUserList.indexOf(CurrentUsername) !== -1;
-
-const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
-const applyTheme = (theme) => {
-    document.querySelector("html").setAttribute("data-bs-theme", theme);
-    localStorage.setItem("UserScript-Setting-DarkMode", theme === "dark" ? "true" : "false");
-};
-const applySystemTheme = (e) => applyTheme(e.matches ? "dark" : "light");
-initTheme = () => {
-    const saved = localStorage.getItem("UserScript-Setting-Theme") || "auto";
-    if (saved === "auto") {
-        applyTheme(prefersDark.matches ? "dark" : "light");
-        prefersDark.addEventListener("change", applySystemTheme);
+// The contest problem switcher, fixed at the left edge, as on the old contest
+// problem pages. Labels come from each problem's URL, since the list order does not
+// have to follow the problem letters.
+function CreateProblemSwitcher(ProblemList, IsCurrent) {
+    let problemSwitcher = document.createElement("div");
+    problemSwitcher.classList.add("problem-switcher-container");
+    problemSwitcher.style.position = "fixed";
+    problemSwitcher.style.top = "50%";
+    problemSwitcher.style.left = "0";
+    problemSwitcher.style.transform = "translateY(-50%)";
+    problemSwitcher.style.maxHeight = "80vh";
+    problemSwitcher.style.overflowY = "auto";
+    if (document.documentElement.getAttribute("data-bs-theme") == "dark") {
+        problemSwitcher.style.backgroundColor = UtilityEnabled("MonochromeUI") ? "#000" : "rgba(0, 0, 0, 0.8)";
     } else {
-        applyTheme(saved);
-        prefersDark.removeEventListener("change", applySystemTheme);
+        problemSwitcher.style.backgroundColor = UtilityEnabled("MonochromeUI") ? "#FFF" : "rgba(255, 255, 255, 0.8)";
     }
-};
-initTheme();
-PeriodicCloudSync();
-setInterval(PeriodicCloudSync, 60 * 60 * 1000);
+    problemSwitcher.style.padding = "10px";
+    problemSwitcher.style.borderRadius = UtilityEnabled("MonochromeUI") ? "0" : "0 10px 10px 0";
+    if (UtilityEnabled("MonochromeUI")) problemSwitcher.style.borderRight = "4px solid";
+    problemSwitcher.style.display = "flex";
+    problemSwitcher.style.flexDirection = "column";
+    problemSwitcher.style.zIndex = "990";
 
+    for (let i = 0; i < ProblemList.length; i++) {
+        let Label = GetContestRoute(ProblemList[i].url)?.num;
+        if (!Label) Label = i < 26 ? String.fromCharCode(65 + i) : String.fromCharCode(97 + (i - 26));
+        let Button = document.createElement("a");
+        Button.href = ProblemList[i].url;
+        Button.title = String(ProblemList[i].title || "").trim();
+        Button.className = "btn btn-outline-secondary mb-2" + (IsCurrent(i, ProblemList[i]) ? " active" : "");
+        Button.textContent = Label;
+        problemSwitcher.appendChild(Button);
+    }
+    return problemSwitcher;
+}
+
+// The ResetType user menu. Shared by the legacy navbar and the /web app so both
+// menus offer the same entries and animate the same way.
+function CreateUserMenuItems() {
+    let Entries = [
+        ["修改帐号", () => { location.href = "https://www.xmoj.tech/modifypage.php"; }],
+        ["个人中心", () => { location.href = "https://www.xmoj.tech/userinfo.php?user=" + CurrentUsername; }],
+        ["短消息", () => { location.href = "https://www.xmoj.tech/mail.php"; }],
+        ["插件设置", () => { location.href = "https://www.xmoj.tech/index.php?ByUserScript=1"; }],
+        ["插件更新日志", () => { location.href = "https://www.xmoj.tech/modifypage.php?ByUserScript=1"; }],
+        ["注销", () => {
+            clearCredential();
+            GM.cookie.set({
+                name: 'PHPSESSID',
+                value: (Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)).substring(0, 28),
+                path: "/"
+            })
+                .then(() => {
+                    console.log('Reset PHPSESSID successfully.');
+                })
+                .catch((error) => {
+                    console.error(error);
+                }); //We can no longer rely of the server to set the cookie for us
+            location.href = "https://www.xmoj.tech/logout.php";
+        }]
+    ];
+    return Entries.map(([Text, Action]) => {
+        let Item = document.createElement("li");
+        Item.className = "dropdown-item";
+        Item.innerText = Text;
+        Item.addEventListener("click", Action);
+        return Item;
+    });
+}
+
+function InitializeUserMenu(PopupUL, ParentLi, Items) {
+    PopupUL.style.cursor = 'pointer';
+    Items.forEach(item => {
+        item.style.opacity = 0;
+        item.style.transform = 'translateY(-16px)';
+        item.style.transition = UtilityEnabled("MonochromeUI") ? 'transform 100ms ease, opacity 100ms ease' : 'transform 0.3s ease, opacity 0.5s ease';
+    });
+    let showDropdownItems = () => {
+        PopupUL.style.display = 'block';
+        Items.forEach((item, index) => {
+            clearTimeout(item._timeout);
+            item.style.opacity = 0;
+            item.style.transform = 'translateY(-4px)';
+            item._timeout = setTimeout(() => {
+                item.style.opacity = 1;
+                item.style.transform = 'translateY(2px)';
+            }, index * (UtilityEnabled("MonochromeUI") ? 20 : 36));
+        });
+    };
+    let hideDropdownItems = () => {
+        Items.forEach((item) => {
+            clearTimeout(item._timeout);
+            item.style.opacity = 0;
+            item.style.transform = 'translateY(-16px)';
+        });
+        setTimeout(() => {
+            PopupUL.style.display = 'none';
+        }, UtilityEnabled("MonochromeUI") ? 80 : 100);
+    };
+    let toggleDropdownItems = () => {
+        if (PopupUL.style.display === 'block') {
+            hideDropdownItems();
+        } else {
+            showDropdownItems();
+        }
+    };
+    ParentLi.addEventListener("click", toggleDropdownItems);
+    document.addEventListener("click", (event) => {
+        if (!ParentLi.contains(event.target) && PopupUL.style.display === 'block') {
+            hideDropdownItems();
+        }
+    });
+}
+
+// Synchronous and dependency-free: paint the saved theme before Vue, API
+// responses, fonts, or any CDN resources are ready. Reused for later changes.
+// With NewBootstrap the early block gives /web the same Bootstrap 5 and skin CSS
+// as the legacy pages, so this only adds what the app's own markup still needs.
+function ApplyContestWebTheme() {
+    const get = name => {
+        const value = localStorage.getItem("UserScript-Setting-" + name);
+        return value === null ? !["DebugMode", "SuperDebug", "ReplaceXM"].includes(name) : value === "true";
+    };
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
+    let style = document.getElementById("xmoj-web-style");
+    if (!style) {
+        style = document.createElement("style");
+        style.id = "xmoj-web-style";
+        (document.head || document.documentElement).appendChild(style);
+    }
+    const saved = localStorage.getItem("UserScript-Setting-Theme") || "auto";
+    const dark = saved === "auto" ? prefersDark.matches : saved === "dark";
+    document.documentElement.setAttribute("data-bs-theme", dark ? "dark" : "light");
+    localStorage.setItem("UserScript-Setting-DarkMode", String(dark));
+    const modern = get("NewBootstrap");
+    style.textContent = ThemeCanvasCSS + `
+        #app .xmoj-script-tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+        #app .copy-btn { margin-left: 10px; }
+        #app .xmoj-script-countdown { margin-left: 8px; white-space: nowrap; }
+        #app .xmoj-script-editor { margin: 12px 0; }
+        #app .xmoj-script-has-editors .syntaxhighlighter,
+        #app .xmoj-script-has-editors .xmoj-std-code { display: none !important; }
+        #app .xmoj-std-overlay { pointer-events: none; }
+        #app .xmoj-script-code-ready { display: none !important; }
+        #app #rank td.well { color: #222 !important; }
+        #app .xmoj-problem-head h3 { font-size: 1rem; font-weight: inherit !important; font-family: inherit !important; margin: 0; }
+        #app .xmoj-problem-actions .btn { margin: 0 5px; }
+        #app .xmoj-problem-body pre { font-size: 1rem; padding: 0.3em 0.5em; margin: 0.5em 0; }
+        #app .in-out { overflow: hidden; display: flex; padding: 0.5em 0; }
+        #app .in-out .in-out-item { flex: 1; overflow: hidden; }
+        #app .cnt-row .title { font-weight: bolder; font-size: 1.1rem; }
+        #app a.copy-btn { float: right; margin-left: 0; padding: 0 0.4em; border: 1px solid var(--bs-primary, #337ab7); border-radius: 3px; color: var(--bs-primary, #337ab7); cursor: pointer; text-decoration: none; }
+        #app a.copy-btn:hover { background-color: var(--bs-secondary-bg, #f5f5f5); }
+        @media (max-width: 600px) { #app .in-out { flex-direction: column; } #app .in-out-item { margin: 0 !important; } }
+        #app .dropdown-menu[data-xmoj-script-menu] > li:not([data-xmoj-script]) { display: none !important; }
+    ` + (modern ? `
+        /* The app still renders Bootstrap 3 markup. Its classes are mapped to
+           Bootstrap 5 in InitializeContestWebApp; these cover the layout-only ones. */
+        #app .navbar-header { display: flex; align-items: center; justify-content: space-between; }
+        #app .navbar .icon-bar, #app .navbar .caret { display: none; }
+        #app .well { padding: 1rem; margin-bottom: 1rem; background-color: var(--bs-secondary-bg); border: var(--bs-border-width) solid var(--bs-border-color); border-radius: var(--bs-border-radius); }
+        #app .form-inline { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+        #app .form-inline .form-control { width: auto; }
+    ` : `
+        :root { --bs-secondary-bg: #f5f5f5; }
+        [data-bs-theme='dark'] { --bs-secondary-bg: #292929; }
+        [data-bs-theme='dark'] body, [data-bs-theme='dark'] #app .jumbotron,
+        [data-bs-theme='dark'] #app .navbar, [data-bs-theme='dark'] #app .dropdown-menu,
+        [data-bs-theme='dark'] #app .form-control, [data-bs-theme='dark'] #app pre {
+            background: #1a1a1a !important; color: #eee !important;
+        }
+        [data-bs-theme='dark'] #app a { color: #b8d6ff; }
+        [data-bs-theme='dark'] #app .pagination > li > a,
+        [data-bs-theme='dark'] #app .pagination > li > span,
+        [data-bs-theme='dark'] #app .well { background-color: #292929; color: #eee; }
+        [data-bs-theme='dark'] #app .navbar-default .navbar-nav > li > a,
+        [data-bs-theme='dark'] #app .dropdown-menu > li > a { color: #eee; }
+        [data-bs-theme='dark'] #app .navbar-nav > .active > a,
+        [data-bs-theme='dark'] #app .dropdown-menu > li > a:hover,
+        [data-bs-theme='dark'] #app .table-striped > tbody > tr:nth-of-type(odd),
+        [data-bs-theme='dark'] #app .table-hover > tbody > tr:hover { background: #292929; }
+        [data-bs-theme='dark'] #app .btn { background: #292929; color: #eee; border-color: #737373; }
+    `);
+    // The legacy problem switcher replaces the app's own problem bar.
+    if (get("ProblemSwitcher")) style.textContent += "#app .xmoj-problem-nav { display: none !important; }";
+    // Like the legacy pages, which remove the broadcast marquee.
+    if (get("RemoveUseless")) style.textContent += "#app .xmoj-broadcast { display: none !important; }";
+    // With NewBootstrap the early block already adds these to the skin CSS.
+    if (!modern && get("AddColorText")) style.textContent += ".red {color: #e64747;} .green {color: #399a39;} .blue {color: #428bca;}";
+    if (!modern && get("AddAnimation")) style.textContent += "#app .btn {transition: background-color 100ms, color 100ms;}";
+    return dark;
+}
+
+// Enhancements for the Vue contest app. Vue's elements and router links keep their
+// identity: only Bootstrap 5 classes and our own controls are added to them.
+async function InitializeContestWebApp() {
+    const root = document.getElementById("app");
+    if (!root) return;
+    const owned = "data-xmoj-script";
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
+    let routeKey = "";
+    let route = null;
+    let routeData = null;
+    let controller = null;
+    let scheduled = false;
+    let editors = [];
+    let serverOffset = 0;
+    let revealed = false;
+    const countdowns = new Map();
+
+    initTheme = () => {
+        const dark = ApplyContestWebTheme();
+        for (const entry of editors) entry.editor?._monacoEditor.updateOptions({theme: dark ? "vs-dark" : "vs"});
+    };
+    initTheme();
+    prefersDark.addEventListener("change", initTheme);
+    InitializeImageEnlarger();
+    if (UtilityEnabled("NewBootstrap") && !_earlyBootstrapInjected) {
+        // The @resource was not cached yet (first install/update): load Bootstrap 5
+        // and the skin the same way the legacy pages do.
+        const blocked = ["bootstrap.min.css", "white.css", "semantic.min.css", "bootstrap-theme.min.css", "problem.css"];
+        for (const link of document.querySelectorAll("link")) {
+            if (blocked.some(name => link.href && link.href.indexOf(name) !== -1)) link.remove();
+        }
+        const bootstrap = document.createElement("link");
+        bootstrap.rel = "stylesheet";
+        bootstrap.href = "https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css";
+        document.head.appendChild(bootstrap);
+        const mono = UtilityEnabled("MonochromeUI");
+        const skin = document.createElement("style");
+        skin.textContent = mono ? MonochromeSkinCSS : NewBootstrapSkinCSS;
+        if (UtilityEnabled("AddAnimation")) skin.textContent += `.status, .test-case { transition: ${mono ? "100ms ease" : "0.5s"} !important; }`;
+        if (UtilityEnabled("AddColorText")) skin.textContent += `.red { color: red !important; } .green { color: green !important; } .blue { color: blue !important; }`;
+        document.head.appendChild(skin);
+    }
+
+    function MakeControl(tag, name, text) {
+        const node = document.createElement(tag);
+        node.setAttribute(owned, name);
+        node.textContent = text;
+        if (tag === "button") {
+            node.type = "button";
+            node.className = "btn btn-outline-secondary";
+        }
+        return node;
+    }
+
+    function AddLink(parent, name, label, href, className = "btn btn-outline-secondary") {
+        if (parent.querySelector(`[${owned}="${name}"]`)) return;
+        const link = MakeControl("a", name, label);
+        link.href = href;
+        link.className = className;
+        parent.appendChild(link);
+    }
+
+    function AddCopy(parent, name, readText) {
+        if (parent.querySelector(`[${owned}="${name}"]`)) return;
+        const button = MakeControl("button", name, "复制");
+        button.className = "btn btn-sm btn-outline-secondary copy-btn";
+        button.addEventListener("click", () => {
+            GM_setClipboard(readText());
+            button.textContent = "复制成功";
+            setTimeout(() => { button.textContent = "复制"; }, 1000);
+        });
+        parent.appendChild(button);
+    }
+
+    // Mirrors the legacy navbar conversion in main(), plus the other Bootstrap 3
+    // classes the app renders. Runs on every render, because Vue rewrites the class
+    // attribute of elements whose classes are bound (e.g. the active tab).
+    function ApplyBootstrap5Markup() {
+        const nav = root.querySelector(".navbar");
+        if (nav) {
+            nav.classList.add("navbar-expand-lg", "bg-body-tertiary");
+            nav.querySelector("#xmoj-navbar > .navbar-nav:not(.navbar-right)")?.classList.add("me-auto", "mb-2", "mb-lg-0");
+            for (const item of nav.querySelectorAll(".navbar-nav > li")) {
+                item.classList.add("nav-item");
+                const link = item.firstElementChild;
+                if (!link) continue;
+                link.classList.add("nav-link");
+                link.classList.toggle("active", item.classList.contains("active"));
+            }
+            for (const toggle of nav.querySelectorAll('[data-toggle="dropdown"]')) {
+                toggle.setAttribute("data-bs-toggle", "dropdown");
+                toggle.removeAttribute("data-toggle");
+                toggle.parentElement.classList.add("dropdown");
+            }
+            const toggler = nav.querySelector(".navbar-toggle");
+            if (toggler) {
+                toggler.classList.add("navbar-toggler");
+                if (toggler.hasAttribute("data-toggle")) {
+                    toggler.setAttribute("data-bs-toggle", "collapse");
+                    toggler.setAttribute("data-bs-target", toggler.getAttribute("data-target") || "#xmoj-navbar");
+                    toggler.removeAttribute("data-toggle");
+                    toggler.removeAttribute("data-target");
+                }
+                if (!toggler.querySelector(".navbar-toggler-icon")) {
+                    const icon = MakeControl("span", "toggler-icon", "");
+                    icon.className = "navbar-toggler-icon";
+                    toggler.appendChild(icon);
+                }
+            }
+        }
+        for (const node of root.querySelectorAll(".dropdown-menu > li > a")) node.classList.add("dropdown-item");
+        for (const node of root.querySelectorAll(".btn-default")) node.classList.add("btn-outline-secondary");
+        for (const node of root.querySelectorAll(".btn-xs")) node.classList.add("btn-sm");
+        for (const node of root.querySelectorAll(".sr-only")) node.classList.add("visually-hidden");
+        for (const node of root.querySelectorAll(".label")) node.classList.add("badge");
+        for (const node of root.querySelectorAll(".label-info")) node.classList.add("text-bg-info");
+        for (const item of root.querySelectorAll(".pagination > li")) {
+            item.classList.add("page-item");
+            item.firstElementChild?.classList.add("page-link");
+        }
+    }
+
+    function EnhanceNav() {
+        const nav = root.querySelector("#xmoj-navbar");
+        if (!nav) return;
+        const menu = nav.querySelector(".dropdown-menu");
+        if (menu && UtilityEnabled("ResetType")) {
+            if (!menu.hasAttribute("data-xmoj-script-menu")) {
+                // Same menu as the legacy navbar. Vue keeps rendering its own items, so
+                // they are hidden by CSS instead of replacing the list.
+                menu.setAttribute("data-xmoj-script-menu", "");
+                const items = CreateUserMenuItems();
+                for (const item of items) {
+                    item.setAttribute(owned, "user-menu");
+                    menu.appendChild(item);
+                }
+                InitializeUserMenu(menu, menu.parentElement, items);
+            }
+        } else if (menu && !menu.querySelector(`[${owned}="settings"]`)) {
+            const item = MakeControl("li", "settings", "");
+            const link = document.createElement("a");
+            link.href = "/index.php?ByUserScript=1";
+            link.textContent = "插件设置";
+            item.appendChild(link);
+            menu.appendChild(item);
+        }
+        const links = nav.querySelector("ul");
+        if (links && UtilityEnabled("Discussion") && !links.querySelector(`[${owned}="discussion-nav"]`)) {
+            const item = MakeControl("li", "discussion-nav", "");
+            const link = document.createElement("a");
+            link.href = "/discuss3/discuss.php";
+            link.textContent = "讨论";
+            item.appendChild(link);
+            links.appendChild(item);
+        }
+        if (UtilityEnabled("Translate")) {
+            // Same rename as the legacy navbar. Edit the text node Vue renders, so
+            // switching the app's language can still replace it.
+            const problems = nav.querySelector(".navbar-nav > li:nth-child(2) > a");
+            const text = problems && [...problems.childNodes].find(node => node.nodeType === Node.TEXT_NODE && node.nodeValue.trim() === "问题");
+            if (text) text.nodeValue = text.nodeValue.replace("问题", "题库");
+        }
+    }
+
+    function ClearRoute() {
+        controller?.abort();
+        countdowns.clear();
+        for (const entry of editors) {
+            entry.editor?.dispose();
+            entry.original?.classList.remove("xmoj-script-code-ready", "xmoj-script-has-editors");
+        }
+        editors = [];
+        root.querySelectorAll(`[${owned}]:not([${owned}="settings"]):not([${owned}="discussion-nav"]):not([${owned}="toggler-icon"]):not([${owned}="user-menu"])`).forEach(node => node.remove());
+        document.querySelectorAll(`[${owned}="problem-switcher"]`).forEach(node => node.remove());
+        routeData = null;
+    }
+
+    function AddCountdown(parent, endTime, label) {
+        if (!UtilityEnabled("AutoCountdown") || !parent || !Number.isFinite(endTime)) return;
+        let node = parent.querySelector(`[${owned}="countdown"]`);
+        if (!node) {
+            node = MakeControl("span", "countdown", "");
+            node.className = "xmoj-script-countdown";
+            parent.appendChild(node);
+        }
+        countdowns.set(node, {endTime, label});
+    }
+
+    function ParseServerTime(value) {
+        // The API returns China local time without an offset, regardless of browser timezone.
+        return Date.parse(String(value || "").replace(" ", "T") + "+08:00");
+    }
+
+    function UpdateCountdowns() {
+        for (const [node, item] of countdowns) {
+            if (!node.isConnected) { countdowns.delete(node); continue; }
+            const seconds = Math.max(0, Math.ceil((item.endTime - Date.now() - serverOffset) / 1000));
+            const days = Math.floor(seconds / 86400);
+            const hours = String(Math.floor(seconds / 3600) % 24).padStart(2, "0");
+            const minutes = String(Math.floor(seconds / 60) % 60).padStart(2, "0");
+            const text = item.label + (days ? days + "天 " : "") + hours + ":" + minutes + ":" + String(seconds % 60).padStart(2, "0");
+            if (node.textContent !== text) node.textContent = text;
+        }
+    }
+
+    async function LoadRouteData(signal, key, current) {
+        try {
+            let path = "contest/" + current.cid;
+            if (current.page === "list") {
+                const query = new URL(key).searchParams;
+                path = "contest/list?" + new URLSearchParams({pageNum: query.get("page") || "1", pageSize: "20", keyword: query.get("keyword") || ""});
+            } else if (current.page === "rank") {
+                // The native view owns sorting and incremental ranking requests.
+                return;
+            } else if (current.num) {
+                path += "/" + encodeURIComponent(current.num) + (current.page === "problem" ? "" : "/" + current.page);
+            }
+            const data = await FetchContestAPI(path, signal);
+            if (signal.aborted || location.href !== key) return;
+            routeData = data;
+            if (data.serverTime) serverOffset = ParseServerTime(data.serverTime) - Date.now();
+            if (!Number.isFinite(serverOffset)) serverOffset = 0;
+            if (current.cid) CacheContestProblems(current.cid, data);
+            if (data.problem?.problemId) {
+                const problem = data.problem;
+                localStorage.setItem("UserScript-Contest-" + current.cid + "-Problem-" + GetContestProblemIndex(current.num) + "-PID", problem.problemId);
+                localStorage.setItem("UserScript-Problem-" + problem.problemId + "-IOFilename", problem.name || "");
+                localStorage.setItem("UserScript-Problem-" + problem.problemId + "-Name", problem.title || "");
+            }
+            ScheduleEnhance();
+        } catch (error) {
+            if (!signal.aborted) console.error("[XMOJ-Script] Contest API:", error);
+        }
+    }
+
+    function EnhanceList() {
+        if (!routeData?.list) return;
+        for (const row of root.querySelectorAll(".xmoj-scroll-x tbody tr")) {
+            const link = row.querySelector('a[href*="/web/contest/"]');
+            if (!link) continue;
+            const cid = GetContestRoute(link.href)?.cid;
+            const data = routeData.list.find(item => String(item.contestId) === cid);
+            if (!data) continue;
+            localStorage.setItem("UserScript-Contest-" + cid + "-Name", data.title);
+            const status = data.status;
+            if (status?.state === "pending" || status?.state === "running") {
+                AddCountdown(row.cells[2], ParseServerTime(status.state === "pending" ? status.startTime : status.endTime), status.state === "pending" ? "距开始 " : "剩余 ");
+            }
+            const creator = row.cells[4];
+            if (creator && data.createdBy) {
+                // Like the legacy contest list, the creator's name becomes the link. The
+                // name is a text node Vue owns: blank it rather than removing it.
+                for (const node of creator.childNodes) {
+                    if (node.nodeType === Node.TEXT_NODE && node.nodeValue.trim() === data.createdBy) node.nodeValue = "";
+                }
+                AddLink(creator, "creator", data.createdBy, "/userinfo.php?user=" + encodeURIComponent(data.createdBy), "");
+            }
+        }
+    }
+
+    function EnhanceContest() {
+        const table = root.querySelector(".xmoj-problems-table");
+        if (!table || !routeData?.problems) return;
+        const head = root.querySelector(".xmoj-contest-head");
+        const contest = routeData.contest;
+        const timeline = contest?.myTimeline;
+        const state = contest?.status?.state;
+        if (timeline?.enabled || state === "running" || state === "pending") {
+            AddCountdown(head, ParseServerTime(timeline?.enabled ? timeline.endTime : state === "pending" ? contest.startTime : contest.endTime), state === "pending" ? "距开始 " : "剩余 ");
+        }
+        let toolbar = root.querySelector(`[${owned}="contest-tools"]`);
+        if (!toolbar) {
+            toolbar = MakeControl("div", "contest-tools", "");
+            toolbar.className = "xmoj-script-tools";
+            table.parentElement.before(toolbar);
+            if (UtilityEnabled("OpenAllProblem")) {
+                for (const unsolved of [false, true]) {
+                    const button = MakeControl("button", "open-problems", unsolved ? "打开未解决题目" : "打开全部题目");
+                    button.addEventListener("click", () => {
+                        for (const problem of routeData.problems) {
+                            if (!unsolved || problem.myStatus !== "AC") window.open(GetContestProblemURL(route.cid, problem.num), "_blank", "noopener");
+                        }
+                    });
+                    toolbar.appendChild(button);
+                }
+            }
+            if (UtilityEnabled("AutoCheat")) AddResubmitButton(toolbar);
+        }
+        if (UtilityEnabled("MoreSTD") && contest?.enableStd) {
+            for (const row of table.tBodies[0].rows) {
+                const link = row.querySelector('a[href*="/web/contest/"]');
+                const num = link && GetContestRoute(link.href)?.num;
+                if (!num || row.querySelector('a[href$="/std"]')) continue;
+                const headers = Array.from(table.tHead.rows[0].cells);
+                const index = headers.findIndex(cell => /标程|Std/.test(cell.textContent));
+                if (index >= 0) AddLink(row.cells[index], "std-link", "打开", GetContestProblemURL(route.cid, num) + "/std", "");
+            }
+        }
+    }
+
+    function AddResubmitButton(toolbar) {
+        const button = MakeControl("button", "resubmit", "自动提交当年代码");
+        toolbar.appendChild(button);
+        button.addEventListener("click", async () => {
+            if (!CurrentUsername || !routeData) return;
+            const current = route;
+            const signal = controller.signal;
+            const problems = routeData.problems;
+            button.disabled = true;
+            try {
+                for (const problem of problems) {
+                    if (signal.aborted) return;
+                    if (problem.myStatus === "AC" || !problem.problemId) continue;
+                    // Only retrieve this user's accepted code, never another user's submission.
+                    const query = new URLSearchParams({problem_id: problem.problemId, user_id: CurrentUsername, jresult: "4"});
+                    const response = await fetch("/status.php?" + query, {signal});
+                    if (!response.ok) throw new Error("无法读取提交记录");
+                    const page = new DOMParser().parseFromString(await response.text(), "text/html");
+                    const sid = page.querySelector("#result-tab > tbody > tr > td:nth-child(2)")?.textContent.trim();
+                    if (!/^\d+$/.test(sid || "")) continue;
+                    const sourceResponse = await fetch("/getsource.php?id=" + sid, {signal});
+                    if (!sourceResponse.ok) throw new Error("无法读取代码");
+                    const source = (await sourceResponse.text()).split("/**************************************************************")[0].trim();
+                    if (!source || /^\s*</.test(source)) continue;
+                    button.textContent = "正在提交 " + problem.problemId;
+                    const responseSubmit = await fetch("/submit.php", {method: "POST", signal,
+                        body: new URLSearchParams({cid: current.cid, pid: GetContestProblemIndex(problem.num), language: "1", source, enable_O2: "on"})});
+                    const result = await responseSubmit.text();
+                    if (!responseSubmit.ok || !/status\.php|solution_id/.test(result)) {
+                        throw new Error("提交未确认成功，请前往提交页面检查验证码或错误信息");
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+                button.textContent = "处理完成，请刷新查看状态";
+            } catch (error) {
+                if (!signal.aborted) button.textContent = error.message;
+            } finally { if (!signal.aborted) button.disabled = false; }
+        });
+    }
+
+    function EnhanceProblem() {
+        const problem = routeData?.problem;
+        if (problem?.problemId) {
+            const heading = root.querySelector(".xmoj-problem-head h2");
+            if (heading && !heading.querySelector(`[${owned}="problem-id"]`)) heading.appendChild(MakeControl("small", "problem-id", " (" + problem.problemId + ")"));
+            if (UtilityEnabled("Discussion")) {
+                for (const actions of root.querySelectorAll(".xmoj-problem-actions")) {
+                    AddLink(actions, "discuss-problem", "讨论", "/discuss3/discuss.php?pid=" + encodeURIComponent(problem.problemId));
+                }
+            }
+        }
+        // Same buttons as the legacy problem page: full size and all outlined.
+        for (const button of root.querySelectorAll(".xmoj-problem-actions .btn")) {
+            button.classList.remove("btn-sm", "btn-primary", "btn-default");
+            button.classList.add("btn-outline-secondary");
+        }
+        // The legacy page removes the repeated buttons below the statement.
+        if (UtilityEnabled("RemoveUseless")) {
+            for (const head of root.querySelectorAll(".xmoj-problem-head")) {
+                if (!head.querySelector("h2") && head.querySelector(".xmoj-problem-actions")) head.style.display = "none";
+            }
+        }
+        // Sample boxes are cards, as on the legacy page.
+        for (const pre of root.querySelectorAll(".xmoj-problem-body .in-out pre")) pre.classList.add("card");
+        if (UtilityEnabled("CopyMD")) {
+            for (const section of root.querySelectorAll(".xmoj-problem-body .cnt-row")) {
+                const heading = section.querySelector(".cnt-row-head");
+                const body = section.querySelector(".cnt-row-body");
+                if (heading && body && !body.querySelector(".sampledata")) AddCopy(heading, "copy-section", () => GetMDText(body).trim());
+            }
+        }
+        // Built from this page's API response rather than a cached copy.
+        if (UtilityEnabled("ProblemSwitcher") && Array.isArray(routeData?.problems) && !document.querySelector(`[${owned}="problem-switcher"]`)) {
+            const list = routeData.problems.map(item => ({title: item.problemTitle || item.title || item.num, url: new URL(GetContestProblemURL(route.cid, item.num), location.origin).href}));
+            if (list.length) {
+                const switcher = CreateProblemSwitcher(list, (index, item) => GetContestRoute(item.url)?.num === route.num);
+                switcher.setAttribute(owned, "problem-switcher");
+                // Switch problems through the app's own (hidden) router links, so the
+                // page does not reload.
+                switcher.addEventListener("click", event => {
+                    const link = event.target.closest("a[href]");
+                    const target = link && GetContestRoute(link.href);
+                    const routerLink = target && [...root.querySelectorAll(".xmoj-problem-nav a")].find(a => GetContestRoute(a.href)?.num === target.num);
+                    if (routerLink) {
+                        event.preventDefault();
+                        routerLink.click();
+                    }
+                });
+                document.body.appendChild(switcher);
+            }
+        }
+    }
+
+    function AddCodeEditor(parent, original, code) {
+        if (editors.some(entry => entry.original === original && entry.code === code)) return;
+        const host = MakeControl("div", "code-editor", "");
+        host.className = "xmoj-script-editor";
+        const codeHost = document.createElement("div");
+        const height = Math.max(100, Math.min(600, code.split("\n").length * 20 + 24));
+        codeHost.style.height = height + "px";
+        host.appendChild(codeHost);
+        AddCopy(host, "copy-code", () => code);
+        parent.appendChild(host);
+        const entry = {original, host, code, editor: null};
+        editors.push(entry);
+        const signal = controller.signal;
+        createMonacoEditor(codeHost, {value: code, language: "cpp", readOnly: true, height: height + "px", automaticLayout: true}).then(editor => {
+            if (signal.aborted || !host.isConnected) { editor.dispose(); return; }
+            entry.editor = editor;
+            original.classList.add(original.classList.contains("xmoj-std-stage") ? "xmoj-script-has-editors" : "xmoj-script-code-ready");
+        }).catch(error => {
+            host.remove();
+            console.error("[XMOJ-Script] Read-only editor:", error);
+        });
+    }
+
+    function EnhanceCode() {
+        if (route.page === "std" && routeData?.stdList) {
+            const stage = root.querySelector(".xmoj-std-stage");
+            const body = stage?.querySelector(".jumbotron");
+            if (body) for (const code of routeData.stdList) AddCodeEditor(body, stage, code);
+        }
+        if (route.page === "solution") {
+            const body = root.querySelector(".xmoj-solution-body");
+            const heading = root.querySelector(".xmoj-problem-head h2");
+            if (body && heading && UtilityEnabled("CopyMD")) AddCopy(heading, "copy-solution", () => GetMDText(body).trim());
+            if (body) for (const code of body.querySelectorAll("pre.prettyprint")) AddCodeEditor(code.parentElement, code, code.textContent);
+        }
+    }
+
+    function Enhance() {
+        scheduled = false;
+        observer.disconnect();
+        try {
+            if (routeKey !== location.href) {
+                ClearRoute();
+                routeKey = location.href;
+                route = GetContestRoute();
+                controller = new AbortController();
+                if (route) void LoadRouteData(controller.signal, routeKey, route);
+            }
+            // Vue can replace a loaded view on the same route (e.g. retry/language switch).
+            editors = editors.filter(entry => {
+                if (entry.host.isConnected) return true;
+                entry.editor?.dispose();
+                entry.original?.classList.remove("xmoj-script-code-ready", "xmoj-script-has-editors");
+                return false;
+            });
+            if (UtilityEnabled("NewBootstrap")) ApplyBootstrap5Markup();
+            EnhanceNav();
+            if (!revealed && root.querySelector(".navbar")) {
+                // As on the legacy pages: top bar first, then show the page.
+                revealed = true;
+                if (UtilityEnabled("NewTopBar")) new NavbarStyler();
+                RevealPage();
+            }
+            if (!route) return;
+            if (route.page === "list") EnhanceList();
+            if (route.page === "contest") EnhanceContest();
+            if (route.page === "problem") EnhanceProblem();
+            if (route.page === "std" || route.page === "solution") EnhanceCode();
+            if (UtilityEnabled("NewBootstrap")) root.querySelector("#rank")?.classList.add("table", "table-hover");
+            if (UtilityEnabled("Translate")) {
+                const labels = {Rank: "排名", User: "用户", Nick: "昵称", Name: "姓名", Solved: "AC数", Mark: "得分"};
+                for (const cell of root.querySelectorAll("#rank thead th")) {
+                    if (labels[cell.textContent]) cell.textContent = labels[cell.textContent];
+                }
+            }
+            UpdateCountdowns();
+        } finally { observer.observe(root, {childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["class"]}); }
+    }
+
+    function ScheduleEnhance() {
+        if (!scheduled) { scheduled = true; requestAnimationFrame(Enhance); }
+    }
+    const observer = new MutationObserver(ScheduleEnhance);
+    Enhance();
+    window.addEventListener("popstate", ScheduleEnhance);
+    setInterval(() => {
+        UpdateCountdowns();
+        if (UtilityEnabled("NewTopBar")) new NavbarStyler();
+    }, 1000);
+    window.addEventListener("focus", () => {
+        if (!UtilityEnabled("AutoRefresh") || !["list", "contest", "rank"].includes(route?.page)) return;
+        if (root.querySelector('input:focus, textarea:focus') || root.querySelector(`[${owned}="resubmit"]:disabled`)) return;
+        // Reload lets Vue refresh both its data and sort state; editing its rendered
+        // table alone would cause stale rows to return on the next native sort.
+        location.reload();
+    });
+    // The app's #profile replacement arrives asynchronously. Authentication must
+    // come from /api/nav, never from the absence of the legacy DOM element.
+    try {
+        const nav = await FetchContestAPI("nav");
+        if (!nav.loggedIn) {
+            if (UtilityEnabled("AutoLogin")) {
+                localStorage.setItem("UserScript-LastPage", location.pathname + location.search + location.hash);
+                location.href = "/loginpage.php";
+            }
+            return;
+        }
+        CurrentUsername = nav.userId || "";
+        PeriodicCloudSync();
+        setInterval(PeriodicCloudSync, 60 * 60 * 1000);
+    } catch (error) { console.error("[XMOJ-Script] Navigation API:", error); }
+}
 
 class NavbarStyler {
     constructor() {
@@ -2205,80 +2938,80 @@ class NavbarStyler {
     }
 }
 
-function replaceMarkdownImages(text, string) {
-    return text.replace(/!\[.*?\]\(.*?\)/g, string);
+// Wrapped in an async IIFE so that `await` is valid in Violentmonkey,
+// which executes userscripts as classic scripts (not ES modules).
+(async () => {
+if (GetContestWebRedirect()) return;
+if (document.readyState === "loading") {
+    await new Promise(r => document.addEventListener("DOMContentLoaded", r, { once: true }));
+}
+// Remove any old Bootstrap stylesheets the preload scanner fetched (un-applies them
+// from the CSSOM). The page stays hidden until it is styled: main() and the /web app
+// call RevealPage once the navbar is in its final state, so there is no unstyled frame
+// or navbar jump. The timeouts make sure the page is shown even if that never happens:
+// 1.5 seconds after main() starts (it first waits for the login check), and at the
+// latest 4 seconds after DOMContentLoaded.
+if (_earlyObs) { _earlyObs.disconnect(); _earlyObs = null; }
+if (_foucStyle) {
+    let _blocked = ["bootstrap.min.css", "white.css", "semantic.min.css", "bootstrap-theme.min.css", "problem.css"];
+    for (let _link of document.querySelectorAll("link")) {
+        if (_blocked.some(h => _link.href && _link.href.indexOf(h) !== -1)) _link.remove();
+    }
+    setTimeout(RevealPage, 4000);
+}
+if (IsContestWebApp()) {
+    await InitializeContestWebApp();
+    return;
+}
+//otherwise CurrentUsername might be undefined
+let loginStatus;
+await fetch("https://www.xmoj.tech/loginpage.php")
+    .then((response) => response.text())
+    .then((data) => (loginStatus = data));
+const logined = loginStatus == "<a href=logout.php>Please logout First!</a>";
+if (UtilityEnabled("AutoLogin") && document.querySelector("body > a:nth-child(1)") != null && document.querySelector("body > a:nth-child(1)").innerText == "请登录后继续操作") {
+    localStorage.setItem("UserScript-LastPage", location.pathname + location.search);
+    location.href = "https://www.xmoj.tech/loginpage.php";
+    return;
 }
 
-function GetMDText(element) {
-    let result = '';
-    const blockTags = new Set([
-        'P', 'DIV', 'SECTION', 'ARTICLE', 'HEADER', 'FOOTER', 'NAV',
-        'UL', 'OL', 'LI', 'PRE', 'BLOCKQUOTE',
-        'H1', 'H2', 'H3', 'H4', 'H5', 'H6',
-        'TABLE', 'THEAD', 'TBODY', 'TFOOT', 'TR'
-    ]);
-    const cellTags = new Set(['TD', 'TH']);
-
-    function traverse(node) {
-        if (node.nodeType === Node.TEXT_NODE) {
-            result += node.textContent;
-            return;
-        }
-
-        if (node.nodeType !== Node.ELEMENT_NODE) {
-            return;
-        }
-
-        const tag = node.nodeName.toUpperCase();
-
-        // Preserve line breaks for <br>
-        if (tag === 'BR') {
-            result += '\n';
-            return;
-        }
-
-        // Convert images to Markdown
-        if (tag === 'IMG') {
-            const src = node.getAttribute('src');
-            if (src) {
-                let resolvedSrc = src;
-                try {
-                    resolvedSrc = new URL(src, location.href).href;
-                } catch (e) {
-                    // Fallback to the raw src if URL construction fails
-                }
-                result += `![](${resolvedSrc})`;
-            }
-            return;
-        }
-
-        const isBlock = blockTags.has(tag);
-        const isCell = cellTags.has(tag);
-
-        if (isBlock && !result.endsWith('\n')) {
-            result += '\n';
-        }
-
-        // Keep table cells visually separated when copied as plain text.
-        if (isCell && result.length > 0 && !result.endsWith('\n') && !result.endsWith('\t') && !result.endsWith(' ')) {
-            result += '\t';
-        }
-
-        for (let child of node.childNodes) {
-            traverse(child);
-        }
-
-        if (isCell && !result.endsWith('\n') && !result.endsWith('\t')) {
-            result += '\t';
-        }
-
-        if (isBlock && !result.endsWith('\n')) {
-            result += '\n';
-        }
+SearchParams = new URLSearchParams(location.search);
+let ServerURL = (UtilityEnabled("DebugMode") ? "https://ghpages.xmoj-script.uk/" : "https://www.xmoj-script.uk")
+const profileElement = document.querySelector("#profile");
+if (profileElement === null) {
+    RevealPage();
+    if (!logined) {
+        location.href = "https://www.xmoj.tech/loginpage.php";
     }
+    return;
+}
+CurrentUsername = profileElement.innerText;
+CurrentUsername = CurrentUsername.replaceAll(/[^a-zA-Z0-9]/g, "");
+let IsAdmin = AdminUserList.indexOf(CurrentUsername) !== -1;
 
-    traverse(element);
-    return result;
+const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
+const applyTheme = (theme) => {
+    if (document.querySelector("html") != null) document.querySelector("html").setAttribute("data-bs-theme", theme);
+    localStorage.setItem("UserScript-Setting-DarkMode", theme === "dark" ? "true" : "false");
+};
+const applySystemTheme = (e) => applyTheme(e.matches ? "dark" : "light");
+initTheme = () => {
+    const saved = localStorage.getItem("UserScript-Setting-Theme") || "auto";
+    if (saved === "auto") {
+        applyTheme(prefersDark.matches ? "dark" : "light");
+        prefersDark.addEventListener("change", applySystemTheme);
+    } else {
+        applyTheme(saved);
+        prefersDark.removeEventListener("change", applySystemTheme);
+    }
+};
+initTheme();
+PeriodicCloudSync();
+setInterval(PeriodicCloudSync, 60 * 60 * 1000);
+
+
+function replaceMarkdownImages(text, string) {
+    return text.replace(/!\[.*?\]\(.*?\)/g, string);
 }
 
 async function main() {
@@ -2307,11 +3040,11 @@ async function main() {
                 let Discussion = null;
                 if (UtilityEnabled("Discussion")) {
                     Discussion = document.createElement("li");
-                    document.querySelector("#navbar > ul:nth-child(1)").appendChild(Discussion);
+                    if (document.querySelector("#navbar > ul:nth-child(1)") != null) document.querySelector("#navbar > ul:nth-child(1)").appendChild(Discussion);
                     Discussion.innerHTML = "<a href=\"https://www.xmoj.tech/discuss3/discuss.php\">讨论</a>";
                 }
                 if (UtilityEnabled("Translate")) {
-                    document.querySelector("#navbar > ul:nth-child(1) > li:nth-child(2) > a").innerText = "题库";
+                    if (document.querySelector("#navbar > ul:nth-child(1) > li:nth-child(2) > a") != null) document.querySelector("#navbar > ul:nth-child(1) > li:nth-child(2) > a").innerText = "题库";
                 }
                 //send analytics
                 RequestAPI("SendData", {});
@@ -2407,13 +3140,13 @@ async function main() {
                     } else {
                         loadResources();
                     }
-                    document.querySelector("nav").className = "navbar navbar-expand-lg bg-body-tertiary";
-                    document.querySelector("#navbar > ul:nth-child(1)").classList = "navbar-nav me-auto mb-2 mb-lg-0";
-                    document.querySelector("body > div > nav > div > div.navbar-header").outerHTML = `<a class="navbar-brand" href="https://www.xmoj.tech/">${UtilityEnabled("ReplaceXM") ? "高老师" : "小明"}的OJ</a><button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"><span class="navbar-toggler-icon"></span></button>`;
-                    document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li").classList = "nav-item dropdown";
-                    document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > a").className = "nav-link dropdown-toggle";
-                    document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > a > span.caret").remove();
-                    Temp = document.querySelector("#navbar > ul:nth-child(1)").children;
+                    if (document.querySelector("nav") != null) document.querySelector("nav").className = "navbar navbar-expand-lg bg-body-tertiary";
+                    if (document.querySelector("#navbar > ul:nth-child(1)") != null) document.querySelector("#navbar > ul:nth-child(1)").classList = "navbar-nav me-auto mb-2 mb-lg-0";
+                    if (document.querySelector("body > div > nav > div > div.navbar-header") != null) document.querySelector("body > div > nav > div > div.navbar-header").outerHTML = `<a class="navbar-brand" href="https://www.xmoj.tech/">${UtilityEnabled("ReplaceXM") ? "高老师" : "小明"}的OJ</a><button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"><span class="navbar-toggler-icon"></span></button>`;
+                    if (document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li") != null) document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li").classList = "nav-item dropdown";
+                    if (document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > a") != null) document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > a").className = "nav-link dropdown-toggle";
+                    if (document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > a > span.caret") != null) document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > a > span.caret").remove();
+                    Temp = (document.querySelector("#navbar > ul:nth-child(1)") != null) ? document.querySelector("#navbar > ul:nth-child(1)").children : [];
                     for (var i = 0; i < Temp.length; i++) {
                         if (Temp[i].classList.contains("active")) {
                             Temp[i].classList.remove("active");
@@ -2422,8 +3155,12 @@ async function main() {
                         Temp[i].classList.add("nav-item");
                         Temp[i].children[0].classList.add("nav-link");
                     }
-                    document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > a").setAttribute("data-bs-toggle", "dropdown");
-                    document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > a").removeAttribute("data-toggle");
+                    if (document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > a") != null) document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > a").setAttribute("data-bs-toggle", "dropdown");
+                    if (document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > a") != null) document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > a").removeAttribute("data-toggle");
+                    // The navbar is in its final state: apply the top bar now rather than on
+                    // the first interval tick, then show the page.
+                    if (UtilityEnabled("NewTopBar")) new NavbarStyler();
+                    RevealPage();
                 }
                 if (UtilityEnabled("RemoveUseless") && document.getElementsByTagName("marquee")[0] != undefined) {
                     document.getElementsByTagName("marquee")[0].remove();
@@ -2504,86 +3241,12 @@ async function main() {
                                     hideDropdownItems();
                                 }
                             });
-                        } else if (document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul") != undefined && document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul > li:nth-child(2)").innerText != "个人中心") {
+                        } else if (document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul") != undefined && document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul > li:nth-child(2)") != null && document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul > li:nth-child(2)").innerText != "个人中心") {
                             let PopupUL = document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul");
-                            PopupUL.style.cursor = 'pointer';
-                            PopupUL.innerHTML = `<li class="dropdown-item">修改帐号</li>
-                                             <li class="dropdown-item">个人中心</li>
-                                             <li class="dropdown-item">短消息</li>
-                                             <li class="dropdown-item">插件设置</li>
-                                             <li class="dropdown-item">插件更新日志</li>
-                                             <li class="dropdown-item">注销</li>`;
-                            PopupUL.children[0].addEventListener("click", () => {
-                                location.href = "https://www.xmoj.tech/modifypage.php";
-                            });
-                            PopupUL.children[1].addEventListener("click", () => {
-                                location.href = "https://www.xmoj.tech/userinfo.php?user=" + CurrentUsername;
-                            });
-                            PopupUL.children[2].addEventListener("click", () => {
-                                location.href = "https://www.xmoj.tech/mail.php";
-                            });
-                            PopupUL.children[3].addEventListener("click", () => {
-                                location.href = "https://www.xmoj.tech/index.php?ByUserScript=1";
-                            });
-                            PopupUL.children[4].addEventListener("click", () => {
-                                location.href = "https://www.xmoj.tech/modifypage.php?ByUserScript=1";
-                            });
-                            PopupUL.children[5].addEventListener("click", () => {
-                                clearCredential();
-                                GM.cookie.set({
-                                    name: 'PHPSESSID',
-                                    value: (Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)).substring(0, 28),
-                                    path: "/"
-                                })
-                                    .then(() => {
-                                        console.log('Reset PHPSESSID successfully.');
-                                    })
-                                    .catch((error) => {
-                                        console.error(error);
-                                    }); //We can no longer rely of the server to set the cookie for us
-                                location.href = "https://www.xmoj.tech/logout.php";
-                            });
-                            Array.from(PopupUL.children).forEach(item => {
-                                item.style.opacity = 0;
-                                item.style.transform = 'translateY(-16px)';
-                                item.style.transition = UtilityEnabled("MonochromeUI") ? 'transform 100ms ease, opacity 100ms ease' : 'transform 0.3s ease, opacity 0.5s ease';
-                            });
-                            let showDropdownItems = () => {
-                                PopupUL.style.display = 'block';
-                                Array.from(PopupUL.children).forEach((item, index) => {
-                                    clearTimeout(item._timeout);
-                                    item.style.opacity = 0;
-                                    item.style.transform = 'translateY(-4px)';
-                                    item._timeout = setTimeout(() => {
-                                        item.style.opacity = 1;
-                                        item.style.transform = 'translateY(2px)';
-                                    }, index * (UtilityEnabled("MonochromeUI") ? 20 : 36));
-                                });
-                            };
-                            let hideDropdownItems = () => {
-                                Array.from(PopupUL.children).forEach((item) => {
-                                    clearTimeout(item._timeout);
-                                    item.style.opacity = 0;
-                                    item.style.transform = 'translateY(-16px)';
-                                });
-                                setTimeout(() => {
-                                    PopupUL.style.display = 'none';
-                                }, UtilityEnabled("MonochromeUI") ? 80 : 100);
-                            };
-                            let toggleDropdownItems = () => {
-                                if (PopupUL.style.display === 'block') {
-                                    hideDropdownItems();
-                                } else {
-                                    showDropdownItems();
-                                }
-                            };
-                            let parentLi = document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li");
-                            parentLi.addEventListener("click", toggleDropdownItems);
-                            document.addEventListener("click", (event) => {
-                                if (!parentLi.contains(event.target) && PopupUL.style.display === 'block') {
-                                    hideDropdownItems();
-                                }
-                            });
+                            PopupUL.innerHTML = "";
+                            let MenuItems = CreateUserMenuItems();
+                            for (let Item of MenuItems) PopupUL.appendChild(Item);
+                            InitializeUserMenu(PopupUL, document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li"), MenuItems);
                         }
                     }
                     if (UtilityEnabled("AutoCountdown")) {
@@ -2642,17 +3305,17 @@ async function main() {
                                 let spacer = document.createElement("div");
                                 spacer.style.height = '48px';
                                 document.body.insertBefore(spacer, document.body.firstChild);
-                                UpdateDiv.querySelector(".btn-close").addEventListener("click", function () {
+                                if (UpdateDiv.querySelector(".btn-close") != null) UpdateDiv.querySelector(".btn-close").addEventListener("click", function () {
                                     document.body.removeChild(spacer);
                                 });
                             }
                             document.body.appendChild(UpdateDiv);
-                            document.querySelector("body > div").insertBefore(UpdateDiv, document.querySelector("body > div > div.mt-3"));
+                            if (document.querySelector("body > div") != null) document.querySelector("body > div").insertBefore(UpdateDiv, document.querySelector("body > div > div.mt-3"));
                         }
                         if (localStorage.getItem("UserScript-Update-LastVersion") != GM_info.script.version) {
                             localStorage.setItem("UserScript-Update-LastVersion", GM_info.script.version);
                             let UpdateDiv = document.createElement("div");
-                            document.querySelector("body").appendChild(UpdateDiv);
+                            if (document.querySelector("body") != null) document.querySelector("body").appendChild(UpdateDiv);
                             UpdateDiv.className = "modal fade";
                             UpdateDiv.id = "UpdateModal";
                             UpdateDiv.tabIndex = -1;
@@ -2767,7 +3430,9 @@ async function main() {
                 dispatchEvent(new Event("focus"));
 
 
-                if (location.pathname == "/index.php" || location.pathname == "/") {
+                if ((location.pathname == "/index.php" || location.pathname == "/") && document.querySelector("body > div > div.mt-3 > div > div.col-md-4") == null) {
+                    //页面结构异常（如403/404页面），跳过处理
+                } else if (location.pathname == "/index.php" || location.pathname == "/") {
                     if (new URL(location.href).searchParams.get("ByUserScript") != null) {
                         document.title = "脚本设置";
                         localStorage.setItem("UserScript-Opened", "true");
@@ -3046,7 +3711,7 @@ async function main() {
                         FeedbackCard.appendChild(FeedbackCardBody);
                         Container.appendChild(FeedbackCard);
                     } else {
-                        let Temp = document.querySelector("body > div > div.mt-3 > div > div.col-md-8").children;
+                        let Temp = (document.querySelector("body > div > div.mt-3 > div > div.col-md-8") != null) ? document.querySelector("body > div > div.mt-3 > div > div.col-md-8").children : [];
                         let NewsData = [];
                         for (let i = 0; i < Temp.length; i += 2) {
                             let Title = Temp[i].children[0].innerText;
@@ -3057,7 +3722,7 @@ async function main() {
                             let Body = Temp[i + 1].innerHTML;
                             NewsData.push({"Title": Title, "Time": new Date(Time), "Body": Body});
                         }
-                        document.querySelector("body > div > div.mt-3 > div > div.col-md-8").innerHTML = "";
+                        if (document.querySelector("body > div > div.mt-3 > div > div.col-md-8") != null) document.querySelector("body > div > div.mt-3 > div > div.col-md-8").innerHTML = "";
                         for (let i = 0; i < NewsData.length; i++) {
                             let NewsRow = document.createElement("div");
                             NewsRow.className = "cnt-row";
@@ -3072,10 +3737,10 @@ async function main() {
                             NewsRowBody.className = "cnt-row-body";
                             NewsRowBody.innerHTML = NewsData[i].Body;
                             NewsRow.appendChild(NewsRowBody);
-                            document.querySelector("body > div > div.mt-3 > div > div.col-md-8").appendChild(NewsRow);
+                            if (document.querySelector("body > div > div.mt-3 > div > div.col-md-8") != null) document.querySelector("body > div > div.mt-3 > div > div.col-md-8").appendChild(NewsRow);
                         }
-                        let CountDownData = document.querySelector("#countdown_list").innerHTML;
-                        document.querySelector("body > div > div.mt-3 > div > div.col-md-4").innerHTML = `<div class="cnt-row">
+                        let CountDownData = (document.querySelector("#countdown_list") != null) ? document.querySelector("#countdown_list").innerHTML : "";
+                        if (document.querySelector("body > div > div.mt-3 > div > div.col-md-4") != null) document.querySelector("body > div > div.mt-3 > div > div.col-md-4").innerHTML = `<div class="cnt-row">
                         <div class="cnt-row-head title">倒计时</div>
                         <div class="cnt-row-body">${CountDownData}</div>
                     </div>`;
@@ -3083,38 +3748,38 @@ async function main() {
                         for (let i = 0; i < Tables.length; i++) {
                             TidyTable(Tables[i]);
                         }
-                        document.querySelector("body > div > div.mt-3 > div > div.col-md-4").innerHTML += `<div class="cnt-row">
+                        if (document.querySelector("body > div > div.mt-3 > div > div.col-md-4") != null) document.querySelector("body > div > div.mt-3 > div > div.col-md-4").innerHTML += `<div class="cnt-row">
                         <div class="cnt-row-head title">公告</div>
                         <div class="cnt-row-body">加载中...</div>
                     </div>`;
                         RequestAPI("GetNotice", {}, (Response) => {
                             if (Response.Success) {
-                                document.querySelector("body > div.container > div > div > div.col-md-4 > div:nth-child(2) > div.cnt-row-body").innerHTML = marked.parse(Response.Data["Notice"]).replaceAll(/@([a-zA-Z0-9]+)/g, `<b>@</b><span class="ms-1 Usernames">$1</span>`);
+                                if (document.querySelector("body > div.container > div > div > div.col-md-4 > div:nth-child(2) > div.cnt-row-body") != null) document.querySelector("body > div.container > div > div > div.col-md-4 > div:nth-child(2) > div.cnt-row-body").innerHTML = marked.parse(Response.Data["Notice"]).replaceAll(/@([a-zA-Z0-9]+)/g, `<b>@</b><span class="ms-1 Usernames">$1</span>`);
                                 RenderMathJax();
                                 let UsernameElements = document.getElementsByClassName("Usernames");
                                 for (let i = 0; i < UsernameElements.length; i++) {
                                     GetUsernameHTML(UsernameElements[i], UsernameElements[i].innerText, true);
                                 }
                             } else {
-                                document.querySelector("body > div.container > div > div > div.col-md-4 > div:nth-child(2) > div.cnt-row-body").innerHTML = "加载失败: " + Response.Message;
+                                if (document.querySelector("body > div.container > div > div > div.col-md-4 > div:nth-child(2) > div.cnt-row-body") != null) document.querySelector("body > div.container > div > div > div.col-md-4 > div:nth-child(2) > div.cnt-row-body").innerHTML = "加载失败: " + Response.Message;
                             }
                         });
                     }
                 } else if (location.pathname == "/problemset.php") {
                     if (UtilityEnabled("Translate")) {
-                        document.querySelector("body > div > div.mt-3 > center > table:nth-child(2) > tbody > tr > td:nth-child(2) > form > input").placeholder = "题目编号";
-                        document.querySelector("body > div > div.mt-3 > center > table:nth-child(2) > tbody > tr > td:nth-child(2) > form > button").innerText = "确认";
-                        document.querySelector("body > div > div.mt-3 > center > table:nth-child(2) > tbody > tr > td:nth-child(3) > form > input").placeholder = "标题或内容";
-                        document.querySelector("#problemset > thead > tr > th:nth-child(1)").innerText = "状态";
+                        if (document.querySelector("body > div > div.mt-3 > center > table:nth-child(2) > tbody > tr > td:nth-child(2) > form > input") != null) document.querySelector("body > div > div.mt-3 > center > table:nth-child(2) > tbody > tr > td:nth-child(2) > form > input").placeholder = "题目编号";
+                        if (document.querySelector("body > div > div.mt-3 > center > table:nth-child(2) > tbody > tr > td:nth-child(2) > form > button") != null) document.querySelector("body > div > div.mt-3 > center > table:nth-child(2) > tbody > tr > td:nth-child(2) > form > button").innerText = "确认";
+                        if (document.querySelector("body > div > div.mt-3 > center > table:nth-child(2) > tbody > tr > td:nth-child(3) > form > input") != null) document.querySelector("body > div > div.mt-3 > center > table:nth-child(2) > tbody > tr > td:nth-child(3) > form > input").placeholder = "标题或内容";
+                        if (document.querySelector("#problemset > thead > tr > th:nth-child(1)") != null) document.querySelector("#problemset > thead > tr > th:nth-child(1)").innerText = "状态";
                     }
                     if (UtilityEnabled("ResetType")) {
-                        document.querySelector("#problemset > thead > tr > th:nth-child(1)").style.width = "5%";
-                        document.querySelector("#problemset > thead > tr > th:nth-child(2)").style.width = "10%";
-                        document.querySelector("#problemset > thead > tr > th:nth-child(3)").style.width = "75%";
-                        document.querySelector("#problemset > thead > tr > th:nth-child(4)").style.width = "5%";
-                        document.querySelector("#problemset > thead > tr > th:nth-child(5)").style.width = "5%";
+                        if (document.querySelector("#problemset > thead > tr > th:nth-child(1)") != null) document.querySelector("#problemset > thead > tr > th:nth-child(1)").style.width = "5%";
+                        if (document.querySelector("#problemset > thead > tr > th:nth-child(2)") != null) document.querySelector("#problemset > thead > tr > th:nth-child(2)").style.width = "10%";
+                        if (document.querySelector("#problemset > thead > tr > th:nth-child(3)") != null) document.querySelector("#problemset > thead > tr > th:nth-child(3)").style.width = "75%";
+                        if (document.querySelector("#problemset > thead > tr > th:nth-child(4)") != null) document.querySelector("#problemset > thead > tr > th:nth-child(4)").style.width = "5%";
+                        if (document.querySelector("#problemset > thead > tr > th:nth-child(5)") != null) document.querySelector("#problemset > thead > tr > th:nth-child(5)").style.width = "5%";
                     }
-                    document.querySelector("body > div > div.mt-3 > center > table:nth-child(2)").outerHTML = `
+                    if (document.querySelector("body > div > div.mt-3 > center > table:nth-child(2)") != null) document.querySelector("body > div > div.mt-3 > center > table:nth-child(2)").outerHTML = `
             <div class="row">
                 <div class="center col-md-3"></div>
                 <div class="col-md-2">
@@ -3131,10 +3796,10 @@ async function main() {
                 </div>
             </div>`;
                     if (SearchParams.get("search") != null) {
-                        document.querySelector("body > div > div.mt-3 > center > div > div:nth-child(3) > form > input").value = SearchParams.get("search");
+                        if (document.querySelector("body > div > div.mt-3 > center > div > div:nth-child(3) > form > input") != null) document.querySelector("body > div > div.mt-3 > center > div > div:nth-child(3) > form > input").value = SearchParams.get("search");
                     }
 
-                    let Temp = document.querySelector("#problemset").rows;
+                    let Temp = (document.querySelector("#problemset") != null) ? document.querySelector("#problemset").rows : [];
                     for (let i = 1; i < Temp.length; i++) {
                         localStorage.setItem("UserScript-Problem-" + Temp[i].children[1].innerText + "-Name", Temp[i].children[2].innerText);
                     }
@@ -3145,79 +3810,14 @@ async function main() {
                     if (transEnZh !== null) transEnZh.remove();
 
                     await RenderMathJax();
-                    if (SearchParams.get("cid") != null && UtilityEnabled("ProblemSwitcher")) {
-                        let pid = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + SearchParams.get("pid") + "-PID");
-                        if (!pid) {
-                            const contestReq = await fetch("https://www.xmoj.tech/contest.php?cid=" + SearchParams.get("cid"));
-                            const res = await contestReq.text();
-                            if (contestReq.status === 200 && res.indexOf("比赛尚未开始或私有，不能查看题目。") === -1) {
-                                const parser = new DOMParser();
-                                const dom = parser.parseFromString(res, "text/html");
-                                const rows = (dom.querySelector("#problemset > tbody")).rows;
-                                for (let i = 0; i < rows.length; i++) {
-                                    let problemIdText = rows[i].children[1].innerText; // Get the text content
-                                    let match = problemIdText.match(/\d+/); // Extract the number
-                                    if (match) {
-                                        let extractedPid = match[0];
-                                        localStorage.setItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + i + "-PID", extractedPid);
-                                    }
-                                }
-                                pid = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + SearchParams.get("pid") + "-PID");
-                            }
-                        }
-                        if (pid) {
-                            document.getElementsByTagName("h2")[0].innerHTML += " (" + pid + ")";
-                        }
-                        let ContestProblemList = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-ProblemList");
-                        if (ContestProblemList == null) {
-                            await unsafeWindow.GetContestProblemList(false);
-                            ContestProblemList = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-ProblemList");
-                        }
-
-                        let problemSwitcher = document.createElement("div");
-                        problemSwitcher.classList.add("problem-switcher-container");
-                        problemSwitcher.style.position = "fixed";
-                        problemSwitcher.style.top = "50%";
-                        problemSwitcher.style.left = "0";
-                        problemSwitcher.style.transform = "translateY(-50%)";
-                        problemSwitcher.style.maxHeight = "80vh";
-                        problemSwitcher.style.overflowY = "auto";
-                        if (document.querySelector("html").getAttribute("data-bs-theme") == "dark") {
-                            problemSwitcher.style.backgroundColor = UtilityEnabled("MonochromeUI") ? "#000" : "rgba(0, 0, 0, 0.8)";
-                        } else {
-                            problemSwitcher.style.backgroundColor = UtilityEnabled("MonochromeUI") ? "#FFF" : "rgba(255, 255, 255, 0.8)";
-                        }
-                        problemSwitcher.style.padding = "10px";
-                        problemSwitcher.style.borderRadius = UtilityEnabled("MonochromeUI") ? "0" : "0 10px 10px 0";
-                        if (UtilityEnabled("MonochromeUI")) problemSwitcher.style.borderRight = "4px solid";
-                        problemSwitcher.style.display = "flex";
-                        problemSwitcher.style.flexDirection = "column";
-
-                        let problemList = JSON.parse(ContestProblemList);
-                        problemSwitcher.innerHTML += `<a onclick="GetContestProblemList(true)" title="刷新列表" class="refreshList mb-2" style="text-align: center;" active>刷新</a>`;
-                        for (let i = 0; i < problemList.length; i++) {
-                            let buttonText = "";
-                            if (i < 26) {
-                                buttonText = String.fromCharCode(65 + i);
-                            } else {
-                                buttonText = String.fromCharCode(97 + (i - 26));
-                            }
-                            let activeClass = "";
-                            if (problemList[i].url === location.href) {
-                                activeClass = "active";
-                            }
-                            problemSwitcher.innerHTML += `<a href="${problemList[i].url}" title="${problemList[i].title.trim()}" class="btn btn-outline-secondary mb-2 ${activeClass}">${buttonText}</a>`;
-                        }
-                        document.body.appendChild(problemSwitcher);
-                    }
                     if (document.querySelector("body > div > div.mt-3 > h2") != null) {
-                        document.querySelector("body > div > div.mt-3").innerHTML = "没有此题目或题目对你不可见";
+                        if (document.querySelector("body > div > div.mt-3") != null) document.querySelector("body > div > div.mt-3").innerHTML = "没有此题目或题目对你不可见";
                         setTimeout(() => {
                             location.href = "https://www.xmoj.tech/problemset.php";
                         }, 1000);
                     } else {
-                        let PID = localStorage.getItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + SearchParams.get("pid") + "-PID");
-                        if (document.querySelector("body > div > div.mt-3 > center").lastElementChild !== null) {
+                        let PID = SearchParams.get("id");
+                        if (document.querySelector("body > div > div.mt-3 > center") != null && document.querySelector("body > div > div.mt-3 > center").lastElementChild !== null) {
                             document.querySelector("body > div > div.mt-3 > center").lastElementChild.style.marginLeft = "10px";
                         }
                         //修复提交按钮
@@ -3236,10 +3836,10 @@ async function main() {
                         // Replace the <a> element with the button
                         SubmitLink.parentNode.replaceChild(SubmitButton, SubmitLink);
                         // Remove the button's outer []
-                        let str = document.querySelector('.mt-3 > center:nth-child(1)').innerHTML;
+                        let str = (document.querySelector('.mt-3 > center:nth-child(1)') != null) ? document.querySelector('.mt-3 > center:nth-child(1)').innerHTML : "";
                         let target = SubmitButton.outerHTML;
-                        document.querySelector('.mt-3 > center:nth-child(1)').innerHTML = str.replace(new RegExp(`(.?)${target}(.?)`, 'g'), target);
-                        document.querySelector('html body.placeholder-glow div.container div.mt-3 center button#SubmitButton.btn.btn-outline-secondary').onclick = function () {
+                        if (document.querySelector('.mt-3 > center:nth-child(1)') != null) document.querySelector('.mt-3 > center:nth-child(1)').innerHTML = str.replace(new RegExp(`(.?)${target}(.?)`, 'g'), target);
+                        if (document.querySelector('html body.placeholder-glow div.container div.mt-3 center button#SubmitButton.btn.btn-outline-secondary') != null) document.querySelector('html body.placeholder-glow div.container div.mt-3 center button#SubmitButton.btn.btn-outline-secondary').onclick = function () {
                             window.location.href = SubmitLink.href;
                             console.log(SubmitLink.href);
                         };
@@ -3248,7 +3848,7 @@ async function main() {
                             Temp[i].parentElement.className = "card";
                         }
                         if (UtilityEnabled("RemoveUseless")) {
-                            document.querySelector("h2.lang_en").remove();
+                            if (document.querySelector("h2.lang_en") != null) document.querySelector("h2.lang_en").remove();
                             document.getElementsByTagName("center")[1].remove();
                         }
                         if (UtilityEnabled("CopySamples")) {
@@ -3277,7 +3877,7 @@ async function main() {
                             }
                             IOFileElement.parentNode.insertBefore(document.createElement("br"), IOFileElement);
                             IOFileElement.remove();
-                            let Temp = document.querySelector("body > div > div.mt-3 > center").childNodes[2].data.trim();
+                            let Temp = (document.querySelector("body > div > div.mt-3 > center") != null) ? document.querySelector("body > div > div.mt-3 > center").childNodes[2].data.trim() : "";
                             let IOFilename = Temp.substring(0, Temp.length - 3);
                             localStorage.setItem("UserScript-Problem-" + PID + "-IOFilename", IOFilename);
                         }
@@ -3316,13 +3916,9 @@ async function main() {
                             DiscussButton.style.marginLeft = "10px";
                             DiscussButton.type = "button";
                             DiscussButton.addEventListener("click", () => {
-                                if (SearchParams.get("cid") != null) {
-                                    open("https://www.xmoj.tech/discuss3/discuss.php?pid=" + PID, "_blank");
-                                } else {
-                                    open("https://www.xmoj.tech/discuss3/discuss.php?pid=" + SearchParams.get("id"), "_blank");
-                                }
+                                open("https://www.xmoj.tech/discuss3/discuss.php?pid=" + PID, "_blank");
                             });
-                            document.querySelector("body > div > div.mt-3 > center").appendChild(DiscussButton);
+                            if (document.querySelector("body > div > div.mt-3 > center") != null) document.querySelector("body > div > div.mt-3 > center").appendChild(DiscussButton);
                             let UnreadBadge = document.createElement("span");
                             UnreadBadge.className = "position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger";
                             UnreadBadge.style.display = "none";
@@ -3391,7 +3987,7 @@ async function main() {
                 } else if (location.pathname == "/status.php") {
                     if (SearchParams.get("ByUserScript") == null) {
                         document.title = "提交状态";
-                        document.querySelector("body > script:nth-child(5)").remove();
+                        if (document.querySelector("body > script:nth-child(5)") != null) document.querySelector("body > script:nth-child(5)").remove();
                         if (UtilityEnabled("NewBootstrap")) {
                             var checkNum = function(str) {
                                 var patrn = /^[0-9]{1,20}$/;
@@ -3407,7 +4003,7 @@ async function main() {
                             let CurrentJresultParam = params.get("jresult");
                             let CurrentJresult = checkNum(CurrentJresultParam) && -1 <= CurrentJresultParam && CurrentJresultParam <= 11 ? Number(CurrentJresultParam) : "-1";
 
-                            document.querySelector("#simform").outerHTML = `<form id="simform" class="justify-content-center form-inline row g-2" action="status.php" method="get" style="padding-bottom: 7px;">
+                            if (document.querySelector("#simform") != null) document.querySelector("#simform").outerHTML = `<form id="simform" class="justify-content-center form-inline row g-2" action="status.php" method="get" style="padding-bottom: 7px;">
                     <input class="form-control" type="text" size="4" name="user_id" value="${CurrentUsername} "style="display: none;">
                 <div class="col-md-1">
                     <label for="problem_id" class="form-label">题目编号</label>
@@ -3453,7 +4049,7 @@ async function main() {
 
                         if (UtilityEnabled("ImproveACRate")) {
                             let ImproveACRateButton = document.createElement("button");
-                            document.querySelector("body > div.container > div > div.input-append").appendChild(ImproveACRateButton);
+                            if (document.querySelector("body > div.container > div > div.input-append") != null) document.querySelector("body > div.container > div > div.input-append").appendChild(ImproveACRateButton);
                             ImproveACRateButton.className = "btn btn-outline-secondary";
                             ImproveACRateButton.innerText = "提高正确率";
                             ImproveACRateButton.disabled = true;
@@ -3463,12 +4059,15 @@ async function main() {
                                     return Response.text();
                                 }).then((Response) => {
                                     let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
-                                    ImproveACRateButton.innerText += "(" + (parseInt(ParsedDocument.querySelector("#statics > tbody > tr:nth-child(4) > td:nth-child(2)").innerText) / parseInt(ParsedDocument.querySelector("#statics > tbody > tr:nth-child(3) > td:nth-child(2)").innerText) * 100).toFixed(2) + "%)";
-                                    let Temp = ParsedDocument.querySelector("#statics > tbody > tr:nth-child(2) > td:nth-child(3) > script").innerText.split("\n")[5].split(";");
+                                    if (ParsedDocument.querySelector("#statics > tbody > tr:nth-child(4) > td:nth-child(2)") != null && ParsedDocument.querySelector("#statics > tbody > tr:nth-child(3) > td:nth-child(2)") != null) ImproveACRateButton.innerText += "(" + (parseInt(ParsedDocument.querySelector("#statics > tbody > tr:nth-child(4) > td:nth-child(2)").innerText) / parseInt(ParsedDocument.querySelector("#statics > tbody > tr:nth-child(3) > td:nth-child(2)").innerText) * 100).toFixed(2) + "%)";
+                                    let Temp = (ParsedDocument.querySelector("#statics > tbody > tr:nth-child(2) > td:nth-child(3) > script") != null) ? ParsedDocument.querySelector("#statics > tbody > tr:nth-child(2) > td:nth-child(3) > script").innerText.split("\n")[5].split(";") : [];
                                     for (let i = 0; i < Temp.length; i++) {
                                         ACProblems.push(Number(Temp[i].substring(2, Temp[i].indexOf(","))));
                                     }
-                                    ImproveACRateButton.disabled = false;
+                                    //没有解析到已通过的题目时保持禁用，避免用无效的题号提交
+                                    if (ACProblems.length > 0) {
+                                        ImproveACRateButton.disabled = false;
+                                    }
                                 });
                             ImproveACRateButton.addEventListener("click", async () => {
                                 ImproveACRateButton.disabled = true;
@@ -3488,8 +4087,13 @@ async function main() {
                                             return Result.text();
                                         }).then((Result) => {
                                             let ParsedDocument = new DOMParser().parseFromString(Result, "text/html");
-                                            SID = ParsedDocument.querySelector("#result-tab > tbody > tr:nth-child(1) > td:nth-child(2)").innerText;
+                                            if (ParsedDocument.querySelector("#result-tab > tbody > tr:nth-child(1) > td:nth-child(2)") != null) SID = ParsedDocument.querySelector("#result-tab > tbody > tr:nth-child(1) > td:nth-child(2)").innerText;
                                         });
+                                    //没有找到提交记录时跳过本次，避免提交错误的代码
+                                    if (SID == 0) {
+                                        Count++;
+                                        return;
+                                    }
                                     let Code = "";
                                     await fetch("https://www.xmoj.tech/getsource.php?id=" + SID)
                                         .then((Response) => {
@@ -3513,7 +4117,7 @@ async function main() {
                         }
                         if (UtilityEnabled("CompareSource")) {
                             let CompareButton = document.createElement("button");
-                            document.querySelector("body > div.container > div > div.input-append").appendChild(CompareButton);
+                            if (document.querySelector("body > div.container > div > div.input-append") != null) document.querySelector("body > div.container > div > div.input-append").appendChild(CompareButton);
                             CompareButton.className = "btn btn-outline-secondary";
                             CompareButton.innerText = "比较提交记录";
                             CompareButton.addEventListener("click", () => {
@@ -3522,11 +4126,11 @@ async function main() {
                             CompareButton.style.marginBottom = "7px";
                         }
                         if (UtilityEnabled("ResetType")) {
-                            document.querySelector("#result-tab > thead > tr > th:nth-child(1)").remove();
-                            document.querySelector("#result-tab > thead > tr > th:nth-child(2)").remove();
-                            document.querySelector("#result-tab > thead > tr > th:nth-child(10)").innerHTML = "开启O2";
+                            if (document.querySelector("#result-tab > thead > tr > th:nth-child(1)") != null) document.querySelector("#result-tab > thead > tr > th:nth-child(1)").remove();
+                            if (document.querySelector("#result-tab > thead > tr > th:nth-child(2)") != null) document.querySelector("#result-tab > thead > tr > th:nth-child(2)").remove();
+                            if (document.querySelector("#result-tab > thead > tr > th:nth-child(10)") != null) document.querySelector("#result-tab > thead > tr > th:nth-child(10)").innerHTML = "开启O2";
                         }
-                        let Temp = document.querySelector("#result-tab > tbody").childNodes;
+                        let Temp = (document.querySelector("#result-tab > tbody") != null) ? document.querySelector("#result-tab > tbody").childNodes : [];
                         let SolutionIDs = [];
                         for (let i = 1; i < Temp.length; i += 2) {
                             let SID = Number(Temp[i].childNodes[1].innerText);
@@ -3580,7 +4184,7 @@ async function main() {
                                 Rows[i].cells[2].className = "td_result";
                                 let SolutionID = SolutionIDs[i - 1];
                                 if (Rows[i].cells[2].children.length == 2) {
-                                    Points[SolutionID] = Rows[i].cells[2].children[1].innerText;
+                                    Points[SolutionID] = Rows[i].cells[2].children[1].textContent.trim();
                                     Rows[i].cells[2].children[1].remove();
                                 }
                                 Rows[i].cells[2].innerHTML += UtilityEnabled("MonochromeUI") ? "<span class=\"spinner-border spinner-border-sm ms-2\" role=\"status\"></span>" : "<img style=\"margin-left: 10px\" height=\"18\" width=\"18\" src=\"image/loader.gif\">";
@@ -3654,269 +4258,17 @@ async function main() {
                             };
                         }
                     }
-                } else if (location.pathname == "/contest.php") {
-                    if (UtilityEnabled("AutoCountdown")) {
-                        clock = () => {
-                        }
-                    }
-                    if (location.href.indexOf("?cid=") == -1) {
-                        if (UtilityEnabled("ResetType")) {
-                            document.querySelector("body > div > div.mt-3 > center").innerHTML = String(document.querySelector("body > div > div.mt-3 > center").innerHTML).replaceAll("ServerTime:", "服务器时间：");
-                            document.querySelector("body > div > div.mt-3 > center > table").style.marginTop = "10px";
-
-                            document.querySelector("body > div > div.mt-3 > center > form").outerHTML = `<div class="row">
-                        <div class="col-md-4"></div>
-                        <form method="post" action="contest.php" class="col-md-4">
-                            <div class="input-group">
-                                <input name="keyword" type="text" class="form-control" spellcheck="false" data-ms-editor="true">
-                                <input type="submit" value="搜索" class="btn btn-outline-secondary">
-                            </div>
-                        </form>
-                    </div>`;
-                        }
-                        if (UtilityEnabled("Translate")) {
-                            document.querySelector("body > div > div.mt-3 > center > table > thead > tr").childNodes[0].innerText = "编号";
-                            document.querySelector("body > div > div.mt-3 > center > table > thead > tr").childNodes[1].innerText = "标题";
-                            document.querySelector("body > div > div.mt-3 > center > table > thead > tr").childNodes[2].innerText = "状态";
-                            document.querySelector("body > div > div.mt-3 > center > table > thead > tr").childNodes[3].remove();
-                            document.querySelector("body > div > div.mt-3 > center > table > thead > tr").childNodes[3].innerText = "创建者";
-                        }
-                        let Temp = document.querySelector("body > div > div.mt-3 > center > table > tbody").childNodes;
-                        for (let i = 1; i < Temp.length; i++) {
-                            let CurrentElement = Temp[i].childNodes[2].childNodes;
-                            if (CurrentElement[1].childNodes[0].data.indexOf("运行中") != -1) {
-                                let Time = String(CurrentElement[1].childNodes[1].innerText).substring(4);
-                                let Day = parseInt(Time.substring(0, Time.indexOf("天"))) || 0;
-                                let Hour = parseInt(Time.substring((Time.indexOf("天") == -1 ? 0 : Time.indexOf("天") + 1), Time.indexOf("小时"))) || 0;
-                                let Minute = parseInt(Time.substring((Time.indexOf("小时") == -1 ? 0 : Time.indexOf("小时") + 2), Time.indexOf("分"))) || 0;
-                                let Second = parseInt(Time.substring((Time.indexOf("分") == -1 ? 0 : Time.indexOf("分") + 1), Time.indexOf("秒"))) || 0;
-                                let TimeStamp = new Date().getTime() + diff + ((((isNaN(Day) ? 0 : Day) * 24 + Hour) * 60 + Minute) * 60 + Second) * 1000;
-                                CurrentElement[1].childNodes[1].setAttribute("EndTime", TimeStamp);
-                                CurrentElement[1].childNodes[1].classList.add("UpdateByJS");
-                            } else if (CurrentElement[1].childNodes[0].data.indexOf("开始于") != -1) {
-                                let TimeStamp = Date.parse(String(CurrentElement[1].childNodes[0].data).substring(4)) + diff;
-                                CurrentElement[1].setAttribute("EndTime", TimeStamp);
-                                CurrentElement[1].classList.add("UpdateByJS");
-                            } else if (CurrentElement[1].childNodes[0].data.indexOf("已结束") != -1) {
-                                let TimeStamp = String(CurrentElement[1].childNodes[0].data).substring(4);
-                                CurrentElement[1].childNodes[0].data = " 已结束 ";
-                                CurrentElement[1].className = "red";
-                                let Temp = document.createElement("span");
-                                CurrentElement[1].appendChild(Temp);
-                                Temp.className = "green";
-                                Temp.innerHTML = TimeStamp;
-                            }
-                            Temp[i].childNodes[3].style.display = "none";
-                            Temp[i].childNodes[4].innerHTML = "<a href=\"https://www.xmoj.tech/userinfo.php?user=" + Temp[i].childNodes[4].innerHTML + "\">" + Temp[i].childNodes[4].innerHTML + "</a>";
-                            localStorage.setItem("UserScript-Contest-" + Temp[i].childNodes[0].innerText + "-Name", Temp[i].childNodes[1].innerText);
-                        }
-                    } else {
-                        document.getElementsByTagName("h3")[0].innerHTML = "比赛" + document.getElementsByTagName("h3")[0].innerHTML.substring(7);
-                        if (document.querySelector("#time_left") != null) {
-                            let EndTime = document.querySelector("body > div > div.mt-3 > center").childNodes[3].data;
-                            EndTime = EndTime.substring(EndTime.indexOf("结束时间是：") + 6, EndTime.lastIndexOf("。"));
-                            EndTime = new Date(EndTime).getTime();
-                            if (new Date().getTime() < EndTime) {
-                                document.querySelector("#time_left").classList.add("UpdateByJS");
-                                document.querySelector("#time_left").setAttribute("EndTime", EndTime);
-                            }
-                        }
-                        let HTMLData = document.querySelector("body > div > div.mt-3 > center > div").innerHTML;
-                        HTMLData = HTMLData.replaceAll("&nbsp;&nbsp;\n&nbsp;&nbsp;", "&nbsp;")
-                        HTMLData = HTMLData.replaceAll("<br>开始于: ", "开始时间：")
-                        HTMLData = HTMLData.replaceAll("\n结束于: ", "<br>结束时间：")
-                        HTMLData = HTMLData.replaceAll("\n订正截止日期: ", "<br>订正截止日期：")
-                        HTMLData = HTMLData.replaceAll("\n现在时间: ", "当前时间：")
-                        HTMLData = HTMLData.replaceAll("\n状态:", "<br>状态：")
-                        document.querySelector("body > div > div.mt-3 > center > div").innerHTML = HTMLData;
-                        if (UtilityEnabled("RemoveAlerts") && document.querySelector("body > div > div.mt-3 > center").innerHTML.indexOf("尚未开始比赛") != -1) {
-                            document.querySelector("body > div > div.mt-3 > center > a").setAttribute("href", "start_contest.php?cid=" + SearchParams.get("cid"));
-                        } else if (UtilityEnabled("AutoRefresh")) {
-                            addEventListener("focus", async () => {
-                                await fetch(location.href)
-                                    .then((Response) => {
-                                        return Response.text();
-                                    })
-                                    .then((Response) => {
-                                        let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
-                                        let Temp = ParsedDocument.querySelector("#problemset > tbody").children;
-                                        if (UtilityEnabled("ReplaceYN")) {
-                                            for (let i = 0; i < Temp.length; i++) {
-                                                let Status = Temp[i].children[0].innerText;
-                                                if (Status.indexOf("Y") != -1) {
-                                                    document.querySelector("#problemset > tbody").children[i].children[0].children[0].className = "status status_y";
-                                                    document.querySelector("#problemset > tbody").children[i].children[0].children[0].innerText = "✓";
-                                                } else if (Status.indexOf("N") != -1) {
-                                                    document.querySelector("#problemset > tbody").children[i].children[0].children[0].className = "status status_n";
-                                                    document.querySelector("#problemset > tbody").children[i].children[0].children[0].innerText = "✗";
-                                                }
-                                            }
-                                        }
-                                    });
-                            });
-                            document.querySelector("body > div > div.mt-3 > center > br:nth-child(2)").remove();
-                            document.querySelector("body > div > div.mt-3 > center > br:nth-child(2)").remove();
-                            document.querySelector("body > div > div.mt-3 > center > div > .red").innerHTML = String(document.querySelector("body > div > div.mt-3 > center > div > .red").innerHTML).replaceAll("<br>", "<br><br>");
-
-                            document.querySelector("#problemset > tbody").innerHTML = String(document.querySelector("#problemset > tbody").innerHTML).replaceAll(/\t&nbsp;([0-9]*) &nbsp;&nbsp;&nbsp;&nbsp; 问题 &nbsp;([^<]*)/g, "$2. $1");
-
-                            document.querySelector("#problemset > tbody").innerHTML = String(document.querySelector("#problemset > tbody").innerHTML).replaceAll(/\t\*([0-9]*) &nbsp;&nbsp;&nbsp;&nbsp; 问题 &nbsp;([^<]*)/g, "拓展$2. $1");
-
-                            if (UtilityEnabled("MoreSTD") && document.querySelector("#problemset > thead > tr").innerHTML.indexOf("标程") != -1) {
-                                let Temp = document.querySelector("#problemset > thead > tr").children;
-                                for (let i = 0; i < Temp.length; i++) {
-                                    if (Temp[i].innerText == "标程") {
-                                        Temp[i].remove();
-                                        let Temp2 = document.querySelector("#problemset > tbody").children;
-                                        for (let j = 0; j < Temp2.length; j++) {
-                                            if (Temp2[j].children[i] != undefined) {
-                                                Temp2[j].children[i].remove();
-                                            }
-                                        }
-                                    }
-                                }
-                                document.querySelector("#problemset > thead > tr").innerHTML += "<td width=\"5%\">标程</td>";
-                                Temp = document.querySelector("#problemset > tbody").children;
-                                for (let i = 0; i < Temp.length; i++) {
-                                    Temp[i].innerHTML += "<td><a href=\"https://www.xmoj.tech/problem_std.php?cid=" + Number(SearchParams.get("cid")) + "&pid=" + i + "\" target=\"_blank\">打开</a></td>";
-                                }
-                            }
-
-                            Temp = document.querySelector("#problemset > tbody").rows;
-                            for (let i = 0; i < Temp.length; i++) {
-                                if (Temp[i].childNodes[0].children.length == 0) {
-                                    Temp[i].childNodes[0].innerHTML = "<div class=\"status\"></div>";
-                                }
-                                let PID = Temp[i].childNodes[1].innerHTML;
-                                if (PID.substring(0, 2) == "拓展") {
-                                    PID = PID.substring(2);
-                                }
-                                Temp[i].children[2].children[0].target = "_blank";
-                                localStorage.setItem("UserScript-Contest-" + SearchParams.get("cid") + "-Problem-" + i + "-PID", PID.substring(3));
-                                localStorage.setItem("UserScript-Problem-" + PID.substring(3) + "-Name", Temp[i].childNodes[2].innerText);
-                            }
-                            let CheatDiv = document.createElement("div");
-                            CheatDiv.style.marginTop = "20px";
-                            CheatDiv.style.textAlign = "left";
-                            document.querySelector("body > div > div.mt-3 > center").insertBefore(CheatDiv, document.querySelector("#problemset"));
-                            if (UtilityEnabled("AutoCheat")) {
-                                let AutoCheatButton = document.createElement("button");
-                                CheatDiv.appendChild(AutoCheatButton);
-                                AutoCheatButton.className = "btn btn-outline-secondary";
-                                AutoCheatButton.innerText = "自动提交当年代码";
-                                AutoCheatButton.style.marginRight = "5px";
-                                AutoCheatButton.disabled = true;
-                                let ACProblems = [], ContestProblems = [];
-                                const UrlParams = new URLSearchParams(window.location.search);
-                                const CID = UrlParams.get("cid");
-                                await fetch("https://www.xmoj.tech/userinfo.php?user=" + CurrentUsername)
-                                    .then((Response) => {
-                                        return Response.text();
-                                    }).then((Response) => {
-                                        let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
-                                        let Temp = ParsedDocument.querySelector("#statics > tbody > tr:nth-child(2) > td:nth-child(3) > script").innerText.split("\n")[5].split(";");
-                                        for (let i = 0; i < Temp.length; i++) {
-                                            ACProblems.push(Number(Temp[i].substring(2, Temp[i].indexOf(","))));
-                                        }
-                                        AutoCheatButton.disabled = false;
-                                    });
-                                let Rows = document.querySelector("#problemset > tbody").rows;
-                                for (let i = 0; i < Rows.length; i++) {
-                                    ContestProblems.push(Rows[i].children[1].innerText.substring(Rows[i].children[1].innerText.indexOf('.') + 2)).toFixed;
-                                }
-                                AutoCheatButton.addEventListener("click", async () => {
-                                    AutoCheatButton.disabled = true;
-                                    let Submitted = false;
-                                    for (let i = 0; i < ContestProblems.length; i++) {
-                                        let PID = ContestProblems[i];
-                                        if (ACProblems.indexOf(Number(PID)) == -1) {
-                                            console.log("Ignoring problem " + PID + " as it has not been solved yet.");
-                                            continue;
-                                        }
-                                        if (Rows[i].children[0].children[0].classList.contains("status_y")) {
-                                            console.log("Ignoring problem " + PID + " as it has already been solved in this contest.");
-                                            continue;
-                                        }
-                                        console.log("Submitting problem " + PID);
-                                        Submitted = true;
-                                        AutoCheatButton.innerHTML = "正在提交 " + PID;
-                                        let SID = 0;
-                                        await fetch("https://www.xmoj.tech/status.php?problem_id=" + PID + "&jresult=4")
-                                            .then((Result) => {
-                                                return Result.text();
-                                            }).then((Result) => {
-                                                let ParsedDocument = new DOMParser().parseFromString(Result, "text/html");
-                                                SID = ParsedDocument.querySelector("#result-tab > tbody > tr:nth-child(1) > td:nth-child(2)").innerText;
-                                            });
-                                        await new Promise(r => setTimeout(r, 500));
-                                        let Code = "";
-                                        await fetch("https://www.xmoj.tech/getsource.php?id=" + SID)
-                                            .then((Response) => {
-                                                return Response.text();
-                                            }).then((Response) => {
-                                                Code = Response.substring(0, Response.indexOf("/**************************************************************")).trim();
-                                            });
-                                        await new Promise(r => setTimeout(r, 500));
-                                        await fetch("https://www.xmoj.tech/submit.php", {
-                                            "headers": {
-                                                "content-type": "application/x-www-form-urlencoded"
-                                            },
-                                            "referrer": "https://www.xmoj.tech/submitpage.php?id=" + PID,
-                                            "method": "POST",
-                                            "body": "cid=" + CID + "&pid=" + i + "&" + "language=1&" + "source=" + encodeURIComponent(Code) + "&" + "enable_O2=on"
-                                        });
-                                        await new Promise(r => setTimeout(r, 500));
-                                    }
-                                    if (!Submitted) {
-                                        AutoCheatButton.innerHTML = "没有可以提交的题目!";
-                                        await new Promise(r => setTimeout(r, 1000));
-                                    }
-                                    AutoCheatButton.disabled = false;
-                                    if (Submitted) location.reload(); else AutoCheatButton.innerHTML = "自动提交当年代码";
-                                });
-                                document.addEventListener("keydown", (Event) => {
-                                    if (Event.code === 'Enter' && (Event.metaKey || Event.ctrlKey)) {
-                                        AutoCheatButton.click();
-                                    }
-                                });
-                            }
-                            if (UtilityEnabled("OpenAllProblem")) {
-                                let OpenAllButton = document.createElement("button");
-                                OpenAllButton.className = "btn btn-outline-secondary";
-                                OpenAllButton.innerText = "打开全部题目";
-                                OpenAllButton.style.marginRight = "5px";
-                                CheatDiv.appendChild(OpenAllButton);
-                                OpenAllButton.addEventListener("click", () => {
-                                    let Rows = document.querySelector("#problemset > tbody").rows;
-                                    for (let i = 0; i < Rows.length; i++) {
-                                        open(Rows[i].children[2].children[0].href, "_blank");
-                                    }
-                                });
-                                let OpenUnsolvedButton = document.createElement("button");
-                                OpenUnsolvedButton.className = "btn btn-outline-secondary";
-                                OpenUnsolvedButton.innerText = "打开未解决题目";
-                                CheatDiv.appendChild(OpenUnsolvedButton);
-                                OpenUnsolvedButton.addEventListener("click", () => {
-                                    let Rows = document.querySelector("#problemset > tbody").rows;
-                                    for (let i = 0; i < Rows.length; i++) {
-                                        if (!Rows[i].children[0].children[0].classList.contains("status_y")) {
-                                            open(Rows[i].children[2].children[0].href, "_blank");
-                                        }
-                                    }
-                                });
-                            }
-                            localStorage.setItem("UserScript-Contest-" + SearchParams.get("cid") + "-ProblemCount", document.querySelector("#problemset > tbody").rows.length);
-                        }
-                    }
+                } else if (location.pathname == "/contestrank-oi.php" && document.querySelector("#rank") == null && document.querySelector("body > div > div.mt-3") == null) {
+                    //页面结构异常（如403/404页面），跳过处理
                 } else if (location.pathname == "/contestrank-oi.php") {
                     if (document.querySelector("#rank") == null) {
-                        document.querySelector("body > div > div.mt-3").innerHTML = "<center><h3>比赛排名</h3><a></a><table id=\"rank\"></table>";
+                        if (document.querySelector("body > div > div.mt-3") != null) document.querySelector("body > div > div.mt-3").innerHTML = "<center><h3>比赛排名</h3><a></a><table id=\"rank\"></table>";
                     }
                     if (SearchParams.get("ByUserScript") == null) {
-                        if (document.querySelector("body > div > div.mt-3 > center > h3").innerText == "比赛排名") {
-                            document.querySelector("#rank").innerText = "比赛暂时还没有排名";
+                        if (document.querySelector("body > div > div.mt-3 > center > h3") != null && document.querySelector("body > div > div.mt-3 > center > h3").innerText == "比赛排名") {
+                            if (document.querySelector("#rank") != null) document.querySelector("#rank").innerText = "比赛暂时还没有排名";
                         } else {
-                            document.querySelector("body > div > div.mt-3 > center > h3").innerText = document.querySelector("body > div > div.mt-3 > center > h3").innerText.substring(document.querySelector("body > div > div.mt-3 > center > h3").innerText.indexOf(" -- ") + 4) + "（OI排名）";
+                            if (document.querySelector("body > div > div.mt-3 > center > h3") != null) document.querySelector("body > div > div.mt-3 > center > h3").innerText = document.querySelector("body > div > div.mt-3 > center > h3").innerText.substring(document.querySelector("body > div > div.mt-3 > center > h3").innerText.indexOf(" -- ") + 4) + "（OI排名）";
                             let HeaderCells = document.querySelectorAll("#rank > thead > tr > *");
                             HeaderCells[0].innerText = "排名";
                             HeaderCells[1].innerText = "用户";
@@ -3997,11 +4349,11 @@ async function main() {
                                                 Temp[i].cells[j].style.color = (UtilityEnabled("DarkMode") ? "white" : "black");
                                             }
                                         }
-                                        document.querySelector("#rank > tbody").innerHTML = ParsedDocument.querySelector("#rank > tbody").innerHTML;
+                                        if (document.querySelector("#rank > tbody") != null && ParsedDocument.querySelector("#rank > tbody") != null) document.querySelector("#rank > tbody").innerHTML = ParsedDocument.querySelector("#rank > tbody").innerHTML;
                                     });
                             };
                             RefreshOIRank();
-                            document.title = document.querySelector("body > div.container > div > center > h3").innerText;
+                            if (document.querySelector("body > div.container > div > center > h3") != null) document.title = document.querySelector("body > div.container > div > center > h3").innerText;
                             if (UtilityEnabled("AutoRefresh")) {
                                 addEventListener("focus", RefreshOIRank);
                             }
@@ -4010,109 +4362,11 @@ async function main() {
                     Style.innerHTML += "td {";
                     Style.innerHTML += "   white-space: nowrap;";
                     Style.innerHTML += "}";
-                    document.querySelector("body > div.container > div > center").style.paddingBottom = "10px";
-                    document.querySelector("body > div.container > div > center > a").style.display = "none";
-                    document.title = document.querySelector("body > div.container > div > center > h3").innerText;
-                } else if (location.pathname == "/contestrank-correct.php") {
-                    if (document.querySelector("#rank") == null) {
-                        document.querySelector("body > div > div.mt-3").innerHTML = "<center><h3>比赛排名</h3><a></a><table id=\"rank\"></table>";
-                    }
-                    if (document.querySelector("body > div > div.mt-3 > center > h3").innerText == "比赛排名") {
-                        document.querySelector("#rank").innerText = "比赛暂时还没有排名";
-                    } else {
-                        if (UtilityEnabled("ResetType")) {
-                            document.querySelector("body > div > div.mt-3 > center > h3").innerText = document.querySelector("body > div > div.mt-3 > center > h3").innerText.substring(document.querySelector("body > div > div.mt-3 > center > h3").innerText.indexOf(" -- ") + 4) + "（订正排名）";
-                            document.querySelector("body > div > div.mt-3 > center > a").remove();
-                        }
-                        let HeaderCells = document.querySelectorAll("#rank > thead > tr > *");
-                        HeaderCells[0].innerText = "排名";
-                        HeaderCells[1].innerText = "用户";
-                        HeaderCells[2].innerText = "昵称";
-                        HeaderCells[3].innerText = "AC数";
-                        HeaderCells[4].innerText = "得分";
-                        if (UtilityEnabled("MonochromeUI")) {
-                            for (let j = 0; j < HeaderCells.length; j++) {
-                                HeaderCells[j].removeAttribute("bgcolor");
-                                HeaderCells[j].style.setProperty("background-color", "black", "important");
-                                HeaderCells[j].style.setProperty("color", "white", "important");
-                                let Links = HeaderCells[j].querySelectorAll("a");
-                                for (let k = 0; k < Links.length; k++) {
-                                    Links[k].style.setProperty("color", "white", "important");
-                                }
-                            }
-                        }
-                        let RefreshCorrectRank = async () => {
-                            await fetch(location.href)
-                                .then((Response) => {
-                                    return Response.text()
-                                })
-                                .then(async (Response) => {
-                                    let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
-                                    TidyTable(ParsedDocument.getElementById("rank"));
-                                    let Temp = ParsedDocument.getElementById("rank").rows;
-                                    for (var i = 1; i < Temp.length; i++) {
-                                        if (UtilityEnabled("MonochromeUI")) {
-                                            Temp[i].style.backgroundColor = "";
-                                        }
-                                        let MetalCell = Temp[i].cells[0];
-                                        let Metal = document.createElement("span");
-                                        Metal.innerText = MetalCell.innerText;
-                                        Metal.className = "badge text-bg-primary";
-                                        MetalCell.innerText = "";
-                                        MetalCell.appendChild(Metal);
-                                        GetUsernameHTML(Temp[i].cells[1], Temp[i].cells[1].innerText);
-                                        Temp[i].cells[2].innerHTML = Temp[i].cells[2].innerText;
-                                        Temp[i].cells[3].innerHTML = Temp[i].cells[3].innerText;
-                                        if (UtilityEnabled("MonochromeUI")) {
-                                            for (let j = 0; j < 5 && j < Temp[i].cells.length; j++) {
-                                                Temp[i].cells[j].style.backgroundColor = "";
-                                                Temp[i].cells[j].style.color = "";
-                                            }
-                                        }
-                                        for (let j = 5; j < Temp[i].cells.length; j++) {
-                                            let InnerText = Temp[i].cells[j].innerText;
-                                            let BackgroundColor = Temp[i].cells[j].style.backgroundColor;
-                                            let Red = BackgroundColor.substring(4, BackgroundColor.indexOf(","));
-                                            let Green = BackgroundColor.substring(BackgroundColor.indexOf(",") + 2, BackgroundColor.lastIndexOf(","));
-                                            let Blue = BackgroundColor.substring(BackgroundColor.lastIndexOf(",") + 2, BackgroundColor.lastIndexOf(")"));
-                                            let NoData = (Red == 238 && Green == 238 && Blue == 238);
-                                            let FirstBlood = (Red == 170 && Green == 170 && Blue == 255);
-                                            let Solved = (Green == 255);
-                                            let ErrorCount = "";
-                                            if (Solved) {
-                                                ErrorCount = (Blue == 170 ? "4+" : (Blue - 51) / 32);
-                                            } else {
-                                                ErrorCount = (Blue == 22 ? "14+" : (170 - Blue) / 10);
-                                            }
-                                            if (NoData) {
-                                                BackgroundColor = "";
-                                            } else if (FirstBlood) {
-                                                BackgroundColor = "rgba(127, 127, 255, 0.5)";
-                                            } else if (Solved) {
-                                                BackgroundColor = "rgba(0, 255, 0, 0.5)";
-                                                if (ErrorCount != 0) {
-                                                    InnerText += " (" + ErrorCount + ")";
-                                                }
-                                            } else {
-                                                BackgroundColor = "rgba(255, 0, 0, 0.5)";
-                                                if (ErrorCount != 0) {
-                                                    InnerText += " (" + ErrorCount + ")";
-                                                }
-                                            }
-                                            Temp[i].cells[j].innerHTML = InnerText;
-                                            Temp[i].cells[j].style.backgroundColor = BackgroundColor;
-                                            Temp[i].cells[j].style.color = (UtilityEnabled("DarkMode") ? "white" : "black");
-                                        }
-                                    }
-                                    document.querySelector("#rank > tbody").innerHTML = ParsedDocument.querySelector("#rank > tbody").innerHTML;
-                                });
-                        };
-                        RefreshCorrectRank();
-                        document.title = document.querySelector("body > div.container > div > center > h3").innerText;
-                        if (UtilityEnabled("AutoRefresh")) {
-                            addEventListener("focus", RefreshCorrectRank);
-                        }
-                    }
+                    if (document.querySelector("body > div.container > div > center") != null) document.querySelector("body > div.container > div > center").style.paddingBottom = "10px";
+                    if (document.querySelector("body > div.container > div > center > a") != null) document.querySelector("body > div.container > div > center > a").style.display = "none";
+                    if (document.querySelector("body > div.container > div > center > h3") != null) document.title = document.querySelector("body > div.container > div > center > h3").innerText;
+                } else if (location.pathname == "/submitpage.php" && document.querySelector("body > div > div.mt-3") == null) {
+                    //页面结构异常（如403/404页面），跳过处理
                 } else if (location.pathname == "/submitpage.php") {
                     document.title = "提交代码: " + (SearchParams.get("id") != null ? "题目" + Number(SearchParams.get("id")) : "比赛" + Number(SearchParams.get("cid")));
                     // submitpage.php only renders the vcode field while the judge queue is busy, and the
@@ -4122,7 +4376,7 @@ async function main() {
                     const NativeCaptchaShown = document.querySelector("input[name='vcode']") != null ||
                         document.querySelector("img#vcode") != null ||
                         localStorage.getItem("UserScript-ForceCaptcha") === "true";
-                    document.querySelector("body > div > div.mt-3").innerHTML = `<center class="mb-3" id="_submitPageHeader"></center>
+                    if (document.querySelector("body > div > div.mt-3") != null) document.querySelector("body > div > div.mt-3").innerHTML = `<center class="mb-3" id="_submitPageHeader"></center>
     <div id="MonacoEditor" style="width:100%; height:550px; display: grid; place-items: center;">
       <p id="loadEditor">Loading...</p>
     </div>
@@ -4167,7 +4421,7 @@ async function main() {
                         }
                     })();
                     if (UtilityEnabled("AutoO2")) {
-                        document.querySelector("#enable_O2").checked = true;
+                        if (document.querySelector("#enable_O2") != null) document.querySelector("#enable_O2").checked = true;
                     }
                     const getSubmitStorageKey = () => (SearchParams.get("id") != null ? ('XMOJ-Submit-id-' + SearchParams.get("id")) : ('XMOJ-Submit-cid-' + SearchParams.get("cid") + '-pid-' + SearchParams.get("pid")));
                     let CodeMirrorElement;
@@ -4261,7 +4515,7 @@ async function main() {
                     let CaptchaObjectURL = null;
                     let CaptchaRequestID = 0;
                     const SetCaptchaStatus = (Message) => {
-                        document.querySelector("#CaptchaStatus").innerText = Message;
+                        if (document.querySelector("#CaptchaStatus") != null) document.querySelector("#CaptchaStatus").innerText = Message;
                     };
                     // Byte 6-7 of a GIF header is the little endian width. vcode.php sizes the image as
                     // 15px per character, so 60px means the easy 4 digit challenge while a wider image is
@@ -4394,7 +4648,8 @@ async function main() {
                     const RefreshCaptcha = async (StatusMessage) => {
                         const RequestID = ++CaptchaRequestID;
                         const CaptchaInput = document.querySelector("#vcode");
-                        document.querySelector("#CaptchaElement").style.display = "block";
+                        if (CaptchaInput == null) return;
+                        if (document.querySelector("#CaptchaElement") != null) document.querySelector("#CaptchaElement").style.display = "block";
                         CaptchaInput.value = "";
                         SetCaptchaStatus(StatusMessage || "");
                         // Only a submitted answer counts against the session, so fetching another image is
@@ -4427,7 +4682,7 @@ async function main() {
                             if (RequestID !== CaptchaRequestID) return;
                             if (CaptchaObjectURL !== null) URL.revokeObjectURL(CaptchaObjectURL);
                             CaptchaObjectURL = URL.createObjectURL(ImageBlob);
-                            document.querySelector("#CaptchaImage").src = CaptchaObjectURL;
+                            if (document.querySelector("#CaptchaImage") != null) document.querySelector("#CaptchaImage").src = CaptchaObjectURL;
                             CaptchaInput.value = "";
                             CaptchaInput.readOnly = false;
                             if (!UtilityEnabled("AutoCaptcha")) return;
@@ -4453,10 +4708,10 @@ async function main() {
                         }
                         SetCaptchaStatus("连续几张都看不太准，请手动输入，或点击图片换一张");
                     };
-                    document.querySelector("#CaptchaImage").addEventListener("click", () => {
+                    if (document.querySelector("#CaptchaImage") != null) document.querySelector("#CaptchaImage").addEventListener("click", () => {
                         RefreshCaptcha("");
                     });
-                    document.querySelector("#vcode").addEventListener("keydown", (KeyEvent) => {
+                    if (document.querySelector("#vcode") != null) document.querySelector("#vcode").addEventListener("keydown", (KeyEvent) => {
                         if (KeyEvent.key === "Enter") {
                             KeyEvent.preventDefault();
                             Submit.click();
@@ -4466,7 +4721,7 @@ async function main() {
                     // one costs nothing and covers the case where the queue grew past the enforcement
                     // threshold after this page was rendered.
                     const GetCaptchaParameter = () => {
-                        const CaptchaValue = document.querySelector("#vcode").value.trim();
+                        const CaptchaValue = (document.querySelector("#vcode") != null) ? document.querySelector("#vcode").value.trim() : "";
                         return CaptchaValue === "" ? "" : "&vcode=" + encodeURIComponent(CaptchaValue);
                     };
                     // Submitting a blank answer makes the server mark the session as having failed the
@@ -4475,8 +4730,8 @@ async function main() {
                     // 提交 is pressed: a warning leaves 强制提交 on screen, and the captcha can be cleared
                     // in between by refreshing the image or emptying the box by hand.
                     const CaptchaIsMissing = () => {
-                        if (document.querySelector("#CaptchaElement").style.display === "none") return false;
-                        if (document.querySelector("#vcode").value.trim() !== "") return false;
+                        if (document.querySelector("#CaptchaElement") != null && document.querySelector("#CaptchaElement").style.display === "none") return false;
+                        if (document.querySelector("#vcode") != null && document.querySelector("#vcode").value.trim() !== "") return false;
                         PassCheck.style.display = "none";
                         ErrorElement.style.display = "block";
                         ErrorMessage.style.color = "red";
@@ -4489,7 +4744,7 @@ async function main() {
                         ErrorMessage.innerText = "当前评测队列繁忙，请先填写上方的验证码。";
                         Submit.disabled = false;
                         Submit.value = "提交";
-                        document.querySelector("#vcode").focus();
+                        if (document.querySelector("#vcode") != null) document.querySelector("#vcode").focus();
                         return true;
                     };
                     if (NativeCaptchaShown) {
@@ -4517,44 +4772,13 @@ async function main() {
                     async function SubmitToEndedContestProblem(Source, O2Switch, ReportStatus) {
                         const ContestID = new URL(location.href).searchParams.get("cid");
                         const ProblemNumber = new URL(location.href).searchParams.get("pid");
-                        // A rejected fetch here would unwind all the way out of the click handler, which
-                        // has no catch, leaving 提交 stuck on 正在提交... with the error box still hidden.
-                        let ContestResponse = undefined;
-                        let ContestPage = "";
+                        let RealPID;
                         try {
-                            ContestResponse = await fetch("https://www.xmoj.tech/contest.php?cid=" + ContestID);
-                            ContestPage = await ContestResponse.text();
+                            const problem = await GetContestProblemData(ContestID, ProblemNumber);
+                            RealPID = String(problem.problemId);
                         } catch (e) {
                             console.error(e);
-                            return {Success: false, Message: "无法读取比赛页面，未能找到原题题号！"};
-                        }
-                        if (ContestResponse.status !== 200 || ContestPage.indexOf("比赛尚未开始或私有，不能查看题目。") !== -1) {
-                            console.error("Failed to get contest page!");
-                            return {Success: false, Message: "无法读取比赛页面，未能找到原题题号！"};
-                        }
-                        let RealPID = undefined;
-                        try {
-                            const ContestDocument = new DOMParser().parseFromString(ContestPage, "text/html");
-                            const ProblemTable = ContestDocument.querySelector("#problemset > tbody");
-                            if (ProblemTable === null) {
-                                console.error("Failed to find the problem list of the contest!");
-                                return {Success: false, Message: "无法解析比赛题目列表，未能找到原题题号！"};
-                            }
-                            const ContestProblems = [];
-                            for (let i = 0; i < ProblemTable.rows.length; i++) {
-                                // The 题号 cell is padded with newlines and tabs; a fixed substring(2, 6)
-                                // truncates any problem number that is not exactly four digits.
-                                const ProblemNumberMatch = ProblemTable.rows[i].children[1].textContent.match(/\d+/);
-                                ContestProblems.push(ProblemNumberMatch === null ? "" : ProblemNumberMatch[0]);
-                            }
-                            RealPID = ContestProblems[ProblemNumber];
-                            if (UtilityEnabled("DebugMode")) {
-                                console.log("Contest Problems:", ContestProblems);
-                                console.log("Real PID:", RealPID);
-                            }
-                        } catch (e) {
-                            console.error(e);
-                            return {Success: false, Message: "无法解析比赛题目列表，未能找到原题题号！"};
+                            return {Success: false, Message: "无法读取比赛题目，未能找到原题题号！"};
                         }
                         if (RealPID === undefined || RealPID === "") {
                             return {Success: false, Message: "无法确定原题题号，请手动前往原题提交！"};
@@ -4562,7 +4786,7 @@ async function main() {
                         // XMOJ rejects anything submitted within a few seconds of the previous submission
                         // with 请勿重复提交, so wait the cooldown out instead of silently dropping the code.
                         for (let Attempt = 0; Attempt < 5; Attempt++) {
-                            // The captcha field stays editable while we fetch contest.php and while we wait
+                            // The captcha field stays editable while we fetch the contest API and while we wait
                             // out a cooldown, so re-check it before every POST rather than trusting the
                             // check the 提交 handler did. Sending a blank answer would burn the session.
                             // CaptchaIsMissing() already shows its own message and restores the button.
@@ -4593,7 +4817,7 @@ async function main() {
                             // Retrying cannot help here: the answer that was sent has already been spent.
                             if (SubmitPage.indexOf("验证码错误") !== -1) {
                                 await RefreshCaptcha("");
-                                document.querySelector("#vcode").focus();
+                                if (document.querySelector("#vcode") != null) document.querySelector("#vcode").focus();
                                 return {Success: false, Message: "验证码错误！请填写上方的验证码后重新提交。"};
                             }
                             if (SubmitPage.indexOf("请勿重复提交") === -1) {
@@ -4617,10 +4841,10 @@ async function main() {
                         // here as well as in the 提交 handler above.
                         if (CaptchaIsMissing()) return;
                         ErrorElement.style.display = "none";
-                        document.querySelector("#Submit").disabled = true;
-                        document.querySelector("#Submit").value = "正在提交...";
+                        if (document.querySelector("#Submit") != null) document.querySelector("#Submit").disabled = true;
+                        if (document.querySelector("#Submit") != null) document.querySelector("#Submit").value = "正在提交...";
                         let o2Switch = "&enable_O2=on";
-                        if (!document.querySelector("#enable_O2").checked) o2Switch = "";
+                        if (document.querySelector("#enable_O2") != null && !document.querySelector("#enable_O2").checked) o2Switch = "";
                         await fetch("https://www.xmoj.tech/submit.php", {
                             "headers": {
                                 "content-type": "application/x-www-form-urlencoded"
@@ -4651,7 +4875,7 @@ async function main() {
                                     ErrorMessage.innerText = "验证码错误！请填写上方的验证码后重新提交。";
                                     Submit.disabled = false;
                                     Submit.value = "提交";
-                                    document.querySelector("#vcode").focus();
+                                    if (document.querySelector("#vcode") != null) document.querySelector("#vcode").focus();
                                     return;
                                 }
                                 if (UtilityEnabled("DebugMode")) {
@@ -4675,8 +4899,8 @@ async function main() {
                     Submit.addEventListener("click", async () => {
                         PassCheck.style.display = "none";
                         ErrorElement.style.display = "none";
-                        document.querySelector("#Submit").disabled = true;
-                        document.querySelector("#Submit").value = "正在检查...";
+                        if (document.querySelector("#Submit") != null) document.querySelector("#Submit").disabled = true;
+                        if (document.querySelector("#Submit") != null) document.querySelector("#Submit").value = "正在检查...";
                         if (CaptchaIsMissing()) return;
                         let Source = CodeMirrorElement.getValue();
                         let PID = 0;
@@ -4754,8 +4978,8 @@ async function main() {
                                     pre.textContent = 'freopen("' + IOFilename + '.in", "r", stdin);\nfreopen("' + IOFilename + '.out", "w", stdout);';
                                     codeHost.appendChild(pre);
                                 }
-                                document.querySelector("#Submit").disabled = false;
-                                document.querySelector("#Submit").value = "提交";
+                                if (document.querySelector("#Submit") != null) document.querySelector("#Submit").disabled = false;
+                                if (document.querySelector("#Submit") != null) document.querySelector("#Submit").value = "提交";
                                 return false;
                             } else if (RegExp("//.*freopen").test(Source)) {
                                 PassCheck.style.display = "";
@@ -4768,8 +4992,8 @@ async function main() {
                                     }
                                 }
                                 ErrorMessage.innerText = "请不要注释freopen语句";
-                                document.querySelector("#Submit").disabled = false;
-                                document.querySelector("#Submit").value = "提交";
+                                if (document.querySelector("#Submit") != null) document.querySelector("#Submit").disabled = false;
+                                if (document.querySelector("#Submit") != null) document.querySelector("#Submit").value = "提交";
                                 return false;
                             }
                         }
@@ -4784,8 +5008,8 @@ async function main() {
                                 }
                             }
                             ErrorMessage.innerText = "源代码为空";
-                            document.querySelector("#Submit").disabled = false;
-                            document.querySelector("#Submit").value = "提交";
+                            if (document.querySelector("#Submit") != null) document.querySelector("#Submit").disabled = false;
+                            if (document.querySelector("#Submit") != null) document.querySelector("#Submit").value = "提交";
                             return false;
                         }
                         if (UtilityEnabled("CompileError")) {
@@ -4812,8 +5036,8 @@ async function main() {
                                     }
                                 }
                                 ErrorMessage.innerText = "编译错误：\n" + Response.stderr.trim();
-                                document.querySelector("#Submit").disabled = false;
-                                document.querySelector("#Submit").value = "提交";
+                                if (document.querySelector("#Submit") != null) document.querySelector("#Submit").disabled = false;
+                                if (document.querySelector("#Submit") != null) document.querySelector("#Submit").value = "提交";
                                 return false;
                             } else {
                                 PassCheck.click();
@@ -4822,10 +5046,12 @@ async function main() {
                             PassCheck.click();
                         }
                     });
+                } else if (location.pathname == "/modifypage.php" && document.querySelector("body > div > div") == null) {
+                    //页面结构异常（如403/404页面），跳过处理
                 } else if (location.pathname == "/modifypage.php") {
                     if (SearchParams.get("ByUserScript") != null) {
                         document.title = "XMOJ-Script 更新日志";
-                        document.querySelector("body > div > div.mt-3").innerHTML = "";
+                        if (document.querySelector("body > div > div.mt-3") != null) document.querySelector("body > div > div.mt-3").innerHTML = "";
                         await fetch(ServerURL + "/Update.json", {cache: "no-cache"})
                             .then((Response) => {
                                 return Response.json();
@@ -4835,7 +5061,7 @@ async function main() {
                                     let Version = Object.keys(Response.UpdateHistory)[i];
                                     let Data = Response.UpdateHistory[Version];
                                     let UpdateDataCard = document.createElement("div");
-                                    document.querySelector("body > div > div.mt-3").appendChild(UpdateDataCard);
+                                    if (document.querySelector("body > div > div.mt-3") != null) document.querySelector("body > div > div.mt-3").appendChild(UpdateDataCard);
                                     UpdateDataCard.className = "card mb-3";
                                     if (Data.Prerelease) UpdateDataCard.classList.add("text-secondary");
                                     let UpdateDataCardBody = document.createElement("div");
@@ -4885,7 +5111,7 @@ async function main() {
                         let AtcoderAccount = document.getElementsByName("acc_atc")[0].value;
                         let USACOAccount = document.getElementsByName("acc_usaco")[0].value;
                         let LuoguAccount = document.getElementsByName("acc_luogu")[0].value;
-                        document.querySelector("body > div > div").innerHTML = `<div class="row g-2 align-items-center col-6 mb-1">
+                        if (document.querySelector("body > div > div") != null) document.querySelector("body > div > div").innerHTML = `<div class="row g-2 align-items-center col-6 mb-1">
                     <div class="col-3"><label for="UserID" class="col-form-label">用户ID</label></div>
                     <div class="col-9"><input id="UserID" class="form-control" disabled readonly value="${CurrentUsername}"></div>
                 </div>
@@ -4988,9 +5214,17 @@ async function main() {
                         });
                         ModifyInfo.addEventListener("click", async () => {
                             ModifyInfo.disabled = true;
-                            ModifyInfo.querySelector("span").style.display = "";
+                            if (ModifyInfo.querySelector("span") != null) ModifyInfo.querySelector("span").style.display = "";
                             ErrorElement.style.display = "none";
                             SuccessElement.style.display = "none";
+                            //表单元素缺失时不提交，避免用空值覆盖用户信息
+                            if (document.querySelector("#BadgeContent") == null || document.querySelector("#BadgeBackgroundColor") == null || document.querySelector("#BadgeColor") == null || document.querySelector("#Nickname") == null || document.querySelector("#OldPassword") == null || document.querySelector("#NewPassword") == null || document.querySelector("#NewPasswordAgain") == null || document.querySelector("#School") == null || document.querySelector("#EmailAddress") == null || document.querySelector("#CodeforcesAccount") == null || document.querySelector("#AtcoderAccount") == null || document.querySelector("#USACOAccount") == null || document.querySelector("#LuoguAccount") == null) {
+                                ModifyInfo.disabled = false;
+                                if (ModifyInfo.querySelector("span") != null) ModifyInfo.querySelector("span").style.display = "none";
+                                ErrorElement.style.display = "block";
+                                ErrorElement.innerText = "页面加载异常，请刷新后重试";
+                                return;
+                            }
                             let BadgeContent = document.querySelector("#BadgeContent").value;
                             let BadgeBackgroundColor = document.querySelector("#BadgeBackgroundColor").value;
                             let BadgeColor = document.querySelector("#BadgeColor").value;
@@ -5005,7 +5239,7 @@ async function main() {
                                         Resolve();
                                     } else {
                                         ModifyInfo.disabled = false;
-                                        ModifyInfo.querySelector("span").style.display = "none";
+                                        if (ModifyInfo.querySelector("span") != null) ModifyInfo.querySelector("span").style.display = "none";
                                         ErrorElement.style.display = "block";
                                         ErrorElement.innerText = Response.Message;
                                     }
@@ -5030,12 +5264,12 @@ async function main() {
                                 "body": "nick=" + encodeURIComponent(Nickname) + "&" + "opassword=" + encodeURIComponent(OldPassword) + "&" + "npassword=" + encodeURIComponent(NewPassword) + "&" + "rptpassword=" + encodeURIComponent(NewPasswordAgain) + "&" + "school=" + encodeURIComponent(School) + "&" + "email=" + encodeURIComponent(EmailAddress) + "&" + "acc_cf=" + encodeURIComponent(CodeforcesAccount) + "&" + "acc_atc=" + encodeURIComponent(AtcoderAccount) + "&" + "acc_usaco=" + encodeURIComponent(USACOAccount) + "&" + "acc_luogu=" + encodeURIComponent(LuoguAccount)
                             });
                             ModifyInfo.disabled = false;
-                            ModifyInfo.querySelector("span").style.display = "none";
+                            if (ModifyInfo.querySelector("span") != null) ModifyInfo.querySelector("span").style.display = "none";
                             SuccessElement.style.display = "block";
                         });
                         if (UtilityEnabled("ExportACCode")) {
                             let ExportACCode = document.createElement("button");
-                            document.querySelector("body > div.container > div").appendChild(ExportACCode);
+                            if (document.querySelector("body > div.container > div") != null) document.querySelector("body > div.container > div").appendChild(ExportACCode);
                             ExportACCode.innerText = "导出AC代码";
                             ExportACCode.className = "btn btn-outline-secondary";
                             ExportACCode.addEventListener("click", () => {
@@ -5095,6 +5329,8 @@ async function main() {
                             });
                         }
                     }
+                } else if (location.pathname == "/userinfo.php" && document.querySelector("body > div > div") == null) {
+                    //页面结构异常（如403/404页面），跳过处理
                 } else if (location.pathname == "/userinfo.php") {
                     if (SearchParams.get("ByUserScript") === null) {
                         if (UtilityEnabled("RemoveUseless")) {
@@ -5103,10 +5339,10 @@ async function main() {
                                 Temp[i].remove();
                             }
                         }
-                        eval(document.querySelector("body > script:nth-child(5)").innerHTML);
-                        document.querySelector("#statics > tbody > tr:nth-child(1)").remove();
+                        if (document.querySelector("body > script:nth-child(5)") != null) eval(document.querySelector("body > script:nth-child(5)").innerHTML);
+                        if (document.querySelector("#statics > tbody > tr:nth-child(1)") != null) document.querySelector("#statics > tbody > tr:nth-child(1)").remove();
 
-                        let Temp = document.querySelector("#statics > tbody").children;
+                        let Temp = (document.querySelector("#statics > tbody") != null) ? document.querySelector("#statics > tbody").children : [];
                         for (let i = 0; i < Temp.length; i++) {
                             if (Temp[i].children[0] != undefined) {
                                 if (Temp[i].children[0].innerText == "Statistics") {
@@ -5118,18 +5354,18 @@ async function main() {
                             }
                         }
 
-                        Temp = document.querySelector("#statics > tbody > tr:nth-child(1) > td:nth-child(3)").childNodes;
+                        Temp = (document.querySelector("#statics > tbody > tr:nth-child(1) > td:nth-child(3)") != null) ? document.querySelector("#statics > tbody > tr:nth-child(1) > td:nth-child(3)").childNodes : [];
                         let ACProblems = [];
                         for (let i = 0; i < Temp.length; i++) {
                             if (Temp[i].tagName == "A" && Temp[i].href.indexOf("problem.php?id=") != -1) {
                                 ACProblems.push(Number(Temp[i].innerText.trim()));
                             }
                         }
-                        document.querySelector("#statics > tbody > tr:nth-child(1) > td:nth-child(3)").remove();
+                        if (document.querySelector("#statics > tbody > tr:nth-child(1) > td:nth-child(3)") != null) document.querySelector("#statics > tbody > tr:nth-child(1) > td:nth-child(3)").remove();
 
                         let UserID, UserNick;
-                        [UserID, UserNick] = document.querySelector("#statics > caption").childNodes[0].data.trim().split("--");
-                        document.querySelector("#statics > caption").remove();
+                        if (document.querySelector("#statics > caption") != null) [UserID, UserNick] = document.querySelector("#statics > caption").childNodes[0].data.trim().split("--");
+                        if (document.querySelector("#statics > caption") != null) document.querySelector("#statics > caption").remove();
                         document.title = "用户 " + UserID + " 的个人中心";
                         let Row = document.createElement("div");
                         Row.className = "row";
@@ -5245,11 +5481,11 @@ async function main() {
                         for (let i = 0; i < ACProblems.length; i++) {
                             RightDiv.innerHTML += "<a href=\"https://www.xmoj.tech/problem.php?id=" + ACProblems[i] + "\" target=\"_blank\">" + ACProblems[i] + "</a> ";
                         }
-                        document.querySelector("body > div > div").innerHTML = "";
-                        document.querySelector("body > div > div").appendChild(Row);
+                        if (document.querySelector("body > div > div") != null) document.querySelector("body > div > div").innerHTML = "";
+                        if (document.querySelector("body > div > div") != null) document.querySelector("body > div > div").appendChild(Row);
                     } else {
                         document.title = "上传标程";
-                        document.querySelector("body > div > div.mt-3").innerHTML = `<button id="UploadStd" class="btn btn-primary mb-2">上传标程</button>
+                        if (document.querySelector("body > div > div.mt-3") != null) document.querySelector("body > div > div.mt-3").innerHTML = `<button id="UploadStd" class="btn btn-primary mb-2">上传标程</button>
                 <div class="alert alert-danger mb-3" role="alert" id="ErrorElement" style="display: none;"></div>
                 <div class="progress" role="progressbar">
                     <div id="UploadProgress" class="progress-bar progress-bar-striped" style="width: 0%">0%</div>
@@ -5275,7 +5511,7 @@ async function main() {
                                     return Response.text();
                                 }).then((Response) => {
                                     let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
-                                    let ScriptData = ParsedDocument.querySelector("#statics > tbody > tr:nth-child(2) > td:nth-child(3) > script").innerText;
+                                    let ScriptData = (ParsedDocument.querySelector("#statics > tbody > tr:nth-child(2) > td:nth-child(3) > script") != null) ? ParsedDocument.querySelector("#statics > tbody > tr:nth-child(2) > td:nth-child(3) > script").innerText : "";
                                     ScriptData = ScriptData.substr(ScriptData.indexOf("}") + 1).trim();
                                     ScriptData = ScriptData.split(";");
                                     for (let i = 0; i < ScriptData.length; i++) {
@@ -5317,35 +5553,37 @@ async function main() {
                             });
                         });
                     }
+                } else if (location.pathname == "/comparesource.php" && document.querySelector("body > div.container > div") == null) {
+                    //页面结构异常（如403/404页面），跳过处理
                 } else if (location.pathname == "/comparesource.php") {
                     if (UtilityEnabled("CompareSource")) {
                         if (location.search == "") {
-                            document.querySelector("body > div.container > div").innerHTML = "";
+                            if (document.querySelector("body > div.container > div") != null) document.querySelector("body > div.container > div").innerHTML = "";
                             let LeftCodeText = document.createElement("span");
-                            document.querySelector("body > div.container > div").appendChild(LeftCodeText);
+                            if (document.querySelector("body > div.container > div") != null) document.querySelector("body > div.container > div").appendChild(LeftCodeText);
                             LeftCodeText.innerText = "左侧代码的运行编号：";
                             let LeftCode = document.createElement("input");
-                            document.querySelector("body > div.container > div").appendChild(LeftCode);
+                            if (document.querySelector("body > div.container > div") != null) document.querySelector("body > div.container > div").appendChild(LeftCode);
                             LeftCode.classList.add("form-control");
                             LeftCode.style.width = "40%";
                             LeftCode.style.marginBottom = "5px";
                             let RightCodeText = document.createElement("span");
-                            document.querySelector("body > div.container > div").appendChild(RightCodeText);
+                            if (document.querySelector("body > div.container > div") != null) document.querySelector("body > div.container > div").appendChild(RightCodeText);
                             RightCodeText.innerText = "右侧代码的运行编号：";
                             let RightCode = document.createElement("input");
-                            document.querySelector("body > div.container > div").appendChild(RightCode);
+                            if (document.querySelector("body > div.container > div") != null) document.querySelector("body > div.container > div").appendChild(RightCode);
                             RightCode.classList.add("form-control");
                             RightCode.style.width = "40%";
                             RightCode.style.marginBottom = "5px";
                             let CompareButton = document.createElement("button");
-                            document.querySelector("body > div.container > div").appendChild(CompareButton);
+                            if (document.querySelector("body > div.container > div") != null) document.querySelector("body > div.container > div").appendChild(CompareButton);
                             CompareButton.innerText = "比较";
                             CompareButton.className = "btn btn-primary";
                             CompareButton.addEventListener("click", () => {
                                 location.href = "https://www.xmoj.tech/comparesource.php?left=" + Number(LeftCode.value) + "&right=" + Number(RightCode.value);
                             });
                         } else {
-                            document.querySelector("body > div > div.mt-3").innerHTML = `
+                            if (document.querySelector("body > div > div.mt-3") != null) document.querySelector("body > div > div.mt-3").innerHTML = `
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" checked id="IgnoreWhitespace">
                             <label class="form-check-label" for="IgnoreWhitespace">忽略空白</label>
@@ -5389,9 +5627,11 @@ async function main() {
                             });
                         }
                     }
+                } else if (location.pathname == "/loginpage.php" && document.querySelector("#login") == null) {
+                    //页面结构异常（如403/404页面），跳过处理
                 } else if (location.pathname == "/loginpage.php") {
                     if (UtilityEnabled("NewBootstrap")) {
-                        document.querySelector("#login").innerHTML = `<form id="login" action="login.php" method="post">
+                        if (document.querySelector("#login") != null) document.querySelector("#login").innerHTML = `<form id="login" action="login.php" method="post">
             <div class="row g-3 align-items-center mb-3">
                 <div class="col-auto">
                 <label for="user_id" class="col-form-label">用户名（学号）</label>
@@ -5421,7 +5661,7 @@ async function main() {
                     let ErrorText = document.createElement("div");
                     ErrorText.style.color = "red";
                     ErrorText.style.marginBottom = "5px";
-                    document.querySelector("#login").appendChild(ErrorText);
+                    if (document.querySelector("#login") != null) document.querySelector("#login").appendChild(ErrorText);
                     let LoginButton = document.getElementsByName("submit")[0];
                     LoginButton.addEventListener("click", async () => {
                         let Username = document.getElementsByName("user_id")[0].value;
@@ -5472,14 +5712,14 @@ async function main() {
                         (async () => {
                             let Credential = await getCredential();
                             if (Credential) {
-                                document.querySelector("#login > div:nth-child(1) > div > input").value = Credential.id;
-                                document.querySelector("#login > div:nth-child(2) > div > input").value = Credential.password;
+                                if (document.querySelector("#login > div:nth-child(1) > div > input") != null) document.querySelector("#login > div:nth-child(1) > div > input").value = Credential.id;
+                                if (document.querySelector("#login > div:nth-child(2) > div > input") != null) document.querySelector("#login > div:nth-child(2) > div > input").value = Credential.password;
                                 LoginButton.click();
                             }
                         })();
                     }
                 } else if (location.pathname == "/contest_video.php" || location.pathname == "/problem_video.php") {
-                    let ScriptData = document.querySelector("body > div > div.mt-3 > center > script").innerHTML;
+                    let ScriptData = (document.querySelector("body > div > div.mt-3 > center > script") != null) ? document.querySelector("body > div > div.mt-3 > center > script").innerHTML : "";
                     if (document.getElementById("J_prismPlayer0").innerHTML != "") {
                         document.getElementById("J_prismPlayer0").innerHTML = "";
                         if (player) {
@@ -5530,18 +5770,29 @@ async function main() {
                                 DownloadButton.innerText = "下载";
                                 DownloadButton.href = Response.PlayInfoList.PlayInfo[0].PlayURL;
                                 DownloadButton.download = Response.VideoBase.Title;
-                                document.querySelector("body > div > div.mt-3 > center").appendChild(DownloadButton);
+                                if (document.querySelector("body > div > div.mt-3 > center") != null) document.querySelector("body > div > div.mt-3 > center").appendChild(DownloadButton);
                             });
                     }
                 } else if (location.pathname == "/reinfo.php") {
                     document.title = "测试点信息: " + SearchParams.get("sid");
                     if (document.querySelector("#results > div") == undefined) {
-                        document.querySelector("#results").parentElement.innerHTML = "没有测试点信息";
+                        if (document.querySelector("#results") != null) document.querySelector("#results").parentElement.innerHTML = "没有测试点信息";
                     } else {
-                        for (let i = 0; i < document.querySelector("#results > div").children.length; i++) {
-                            let CurrentElement = document.querySelector("#results > div").children[i].children[0].children[0].children[0];
-                            let Temp = CurrentElement.innerText.substring(0, CurrentElement.innerText.length - 2).split("/");
-                            CurrentElement.innerText = TimeToStringTime(Temp[0]) + "/" + SizeToStringSize(Temp[1]);
+                        // With several subtasks there are several result groups, and group
+                        // headers do not have the nested structure of a test point.
+                        let ResultGroups = document.querySelectorAll("#results > div");
+                        for (let j = 0; j < ResultGroups.length; j++) {
+                            for (let i = 0; i < ResultGroups[j].children.length; i++) {
+                                let CurrentElement = ResultGroups[j].children[i];
+                                for (let Depth = 0; Depth < 3 && CurrentElement != undefined; Depth++) {
+                                    CurrentElement = CurrentElement.children[0];
+                                }
+                                if (CurrentElement == undefined || CurrentElement.innerText.indexOf("/") == -1) {
+                                    continue;
+                                }
+                                let Temp = CurrentElement.innerText.substring(0, CurrentElement.innerText.length - 2).split("/");
+                                CurrentElement.innerText = TimeToStringTime(Temp[0]) + "/" + SizeToStringSize(Temp[1]);
+                            }
                         }
                         {
                             let ApplyDataElement = document.getElementById("apply_data");
@@ -6070,8 +6321,14 @@ cerr<<b93(gz(rd()))<<endl;abort();}
                                         return Response.text();
                                     }).then((Response) => {
                                         let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
-                                        return ParsedDocument.querySelector("#result-tab > tbody > tr:nth-child(1) > td:nth-child(2)").innerText;
+                                        return (ParsedDocument.querySelector("#result-tab > tbody > tr:nth-child(1) > td:nth-child(2)") != null) ? ParsedDocument.querySelector("#result-tab > tbody > tr:nth-child(1) > td:nth-child(2)").innerText : "";
                                     });
+                                    //没有找到提交记录时不再轮询，避免无限等待
+                                    if (SID == "") {
+                                        GetDataButton.innerText = "获取数据失败";
+                                        GetDataButton.disabled = false;
+                                        return;
+                                    }
 
                                     await new Promise((Resolve) => {
                                         let Interval = setInterval(async () => {
@@ -6150,7 +6407,7 @@ cerr<<b93(gz(rd()))<<endl;abort();}
                     SoftwareList = document.createElement("ul");
                     SoftwareList.className = "software_list";
                     let Container = document.createElement("div");
-                    document.querySelector("body > div").appendChild(Container);
+                    if (document.querySelector("body > div") != null) document.querySelector("body > div").appendChild(Container);
                     Container.className = "mt-3";
                     Container.appendChild(SoftwareList);
                     if (UtilityEnabled("NewDownload")) {
@@ -6220,26 +6477,26 @@ cerr<<b93(gz(rd()))<<endl;abort();}
                         }
                     }
                 } else if (location.pathname == "/problemstatus.php") {
-                    document.querySelector("body > div > div.mt-3 > center").insertBefore(document.querySelector("#statics"), document.querySelector("body > div > div.mt-3 > center > table"));
-                    document.querySelector("body > div > div.mt-3 > center").insertBefore(document.querySelector("#problemstatus"), document.querySelector("body > div > div.mt-3 > center > table"));
+                    if (document.querySelector("body > div > div.mt-3 > center") != null) document.querySelector("body > div > div.mt-3 > center").insertBefore(document.querySelector("#statics"), document.querySelector("body > div > div.mt-3 > center > table"));
+                    if (document.querySelector("body > div > div.mt-3 > center") != null) document.querySelector("body > div > div.mt-3 > center").insertBefore(document.querySelector("#problemstatus"), document.querySelector("body > div > div.mt-3 > center > table"));
 
-                    document.querySelector("body > div > div.mt-3 > center > table:nth-child(3)").remove();
-                    let Temp = document.querySelector("#statics").rows;
+                    if (document.querySelector("body > div > div.mt-3 > center > table:nth-child(3)") != null) document.querySelector("body > div > div.mt-3 > center > table:nth-child(3)").remove();
+                    let Temp = (document.querySelector("#statics") != null) ? document.querySelector("#statics").rows : [];
                     for (let i = 0; i < Temp.length; i++) {
                         Temp[i].removeAttribute("class");
                     }
 
-                    document.querySelector("#problemstatus > thead > tr").innerHTML = document.querySelector("#problemstatus > thead > tr").innerHTML.replaceAll("td", "th");
-                    document.querySelector("#problemstatus > thead > tr > th:nth-child(2)").innerText = "运行编号";
-                    document.querySelector("#problemstatus > thead > tr > th:nth-child(4)").remove();
-                    document.querySelector("#problemstatus > thead > tr > th:nth-child(4)").remove();
-                    document.querySelector("#problemstatus > thead > tr > th:nth-child(4)").remove();
-                    document.querySelector("#problemstatus > thead > tr > th:nth-child(4)").remove();
-                    Temp = document.querySelector("#problemstatus > thead > tr").children;
+                    if (document.querySelector("#problemstatus > thead > tr") != null) document.querySelector("#problemstatus > thead > tr").innerHTML = document.querySelector("#problemstatus > thead > tr").innerHTML.replaceAll("td", "th");
+                    if (document.querySelector("#problemstatus > thead > tr > th:nth-child(2)") != null) document.querySelector("#problemstatus > thead > tr > th:nth-child(2)").innerText = "运行编号";
+                    if (document.querySelector("#problemstatus > thead > tr > th:nth-child(4)") != null) document.querySelector("#problemstatus > thead > tr > th:nth-child(4)").remove();
+                    if (document.querySelector("#problemstatus > thead > tr > th:nth-child(4)") != null) document.querySelector("#problemstatus > thead > tr > th:nth-child(4)").remove();
+                    if (document.querySelector("#problemstatus > thead > tr > th:nth-child(4)") != null) document.querySelector("#problemstatus > thead > tr > th:nth-child(4)").remove();
+                    if (document.querySelector("#problemstatus > thead > tr > th:nth-child(4)") != null) document.querySelector("#problemstatus > thead > tr > th:nth-child(4)").remove();
+                    Temp = (document.querySelector("#problemstatus > thead > tr") != null) ? document.querySelector("#problemstatus > thead > tr").children : [];
                     for (let i = 0; i < Temp.length; i++) {
                         Temp[i].removeAttribute("class");
                     }
-                    Temp = document.querySelector("#problemstatus > tbody").children;
+                    Temp = (document.querySelector("#problemstatus > tbody") != null) ? document.querySelector("#problemstatus > tbody").children : [];
                     for (let i = 0; i < Temp.length; i++) {
                         if (Temp[i].children[5].children[0] != null) {
                             Temp[i].children[1].innerHTML = `<a href="${Temp[i].children[5].children[0].href}">${escapeHTML(Temp[i].children[1].innerText.trim())}</a>`;
@@ -6260,51 +6517,15 @@ cerr<<b93(gz(rd()))<<endl;abort();}
                         Pagination += `<li class="page-item"><a href="https://www.xmoj.tech/problemstatus.php?id=${PID + `&page=0" class="page-link">&laquo;</a></li><li class="page-item"><a href="https://www.xmoj.tech/problemstatus.php?id=` + PID + `&page=` + (CurrentPage - 1) + `" class="page-link">` + (CurrentPage)}</a></li>`;
                     }
                     Pagination += `<li class="active page-item"><a href="https://www.xmoj.tech/problemstatus.php?id=${PID + `&page=` + CurrentPage + `" class="page-link">` + (CurrentPage + 1)}</a></li>`;
-                    if (document.querySelector("#problemstatus > tbody").children != null && document.querySelector("#problemstatus > tbody").children.length == 20) {
+                    if (document.querySelector("#problemstatus > tbody") != null && document.querySelector("#problemstatus > tbody").children != null && document.querySelector("#problemstatus > tbody").children.length == 20) {
                         Pagination += `<li class="page-item"><a href="https://www.xmoj.tech/problemstatus.php?id=${PID + `&page=` + (CurrentPage + 1) + `" class="page-link">` + (CurrentPage + 2) + `</a></li><li class="page-item"><a href="https://www.xmoj.tech/problemstatus.php?id=` + PID + `&page=` + (CurrentPage + 1)}" class="page-link">&raquo;</a></li>`;
                     }
                     Pagination += `</ul></nav>`;
-                    document.querySelector("body > div > div.mt-3 > center").innerHTML += Pagination;
-                } else if (location.pathname == "/problem_solution.php") {
-                    if (UtilityEnabled("RemoveUseless")) {
-                        document.querySelector("h2.lang_en").remove(); //fixes #332
-                    }
-                    if (UtilityEnabled("CopyMD")) {
-                        await fetch(location.href).then((Response) => {
-                            return Response.text();
-                        }).then((Response) => {
-                            let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
-                            let CopyMDButton = document.createElement("button");
-                            CopyMDButton.className = "btn btn-sm btn-outline-secondary copy-btn";
-                            CopyMDButton.innerText = "复制";
-                            CopyMDButton.style.marginLeft = "10px";
-                            CopyMDButton.type = "button";
-                            document.querySelector("body > div > div.mt-3 > center > h2").appendChild(CopyMDButton);
-                            CopyMDButton.addEventListener("click", () => {
-                                GM_setClipboard(GetMDText(ParsedDocument.querySelector("body > div > div > div")).trim().replaceAll("\n\t", "\n").replaceAll("\n\n", "\n"));
-                                CopyMDButton.innerText = "复制成功";
-                                setTimeout(() => {
-                                    CopyMDButton.innerText = "复制";
-                                }, 1000);
-                            });
-                        });
-                    }
-                    let Temp = document.getElementsByClassName("prettyprint");
-                    for (let i = 0; i < Temp.length; i++) {
-                        let Code = Temp[i].innerText;
-                        Temp[i].outerHTML = `<textarea class="prettyprint"></textarea>`;
-                        Temp[i].value = Code;
-                    }
-                    for (let i = 0; i < Temp.length; i++) {
-                        CodeMirror.fromTextArea(Temp[i], {
-                            lineNumbers: true,
-                            mode: "text/x-c++src",
-                            readOnly: true,
-                            theme: (UtilityEnabled("DarkMode") ? "vs-dark" : "default")
-                        }).setSize("100%", "auto");
-                    }
+                    if (document.querySelector("body > div > div.mt-3 > center") != null) document.querySelector("body > div > div.mt-3 > center").innerHTML += Pagination;
+                } else if (location.pathname == "/open_contest.php" && document.querySelector("body > div > div.mt-3 > div > div.col-md-4") == null) {
+                    //页面结构异常（如403/404页面），跳过处理
                 } else if (location.pathname == "/open_contest.php") {
-                    let Temp = document.querySelector("body > div > div.mt-3 > div > div.col-md-8").children;
+                    let Temp = (document.querySelector("body > div > div.mt-3 > div > div.col-md-8") != null) ? document.querySelector("body > div > div.mt-3 > div > div.col-md-8").children : [];
                     let NewsData = [];
                     for (let i = 0; i < Temp.length; i += 2) {
                         let Title = Temp[i].children[0].innerText;
@@ -6315,7 +6536,7 @@ cerr<<b93(gz(rd()))<<endl;abort();}
                         let Body = Temp[i + 1].innerHTML;
                         NewsData.push({"Title": Title, "Time": new Date(Time), "Body": Body});
                     }
-                    document.querySelector("body > div > div.mt-3 > div > div.col-md-8").innerHTML = "";
+                    if (document.querySelector("body > div > div.mt-3 > div > div.col-md-8") != null) document.querySelector("body > div > div.mt-3 > div > div.col-md-8").innerHTML = "";
                     for (let i = 0; i < NewsData.length; i++) {
                         let NewsRow = document.createElement("div");
                         NewsRow.className = "cnt-row";
@@ -6330,11 +6551,11 @@ cerr<<b93(gz(rd()))<<endl;abort();}
                         NewsRowBody.className = "cnt-row-body";
                         NewsRowBody.innerHTML = NewsData[i].Body;
                         NewsRow.appendChild(NewsRowBody);
-                        document.querySelector("body > div > div.mt-3 > div > div.col-md-8").appendChild(NewsRow);
+                        if (document.querySelector("body > div > div.mt-3 > div > div.col-md-8") != null) document.querySelector("body > div > div.mt-3 > div > div.col-md-8").appendChild(NewsRow);
                     }
-                    let MyContestData = document.querySelector("body > div > div.mt-3 > div > div.col-md-4 > div:nth-child(2)").innerHTML;
-                    let CountDownData = document.querySelector("#countdown_list").innerHTML;
-                    document.querySelector("body > div > div.mt-3 > div > div.col-md-4").innerHTML = `<div class="cnt-row">
+                    let MyContestData = (document.querySelector("body > div > div.mt-3 > div > div.col-md-4 > div:nth-child(2)") != null) ? document.querySelector("body > div > div.mt-3 > div > div.col-md-4 > div:nth-child(2)").innerHTML : "";
+                    let CountDownData = (document.querySelector("#countdown_list") != null) ? document.querySelector("#countdown_list").innerHTML : "";
+                    if (document.querySelector("body > div > div.mt-3 > div > div.col-md-4") != null) document.querySelector("body > div > div.mt-3 > div > div.col-md-4").innerHTML = `<div class="cnt-row">
                         <div class="cnt-row-head title">我的月赛</div>
                         <div class="cnt-row-body">${MyContestData}</div>
                     </div>
@@ -6342,6 +6563,8 @@ cerr<<b93(gz(rd()))<<endl;abort();}
                         <div class="cnt-row-head title">倒计时</div>
                         <div class="cnt-row-body">${CountDownData}</div>
                     </div>`;
+                } else if (location.pathname == "/showsource.php" && document.querySelector("body > div > div.mt-3") == null) {
+                    //页面结构异常（如403/404页面），跳过处理
                 } else if (location.pathname == "/showsource.php") {
                     let Code = "";
                     if (SearchParams.get("ByUserScript") == null) {
@@ -6370,7 +6593,7 @@ cerr<<b93(gz(rd()))<<endl;abort();}
                             });
                         });
                     }
-                    document.querySelector("body > div > div.mt-3").innerHTML = `<textarea>${Code}</textarea>`;
+                    if (document.querySelector("body > div > div.mt-3") != null) document.querySelector("body > div > div.mt-3").innerHTML = `<textarea>${Code}</textarea>`;
                     CodeMirror.fromTextArea(document.querySelector("body > div > div.mt-3 > textarea"), {
                         lineNumbers: true,
                         mode: "text/x-c++src",
@@ -6384,10 +6607,10 @@ cerr<<b93(gz(rd()))<<endl;abort();}
                         }).then((Result) => {
                             let ParsedDocument = new DOMParser().parseFromString(Result, "text/html");
                             if (!ParsedDocument.getElementsByClassName("jumbotron")[0].innerHTML.includes('I am sorry, You could not view this message!')) {
-                                document.querySelector("body > div > div.mt-3").innerHTML = "";
+                                if (document.querySelector("body > div > div.mt-3") != null) document.querySelector("body > div > div.mt-3").innerHTML = "";
                                 let CodeElement = document.createElement("div");
                                 CodeElement.className = "mb-3";
-                                document.querySelector("body > div > div.mt-3").appendChild(CodeElement);
+                                if (document.querySelector("body > div > div.mt-3") != null) document.querySelector("body > div > div.mt-3").appendChild(CodeElement);
                                 CodeMirror(CodeElement, {
                                     value: ParsedDocument.getElementById("errtxt").innerHTML.replaceAll("&lt;", "<").replaceAll("&gt;", ">"),
                                     lineNumbers: true,
@@ -6397,35 +6620,11 @@ cerr<<b93(gz(rd()))<<endl;abort();}
                                 }).setSize("100%", "auto");
                             }
                         });
-                } else if (location.pathname == "/problem_std.php") {
-                    await fetch("https://www.xmoj.tech/problem_std.php?cid=" + SearchParams.get("cid") + "&pid=" + SearchParams.get("pid"))
-                        .then((Response) => {
-                            return Response.text();
-                        }).then((Response) => {
-                            let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
-                            if (!ParsedDocument.getElementsByClassName("jumbotron")[0].innerHTML.includes('No such Problem!')) {
-                                let Temp = ParsedDocument.getElementsByTagName("pre");
-                                document.querySelector("body > div > div.mt-3").innerHTML = "";
-                                for (let i = 0; i < Temp.length; i++) {
-                                    let CodeElement = document.createElement("div");
-                                    CodeElement.className = "mb-3";
-                                    document.querySelector("body > div > div.mt-3").appendChild(CodeElement);
-                                    CodeMirror(CodeElement, {
-                                        value: Temp[i].innerText,
-                                        lineNumbers: true,
-                                        mode: "text/x-c++src",
-                                        readOnly: true,
-                                        theme: (UtilityEnabled("DarkMode") ? "vs-dark" : "default")
-                                    }).setSize("100%", "auto");
-                                }
-
-                                const overlay = document.getElementById('overlay');
-                                if (overlay && overlay.remove) overlay.remove();
-                            }
-                        });
+                } else if (location.pathname == "/mail.php" && document.querySelector("body > div > div.mt-3") == null) {
+                    //页面结构异常（如403/404页面），跳过处理
                 } else if (location.pathname == "/mail.php") {
                     if (SearchParams.get("to_user") == null) {
-                        document.querySelector("body > div > div.mt-3").innerHTML = `<div class="row g-2 align-items-center">
+                        if (document.querySelector("body > div > div.mt-3") != null) document.querySelector("body > div > div.mt-3").innerHTML = `<div class="row g-2 align-items-center">
                         <div class="col-auto form-floating">
                             <input class="form-control" id="Username" placeholder=" " spellcheck="false" data-ms-editor="true">
                             <label for="Username">搜索新用户</label>
@@ -6522,7 +6721,7 @@ cerr<<b93(gz(rd()))<<endl;abort();}
                         RefreshMessageList(false);
                         addEventListener("focus", RefreshMessageList);
                     } else {
-                        document.querySelector("body > div > div.mt-3").innerHTML = `<div class="row g-2 mb-3">
+                        if (document.querySelector("body > div > div.mt-3") != null) document.querySelector("body > div > div.mt-3").innerHTML = `<div class="row g-2 mb-3">
                         <div class="col-md form-floating">
                             <div class="form-control" id="ToUser"></div>
                             <label for="ToUser">接收用户</label>
@@ -6673,6 +6872,8 @@ cerr<<b93(gz(rd()))<<endl;abort();}
                         RefreshMessage(false);
                         addEventListener("focus", RefreshMessage);
                     }
+                } else if (location.pathname.indexOf("/discuss3") != -1 && document.querySelector("body > div > div") == null) {
+                    //页面结构异常（如403/404页面），跳过处理
                 } else if (location.pathname.indexOf("/discuss3") != -1) {
                     if (UtilityEnabled("Discussion")) {
                         Discussion.classList.add("active");
@@ -6681,7 +6882,7 @@ cerr<<b93(gz(rd()))<<endl;abort();}
                             let ProblemID = parseInt(SearchParams.get("pid"));
                             let BoardID = parseInt(SearchParams.get("bid"));
                             let Page = Number(SearchParams.get("page")) || 1;
-                            document.querySelector("body > div > div").innerHTML = `<h3>讨论列表${(isNaN(ProblemID) ? "" : ` - 题目` + ProblemID)}</h3>
+                            if (document.querySelector("body > div > div") != null) document.querySelector("body > div > div").innerHTML = `<h3>讨论列表${(isNaN(ProblemID) ? "" : ` - 题目` + ProblemID)}</h3>
                     <button id="NewPost" type="button" class="btn btn-primary">发布新讨论</button>
                     <nav>
                     <ul class="pagination justify-content-center" id="DiscussPagination">
@@ -6821,7 +7022,7 @@ cerr<<b93(gz(rd()))<<endl;abort();}
                             });
                         } else if (location.pathname == "/discuss3/newpost.php") {
                             let ProblemID = parseInt(SearchParams.get("pid"));
-                            document.querySelector("body > div > div").innerHTML = `<h3>发布新讨论` + (!isNaN(ProblemID) ? ` - 题目` + ProblemID : ``) + `</h3>
+                            if (document.querySelector("body > div > div") != null) document.querySelector("body > div > div").innerHTML = `<h3>发布新讨论` + (!isNaN(ProblemID) ? ` - 题目` + ProblemID : ``) + `</h3>
                     <div class="form-group mb-3" id="BoardSelect">
                         <label for="Board" class="mb-1">请选择要发布的板块</label>
                         <div class="row ps-3" id="Board">
@@ -6973,7 +7174,7 @@ cerr<<b93(gz(rd()))<<endl;abort();}
                             } else {
                                 let ThreadID = SearchParams.get("tid");
                                 let Page = Number(SearchParams.get("page")) || 1;
-                                document.querySelector("body > div > div").innerHTML = `<h3 id="PostTitle"></h3>
+                                if (document.querySelector("body > div > div") != null) document.querySelector("body > div > div").innerHTML = `<h3 id="PostTitle"></h3>
                         <div class="row mb-3">
                             <span class="col-5 text-muted">作者：<div style="display: inline-block;" id="PostAuthor"></div></span>
                             <span class="col-3 text-muted">发布时间：<span id="PostTime"></span></span>
@@ -7455,6 +7656,97 @@ cerr<<b93(gz(rd()))<<endl;abort();}
             }
         }
 
+        InitializeImageEnlarger();
+
+    } catch (e) {
+        console.error(e);
+        if (UtilityEnabled("DebugMode")) {
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+        }
+    }
+}
+
+setTimeout(RevealPage, 1500);
+await main();
+RevealPage();
+console.log("XMOJ-Script loaded successfully!");
+})().catch(e => {
+    console.error("[XMOJ-Script] Initialization error:", e);
+});
+
+function GetMDText(element) {
+    let result = '';
+    const blockTags = new Set([
+        'P', 'DIV', 'SECTION', 'ARTICLE', 'HEADER', 'FOOTER', 'NAV',
+        'UL', 'OL', 'LI', 'PRE', 'BLOCKQUOTE',
+        'H1', 'H2', 'H3', 'H4', 'H5', 'H6',
+        'TABLE', 'THEAD', 'TBODY', 'TFOOT', 'TR'
+    ]);
+    const cellTags = new Set(['TD', 'TH']);
+
+    function traverse(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+            result += node.textContent;
+            return;
+        }
+
+        if (node.nodeType !== Node.ELEMENT_NODE) {
+            return;
+        }
+
+        const tag = node.nodeName.toUpperCase();
+
+        // Preserve line breaks for <br>
+        if (tag === 'BR') {
+            result += '\n';
+            return;
+        }
+
+        // Convert images to Markdown
+        if (tag === 'IMG') {
+            const src = node.getAttribute('src');
+            if (src) {
+                let resolvedSrc = src;
+                try {
+                    resolvedSrc = new URL(src, location.href).href;
+                } catch (e) {
+                    // Fallback to the raw src if URL construction fails
+                }
+                result += `![](${resolvedSrc})`;
+            }
+            return;
+        }
+
+        const isBlock = blockTags.has(tag);
+        const isCell = cellTags.has(tag);
+
+        if (isBlock && !result.endsWith('\n')) {
+            result += '\n';
+        }
+
+        // Keep table cells visually separated when copied as plain text.
+        if (isCell && result.length > 0 && !result.endsWith('\n') && !result.endsWith('\t') && !result.endsWith(' ')) {
+            result += '\t';
+        }
+
+        for (let child of node.childNodes) {
+            traverse(child);
+        }
+
+        if (isCell && !result.endsWith('\n') && !result.endsWith('\t')) {
+            result += '\t';
+        }
+
+        if (isBlock && !result.endsWith('\n')) {
+            result += '\n';
+        }
+    }
+
+    traverse(element);
+    return result;
+}
+
+function InitializeImageEnlarger() {
         // Image Enlargement Feature
         if (UtilityEnabled("ImageEnlarger")) {
             try {
@@ -7939,17 +8231,5 @@ cerr<<b93(gz(rd()))<<endl;abort();}
                 }
             }
         }
-    } catch (e) {
-        console.error(e);
-        if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
-        }
-    }
 }
-
-await main();
-console.log("XMOJ-Script loaded successfully!");
-})().catch(e => {
-    console.error("[XMOJ-Script] Initialization error:", e);
-});
 
