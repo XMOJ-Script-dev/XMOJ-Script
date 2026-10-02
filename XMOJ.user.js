@@ -7677,21 +7677,36 @@ function GetMDText(element) {
         if (trailing < count) result += '\n'.repeat(count - trailing);
     }
 
+    function AppendContent(content, cell) {
+        if (cell?.breakPending) {
+            AppendBreak(1);
+            cell.breakPending = false;
+        }
+        result += content;
+    }
+
     function AppendMath(tex, display, inCell) {
         // Keep a table cell on its row, including its trailing tab separator.
         if (display && !inCell) AppendBreak(2);
-        result += display ? (inCell ? '$$' + tex + '$$' : '$$\n' + tex + '\n$$') : '$' + tex + '$';
+        AppendContent(display ? (inCell ? '$$' + tex + '$$' : '$$\n' + tex + '\n$$') : '$' + tex + '$', inCell);
         if (display && !inCell) AppendBreak(2);
     }
 
     function Traverse(node, inPre = false, inCell = false) {
         if (node.nodeType === Node.TEXT_NODE) {
-            // Serialized HTML often has indentation between blocks. Keep spaces
-            // between inline elements and all preformatted text, but skip that indentation.
-            if (!inPre && /^[ \t\r\n]*$/.test(node.textContent) &&
-                (blockTags.has(node.previousSibling?.nodeName) || blockTags.has(node.nextSibling?.nodeName) ||
-                    (blockTags.has(node.parentElement?.nodeName) && (!node.previousSibling || !node.nextSibling)))) return;
-            result += node.textContent;
+            // Serialized HTML often has indentation between blocks and cells.
+            // Keep inline spaces and all preformatted text.
+            const boundary = node => blockTags.has(node?.nodeName) || cellTags.has(node?.nodeName);
+            const before = boundary(node.previousSibling) || (boundary(node.parentElement) && !node.previousSibling);
+            const after = boundary(node.nextSibling) || (boundary(node.parentElement) && !node.nextSibling);
+            let text = node.textContent;
+            if (!inPre && /^[ \t\r\n]*$/.test(text) && (before || after)) return;
+            if (inCell && !inPre) {
+                text = text.replace(/[ \t\r\n]+/g, ' ');
+                if (before) text = text.replace(/^ +/, '');
+                if (after) text = text.replace(/ +$/, '');
+            }
+            AppendContent(text, inCell);
             return;
         }
 
@@ -7718,7 +7733,7 @@ function GetMDText(element) {
 
         // Preserve line breaks for <br>
         if (tag === 'BR') {
-            result += inPre ? '\n' : '  \n';
+            AppendContent(inPre ? '\n' : '  \n', inCell);
             return;
         }
 
@@ -7732,7 +7747,7 @@ function GetMDText(element) {
                 } catch (e) {
                     // Fallback to the raw src if URL construction fails
                 }
-                result += `![](${resolvedSrc})`;
+                AppendContent(`![](${resolvedSrc})`, inCell);
             }
             return;
         }
@@ -7741,22 +7756,30 @@ function GetMDText(element) {
         const isCell = cellTags.has(tag);
         const breaks = tag === 'TR' ? 1 : 2;
 
-        if (isBlock && !inPre && !inCell) AppendBreak(breaks);
+        // Each cell has its own buffer. Defer block breaks until its next content
+        // so nested paragraphs separate without leading/trailing row breaks.
+        if (isCell) {
+            const previous = result;
+            result = '';
+            const cell = {breakPending: false};
+            for (const child of node.childNodes) Traverse(child, inPre, cell);
+            result = previous + result + '\t';
+            return;
+        }
 
-        // Keep table cells visually separated when copied as plain text.
-        if (isCell && result.length > 0 && !result.endsWith('\n') && !result.endsWith('\t') && !result.endsWith(' ')) {
-            result += '\t';
+        if (isBlock && !inPre) {
+            if (inCell) inCell.breakPending = true;
+            else AppendBreak(breaks);
         }
 
         for (let child of node.childNodes) {
-            Traverse(child, inPre || tag === 'PRE', inCell || isCell);
+            Traverse(child, inPre || tag === 'PRE', inCell);
         }
 
-        if (isCell && !result.endsWith('\n') && !result.endsWith('\t')) {
-            result += '\t';
+        if (isBlock && !inPre) {
+            if (inCell) inCell.breakPending = true;
+            else AppendBreak(breaks);
         }
-
-        if (isBlock && !inPre && !inCell) AppendBreak(breaks);
     }
 
     Traverse(element);

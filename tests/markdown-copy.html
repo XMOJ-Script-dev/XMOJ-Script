@@ -81,6 +81,14 @@
             '  first\n\n    second\nthird  \n\n', () => {}, false);
         Check('relative images and table cells', '<p>Image <img src="../Images/1.png"></p><table><tr><td>A</td><td>B</td></tr>' +
             '<tr><td>C</td><td>D</td></tr></table>', 'Image ![](' + new URL('../Images/1.png', location.href).href + ')\n\nA\tB\t\nC\tD');
+        Check('indented table cells retain columns', '<table>\n <tr>\n <th>\n  A\n </th>\n <th>B</th>\n </tr>\n' +
+            '<tr>\n <td> C </td>\n <td> D </td>\n </tr>\n</table>', 'A\tB\t\nC\tD');
+        Check('nested table cell paragraphs retain separation', '<table><tr><td><div><p>A</p><p>B</p></div></td>' +
+            '<td><p>C</p>D<div>E</div>F</td></tr></table>', 'A\nB\tC\nD\nE\nF');
+        Check('empty table cells retain columns', '<table><tr><td></td><td>A</td><td> </td><td>B</td></tr></table>',
+            '\tA\t\tB\t\n\n', () => {}, false);
+        Check('table cell preformatted whitespace is retained', '<table><tr><td><pre>  A\n\n B  </pre></td>' +
+            '<td>C</td></tr></table>', '  A\n\n B  \tC\t\n\n', () => {}, false);
         Check('formatted HTML block boundaries', '\n  <p>A</p>\n  <p>B</p>\n  ', 'A\n\nB');
         Check('inline whitespace is retained', '<p><span>A</span> <span>B</span>&nbsp;C</p>', 'A B\u00a0C');
         Check('list item line separation', '<ul>\n  <li>A</li>\n  <li>B</li>\n</ul>', 'A\n\nB');
