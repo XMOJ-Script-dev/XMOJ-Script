@@ -7683,8 +7683,30 @@ function GetMDText(element) {
         'TABLE', 'THEAD', 'TBODY', 'TFOOT', 'TR'
     ]);
     const cellTags = new Set(['TD', 'TH']);
+    const mathItems = new Map();
+    const mathDocument = (typeof unsafeWindow === 'undefined' ? window : unsafeWindow).MathJax?.startup?.document;
+    // XMOJ also serves MathJax 3.0, before getMathItemsWithin was available.
+    const items = typeof mathDocument?.getMathItemsWithin === 'function' ?
+        mathDocument.getMathItemsWithin([element]) : mathDocument?.math || [];
+    for (const math of items) {
+        if (math.typesetRoot && element.contains(math.typesetRoot) && typeof math.math === 'string') {
+            mathItems.set(math.typesetRoot, math);
+        }
+    }
 
-    function traverse(node) {
+    function AppendBreak(count) {
+        if (!result) return;
+        const trailing = result.match(/\n*$/)[0].length;
+        if (trailing < count) result += '\n'.repeat(count - trailing);
+    }
+
+    function AppendMath(tex, display) {
+        if (display) AppendBreak(2);
+        result += display ? '$$\n' + tex + '\n$$' : '$' + tex + '$';
+        if (display) AppendBreak(2);
+    }
+
+    function Traverse(node, inPre = false) {
         if (node.nodeType === Node.TEXT_NODE) {
             result += node.textContent;
             return;
@@ -7696,9 +7718,24 @@ function GetMDText(element) {
 
         const tag = node.nodeName.toUpperCase();
 
+        // Copy the source once, rather than the visual and accessibility trees.
+        const math = mathItems.get(node);
+        if (math) {
+            AppendMath(math.math, math.display);
+            return;
+        }
+        if (node.classList.contains('katex') || node.classList.contains('katex-display') || tag === 'MATH') {
+            const annotation = node.querySelector('annotation[encoding="application/x-tex"]');
+            if (annotation) {
+                AppendMath(annotation.textContent, node.classList.contains('katex-display') ||
+                    node.parentElement?.classList.contains('katex-display') || node.getAttribute('display') === 'block');
+                return;
+            }
+        }
+
         // Preserve line breaks for <br>
         if (tag === 'BR') {
-            result += '\n';
+            result += inPre ? '\n' : '  \n';
             return;
         }
 
@@ -7719,10 +7756,9 @@ function GetMDText(element) {
 
         const isBlock = blockTags.has(tag);
         const isCell = cellTags.has(tag);
+        const breaks = tag === 'LI' || tag === 'TR' ? 1 : 2;
 
-        if (isBlock && !result.endsWith('\n')) {
-            result += '\n';
-        }
+        if (isBlock && !inPre) AppendBreak(breaks);
 
         // Keep table cells visually separated when copied as plain text.
         if (isCell && result.length > 0 && !result.endsWith('\n') && !result.endsWith('\t') && !result.endsWith(' ')) {
@@ -7730,19 +7766,17 @@ function GetMDText(element) {
         }
 
         for (let child of node.childNodes) {
-            traverse(child);
+            Traverse(child, inPre || tag === 'PRE');
         }
 
         if (isCell && !result.endsWith('\n') && !result.endsWith('\t')) {
             result += '\t';
         }
 
-        if (isBlock && !result.endsWith('\n')) {
-            result += '\n';
-        }
+        if (isBlock && !inPre) AppendBreak(breaks);
     }
 
-    traverse(element);
+    Traverse(element);
     return result;
 }
 

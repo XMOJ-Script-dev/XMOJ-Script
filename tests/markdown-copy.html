@@ -1,0 +1,80 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Markdown copy regression tests</title>
+<pre id="results">Running…</pre>
+<script>
+(async () => {
+    // Serve the repository with `python3 -m http.server`, then open this file.
+    const source = await (await fetch('../XMOJ.user.js')).text();
+    const start = source.indexOf('function GetMDText(');
+    const end = source.indexOf('\nfunction InitializeImageEnlarger(', start);
+    const GetMDText = new Function(source.slice(start, end) + '\nreturn GetMDText;')();
+    const results = [];
+    const fixture = document.createElement('div');
+    document.body.appendChild(fixture);
+
+    function Check(name, html, expected, setup = () => {}) {
+        fixture.innerHTML = html;
+        delete window.MathJax;
+        setup(fixture);
+        const before = fixture.innerHTML;
+        const actual = GetMDText(fixture).trim();
+        if (actual !== expected) throw new Error(name + ': expected ' + JSON.stringify(expected) + ', got ' + JSON.stringify(actual));
+        if (fixture.innerHTML !== before) throw new Error(name + ': changed the page DOM');
+        results.push(name);
+    }
+
+    function Katex(tex) {
+        // KaTeX's default output includes both MathML and the visual HTML tree.
+        return '<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>visual</mi></mrow>' +
+            '<annotation encoding="application/x-tex">' + tex + '</annotation></semantics></math></span>' +
+            '<span class="katex-html" aria-hidden="true"><span class="base">duplicate</span></span></span>';
+    }
+
+    try {
+        Check('paragraphs and nested containers', '<div><p>First <span>paragraph</span>.</p><div><p>Second.</p></div></div>',
+            'First paragraph.\n\nSecond.');
+        Check('explicit Markdown hard breaks', '<p>First<br>Second<br><br>Fourth</p><p>Next.</p>',
+            'First  \nSecond  \n  \nFourth\n\nNext.');
+        Check('inline KaTeX source appears once', '<p>区间 ' + Katex('[a_i,b_i]') + ' 满足 ' + Katex('b_{i-1}&lt;a_i\\le b_i') + '。</p>',
+            '区间 $[a_i,b_i]$ 满足 $b_{i-1}<a_i\\le b_i$。');
+        Check('display KaTeX keeps its delimiters and paragraphs', '<p>Before.</p><span class="katex-display">' +
+            Katex('\\sum_{i=1}^{N} a_i') + '</span><p>After.</p>',
+            'Before.\n\n$$\n\\sum_{i=1}^{N} a_i\n$$\n\nAfter.');
+        Check('standalone MathML TeX annotation', '<math display="block"><semantics><mi>x</mi>' +
+            '<annotation encoding="application/x-tex">x^2</annotation></semantics></math>', '$$\nx^2\n$$');
+        Check('MathJax source and display mode', '<p>Value <mjx-container>visual</mjx-container>.</p>' +
+            '<mjx-container display="true">duplicate</mjx-container><p>Next.</p>',
+            'Value $a_i$.\n\n$$\na_i \\le b_i\n$$\n\nNext.', root => {
+                const nodes = root.querySelectorAll('mjx-container');
+                window.MathJax = {startup: {document: {getMathItemsWithin(elements) {
+                    if (elements.length !== 1 || elements[0] !== root) throw new Error('Wrong MathJax container');
+                    return [
+                        {typesetRoot: nodes[0], math: 'a_i', display: false},
+                        {typesetRoot: nodes[1], math: 'a_i \\le b_i', display: true}
+                    ];
+                }}}};
+            });
+        Check('MathJax 3.0 expression list fallback', '<p>Value <mjx-container>visual</mjx-container>.</p>',
+            'Value $a_i$.', root => {
+                window.MathJax = {startup: {document: {math: [
+                    {typesetRoot: root.querySelector('mjx-container'), math: 'a_i', display: false},
+                    {typesetRoot: document.createElement('mjx-container'), math: 'outside', display: true}
+                ]}}};
+            });
+        Check('raw TeX remains available before typesetting', '<p>Value $a_i$.</p><p>$$x^2$$</p>', 'Value $a_i$.\n\n$$x^2$$');
+        Check('preformatted whitespace and breaks', '<pre>  first\n\n    second<br>third</pre>', 'first\n\n    second\nthird');
+        Check('relative images and table cells', '<p>Image <img src="../Images/1.png"></p><table><tr><td>A</td><td>B</td></tr>' +
+            '<tr><td>C</td><td>D</td></tr></table>', 'Image ![](' + new URL('../Images/1.png', location.href).href + ')\n\nA\tB\t\nC\tD');
+        window.markdownCopyResults = {passed: results.length, tests: results};
+        document.getElementById('results').textContent = results.map(name => 'PASS ' + name).join('\n');
+    } catch (error) {
+        window.markdownCopyResults = {error: error.message, passed: results.length};
+        document.getElementById('results').textContent = error.stack;
+        throw error;
+    } finally {
+        fixture.remove();
+        delete window.MathJax;
+    }
+})();
+</script>
