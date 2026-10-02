@@ -3898,7 +3898,7 @@ async function main() {
                                         CopyMDButton.type = "button";
                                         document.querySelectorAll(".cnt-row-head.title")[i].appendChild(CopyMDButton);
                                         CopyMDButton.addEventListener("click", () => {
-                                            GM_setClipboard(GetMDText(Temp[i].children[0]).trim().replaceAll("\n\t", "\n").replaceAll("\n\n", "\n"));
+                                            GM_setClipboard(GetMDText(Temp[i].children[0]).trim().replaceAll("\n\t", "\n"));
                                             CopyMDButton.innerText = "复制成功";
                                             setTimeout(() => {
                                                 CopyMDButton.innerText = "复制";
@@ -7700,14 +7700,20 @@ function GetMDText(element) {
         if (trailing < count) result += '\n'.repeat(count - trailing);
     }
 
-    function AppendMath(tex, display) {
-        if (display) AppendBreak(2);
-        result += display ? '$$\n' + tex + '\n$$' : '$' + tex + '$';
-        if (display) AppendBreak(2);
+    function AppendMath(tex, display, inCell) {
+        // Keep a table cell on its row, including its trailing tab separator.
+        if (display && !inCell) AppendBreak(2);
+        result += display ? (inCell ? '$$' + tex + '$$' : '$$\n' + tex + '\n$$') : '$' + tex + '$';
+        if (display && !inCell) AppendBreak(2);
     }
 
-    function Traverse(node, inPre = false) {
+    function Traverse(node, inPre = false, inCell = false) {
         if (node.nodeType === Node.TEXT_NODE) {
+            // Serialized HTML often has indentation between blocks. Keep spaces
+            // between inline elements and all preformatted text, but skip that indentation.
+            if (!inPre && /^[ \t\r\n]*$/.test(node.textContent) &&
+                (blockTags.has(node.previousSibling?.nodeName) || blockTags.has(node.nextSibling?.nodeName) ||
+                    (blockTags.has(node.parentElement?.nodeName) && (!node.previousSibling || !node.nextSibling)))) return;
             result += node.textContent;
             return;
         }
@@ -7721,14 +7727,14 @@ function GetMDText(element) {
         // Copy the source once, rather than the visual and accessibility trees.
         const math = mathItems.get(node);
         if (math) {
-            AppendMath(math.math, math.display);
+            AppendMath(math.math, math.display, inCell);
             return;
         }
         if (node.classList.contains('katex') || node.classList.contains('katex-display') || tag === 'MATH') {
             const annotation = node.querySelector('annotation[encoding="application/x-tex"]');
             if (annotation) {
                 AppendMath(annotation.textContent, node.classList.contains('katex-display') ||
-                    node.parentElement?.classList.contains('katex-display') || node.getAttribute('display') === 'block');
+                    node.parentElement?.classList.contains('katex-display') || node.getAttribute('display') === 'block', inCell);
                 return;
             }
         }
@@ -7756,9 +7762,9 @@ function GetMDText(element) {
 
         const isBlock = blockTags.has(tag);
         const isCell = cellTags.has(tag);
-        const breaks = tag === 'LI' || tag === 'TR' ? 1 : 2;
+        const breaks = tag === 'TR' ? 1 : 2;
 
-        if (isBlock && !inPre) AppendBreak(breaks);
+        if (isBlock && !inPre && !inCell) AppendBreak(breaks);
 
         // Keep table cells visually separated when copied as plain text.
         if (isCell && result.length > 0 && !result.endsWith('\n') && !result.endsWith('\t') && !result.endsWith(' ')) {
@@ -7766,14 +7772,14 @@ function GetMDText(element) {
         }
 
         for (let child of node.childNodes) {
-            Traverse(child, inPre || tag === 'PRE');
+            Traverse(child, inPre || tag === 'PRE', inCell || isCell);
         }
 
         if (isCell && !result.endsWith('\n') && !result.endsWith('\t')) {
             result += '\t';
         }
 
-        if (isBlock && !inPre) AppendBreak(breaks);
+        if (isBlock && !inPre && !inCell) AppendBreak(breaks);
     }
 
     Traverse(element);

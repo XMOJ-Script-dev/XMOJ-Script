@@ -4,21 +4,20 @@
 <pre id="results">Running…</pre>
 <script>
 (async () => {
-    // Serve the repository with `python3 -m http.server`, then open this file.
-    const source = await (await fetch('../XMOJ.user.js')).text();
-    const start = source.indexOf('function GetMDText(');
-    const end = source.indexOf('\nfunction InitializeImageEnlarger(', start);
-    const GetMDText = new Function(source.slice(start, end) + '\nreturn GetMDText;')();
+    // Also runs automatically through tests/markdown-copy.test.cjs.
+    let source;
+    let GetMDText;
     const results = [];
     const fixture = document.createElement('div');
     document.body.appendChild(fixture);
 
-    function Check(name, html, expected, setup = () => {}) {
+    function Check(name, html, expected, setup = () => {}, trim = true, read = GetMDText) {
         fixture.innerHTML = html;
         delete window.MathJax;
         setup(fixture);
         const before = fixture.innerHTML;
-        const actual = GetMDText(fixture).trim();
+        const copied = read(fixture);
+        const actual = trim ? copied.trim() : copied;
         if (actual !== expected) throw new Error(name + ': expected ' + JSON.stringify(expected) + ', got ' + JSON.stringify(actual));
         if (fixture.innerHTML !== before) throw new Error(name + ': changed the page DOM');
         results.push(name);
@@ -32,6 +31,16 @@
     }
 
     try {
+        const response = await fetch('../XMOJ.user.js');
+        if (!response.ok) throw new Error('Cannot load XMOJ.user.js: HTTP ' + response.status);
+        source = await response.text();
+        const anchor = 'function GetMDText(';
+        const start = source.indexOf(anchor);
+        const end = source.indexOf('\nfunction InitializeImageEnlarger(', start);
+        if (start < 0 || source.indexOf(anchor, start + anchor.length) !== -1 || end <= start) {
+            throw new Error('Cannot locate a unique GetMDText function and its InitializeImageEnlarger boundary in XMOJ.user.js');
+        }
+        GetMDText = new Function(source.slice(start, end) + '\nreturn GetMDText;')();
         Check('paragraphs and nested containers', '<div><p>First <span>paragraph</span>.</p><div><p>Second.</p></div></div>',
             'First paragraph.\n\nSecond.');
         Check('explicit Markdown hard breaks', '<p>First<br>Second<br><br>Fourth</p><p>Next.</p>',
@@ -63,9 +72,30 @@
                 ]}}};
             });
         Check('raw TeX remains available before typesetting', '<p>Value $a_i$.</p><p>$$x^2$$</p>', 'Value $a_i$.\n\n$$x^2$$');
-        Check('preformatted whitespace and breaks', '<pre>  first\n\n    second<br>third</pre>', 'first\n\n    second\nthird');
+        Check('preformatted edge whitespace and breaks', '<pre>  first\n\n    second<br>third  </pre>',
+            '  first\n\n    second\nthird  \n\n', () => {}, false);
         Check('relative images and table cells', '<p>Image <img src="../Images/1.png"></p><table><tr><td>A</td><td>B</td></tr>' +
             '<tr><td>C</td><td>D</td></tr></table>', 'Image ![](' + new URL('../Images/1.png', location.href).href + ')\n\nA\tB\t\nC\tD');
+        Check('formatted HTML block boundaries', '\n  <p>A</p>\n  <p>B</p>\n  ', 'A\n\nB');
+        Check('inline whitespace is retained', '<p><span>A</span> <span>B</span>&nbsp;C</p>', 'A B\u00a0C');
+        Check('list item line separation', '<ul>\n  <li>A</li>\n  <li>B</li>\n</ul>', 'A\n\nB');
+        Check('KaTeX display math stays within table cells', '<table><tr><td>a</td><td><span class="katex-display">' +
+            Katex('x') + '</span></td><td>b</td></tr><tr><td>c</td><td>d</td><td>e</td></tr></table>',
+            'a\t$$x$$\tb\t\nc\td\te');
+        Check('MathJax display math stays within table cells', '<table><tr><td>a</td><td><mjx-container>visual</mjx-container>' +
+            '</td><td>b</td></tr></table>', 'a\t$$x$$\tb', root => {
+                window.MathJax = {startup: {document: {math: [
+                    {typesetRoot: root.querySelector('mjx-container'), math: 'x', display: true}
+                ]}}};
+            });
+        Check('legacy copy callback retains paragraph separators', '<p>A</p>\n<p>B</p>', 'A\n\nB', () => {}, true, root => {
+            const callback = source.match(/GM_setClipboard\(GetMDText\(Temp\[i\]\.children\[0\]\)[^;]*;/);
+            if (!callback) throw new Error('Cannot locate the legacy copy callback');
+            let copied;
+            new Function('Temp', 'i', 'GM_setClipboard', 'GetMDText', callback[0])(
+                [{children: [root]}], 0, text => { copied = text; }, GetMDText);
+            return copied;
+        });
         window.markdownCopyResults = {passed: results.length, tests: results};
         document.getElementById('results').textContent = results.map(name => 'PASS ' + name).join('\n');
     } catch (error) {
