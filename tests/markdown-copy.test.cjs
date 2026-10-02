@@ -36,7 +36,8 @@ test('Markdown copy browser regressions', {timeout: 60000}, async t => {
         await t.test('preserves math and formatting without changing the DOM', async () => {
             const result = await RunFixture(browser, source);
             assert.equal(result.error, undefined, result.error);
-            assert.equal(result.passed, 16);
+            assert.ok(result.passed >= 16);
+            assert.equal(result.passed, result.tests.length);
             t.diagnostic(result.tests.join(', '));
         });
         for (const anchor of ['function GetMDText(', 'function InitializeImageEnlarger(']) {

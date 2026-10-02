@@ -2653,13 +2653,7 @@ async function InitializeContestWebApp() {
         }
         // Sample boxes are cards, as on the legacy page.
         for (const pre of root.querySelectorAll(".xmoj-problem-body .in-out pre")) pre.classList.add("card");
-        if (UtilityEnabled("CopyMD")) {
-            for (const section of root.querySelectorAll(".xmoj-problem-body .cnt-row")) {
-                const heading = section.querySelector(".cnt-row-head");
-                const body = section.querySelector(".cnt-row-body");
-                if (heading && body && !body.querySelector(".sampledata")) AddCopy(heading, "copy-section", () => GetMDText(body).trim());
-            }
-        }
+        if (UtilityEnabled("CopyMD")) InitializeProblemMarkdownCopy(root, root, AddCopy);
         // Built from this page's API response rather than a cached copy.
         if (UtilityEnabled("ProblemSwitcher") && Array.isArray(routeData?.problems) && !document.querySelector(`[${owned}="problem-switcher"]`)) {
             const list = routeData.problems.map(item => ({title: item.problemTitle || item.title || item.num, url: new URL(GetContestProblemURL(route.cid, item.num), location.origin).href}));
@@ -3887,25 +3881,8 @@ async function main() {
                                 return Response.text();
                             }).then((Response) => {
                                 let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
-                                let Temp = ParsedDocument.querySelectorAll(".cnt-row-body");
-                                if (UtilityEnabled("DebugMode")) console.log(Temp);
-                                for (let i = 0; i < Temp.length; i++) {
-                                    if (Temp[i].children[0].className === "content lang_cn") {
-                                        let CopyMDButton = document.createElement("button");
-                                        CopyMDButton.className = "btn btn-sm btn-outline-secondary copy-btn";
-                                        CopyMDButton.innerText = "复制";
-                                        CopyMDButton.style.marginLeft = "10px";
-                                        CopyMDButton.type = "button";
-                                        document.querySelectorAll(".cnt-row-head.title")[i].appendChild(CopyMDButton);
-                                        CopyMDButton.addEventListener("click", () => {
-                                            GM_setClipboard(GetMDText(Temp[i].children[0]).trim().replaceAll("\n\t", "\n"));
-                                            CopyMDButton.innerText = "复制成功";
-                                            setTimeout(() => {
-                                                CopyMDButton.innerText = "复制";
-                                            }, 1000);
-                                        });
-                                    }
-                                }
+                                InitializeProblemMarkdownCopy(document.querySelector(".mt-3") || document,
+                                    ParsedDocument.querySelector(".jumbotron") || ParsedDocument);
                             });
                         }
 
@@ -7785,6 +7762,113 @@ function GetMDText(element) {
     Traverse(element);
     return result;
 }
+
+// Use the displayed section labels, excluding copy controls and alternate languages.
+function GetProblemCopyHeading(element, language = "zh") {
+    if (!element) return "";
+    const copy = element.cloneNode(true);
+    const otherLanguage = language === "en" ? ".lang_cn" : ".lang_en";
+    for (const node of copy.querySelectorAll("button, .copy-btn, [data-xmoj-script], " + otherLanguage)) node.remove();
+    return copy.textContent.replace(/\s+/g, " ").trim();
+}
+
+function GetProblemCopyLanguage(root) {
+    const english = root.querySelector(".content.lang_en");
+    return english?.isConnected && !english.closest("[hidden], .hidden, .d-none") &&
+        getComputedStyle(english).display !== "none" ? "en" : "zh";
+}
+
+function GetProblemSectionMarkdown(section, language = "zh") {
+    const heading = GetProblemCopyHeading(section.querySelector(".cnt-row-head"), language);
+    const body = section.querySelector(".cnt-row-body");
+    if (!heading || !body) return "";
+    let content;
+    if (body.querySelector(".sampledata, .data-sample, .in-out-item")) {
+        const parts = [];
+        const samples = [...body.querySelectorAll(".data-sample")];
+        const groups = samples.length ? samples : [...body.querySelectorAll(".in-out")];
+        function Visit(node) {
+            if (node.nodeType !== Node.ELEMENT_NODE ||
+                node.classList.contains(language === "en" ? "lang_cn" : "lang_en")) return;
+            if (node.classList.contains("in-out-item")) {
+                const sample = node.querySelector(".sampledata");
+                if (!sample || sample.textContent === "") return;
+                let label = GetProblemCopyHeading(node.querySelector(".title"), language);
+                const group = node.closest(samples.length ? ".data-sample" : ".in-out");
+                if (!/#\s*\d+/.test(label)) label += " #" + (Math.max(0, groups.indexOf(group)) + 1);
+                const code = sample.textContent;
+                // An input containing backticks must not close its Markdown fence.
+                const runs = [...code.matchAll(/`+/g)].map(match => match[0].length + 1);
+                const fence = "`".repeat(Math.max(3, ...runs));
+                parts.push("### " + label + "\n\n" + fence + "plain\n" + code +
+                    (code.endsWith("\n") ? "" : "\n") + fence);
+                return;
+            }
+            if (node.classList.contains("title")) {
+                const label = GetProblemCopyHeading(node, language);
+                if (label) parts.push("### " + label);
+                return;
+            }
+            if (node.classList.contains("content")) {
+                const text = GetMDText(node).trim();
+                if (text) parts.push(text);
+                return;
+            }
+            for (const child of node.children) Visit(child);
+        }
+        for (const child of body.children) Visit(child);
+        content = parts.join("\n\n");
+    } else {
+        const translated = body.querySelector(language === "en" ? ".content.lang_en" : ".content.lang_cn");
+        const fallback = body.querySelector(".content.lang_cn") || body.querySelector(".content");
+        content = GetMDText(translated || fallback || body).trim();
+    }
+    return content ? "## " + heading + "\n\n" + content : "";
+}
+
+function GetProblemStatementMarkdown(root, language = "zh") {
+    const title = root.querySelector(".xmoj-problem-head h2") ||
+        root.querySelector(language === "en" ? "h2.lang_en" : "h2.lang_cn") || root.querySelector("h2");
+    const name = GetProblemCopyHeading(title, language)
+        .replace(/^(?:(?:问题|Problem)\s+[^:：]+|\d+)\s*[:：]\s*/i, "");
+    const body = root.querySelector(".xmoj-problem-body") || root;
+    const sections = [...body.querySelectorAll(".cnt-row")]
+        .map(section => GetProblemSectionMarkdown(section, language)).filter(Boolean);
+    return (name ? ["# " + name, ...sections] : sections).join("\n\n");
+}
+
+function InitializeProblemMarkdownCopy(root, sourceRoot = root, addCopy = null) {
+    if (!addCopy) addCopy = (parent, name, readText) => {
+        if (parent.querySelector('[data-xmoj-script="' + name + '"]')) return;
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "btn btn-sm btn-outline-secondary copy-btn";
+        button.setAttribute("data-xmoj-script", name);
+        button.textContent = "复制";
+        button.addEventListener("click", () => {
+            GM_setClipboard(readText());
+            button.textContent = "复制成功";
+            setTimeout(() => { button.textContent = "复制"; }, 1000);
+        });
+        parent.appendChild(button);
+    };
+    const titles = [...root.querySelectorAll(".xmoj-problem-head h2, h2.lang_cn, h2.lang_en")];
+    if (!titles.length && root.querySelector("h2")) titles.push(root.querySelector("h2"));
+    for (const title of titles) {
+        addCopy(title, "copy-problem", () => GetProblemStatementMarkdown(sourceRoot, GetProblemCopyLanguage(root)));
+    }
+    const body = root.querySelector(".xmoj-problem-body") || root;
+    const sourceBody = sourceRoot.querySelector(".xmoj-problem-body") || sourceRoot;
+    const sourceSections = [...sourceBody.querySelectorAll(".cnt-row")];
+    for (const [index, section] of [...body.querySelectorAll(".cnt-row")].entries()) {
+        const heading = section.querySelector(".cnt-row-head");
+        if (heading && section.querySelector(".cnt-row-body")) {
+            addCopy(heading, "copy-section", () =>
+                GetProblemSectionMarkdown(sourceSections[index] || section, GetProblemCopyLanguage(root)));
+        }
+    }
+}
+
 
 function InitializeImageEnlarger() {
         // Image Enlargement Feature

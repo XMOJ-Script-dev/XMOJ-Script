@@ -7,6 +7,9 @@
     // Also runs automatically through tests/markdown-copy.test.cjs.
     let source;
     let GetMDText;
+    let GetProblemSectionMarkdown;
+    let GetProblemStatementMarkdown;
+    let InitializeProblemMarkdownCopy;
     const results = [];
     const fixture = document.createElement('div');
     document.body.appendChild(fixture);
@@ -40,7 +43,9 @@
         if (start < 0 || source.indexOf(anchor, start + anchor.length) !== -1 || end <= start) {
             throw new Error('Cannot locate a unique GetMDText function and its InitializeImageEnlarger boundary in XMOJ.user.js');
         }
-        GetMDText = new Function(source.slice(start, end) + '\nreturn GetMDText;')();
+        ({GetMDText, GetProblemSectionMarkdown, GetProblemStatementMarkdown, InitializeProblemMarkdownCopy} =
+            new Function(source.slice(start, end) +
+                '\nreturn {GetMDText, GetProblemSectionMarkdown, GetProblemStatementMarkdown, InitializeProblemMarkdownCopy};')());
         Check('paragraphs and nested containers', '<div><p>First <span>paragraph</span>.</p><div><p>Second.</p></div></div>',
             'First paragraph.\n\nSecond.');
         Check('explicit Markdown hard breaks', '<p>First<br>Second<br><br>Fourth</p><p>Next.</p>',
@@ -88,14 +93,83 @@
                     {typesetRoot: root.querySelector('mjx-container'), math: 'x', display: true}
                 ]}}};
             });
-        Check('legacy copy callback retains paragraph separators', '<p>A</p>\n<p>B</p>', 'A\n\nB', () => {}, true, root => {
-            const callback = source.match(/GM_setClipboard\(GetMDText\(Temp\[i\]\.children\[0\]\)[^;]*;/);
-            if (!callback) throw new Error('Cannot locate the legacy copy callback');
+
+        const fence = '\x60\x60\x60';
+        const Section = (heading, content) => '<div class="cnt-row"><div class="cnt-row-head">' + heading +
+            '</div><div class="cnt-row-body">' + content + '</div></div>';
+        const sampleBody = '<div class="data-sample"><div class="in-out">' +
+            '<div class="in-out-item"><span class="title">样例输入 #1</span><a class="copy-btn">复制</a>' +
+            '<pre class="content"><span class="sampledata">  1\n2 </span></pre></div>' +
+            '<div class="in-out-item"><span class="title">样例输出 #1</span><a class="copy-btn">复制成功</a>' +
+            '<pre class="content"><span class="sampledata">3</span></pre></div></div>' +
+            '<div><div class="title">样例说明 #1</div><div class="content"><p>Sum $a+b$.</p></div></div></div>';
+        const sampleMarkdown = '## 样例输入输出\n\n### 样例输入 #1\n\n' + fence + 'plain\n  1\n2 \n' + fence +
+            '\n\n### 样例输出 #1\n\n' + fence + 'plain\n3\n' + fence + '\n\n### 样例说明 #1\n\nSum $a+b$.';
+        Check('sample sections include headings and fenced data', Section('样例输入输出', sampleBody),
+            sampleMarkdown, () => {}, true, root => GetProblemSectionMarkdown(root.firstElementChild));
+        Check('subsection copy includes its heading', Section('题目描述<button>复制成功</button>',
+            '<div class="content"><p>A</p>\n<p>B</p></div>'), '## 题目描述\n\nA\n\nB',
+            () => {}, true, root => GetProblemSectionMarkdown(root.firstElementChild));
+        const statement = '<div class="xmoj-problem-head"><h2>问题 A: Zoo<small data-xmoj-script="problem-id"> (1000)</small>' +
+            '<button data-xmoj-script="copy-problem">复制</button></h2></div><div class="xmoj-problem-body">' +
+            Section('题目描述', '<div class="content"><p>A</p>\n<p>B</p></div>') +
+            Section('输出', '<div class="content"></div>') + Section('样例输入输出', sampleBody) +
+            Section('数据范围', '<div class="content">1 ≤ N ≤ 10</div>') + '</div>' +
+            Section('导出', '<div class="content">Export tools</div>');
+        const statementMarkdown = '# Zoo\n\n## 题目描述\n\nA\n\nB\n\n' + sampleMarkdown + '\n\n## 数据范围\n\n1 ≤ N ≤ 10';
+        Check('full statement omits absent sections and export tools', statement, statementMarkdown,
+            () => {}, true, root => GetProblemStatementMarkdown(root));
+        const classic = '<center><h2 class="lang_cn">问题 1000: Graph: Paths</h2>' +
+            '<h2 class="lang_en" style="display:none">Problem 1000: Graph: English</h2></center>' +
+            Section('<span class="lang_cn">题目描述</span><span class="lang_en">Description</span>',
+                '<div class="content lang_cn"><p>A</p>\n<p>B</p></div><div class="content lang_en" style="display:none"><p>English.</p></div>') +
+            Section('样例输入输出', '<div class="in-out"><div class="in-out-item"><span class="title">样例输入</span>' +
+                '<pre class="content"><span class="sampledata">x</span></pre></div></div>');
+        Check('classic statement selects Chinese content and numbers samples', classic,
+            '# Graph: Paths\n\n## 题目描述\n\nA\n\nB\n\n## 样例输入输出\n\n### 样例输入 #1\n\n' + fence + 'plain\nx\n' + fence,
+            () => {}, true, root => GetProblemStatementMarkdown(root));
+        Check('classic statement selects English content', classic,
+            '# Graph: English\n\n## Description\n\nEnglish.\n\n## 样例输入输出\n\n### 样例输入 #1\n\n' + fence + 'plain\nx\n' + fence,
+            () => {}, true, root => GetProblemStatementMarkdown(root, 'en'));
+        Check('sample code uses a fence longer than its backticks', Section('样例输入输出',
+            '<div class="in-out"><div class="in-out-item"><span class="title">Input #1</span><pre class="content">' +
+            '<span class="sampledata">' + fence + '</span></pre></div></div>'),
+            '## 样例输入输出\n\n### Input #1\n\n' + fence + '\x60plain\n' + fence + '\n' + fence + '\x60',
+            () => {}, true, root => GetProblemSectionMarkdown(root.firstElementChild));
+        Check('explanation-only samples remain copyable', Section('样例输入输出', '<div class="data-sample">' +
+            '<div><div class="title">样例说明 #2</div><div class="content">Explanation.</div></div></div>'),
+            '## 样例输入输出\n\n### 样例说明 #2\n\nExplanation.', () => {}, true,
+            root => GetProblemSectionMarkdown(root.firstElementChild));
+
+        // Exercise the actual clipboard callbacks and their idempotent control setup.
+        for (const [name, html, expected, sampleExpected] of [
+            ['new UI copy controls', statement, statementMarkdown, sampleMarkdown],
+            ['classic copy controls', classic,
+                '# Graph: Paths\n\n## 题目描述\n\nA\n\nB\n\n## 样例输入输出\n\n### 样例输入 #1\n\n' + fence + 'plain\nx\n' + fence,
+                '## 样例输入输出\n\n### 样例输入 #1\n\n' + fence + 'plain\nx\n' + fence]
+        ]) {
+            fixture.innerHTML = html;
+            for (const button of fixture.querySelectorAll('[data-xmoj-script="copy-problem"]')) button.remove();
+            const original = fixture.cloneNode(true);
+            const before = original.innerHTML;
             let copied;
-            new Function('Temp', 'i', 'GM_setClipboard', 'GetMDText', callback[0])(
-                [{children: [root]}], 0, text => { copied = text; }, GetMDText);
-            return copied;
-        });
+            window.GM_setClipboard = text => { copied = text; };
+            InitializeProblemMarkdownCopy(fixture, original);
+            const count = fixture.querySelectorAll('[data-xmoj-script="copy-section"]').length;
+            InitializeProblemMarkdownCopy(fixture, original);
+            if (fixture.querySelectorAll('[data-xmoj-script="copy-section"]').length !== count) throw new Error(name + ': duplicate buttons');
+            fixture.querySelector('[data-xmoj-script="copy-problem"]').click();
+            if (copied !== expected) throw new Error(name + ': wrong full statement: ' + JSON.stringify(copied));
+            const buttons = fixture.querySelectorAll('.cnt-row-head [data-xmoj-script="copy-section"]');
+            buttons[0].click();
+            if (!copied.startsWith('## ') || !copied.includes('A\n\nB')) throw new Error(name + ': paragraph breaks or heading missing');
+            buttons[buttons.length - (name.startsWith('new') ? 2 : 1)].click();
+            if (copied !== sampleExpected) throw new Error(name + ': wrong samples: ' + JSON.stringify(copied));
+            if (original.innerHTML !== before) throw new Error(name + ': changed the source DOM');
+            delete window.GM_setClipboard;
+            results.push(name);
+        }
+
         window.markdownCopyResults = {passed: results.length, tests: results};
         document.getElementById('results').textContent = results.map(name => 'PASS ' + name).join('\n');
     } catch (error) {
