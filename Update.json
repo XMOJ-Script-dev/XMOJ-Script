@@ -3793,12 +3793,12 @@
             "Notes": "No release notes were provided for this release."
         },
         "3.7.2": {
-            "UpdateDate": 1790954609431,
+            "UpdateDate": 1790954665504,
             "Prerelease": true,
             "UpdateContents": [
                 {
                     "PR": 1031,
-                    "Description": "fix: preserve TeX and line breaks in contest Markdown copy"
+                    "Description": "fix: preserve problem Markdown and add full-statement copying"
                 }
             ],
             "Notes": "No release notes were provided for this release."
