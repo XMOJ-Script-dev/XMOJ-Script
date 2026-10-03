@@ -115,6 +115,9 @@
             '\n\n### 样例输出 #1\n\n' + fence + 'plain\n3\n' + fence + '\n\n### 样例说明 #1\n\nSum $a+b$.';
         Check('sample sections include headings and fenced data', Section('样例输入输出', sampleBody),
             sampleMarkdown, () => {}, true, root => GetProblemSectionMarkdown(root.firstElementChild));
+        Check('wrapped sample sections retain headings and fenced data',
+            Section('样例输入输出', '<div class="content"><div class="content">' + sampleBody + '</div></div>'),
+            sampleMarkdown, () => {}, true, root => GetProblemSectionMarkdown(root.firstElementChild));
         Check('subsection copy includes its heading', Section('题目描述<button>复制成功</button>',
             '<div class="content"><p>A</p>\n<p>B</p></div>'), '## 题目描述\n\nA\n\nB',
             () => {}, true, root => GetProblemSectionMarkdown(root.firstElementChild));
@@ -131,8 +134,8 @@
             '<h2 class="lang_en" style="display:none">Problem 1000: Graph: English</h2></center>' +
             Section('<span class="lang_cn">题目描述</span><span class="lang_en">Description</span>',
                 '<div class="content lang_cn"><p>A</p>\n<p>B</p></div><div class="content lang_en" style="display:none"><p>English.</p></div>') +
-            Section('样例输入输出', '<div class="in-out"><div class="in-out-item"><span class="title">样例输入</span>' +
-                '<pre class="content"><span class="sampledata">x</span></pre></div></div>');
+            Section('样例输入输出', '<div class="content"><div class="in-out"><div class="in-out-item"><span class="title">样例输入</span>' +
+                '<pre class="content"><span class="sampledata">x</span></pre></div></div></div>');
         Check('classic statement selects Chinese content and numbers samples', classic,
             '# Graph: Paths\n\n## 题目描述\n\nA\n\nB\n\n## 样例输入输出\n\n### 样例输入 #1\n\n' + fence + 'plain\nx\n' + fence,
             () => {}, true, root => GetProblemStatementMarkdown(root));
@@ -173,6 +176,23 @@
             if (!copied.startsWith('## ') || !copied.includes('A\n\nB')) throw new Error(name + ': paragraph breaks or heading missing');
             buttons[buttons.length - (name.startsWith('new') ? 2 : 1)].click();
             if (copied !== sampleExpected) throw new Error(name + ': wrong samples: ' + JSON.stringify(copied));
+            if (name === 'classic copy controls') {
+                // Switch only the live DOM: the detached source still has English hidden.
+                for (const node of fixture.querySelectorAll('.lang_cn')) node.style.display = 'none';
+                for (const node of fixture.querySelectorAll('.lang_en')) node.style.display = '';
+                fixture.querySelector('h2.lang_en [data-xmoj-script="copy-problem"]').click();
+                const english = '# Graph: English\n\n## Description\n\nEnglish.\n\n' + sampleExpected;
+                if (copied !== english) throw new Error(name + ': full copy did not follow English visibility: ' + JSON.stringify(copied));
+                buttons[0].click();
+                if (copied !== '## Description\n\nEnglish.') throw new Error(name + ': section copy did not follow English visibility');
+                for (const node of fixture.querySelectorAll('.lang_en')) node.style.display = 'none';
+                for (const node of fixture.querySelectorAll('.lang_cn')) node.style.display = '';
+                fixture.querySelector('h2.lang_cn [data-xmoj-script="copy-problem"]').click();
+                if (copied !== expected) throw new Error(name + ': full copy did not switch back to Chinese');
+                buttons[0].click();
+                if (copied !== '## 题目描述\n\nA\n\nB') throw new Error(name + ': section copy did not switch back to Chinese');
+                results.push('classic copy controls follow displayed language');
+            }
             if (original.innerHTML !== before) throw new Error(name + ': changed the source DOM');
             delete window.GM_setClipboard;
             results.push(name);

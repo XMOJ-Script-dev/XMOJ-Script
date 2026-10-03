@@ -7832,7 +7832,8 @@ function GetProblemSectionMarkdown(section, language = "zh") {
                 if (label) parts.push("### " + label);
                 return;
             }
-            if (node.classList.contains("content")) {
+            // Legacy pages wrap the complete sample section in .content.
+            if (node.classList.contains("content") && !node.querySelector(".sampledata, .data-sample, .in-out-item")) {
                 const text = GetMDText(node).trim();
                 if (text) parts.push(text);
                 return;
