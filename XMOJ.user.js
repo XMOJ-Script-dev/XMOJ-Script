@@ -143,6 +143,9 @@ const MonochromeSkinCSS = `
                     --mono-border-thin: 1px solid var(--mono-gray-300);
                     --mono-font-heading: 'Playfair Display', Georgia, serif;
                     --mono-font-body: 'Source Serif 4', 'Source Serif Pro', Georgia, serif;
+                    /* Source Serif has no Chinese glyphs. An explicit navbar fallback
+                       avoids different fonts under legacy lang=en and /web lang=zh-CN. */
+                    --mono-font-navbar: 'Source Serif 4', 'Source Serif Pro', Georgia, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', serif;
                     --mono-font-mono: 'JetBrains Mono', 'Consolas', monospace;
                     --mono-transition: 100ms ease;
                 }
@@ -197,6 +200,7 @@ const MonochromeSkinCSS = `
 
                 /* Navbar */
                 .navbar, nav.navbar {
+                    font-family: var(--mono-font-navbar) !important;
                     border-bottom: 4px solid var(--mono-black) !important;
                     background-color: var(--mono-white) !important;
                     opacity: 1 !important;
@@ -204,7 +208,7 @@ const MonochromeSkinCSS = `
                 .navbar .nav-link {
                     color: var(--mono-black) !important;
                     text-decoration: none !important;
-                    font-family: var(--mono-font-body) !important;
+                    font-family: var(--mono-font-navbar) !important;
                     text-transform: uppercase !important;
                     letter-spacing: 0.05em !important;
                     font-size: 0.85rem !important;
