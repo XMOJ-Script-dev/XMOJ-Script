@@ -2736,7 +2736,7 @@ async function InitializeContestWebApp() {
             if (!revealed && root.querySelector(".navbar")) {
                 // As on the legacy pages: top bar first, then show the page.
                 revealed = true;
-                if (UtilityEnabled("NewTopBar")) new NavbarStyler();
+                UpdateNavbarStyler();
                 RevealPage();
             }
             if (!route) return;
@@ -2763,7 +2763,7 @@ async function InitializeContestWebApp() {
     window.addEventListener("popstate", ScheduleEnhance);
     setInterval(() => {
         UpdateCountdowns();
-        if (UtilityEnabled("NewTopBar")) new NavbarStyler();
+        UpdateNavbarStyler();
     }, 1000);
     window.addEventListener("focus", () => {
         if (!UtilityEnabled("AutoRefresh") || !["list", "contest", "rank"].includes(route?.page)) return;
@@ -2789,13 +2789,30 @@ async function InitializeContestWebApp() {
     } catch (error) { console.error("[XMOJ-Script] Navigation API:", error); }
 }
 
+let navbarStyler = null;
+
+function UpdateNavbarStyler() {
+    const navbar = document.querySelector('.navbar.navbar-expand-lg.bg-body-tertiary');
+    // Both UI refresh timers share one listener. Release the old navbar when Vue
+    // replaces it, or when the top bar is disabled or removed.
+    if (navbarStyler && (navbarStyler.navbar !== navbar || !UtilityEnabled("NewTopBar"))) {
+        navbarStyler.destroy();
+        navbarStyler = null;
+    }
+    if (!navbar || !UtilityEnabled("NewTopBar")) return;
+    if (!navbarStyler) navbarStyler = new NavbarStyler(navbar);
+    else navbarStyler.init();
+}
+
 class NavbarStyler {
-    constructor() {
+    constructor(navbar) {
         try {
-            this.navbar = document.querySelector('.navbar.navbar-expand-lg.bg-body-tertiary');
-            if (this.navbar && UtilityEnabled("NewTopBar")) {
-                this.init();
-            }
+            this.navbar = navbar;
+            this.resizeHandler = () => {
+                if (this.navbar?.isConnected) this.updateBlurOverlay();
+            };
+            window.addEventListener('resize', this.resizeHandler);
+            this.init();
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
@@ -2804,12 +2821,16 @@ class NavbarStyler {
         }
     }
 
+    destroy() {
+        window.removeEventListener('resize', this.resizeHandler);
+        this.navbar = null;
+    }
+
     init() {
         try {
             this.applyStyles();
             this.createOverlay();
             this.createSpacer();
-            window.addEventListener('resize', () => this.updateBlurOverlay());
             this.updateBlurOverlay();
         } catch (e) {
             console.error(e);
@@ -3153,7 +3174,7 @@ async function main() {
                     if (document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > a") != null) document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > a").removeAttribute("data-toggle");
                     // The navbar is in its final state: apply the top bar now rather than on
                     // the first interval tick, then show the page.
-                    if (UtilityEnabled("NewTopBar")) new NavbarStyler();
+                    UpdateNavbarStyler();
                     RevealPage();
                 }
                 if (UtilityEnabled("RemoveUseless") && document.getElementsByTagName("marquee")[0] != undefined) {
@@ -3219,9 +3240,7 @@ async function main() {
                         document.getElementById("nowdate").innerHTML = Year + "-" + (Month < 10 ? "0" : "") + Month + "-" + (_Date < 10 ? "0" : "") + _Date + " " + (Hours < 10 ? "0" : "") + Hours + ":" + (Minutes < 10 ? "0" : "") + Minutes + ":" + (Seconds < 10 ? "0" : "") + Seconds;
                     } catch (Error) {
                     }
-                    if (UtilityEnabled("NewTopBar")) {
-                        new NavbarStyler();
-                    }
+                    UpdateNavbarStyler();
                     if (UtilityEnabled("ResetType")) {
                         if (document.querySelector("#profile") != undefined && document.querySelector("#profile").innerHTML == "登录") {
                             let PopupUL = document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul");
