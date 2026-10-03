@@ -186,3 +186,40 @@ test('downloads stay in the page container below the fixed navbar', {timeout: 60
         await browser.close();
     }
 });
+
+test('Chinese navbar glyphs use the same fonts under legacy and web document languages', {timeout: 60000}, async () => {
+    const skin = source.match(/const MonochromeSkinCSS = `([\s\S]*?)`;/)[1];
+    const font = fs.readFileSync(path.join(__dirname, "fixtures/fonts/source-serif-4-latin.woff2")).toString("base64");
+    const browser = await chromium.launch({executablePath: process.env.XMOJ_CHROMIUM || undefined});
+    try {
+        const rendered = [];
+        for (const language of ['en', 'zh-CN']) {
+            const page = await browser.newPage();
+            // The public legacy page declares en, while /web declares zh-CN. Source
+            // Serif 4 has no Chinese glyphs: compare the fonts Chromium actually uses,
+            // not just getComputedStyle().fontFamily, which matched before the fix.
+            const html = `<html lang="${language}"><head><style>@font-face { font-family: "Source Serif 4"; src: url(data:font/woff2;base64,${font}) format("woff2"); } ${skin}</style></head><body><nav class="navbar"><a class="navbar-brand">小明的OJ</a><ul class="navbar-nav"><li><a class="nav-link">竞赛&amp;作业</a></li></ul><a class="nav-link dropdown-toggle"><span>测试用户</span></a><ul class="dropdown-menu"><li><a class="dropdown-item">我的作业</a></li></ul></nav></body></html>`;
+            await page.route("https://navbar-font.test/**", route => route.fulfill({contentType: "text/html; charset=utf-8", body: html}));
+            await page.goto("https://navbar-font.test/" + language);
+            await page.evaluate(() => document.fonts.ready);
+            const session = await page.context().newCDPSession(page);
+            await session.send('DOM.enable');
+            await session.send('CSS.enable');
+            const {root} = await session.send('DOM.getDocument');
+            const fonts = {};
+            for (const selector of ['.navbar-brand', '.navbar-nav .nav-link', '.dropdown-toggle span', '.dropdown-item']) {
+                const {nodeId} = await session.send('DOM.querySelector', {nodeId: root.nodeId, selector});
+                const result = await session.send('CSS.getPlatformFontsForNode', {nodeId});
+                fonts[selector] = result.fonts.map(font => ({name: font.familyName, glyphs: font.glyphCount})).sort((a, b) => a.name.localeCompare(b.name));
+                assert.ok(fonts[selector].length, 'must inspect rendered glyphs: ' + selector);
+            }
+            assert.ok(fonts[".navbar-brand"].some(font => font.name === "Source Serif 4"), "the Latin webfont must be loaded to exercise Chinese fallback");
+            rendered.push(fonts);
+            await session.detach();
+            await page.close();
+        }
+        assert.deepEqual(rendered[1], rendered[0], 'document language must not change the navbar Chinese fallback font');
+    } finally {
+        await browser.close();
+    }
+});
