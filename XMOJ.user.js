@@ -572,6 +572,17 @@ const ThemeCanvasCSS = `
         html[data-bs-theme='light'] { background: var(--mono-white, var(--bs-body-bg, #fff)); color-scheme: light; }
 `;
 
+// Both UI initializers use this link; loading only in legacy main() leaves /web
+// on the fallback fonts even though it applies the same monochrome font stack.
+function LoadMonochromeFonts() {
+    if (document.getElementById("xmoj-monochrome-fonts")) return;
+    const link = document.createElement("link");
+    link.id = "xmoj-monochrome-fonts";
+    link.rel = "stylesheet";
+    link.href = "https://fonts.loli.net/css2?family=Playfair+Display:wght@400;700&family=Source+Serif+4:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap";
+    (document.head || document.documentElement).appendChild(link);
+}
+
 // Set to true by the early block if Bootstrap CSS was injected from the @resource
 // cache. Checked in the IIFE to decide whether a CDN fallback is needed.
 let _earlyBootstrapInjected = false;
@@ -616,6 +627,7 @@ let _earlyObs = null;
         document.documentElement.setAttribute("data-bs-theme", dark ? "dark" : "light");
 
         let head = document.head || document.documentElement;
+        if (get("MonochromeUI")) LoadMonochromeFonts();
 
         let bootstrapCSS = GM_getResourceText("BootstrapCSS");
         if (!bootstrapCSS) {
@@ -2325,6 +2337,7 @@ async function InitializeContestWebApp() {
         bootstrap.href = "https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css";
         document.head.appendChild(bootstrap);
         const mono = UtilityEnabled("MonochromeUI");
+        if (mono) LoadMonochromeFonts();
         const skin = document.createElement("style");
         skin.textContent = mono ? MonochromeSkinCSS : NewBootstrapSkinCSS;
         if (UtilityEnabled("AddAnimation")) skin.textContent += `.status, .test-case { transition: ${mono ? "100ms ease" : "0.5s"} !important; }`;
@@ -3130,12 +3143,7 @@ async function main() {
                             Temp[i].remove();
                         }
                     }
-                    if (UtilityEnabled("MonochromeUI")) {
-                        let fontLink = document.createElement("link");
-                        fontLink.rel = "stylesheet";
-                        fontLink.href = "https://fonts.loli.net/css2?family=Playfair+Display:wght@400;700&family=Source+Serif+4:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap";
-                        document.head.appendChild(fontLink);
-                    }
+                    if (UtilityEnabled("MonochromeUI")) LoadMonochromeFonts();
                     var resources = [{
                         type: 'link',
                         href: 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css',
