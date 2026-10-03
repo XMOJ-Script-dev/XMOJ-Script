@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      3.7.1
+// @version      3.7.2
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -2653,13 +2653,7 @@ async function InitializeContestWebApp() {
         }
         // Sample boxes are cards, as on the legacy page.
         for (const pre of root.querySelectorAll(".xmoj-problem-body .in-out pre")) pre.classList.add("card");
-        if (UtilityEnabled("CopyMD")) {
-            for (const section of root.querySelectorAll(".xmoj-problem-body .cnt-row")) {
-                const heading = section.querySelector(".cnt-row-head");
-                const body = section.querySelector(".cnt-row-body");
-                if (heading && body && !body.querySelector(".sampledata")) AddCopy(heading, "copy-section", () => GetMDText(body).trim());
-            }
-        }
+        if (UtilityEnabled("CopyMD")) InitializeProblemMarkdownCopy(root, root, AddCopy);
         // Built from this page's API response rather than a cached copy.
         if (UtilityEnabled("ProblemSwitcher") && Array.isArray(routeData?.problems) && !document.querySelector(`[${owned}="problem-switcher"]`)) {
             const list = routeData.problems.map(item => ({title: item.problemTitle || item.title || item.num, url: new URL(GetContestProblemURL(route.cid, item.num), location.origin).href}));
@@ -3887,25 +3881,8 @@ async function main() {
                                 return Response.text();
                             }).then((Response) => {
                                 let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
-                                let Temp = ParsedDocument.querySelectorAll(".cnt-row-body");
-                                if (UtilityEnabled("DebugMode")) console.log(Temp);
-                                for (let i = 0; i < Temp.length; i++) {
-                                    if (Temp[i].children[0].className === "content lang_cn") {
-                                        let CopyMDButton = document.createElement("button");
-                                        CopyMDButton.className = "btn btn-sm btn-outline-secondary copy-btn";
-                                        CopyMDButton.innerText = "复制";
-                                        CopyMDButton.style.marginLeft = "10px";
-                                        CopyMDButton.type = "button";
-                                        document.querySelectorAll(".cnt-row-head.title")[i].appendChild(CopyMDButton);
-                                        CopyMDButton.addEventListener("click", () => {
-                                            GM_setClipboard(GetMDText(Temp[i].children[0]).trim().replaceAll("\n\t", "\n").replaceAll("\n\n", "\n"));
-                                            CopyMDButton.innerText = "复制成功";
-                                            setTimeout(() => {
-                                                CopyMDButton.innerText = "复制";
-                                            }, 1000);
-                                        });
-                                    }
-                                }
+                                InitializeProblemMarkdownCopy(document.querySelector(".mt-3") || document,
+                                    ParsedDocument.querySelector(".jumbotron") || ParsedDocument);
                             });
                         }
 
@@ -7683,10 +7660,132 @@ function GetMDText(element) {
         'TABLE', 'THEAD', 'TBODY', 'TFOOT', 'TR'
     ]);
     const cellTags = new Set(['TD', 'TH']);
+    const mathItems = new Map();
+    const mathDocument = (typeof unsafeWindow === 'undefined' ? window : unsafeWindow).MathJax?.startup?.document;
+    // XMOJ also serves MathJax 3.0, before getMathItemsWithin was available.
+    const items = typeof mathDocument?.getMathItemsWithin === 'function' ?
+        mathDocument.getMathItemsWithin([element]) : mathDocument?.math || [];
+    for (const math of items) {
+        if (math.typesetRoot && element.contains(math.typesetRoot) && typeof math.math === 'string') {
+            mathItems.set(math.typesetRoot, math);
+        }
+    }
 
-    function traverse(node) {
+    function AppendBreak(count) {
+        if (!result) return;
+        const trailing = result.match(/\n*$/)[0].length;
+        if (trailing < count) result += '\n'.repeat(count - trailing);
+    }
+
+    function AppendContent(content, cell) {
+        if (cell?.breakPending) {
+            AppendBreak(1);
+            cell.breakPending = false;
+        }
+        result += content;
+    }
+
+    function ReadMath(node) {
+        const math = mathItems.get(node);
+        if (math) return math;
+        if (node.nodeType === Node.ELEMENT_NODE && (node.classList.contains('katex') ||
+            node.classList.contains('katex-display') || node.nodeName.toUpperCase() === 'MATH')) {
+            const annotation = node.querySelector('annotation[encoding="application/x-tex"]');
+            if (annotation) return {math: annotation.textContent, display: node.classList.contains('katex-display') ||
+                node.parentElement?.classList.contains('katex-display') || node.getAttribute('display') === 'block'};
+        }
+        return null;
+    }
+
+    function AppendTable(table) {
+        const rows = [...table.rows];
+        const first = rows[0];
+        const hasHeader = first && first.cells.length > 0 && (first.parentElement.nodeName === 'THEAD' ||
+            [...first.cells].every(cell => cell.nodeName === 'TH'));
+        // Pipe tables require a header and cannot represent merged cells, nested tables or code blocks.
+        // Also retain HTML for links so their destinations are preserved.
+        // Replace rendered math with its source.
+        if (!hasHeader || table.querySelector('table, pre, a') || rows.some(row => [...row.cells].some(cell => cell.colSpan !== 1 || cell.rowSpan !== 1)) ||
+            table.tHead?.rows.length > 1) {
+            const copy = table.cloneNode(true);
+            function RestoreMath(original, clone) {
+                if (original.nodeName === 'PRE') return;
+                const math = ReadMath(original);
+                if (math) {
+                    clone.replaceWith(document.createTextNode((math.display ? '$$' : '$') + math.math + (math.display ? '$$' : '$')));
+                    return;
+                }
+                for (const attribute of ['src', 'href']) {
+                    const value = original.getAttribute?.(attribute);
+                    if (value) {
+                        try {
+                            clone.setAttribute(attribute, new URL(value, location.href).href);
+                        } catch (e) {
+                            // Keep the source value when it is not a valid URL.
+                        }
+                    }
+                }
+                const children = [...clone.childNodes];
+                [...original.childNodes].forEach((child, index) => RestoreMath(child, children[index]));
+            }
+            RestoreMath(table, copy);
+            AppendBreak(2);
+            // Encode literal line endings so blank lines inside HTML do not end
+            // the Markdown HTML block. PRE contents retain them after rendering.
+            AppendContent(copy.outerHTML.replace(/\r\n|\r|\n/g, '&#10;'));
+            AppendBreak(2);
+            return;
+        }
+        if (table.caption) {
+            AppendBreak(2);
+            Traverse(table.caption);
+            AppendBreak(2);
+        }
+        if (!rows.length || !rows.some(row => row.cells.length)) return;
+        const values = rows.map(row => [...row.cells].map(cell => {
+            const previous = result;
+            result = '';
+            Traverse(cell);
+            const value = result.replace(/\t$/, '').trim().replace(/(\\*)\|/g, (_, slashes) => slashes + slashes + '\\|')
+                .replace(/ *\r?\n/g, '<br>');
+            result = previous;
+            return value;
+        }));
+        const width = Math.max(...values.map(row => row.length));
+        const header = values.shift();
+        const Line = row => '| ' + Array.from({length: width}, (_, index) => row[index] || '').join(' | ') + ' |';
+        const separators = Array.from({length: width}, (_, index) => {
+            const cell = first.cells[index];
+            const alignment = cell?.style.textAlign || cell?.getAttribute('align');
+            return alignment === 'center' ? ':---:' : alignment === 'right' ? '---:' : alignment === 'left' ? ':---' : '---';
+        });
+        AppendBreak(2);
+        AppendContent([Line(header), Line(separators), ...values.map(Line)].join('\n'));
+        AppendBreak(2);
+    }
+
+    function AppendMath(tex, display, inCell) {
+        // Keep a table cell on its row, including its trailing tab separator.
+        if (display && !inCell) AppendBreak(2);
+        AppendContent(display ? (inCell ? '$$' + tex + '$$' : '$$\n' + tex + '\n$$') : '$' + tex + '$', inCell);
+        if (display && !inCell) AppendBreak(2);
+    }
+
+    function Traverse(node, inPre = false, inCell = false) {
         if (node.nodeType === Node.TEXT_NODE) {
-            result += node.textContent;
+            // Serialized HTML often has indentation between blocks and cells.
+            // Keep inline spaces and all preformatted text.
+            const boundary = node => blockTags.has(node?.nodeName) || cellTags.has(node?.nodeName);
+            const before = boundary(node.previousSibling) || (boundary(node.parentElement) && !node.previousSibling);
+            const after = boundary(node.nextSibling) || (boundary(node.parentElement) && !node.nextSibling);
+            let text = node.textContent;
+            if (!inPre && /^[ \t\r\n]*$/.test(text) && (before || after)) return;
+            if (!inPre) {
+                text = text.replace(/[ \t\r\n]+/g, ' ');
+                if (before) text = text.replace(/^ +/, '');
+                if (after) text = text.replace(/ +$/, '');
+            }
+            AppendContent(text, inCell);
             return;
         }
 
@@ -7696,9 +7795,44 @@ function GetMDText(element) {
 
         const tag = node.nodeName.toUpperCase();
 
+        if (tag === 'PRE' && !inPre) {
+            // Read literal code (including highlighted spans) without converting math
+            // or collapsing its indentation. BR is also used by older editors.
+            function ReadCode(child) {
+                if (child.nodeType === Node.TEXT_NODE) return child.textContent;
+                if (child.nodeName === 'BR') return '\n';
+                return [...child.childNodes].map(ReadCode).join('');
+            }
+            const code = ReadCode(node);
+            if (inCell) {
+                inCell.breakPending = true;
+                AppendContent(code, inCell);
+                inCell.breakPending = true;
+            } else {
+                const classes = [node.querySelector('code')?.className, node.className].filter(Boolean).join(' ');
+                const language = classes.match(/(?:^|\s)(?:language|lang)-([\w+-]+)(?=\s|$)/)?.[1] || 'plain';
+                AppendBreak(2);
+                AppendContent(GetMarkdownCodeBlock(code, language));
+                AppendBreak(2);
+            }
+            return;
+        }
+
+        if (tag === 'TABLE') {
+            AppendTable(node);
+            return;
+        }
+
+        // Copy the source once, rather than the visual and accessibility trees.
+        const math = ReadMath(node);
+        if (math) {
+            AppendMath(math.math, math.display, inCell);
+            return;
+        }
+
         // Preserve line breaks for <br>
         if (tag === 'BR') {
-            result += '\n';
+            AppendContent(inPre ? '\n' : '  \n', inCell);
             return;
         }
 
@@ -7712,39 +7846,156 @@ function GetMDText(element) {
                 } catch (e) {
                     // Fallback to the raw src if URL construction fails
                 }
-                result += `![](${resolvedSrc})`;
+                AppendContent(`![](${resolvedSrc})`, inCell);
             }
             return;
         }
 
         const isBlock = blockTags.has(tag);
         const isCell = cellTags.has(tag);
+        const breaks = tag === 'TR' ? 1 : 2;
 
-        if (isBlock && !result.endsWith('\n')) {
-            result += '\n';
+        // Each cell has its own buffer. Defer block breaks until its next content
+        // so nested paragraphs separate without leading/trailing row breaks.
+        if (isCell) {
+            const previous = result;
+            result = '';
+            const cell = {breakPending: false};
+            for (const child of node.childNodes) Traverse(child, inPre, cell);
+            result = previous + result + '\t';
+            return;
         }
 
-        // Keep table cells visually separated when copied as plain text.
-        if (isCell && result.length > 0 && !result.endsWith('\n') && !result.endsWith('\t') && !result.endsWith(' ')) {
-            result += '\t';
+        if (isBlock && !inPre) {
+            if (inCell) inCell.breakPending = true;
+            else AppendBreak(breaks);
         }
 
         for (let child of node.childNodes) {
-            traverse(child);
+            Traverse(child, inPre || tag === 'PRE', inCell);
         }
 
-        if (isCell && !result.endsWith('\n') && !result.endsWith('\t')) {
-            result += '\t';
-        }
-
-        if (isBlock && !result.endsWith('\n')) {
-            result += '\n';
+        if (isBlock && !inPre) {
+            if (inCell) inCell.breakPending = true;
+            else AppendBreak(breaks);
         }
     }
 
-    traverse(element);
+    Traverse(element);
     return result;
 }
+
+function GetMarkdownCodeBlock(code, language = "plain") {
+    // A backtick run in the source must not terminate the copied code block.
+    const runs = [...code.matchAll(/`+/g)].map(match => match[0].length + 1);
+    const fence = "`".repeat(Math.max(3, ...runs));
+    return fence + language + "\n" + code + (code.endsWith("\n") ? "" : "\n") + fence;
+}
+
+// Use the displayed section labels, excluding copy controls and alternate languages.
+function GetProblemCopyHeading(element, language = "zh") {
+    if (!element) return "";
+    const copy = element.cloneNode(true);
+    const otherLanguage = language === "en" ? ".lang_cn" : ".lang_en";
+    for (const node of copy.querySelectorAll("button, .copy-btn, [data-xmoj-script], " + otherLanguage)) node.remove();
+    return copy.textContent.replace(/\s+/g, " ").trim();
+}
+
+function GetProblemCopyLanguage(root) {
+    const english = root.querySelector(".content.lang_en");
+    return english?.isConnected && !english.closest("[hidden], .hidden, .d-none") &&
+        getComputedStyle(english).display !== "none" ? "en" : "zh";
+}
+
+function GetProblemSectionMarkdown(section, language = "zh") {
+    const heading = GetProblemCopyHeading(section.querySelector(".cnt-row-head"), language);
+    const body = section.querySelector(".cnt-row-body");
+    if (!heading || !body) return "";
+    let content;
+    if (body.querySelector(".sampledata, .data-sample, .in-out-item")) {
+        const parts = [];
+        const samples = [...body.querySelectorAll(".data-sample")];
+        const groups = samples.length ? samples : [...body.querySelectorAll(".in-out")];
+        function Visit(node) {
+            if (node.nodeType !== Node.ELEMENT_NODE ||
+                node.classList.contains(language === "en" ? "lang_cn" : "lang_en")) return;
+            if (node.classList.contains("in-out-item")) {
+                const sample = node.querySelector(".sampledata");
+                if (!sample || sample.textContent === "") return;
+                let label = GetProblemCopyHeading(node.querySelector(".title"), language);
+                const group = node.closest(samples.length ? ".data-sample" : ".in-out");
+                if (!/#\s*\d+/.test(label)) label += " #" + (Math.max(0, groups.indexOf(group)) + 1);
+                const code = sample.textContent;
+                parts.push("### " + label + "\n\n" + GetMarkdownCodeBlock(code));
+                return;
+            }
+            if (node.classList.contains("title")) {
+                const label = GetProblemCopyHeading(node, language);
+                if (label) parts.push("### " + label);
+                return;
+            }
+            // Legacy pages wrap the complete sample section in .content.
+            if (node.classList.contains("content") && !node.querySelector(".sampledata, .data-sample, .in-out-item")) {
+                const text = GetMDText(node).trim();
+                if (text) parts.push(text);
+                return;
+            }
+            for (const child of node.children) Visit(child);
+        }
+        for (const child of body.children) Visit(child);
+        content = parts.join("\n\n");
+    } else {
+        const translated = body.querySelector(language === "en" ? ".content.lang_en" : ".content.lang_cn");
+        const fallback = body.querySelector(".content.lang_cn") || body.querySelector(".content");
+        content = GetMDText(translated || fallback || body).trim();
+    }
+    return content ? "## " + heading + "\n\n" + content : "";
+}
+
+function GetProblemStatementMarkdown(root, language = "zh") {
+    const title = root.querySelector(".xmoj-problem-head h2") ||
+        root.querySelector(language === "en" ? "h2.lang_en" : "h2.lang_cn") || root.querySelector("h2");
+    const name = GetProblemCopyHeading(title, language)
+        .replace(/^(?:(?:问题|Problem)\s+[^:：]+|\d+)\s*[:：]\s*/i, "");
+    const body = root.querySelector(".xmoj-problem-body") || root;
+    const sections = [...body.querySelectorAll(".cnt-row")]
+        .map(section => GetProblemSectionMarkdown(section, language)).filter(Boolean);
+    return (name ? ["# " + name, ...sections] : sections).join("\n\n");
+}
+
+function InitializeProblemMarkdownCopy(root, sourceRoot = root, addCopy = null) {
+    if (!addCopy) addCopy = (parent, name, readText) => {
+        if (parent.querySelector('[data-xmoj-script="' + name + '"]')) return;
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "btn btn-sm btn-outline-secondary copy-btn";
+        button.style.marginLeft = "10px";
+        button.setAttribute("data-xmoj-script", name);
+        button.textContent = "复制";
+        button.addEventListener("click", () => {
+            GM_setClipboard(readText());
+            button.textContent = "复制成功";
+            setTimeout(() => { button.textContent = "复制"; }, 1000);
+        });
+        parent.appendChild(button);
+    };
+    const titles = [...root.querySelectorAll(".xmoj-problem-head h2, h2.lang_cn, h2.lang_en")];
+    if (!titles.length && root.querySelector("h2")) titles.push(root.querySelector("h2"));
+    for (const title of titles) {
+        addCopy(title, "copy-problem", () => GetProblemStatementMarkdown(sourceRoot, GetProblemCopyLanguage(root)));
+    }
+    const body = root.querySelector(".xmoj-problem-body") || root;
+    const sourceBody = sourceRoot.querySelector(".xmoj-problem-body") || sourceRoot;
+    const sourceSections = [...sourceBody.querySelectorAll(".cnt-row")];
+    for (const [index, section] of [...body.querySelectorAll(".cnt-row")].entries()) {
+        const heading = section.querySelector(".cnt-row-head");
+        if (heading && section.querySelector(".cnt-row-body")) {
+            addCopy(heading, "copy-section", () =>
+                GetProblemSectionMarkdown(sourceSections[index] || section, GetProblemCopyLanguage(root)));
+        }
+    }
+}
+
 
 function InitializeImageEnlarger() {
         // Image Enlargement Feature
