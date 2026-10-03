@@ -94,6 +94,8 @@
             'First sentence.\n\nSecond line.');
         Check('highlighted code retains language and literal whitespace', '<pre><code class="language-cpp"><span>  int</span> x;\n\treturn 0;\n</code></pre>',
             fence + 'cpp\n  int x;\n\treturn 0;\n' + fence);
+        Check('pre language survives code highlighting classes', '<pre class="language-cpp"><code class="hljs">int x;\n</code></pre>',
+            fence + 'cpp\nint x;\n' + fence);
         Check('preformatted backticks cannot close their code fence', '<pre><code>' + fence + '\n  x\n</code></pre>',
             fence + '\x60plain\n' + fence + '\n  x\n' + fence + '\x60');
         Check('formatted HTML block boundaries', '\n  <p>A</p>\n  <p>B</p>\n  ', 'A\n\nB');

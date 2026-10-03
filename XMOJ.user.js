@@ -7730,7 +7730,7 @@ function GetMDText(element) {
                 AppendContent(code, inCell);
                 inCell.breakPending = true;
             } else {
-                const classes = node.querySelector('code')?.className || node.className;
+                const classes = [node.querySelector('code')?.className, node.className].filter(Boolean).join(' ');
                 const language = classes.match(/(?:^|\s)(?:language|lang)-([\w+-]+)(?=\s|$)/)?.[1] || 'plain';
                 AppendBreak(2);
                 AppendContent(GetMarkdownCodeBlock(code, language));
