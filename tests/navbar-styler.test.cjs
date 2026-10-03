@@ -43,13 +43,17 @@ test('navbar refreshes keep one resize listener and release replaced navbars', {
             counts.push(window.resizeListeners.size);
             const originalListener = [...window.resizeListeners][0];
             const firstNavbar = document.querySelector('nav');
-            firstNavbar.outerHTML = '<nav class="navbar navbar-expand-lg bg-body-tertiary" style="height:80px">Vue replacement</nav>';
+            const overlayBeforeDetachedResize = document.getElementById('blur-overlay').style.cssText;
+            firstNavbar.outerHTML = '<nav class="navbar navbar-expand-lg bg-body-tertiary container" style="height:80px;position:relative!important;opacity:0.9;margin:1px 2px 3px 4px;border-radius:1px 2px 3px 4px">Vue replacement</nav>';
             window.dispatchEvent(new Event('resize'));
+            const detachedResizePreservedOverlay = document.getElementById('blur-overlay').style.cssText === overlayBeforeDetachedResize;
             for (let i = 0; i < 2000; i++) UpdateNavbarStyler();
             counts.push(window.resizeListeners.size);
             const removedOldListener = !window.resizeListeners.has(originalListener);
             const navbar = document.querySelector('nav');
             navbar.style.height = '96px';
+            navbar.style.color = 'red';
+            navbar.classList.add('page-added');
             window.dispatchEvent(new Event('resize'));
             const overlayHeightAfterResize = document.getElementById('blur-overlay').style.height;
             UpdateNavbarStyler();
@@ -59,6 +63,20 @@ test('navbar refreshes keep one resize listener and release replaced navbars', {
             window.topBarEnabled = false;
             UpdateNavbarStyler();
             counts.push(window.resizeListeners.size);
+            const disabled = {
+                artifacts: document.querySelectorAll('#blur-overlay, #navbar-spacer').length,
+                styles: document.head.querySelectorAll('style').length,
+                fixedTop: navbar.classList.contains('fixed-top'),
+                container: navbar.classList.contains('container'),
+                pageClass: navbar.classList.contains('page-added'),
+                position: navbar.style.position,
+                positionPriority: navbar.style.getPropertyPriority('position'),
+                margin: navbar.style.margin,
+                borderRadius: navbar.style.borderRadius,
+                opacity: navbar.style.opacity,
+                color: navbar.style.color,
+                height: navbar.style.height
+            };
             window.topBarEnabled = true;
             UpdateNavbarStyler();
             counts.push(window.resizeListeners.size);
@@ -67,15 +85,49 @@ test('navbar refreshes keep one resize listener and release replaced navbars', {
             UpdateNavbarStyler();
             counts.push(window.resizeListeners.size);
             const retainedNavbar = navbarStyler !== null;
-            return {counts, removedOldListener, overlayHeightAfterResize, spacerHeight, overlayCount, spacerCount, retainedNavbar};
+            const artifactsAfterRemoval = document.querySelectorAll('#blur-overlay, #navbar-spacer').length;
+            document.body.innerHTML = '<nav class="navbar navbar-expand-lg bg-body-tertiary" style="height:48px">Navbar</nav><div id="blur-overlay" style="top:2px!important;left:3px;width:11px;height:12px"></div><div id="navbar-spacer" style="height:9px!important;width:17px"></div>';
+            const pageOverlay = document.getElementById('blur-overlay');
+            const pageSpacer = document.getElementById('navbar-spacer');
+            UpdateNavbarStyler();
+            const pageSpacerReused = document.getElementById('navbar-spacer') === pageSpacer;
+            window.topBarEnabled = false;
+            UpdateNavbarStyler();
+            const borrowed = {
+                overlayPreserved: document.getElementById('blur-overlay') === pageOverlay,
+                spacerPreserved: document.getElementById('navbar-spacer') === pageSpacer,
+                top: pageOverlay.style.top,
+                topPriority: pageOverlay.style.getPropertyPriority('top'),
+                left: pageOverlay.style.left,
+                width: pageOverlay.style.width,
+                height: pageOverlay.style.height,
+                spacerHeight: pageSpacer.style.height,
+                spacerPriority: pageSpacer.style.getPropertyPriority('height'),
+                spacerWidth: pageSpacer.style.width,
+                listeners: window.resizeListeners.size
+            };
+            return {counts, removedOldListener, detachedResizePreservedOverlay, overlayHeightAfterResize, spacerHeight, overlayCount, spacerCount, retainedNavbar, disabled, artifactsAfterRemoval, pageSpacerReused, borrowed};
         });
         assert.deepEqual(result.counts, [1, 1, 0, 1, 0]);
         assert.equal(result.removedOldListener, true);
+        assert.equal(result.detachedResizePreservedOverlay, true);
         assert.equal(result.overlayHeightAfterResize, '96px');
         assert.equal(result.spacerHeight, '120px');
         assert.equal(result.overlayCount, 1);
         assert.equal(result.spacerCount, 1);
         assert.equal(result.retainedNavbar, false);
+        assert.equal(result.artifactsAfterRemoval, 0);
+        assert.deepEqual(result.disabled, {
+            artifacts: 0, styles: 0, fixedTop: false, container: true, pageClass: true,
+            position: 'relative', positionPriority: 'important', margin: '1px 2px 3px 4px',
+            borderRadius: '1px 2px 3px 4px', opacity: '0.9', color: 'red', height: '96px'
+        });
+        assert.equal(result.pageSpacerReused, true);
+        assert.deepEqual(result.borrowed, {
+            overlayPreserved: true, spacerPreserved: true,
+            top: '2px', topPriority: 'important', left: '3px', width: '11px', height: '12px',
+            spacerHeight: '9px', spacerPriority: 'important', spacerWidth: '17px', listeners: 0
+        });
         assert.deepEqual(errors, []);
     } finally {
         await browser.close();

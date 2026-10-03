@@ -2808,6 +2808,13 @@ class NavbarStyler {
     constructor(navbar) {
         try {
             this.navbar = navbar;
+            this.addedClasses = ['fixed-top', 'container', 'ml-auto'].filter(name => !navbar.classList.contains(name));
+            this.restoreNavbarStyles = this.preserveStyles(navbar, [
+                'position', 'border-top-left-radius', 'border-top-right-radius',
+                'border-bottom-left-radius', 'border-bottom-right-radius', 'box-shadow',
+                'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
+                'max-width', 'background-color', 'opacity', 'z-index'
+            ]);
             this.resizeHandler = () => {
                 if (this.navbar?.isConnected) this.updateBlurOverlay();
             };
@@ -2821,8 +2828,26 @@ class NavbarStyler {
         }
     }
 
+    preserveStyles(element, properties) {
+        const original = properties.map(property => [property, element.style.getPropertyValue(property), element.style.getPropertyPriority(property)]);
+        return () => {
+            for (const [property, value, priority] of original) {
+                if (value) element.style.setProperty(property, value, priority);
+                else element.style.removeProperty(property);
+            }
+        };
+    }
+
     destroy() {
         window.removeEventListener('resize', this.resizeHandler);
+        // Restore only properties/classes we changed, and remove only our own DOM.
+        this.navbar.classList.remove(...this.addedClasses);
+        this.restoreNavbarStyles();
+        this.restoreOverlayStyles?.();
+        this.restoreSpacerStyles?.();
+        this.overlay?.remove();
+        this.overlayStyle?.remove();
+        this.spacer?.remove();
         this.navbar = null;
     }
 
@@ -2880,8 +2905,11 @@ class NavbarStyler {
                 let overlay = document.createElement('div');
                 overlay.id = 'blur-overlay';
                 document.body.appendChild(overlay);
+                this.overlay = overlay;
 
                 let style = document.createElement('style');
+                this.overlayStyle?.remove();
+                this.overlayStyle = style;
                 style.textContent = UtilityEnabled("MonochromeUI") ? `
                 #blur-overlay {
                     display: none !important;
@@ -2896,6 +2924,11 @@ class NavbarStyler {
                 }
             `;
                 document.head.appendChild(style);
+            }
+            const overlay = document.getElementById('blur-overlay');
+            if (overlay !== this.overlay && overlay !== this.borrowedOverlay) {
+                this.borrowedOverlay = overlay;
+                this.restoreOverlayStyles = this.preserveStyles(overlay, ['top', 'left', 'width', 'height']);
             }
         } catch (e) {
             console.error(e);
@@ -2930,20 +2963,15 @@ class NavbarStyler {
             if (!spacer) {
                 spacer = document.createElement('div');
                 spacer.id = 'navbar-spacer';
-                spacer.style.height = `${newHeight}px`;
                 spacer.style.width = '100%';
                 document.body.insertBefore(spacer, document.body.firstChild);
-            } else {
-                let currentHeight = parseInt(spacer.style.height, 10);
-                if (currentHeight !== newHeight) {
-                    document.body.removeChild(spacer);
-                    spacer = document.createElement('div');
-                    spacer.id = 'navbar-spacer';
-                    spacer.style.height = `${newHeight}px`;
-                    spacer.style.width = '100%';
-                    document.body.insertBefore(spacer, document.body.firstChild);
-                }
+                this.spacer = spacer;
+            } else if (spacer !== this.spacer && spacer !== this.borrowedSpacer) {
+                this.borrowedSpacer = spacer;
+                this.restoreSpacerStyles = this.preserveStyles(spacer, ['height']);
             }
+            // Update in place so an existing page-owned spacer is never replaced.
+            if (spacer.style.height !== `${newHeight}px`) spacer.style.height = `${newHeight}px`;
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
