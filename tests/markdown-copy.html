@@ -46,6 +46,7 @@
         ({GetMDText, GetProblemSectionMarkdown, GetProblemStatementMarkdown, InitializeProblemMarkdownCopy} =
             new Function(source.slice(start, end) +
                 '\nreturn {GetMDText, GetProblemSectionMarkdown, GetProblemStatementMarkdown, InitializeProblemMarkdownCopy};')());
+        const fence = '\x60\x60\x60';
         Check('paragraphs and nested containers', '<div><p>First <span>paragraph</span>.</p><div><p>Second.</p></div></div>',
             'First paragraph.\n\nSecond.');
         Check('explicit Markdown hard breaks', '<p>First<br>Second<br><br>Fourth</p><p>Next.</p>',
@@ -78,7 +79,7 @@
             });
         Check('raw TeX remains available before typesetting', '<p>Value $a_i$.</p><p>$$x^2$$</p>', 'Value $a_i$.\n\n$$x^2$$');
         Check('preformatted edge whitespace and breaks', '<pre>  first\n\n    second<br>third  </pre>',
-            '  first\n\n    second\nthird  \n\n', () => {}, false);
+            fence + 'plain\n  first\n\n    second\nthird  \n' + fence + '\n\n', () => {}, false);
         Check('relative images and table cells', '<p>Image <img src="../Images/1.png"></p><table><tr><td>A</td><td>B</td></tr>' +
             '<tr><td>C</td><td>D</td></tr></table>', 'Image ![](' + new URL('../Images/1.png', location.href).href + ')\n\nA\tB\t\nC\tD');
         Check('indented table cells retain columns', '<table>\n <tr>\n <th>\n  A\n </th>\n <th>B</th>\n </tr>\n' +
@@ -89,6 +90,12 @@
             '\tA\t\tB\t\n\n', () => {}, false);
         Check('table cell preformatted whitespace is retained', '<table><tr><td><pre>  A\n\n B  </pre></td>' +
             '<td>C</td></tr></table>', '  A\n\n B  \tC\t\n\n', () => {}, false);
+        Check('prose formatting indentation is not copied', '<p>\n\tFirst sentence.\n</p>\n\t<p>\n\tSecond\n\tline.\n</p>',
+            'First sentence.\n\nSecond line.');
+        Check('highlighted code retains language and literal whitespace', '<pre><code class="language-cpp"><span>  int</span> x;\n\treturn 0;\n</code></pre>',
+            fence + 'cpp\n  int x;\n\treturn 0;\n' + fence);
+        Check('preformatted backticks cannot close their code fence', '<pre><code>' + fence + '\n  x\n</code></pre>',
+            fence + '\x60plain\n' + fence + '\n  x\n' + fence + '\x60');
         Check('formatted HTML block boundaries', '\n  <p>A</p>\n  <p>B</p>\n  ', 'A\n\nB');
         Check('inline whitespace is retained', '<p><span>A</span> <span>B</span>&nbsp;C</p>', 'A B\u00a0C');
         Check('list item line separation', '<ul>\n  <li>A</li>\n  <li>B</li>\n</ul>', 'A\n\nB');
@@ -102,7 +109,6 @@
                 ]}}};
             });
 
-        const fence = '\x60\x60\x60';
         const Section = (heading, content) => '<div class="cnt-row"><div class="cnt-row-head">' + heading +
             '</div><div class="cnt-row-body">' + content + '</div></div>';
         const sampleBody = '<div class="data-sample"><div class="in-out">' +
@@ -151,6 +157,37 @@
             '<div><div class="title">样例说明 #2</div><div class="content">Explanation.</div></div></div>'),
             '## 样例输入输出\n\n### 样例说明 #2\n\nExplanation.', () => {}, true,
             root => GetProblemSectionMarkdown(root.firstElementChild));
+
+        // Reproduce the human review: fenced seat diagrams followed by indented HTML paragraphs.
+        const reviewParagraphs = [
+            '第一秒，每个人向右移动一个位置，$3$ 到了自己的座位 $1$。然后 $3$ 要花 $5$ 秒放行李，$1$ 和 $2$ 跟着等待。',
+            '之后 $1$ 和 $2$ 花 $3$ 秒同时移动到自己的座位，分别要花 $5$ 秒和 $10$ 秒放行李，总共放行李的时间是 $10$ 秒。',
+            '总时间是：$1+5+3+10=19$ 秒。'
+        ];
+        const diagrams = ['人  123\n       123 座位\n', '人      12\n       123 座位\n'];
+        const reviewExplanation = '<p>一开始的状况是：</p>\n<pre><code>' + diagrams[0] + '</code></pre>\n' +
+            '<p>\n\t' + reviewParagraphs[0] + '\n</p>\n<pre>' + diagrams[1] + '</pre>\n' +
+            '<p>\n\t' + reviewParagraphs[1] + '\n</p>\n<p>\n\t' + reviewParagraphs[2] + '\n</p>';
+        const reviewSamples = '<div class="data-sample"><div class="in-out">' +
+            '<div class="in-out-item"><span class="title">样例输入 #1</span><pre class="content"><span class="sampledata">3\n2 5\n3 10\n1 5</span></pre></div>' +
+            '<div class="in-out-item"><span class="title">样例输出 #1</span><pre class="content"><span class="sampledata">19</span></pre></div></div>' +
+            '<div class="title">样例说明 #1</div><div class="content">' + reviewExplanation + '</div></div>';
+        const reviewExpected = '## 样例输入输出\n\n### 样例输入 #1\n\n' + fence + 'plain\n3\n2 5\n3 10\n1 5\n' + fence +
+            '\n\n### 样例输出 #1\n\n' + fence + 'plain\n19\n' + fence + '\n\n### 样例说明 #1\n\n一开始的状况是：\n\n' +
+            fence + 'plain\n' + diagrams[0] + fence + '\n\n' + reviewParagraphs[0] + '\n\n' +
+            fence + 'plain\n' + diagrams[1] + fence + '\n\n' + reviewParagraphs[1] + '\n\n' + reviewParagraphs[2];
+        Check('human review sample diagrams and paragraphs', Section('样例输入输出', reviewSamples), reviewExpected,
+            () => {}, true, root => GetProblemSectionMarkdown(root.firstElementChild));
+        fixture.innerHTML = '<h2>问题 1000: Boarding</h2>' + Section('样例输入输出', reviewSamples);
+        let reviewCopied;
+        window.GM_setClipboard = text => { reviewCopied = text; };
+        InitializeProblemMarkdownCopy(fixture);
+        fixture.querySelector('[data-xmoj-script="copy-section"]').click();
+        if (reviewCopied !== reviewExpected) throw new Error('human review sample copy callback: ' + JSON.stringify(reviewCopied));
+        fixture.querySelector('[data-xmoj-script="copy-problem"]').click();
+        if (reviewCopied !== '# Boarding\n\n' + reviewExpected) throw new Error('human review full copy callback: ' + JSON.stringify(reviewCopied));
+        delete window.GM_setClipboard;
+        results.push('human review sample and full statement copy controls');
 
         // Exercise the actual clipboard callbacks and their idempotent control setup.
         for (const [name, html, expected, sampleExpected] of [

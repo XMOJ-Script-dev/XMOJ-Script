@@ -7701,7 +7701,7 @@ function GetMDText(element) {
             const after = boundary(node.nextSibling) || (boundary(node.parentElement) && !node.nextSibling);
             let text = node.textContent;
             if (!inPre && /^[ \t\r\n]*$/.test(text) && (before || after)) return;
-            if (inCell && !inPre) {
+            if (!inPre) {
                 text = text.replace(/[ \t\r\n]+/g, ' ');
                 if (before) text = text.replace(/^ +/, '');
                 if (after) text = text.replace(/ +$/, '');
@@ -7715,6 +7715,29 @@ function GetMDText(element) {
         }
 
         const tag = node.nodeName.toUpperCase();
+
+        if (tag === 'PRE' && !inPre) {
+            // Read literal code (including highlighted spans) without converting math
+            // or collapsing its indentation. BR is also used by older editors.
+            function ReadCode(child) {
+                if (child.nodeType === Node.TEXT_NODE) return child.textContent;
+                if (child.nodeName === 'BR') return '\n';
+                return [...child.childNodes].map(ReadCode).join('');
+            }
+            const code = ReadCode(node);
+            if (inCell) {
+                inCell.breakPending = true;
+                AppendContent(code, inCell);
+                inCell.breakPending = true;
+            } else {
+                const classes = node.querySelector('code')?.className || node.className;
+                const language = classes.match(/(?:^|\s)(?:language|lang)-([\w+-]+)(?=\s|$)/)?.[1] || 'plain';
+                AppendBreak(2);
+                AppendContent(GetMarkdownCodeBlock(code, language));
+                AppendBreak(2);
+            }
+            return;
+        }
 
         // Copy the source once, rather than the visual and accessibility trees.
         const math = mathItems.get(node);
@@ -7786,6 +7809,13 @@ function GetMDText(element) {
     return result;
 }
 
+function GetMarkdownCodeBlock(code, language = "plain") {
+    // A backtick run in the source must not terminate the copied code block.
+    const runs = [...code.matchAll(/`+/g)].map(match => match[0].length + 1);
+    const fence = "`".repeat(Math.max(3, ...runs));
+    return fence + language + "\n" + code + (code.endsWith("\n") ? "" : "\n") + fence;
+}
+
 // Use the displayed section labels, excluding copy controls and alternate languages.
 function GetProblemCopyHeading(element, language = "zh") {
     if (!element) return "";
@@ -7820,11 +7850,7 @@ function GetProblemSectionMarkdown(section, language = "zh") {
                 const group = node.closest(samples.length ? ".data-sample" : ".in-out");
                 if (!/#\s*\d+/.test(label)) label += " #" + (Math.max(0, groups.indexOf(group)) + 1);
                 const code = sample.textContent;
-                // An input containing backticks must not close its Markdown fence.
-                const runs = [...code.matchAll(/`+/g)].map(match => match[0].length + 1);
-                const fence = "`".repeat(Math.max(3, ...runs));
-                parts.push("### " + label + "\n\n" + fence + "plain\n" + code +
-                    (code.endsWith("\n") ? "" : "\n") + fence);
+                parts.push("### " + label + "\n\n" + GetMarkdownCodeBlock(code));
                 return;
             }
             if (node.classList.contains("title")) {
