@@ -4,7 +4,7 @@
   "description": "an improvement script for xmoj.tech",
   "main": "AddonScript.js",
   "scripts": {
-    "test": "node --test tests/contest-web.test.cjs tests/markdown-copy.test.cjs tests/navbar-styler.test.cjs"
+    "test": "node --test tests/contest-web.test.cjs tests/markdown-copy.test.cjs tests/navbar-styler.test.cjs tests/account-settings.test.cjs"
   },
   "devDependencies": {
     "playwright": "1.59.1"

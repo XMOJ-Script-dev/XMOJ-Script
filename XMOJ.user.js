@@ -2144,15 +2144,68 @@ function CreateProblemSwitcher(ProblemList, IsCurrent) {
     return problemSwitcher;
 }
 
+function IsAccountSettingsPage(pathname) {
+    return pathname == "/modifypage.php" || pathname == "/modify_user_info.php";
+}
+
+// Keep the migrated site's form, including its submit handler and CSRF fields.
+// Script badges are saved separately so they cannot interfere with account edits.
+function InitializeAccountBadgeEditor(container) {
+    RequestAPI("GetBadge", {"UserID": String(CurrentUsername)}, (response) => {
+        if (!response.Success) return;
+        let editor = document.createElement("div");
+        editor.className = "border p-2 my-3";
+        editor.innerHTML = `<h5>标签</h5>
+            <div class="mb-2"><label class="form-label" for="UserScriptBadgeContent">内容</label>
+                <input class="form-control" id="UserScriptBadgeContent"></div>
+            <div class="mb-2"><label class="form-label" for="UserScriptBadgeBackground">背景颜色</label>
+                <input class="form-control form-control-color" type="color" id="UserScriptBadgeBackground"></div>
+            <div class="mb-2"><label class="form-label" for="UserScriptBadgeColor">文字颜色</label>
+                <input class="form-control form-control-color" type="color" id="UserScriptBadgeColor"></div>
+            <button type="button" class="btn btn-primary">修改标签</button>
+            <div class="mt-2" role="status"></div>`;
+        let content = editor.querySelector("#UserScriptBadgeContent");
+        let background = editor.querySelector("#UserScriptBadgeBackground");
+        let color = editor.querySelector("#UserScriptBadgeColor");
+        let button = editor.querySelector("button");
+        let status = editor.querySelector("[role='status']");
+        content.value = response.Data.Content;
+        background.value = response.Data.BackgroundColor;
+        color.value = response.Data.Color;
+        button.addEventListener("click", () => {
+            button.disabled = true;
+            status.innerText = "";
+            RequestAPI("EditBadge", {
+                "UserID": String(CurrentUsername),
+                "Content": content.value,
+                "BackgroundColor": background.value,
+                "Color": color.value
+            }, (result) => {
+                button.disabled = false;
+                status.innerText = result.Success ? "修改成功" : result.Message;
+                if (result.Success) {
+                    let keys = [];
+                    for (let i = 0; i < localStorage.length; i++) {
+                        let key = localStorage.key(i);
+                        if (key.startsWith("UserScript-User-" + CurrentUsername + "-Badge-")) keys.push(key);
+                    }
+                    keys.forEach(key => localStorage.removeItem(key));
+                }
+            });
+        });
+        container.appendChild(editor);
+    });
+}
+
 // The ResetType user menu. Shared by the legacy navbar and the /web app so both
 // menus offer the same entries and animate the same way.
 function CreateUserMenuItems() {
     let Entries = [
-        ["修改帐号", () => { location.href = "https://www.xmoj.tech/modifypage.php"; }],
+        ["修改帐号", () => { location.href = "https://www.xmoj.tech/modify_user_info.php"; }],
         ["个人中心", () => { location.href = "https://www.xmoj.tech/userinfo.php?user=" + CurrentUsername; }],
         ["短消息", () => { location.href = "https://www.xmoj.tech/mail.php"; }],
         ["插件设置", () => { location.href = "https://www.xmoj.tech/index.php?ByUserScript=1"; }],
-        ["插件更新日志", () => { location.href = "https://www.xmoj.tech/modifypage.php?ByUserScript=1"; }],
+        ["插件更新日志", () => { location.href = "https://www.xmoj.tech/modify_user_info.php?ByUserScript=1"; }],
         ["注销", () => {
             clearCredential();
             GM.cookie.set({
@@ -3496,7 +3549,7 @@ async function main() {
                         Alert.classList.add("alert-primary");
                         Alert.role = "alert";
                         Alert.innerHTML = `欢迎您使用XMOJ增强脚本！点击
-                <a class="alert-link" href="https://www.xmoj.tech/modifypage.php?ByUserScript=1" target="_blank">此处</a>
+                <a class="alert-link" href="https://www.xmoj.tech/modify_user_info.php?ByUserScript=1" target="_blank">此处</a>
                 查看更新日志。`;
                         Container.appendChild(Alert);
                         let UtilitiesCard = document.createElement("div");
@@ -5082,9 +5135,9 @@ async function main() {
                             PassCheck.click();
                         }
                     });
-                } else if (location.pathname == "/modifypage.php" && document.querySelector("body > div > div") == null) {
-                    //页面结构异常（如403/404页面），跳过处理
-                } else if (location.pathname == "/modifypage.php") {
+                } else if (IsAccountSettingsPage(location.pathname) && (document.querySelector("body > div > div") == null || (SearchParams.get("ByUserScript") == null && document.querySelector("body > div > div form") == null))) {
+                    //页面结构异常或未登录，保留站点提示
+                } else if (IsAccountSettingsPage(location.pathname)) {
                     if (SearchParams.get("ByUserScript") != null) {
                         document.title = "XMOJ-Script 更新日志";
                         if (document.querySelector("body > div > div.mt-3") != null) document.querySelector("body > div > div.mt-3").innerHTML = "";
@@ -5138,6 +5191,8 @@ async function main() {
                                     UpdateDataCardLink.innerText = "查看该版本";
                                 }
                             });
+                    } else if (location.pathname == "/modify_user_info.php") {
+                        InitializeAccountBadgeEditor(document.querySelector("body > div > div"));
                     } else {
                         document.title = "修改账号";
                         let Nickname = document.getElementsByName("nick")[0].value;
@@ -5303,67 +5358,67 @@ async function main() {
                             if (ModifyInfo.querySelector("span") != null) ModifyInfo.querySelector("span").style.display = "none";
                             SuccessElement.style.display = "block";
                         });
-                        if (UtilityEnabled("ExportACCode")) {
-                            let ExportACCode = document.createElement("button");
-                            if (document.querySelector("body > div.container > div") != null) document.querySelector("body > div.container > div").appendChild(ExportACCode);
-                            ExportACCode.innerText = "导出AC代码";
-                            ExportACCode.className = "btn btn-outline-secondary";
-                            ExportACCode.addEventListener("click", () => {
-                                ExportACCode.disabled = true;
-                                ExportACCode.innerText = "正在导出...";
-                                let Request = new XMLHttpRequest();
-                                Request.addEventListener("readystatechange", () => {
-                                    if (Request.readyState == 4) {
-                                        if (Request.status == 200) {
-                                            let Response = Request.responseText;
-                                            let ACCode = Response.split("------------------------------------------------------\r\n");
-                                            let ScriptElement = document.createElement("script");
-                                            ScriptElement.src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
-                                            document.head.appendChild(ScriptElement);
-                                            ScriptElement.onload = () => {
-                                                var Zip = new JSZip();
-                                                for (let i = 0; i < ACCode.length; i++) {
-                                                    let CurrentCode = ACCode[i];
-                                                    if (CurrentCode != "") {
-                                                        let lineBreakPos = CurrentCode.search(/[\r\n]/);
-                                                        if (lineBreakPos === -1) continue;
-                                                        let headerLine = CurrentCode.slice(0, lineBreakPos);
-                                                        let digitMatch = headerLine.match(/\d+/);
-                                                        if (!digitMatch) continue;
-                                                        let CurrentQuestionID = digitMatch[0];
-                                                        let bodyStart = lineBreakPos + 1;
-                                                        if (CurrentCode[lineBreakPos] === '\r' && CurrentCode[lineBreakPos + 1] === '\n') {
-                                                            bodyStart = lineBreakPos + 2;
-                                                        }
-                                                        CurrentCode = CurrentCode.slice(bodyStart);
-                                                        CurrentCode = CurrentCode.replaceAll("\r", "");
-                                                        Zip.file(CurrentQuestionID + ".cpp", CurrentCode);
+                    }
+                    if (SearchParams.get("ByUserScript") == null && UtilityEnabled("ExportACCode")) {
+                        let ExportACCode = document.createElement("button");
+                        if (document.querySelector("body > div.container > div") != null) document.querySelector("body > div.container > div").appendChild(ExportACCode);
+                        ExportACCode.innerText = "导出AC代码";
+                        ExportACCode.className = "btn btn-outline-secondary";
+                        ExportACCode.addEventListener("click", () => {
+                            ExportACCode.disabled = true;
+                            ExportACCode.innerText = "正在导出...";
+                            let Request = new XMLHttpRequest();
+                            Request.addEventListener("readystatechange", () => {
+                                if (Request.readyState == 4) {
+                                    if (Request.status == 200) {
+                                        let Response = Request.responseText;
+                                        let ACCode = Response.split("------------------------------------------------------\r\n");
+                                        let ScriptElement = document.createElement("script");
+                                        ScriptElement.src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
+                                        document.head.appendChild(ScriptElement);
+                                        ScriptElement.onload = () => {
+                                            var Zip = new JSZip();
+                                            for (let i = 0; i < ACCode.length; i++) {
+                                                let CurrentCode = ACCode[i];
+                                                if (CurrentCode != "") {
+                                                    let lineBreakPos = CurrentCode.search(/[\r\n]/);
+                                                    if (lineBreakPos === -1) continue;
+                                                    let headerLine = CurrentCode.slice(0, lineBreakPos);
+                                                    let digitMatch = headerLine.match(/\d+/);
+                                                    if (!digitMatch) continue;
+                                                    let CurrentQuestionID = digitMatch[0];
+                                                    let bodyStart = lineBreakPos + 1;
+                                                    if (CurrentCode[lineBreakPos] === '\r' && CurrentCode[lineBreakPos + 1] === '\n') {
+                                                        bodyStart = lineBreakPos + 2;
                                                     }
+                                                    CurrentCode = CurrentCode.slice(bodyStart);
+                                                    CurrentCode = CurrentCode.replaceAll("\r", "");
+                                                    Zip.file(CurrentQuestionID + ".cpp", CurrentCode);
                                                 }
-                                                ExportACCode.innerText = "正在生成压缩包……";
-                                                Zip.generateAsync({type: "blob"})
-                                                    .then(function (Content) {
-                                                        saveAs(Content, "ACCodes.zip");
-                                                        ExportACCode.innerText = "AC代码导出成功";
-                                                        ExportACCode.disabled = false;
-                                                        setTimeout(() => {
-                                                            ExportACCode.innerText = "导出AC代码";
-                                                        }, 1000);
-                                                    });
-                                            };
-                                        } else {
-                                            ExportACCode.disabled = false;
-                                            ExportACCode.innerText = "AC代码导出失败";
-                                            setTimeout(() => {
-                                                ExportACCode.innerText = "导出AC代码";
-                                            }, 1000);
-                                        }
+                                            }
+                                            ExportACCode.innerText = "正在生成压缩包……";
+                                            Zip.generateAsync({type: "blob"})
+                                                .then(function (Content) {
+                                                    saveAs(Content, "ACCodes.zip");
+                                                    ExportACCode.innerText = "AC代码导出成功";
+                                                    ExportACCode.disabled = false;
+                                                    setTimeout(() => {
+                                                        ExportACCode.innerText = "导出AC代码";
+                                                    }, 1000);
+                                                });
+                                        };
+                                    } else {
+                                        ExportACCode.disabled = false;
+                                        ExportACCode.innerText = "AC代码导出失败";
+                                        setTimeout(() => {
+                                            ExportACCode.innerText = "导出AC代码";
+                                        }, 1000);
                                     }
-                                });
-                                Request.open("GET", "https://www.xmoj.tech/export_ac_code.php", true);
-                                Request.send();
+                                }
                             });
-                        }
+                            Request.open("GET", "https://www.xmoj.tech/export_ac_code.php", true);
+                            Request.send();
+                        });
                     }
                 } else if (location.pathname == "/userinfo.php" && document.querySelector("body > div > div") == null) {
                     //页面结构异常（如403/404页面），跳过处理
