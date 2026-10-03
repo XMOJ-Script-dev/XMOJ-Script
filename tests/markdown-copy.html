@@ -81,15 +81,15 @@
         Check('preformatted edge whitespace and breaks', '<pre>  first\n\n    second<br>third  </pre>',
             fence + 'plain\n  first\n\n    second\nthird  \n' + fence + '\n\n', () => {}, false);
         Check('relative images and table cells', '<p>Image <img src="../Images/1.png"></p><table><tr><td>A</td><td>B</td></tr>' +
-            '<tr><td>C</td><td>D</td></tr></table>', 'Image ![](' + new URL('../Images/1.png', location.href).href + ')\n\nA\tB\t\nC\tD');
+            '<tr><td>C</td><td>D</td></tr></table>', 'Image ![](' + new URL('../Images/1.png', location.href).href + ')\n\n<table><tbody><tr><td>A</td><td>B</td></tr><tr><td>C</td><td>D</td></tr></tbody></table>');
         Check('indented table cells retain columns', '<table>\n <tr>\n <th>\n  A\n </th>\n <th>B</th>\n </tr>\n' +
-            '<tr>\n <td> C </td>\n <td> D </td>\n </tr>\n</table>', 'A\tB\t\nC\tD');
-        Check('nested table cell paragraphs retain separation', '<table><tr><td><div><p>A</p><p>B</p></div></td>' +
-            '<td><p>C</p>D<div>E</div>F</td></tr></table>', 'A\nB\tC\nD\nE\nF');
+            '<tr>\n <td> C </td>\n <td> D </td>\n </tr>\n</table>', '| A | B |\n| --- | --- |\n| C | D |');
+        Check('nested table cell paragraphs retain separation', '<table><tr><th>First</th><th>Second</th></tr><tr><td><div><p>A</p><p>B</p></div></td>' +
+            '<td><p>C</p>D<div>E</div>F</td></tr></table>', '| First | Second |\n| --- | --- |\n| A<br>B | C<br>D<br>E<br>F |');
         Check('empty table cells retain columns', '<table><tr><td></td><td>A</td><td> </td><td>B</td></tr></table>',
-            '\tA\t\tB\t\n\n', () => {}, false);
+            '<table><tbody><tr><td></td><td>A</td><td> </td><td>B</td></tr></tbody></table>\n\n', () => {}, false);
         Check('table cell preformatted whitespace is retained', '<table><tr><td><pre>  A\n\n B  </pre></td>' +
-            '<td>C</td></tr></table>', '  A\n\n B  \tC\t\n\n', () => {}, false);
+            '<td>C</td></tr></table>', '<table><tbody><tr><td><pre>  A&#10;&#10; B  </pre></td><td>C</td></tr></tbody></table>\n\n', () => {}, false);
         Check('prose formatting indentation is not copied', '<p>\n\tFirst sentence.\n</p>\n\t<p>\n\tSecond\n\tline.\n</p>',
             'First sentence.\n\nSecond line.');
         Check('highlighted code retains language and literal whitespace', '<pre><code class="language-cpp"><span>  int</span> x;\n\treturn 0;\n</code></pre>',
@@ -103,14 +103,36 @@
         Check('list item line separation', '<ul>\n  <li>A</li>\n  <li>B</li>\n</ul>', 'A\n\nB');
         Check('KaTeX display math stays within table cells', '<table><tr><td>a</td><td><span class="katex-display">' +
             Katex('x') + '</span></td><td>b</td></tr><tr><td>c</td><td>d</td><td>e</td></tr></table>',
-            'a\t$$x$$\tb\t\nc\td\te');
+            '<table><tbody><tr><td>a</td><td>$$x$$</td><td>b</td></tr><tr><td>c</td><td>d</td><td>e</td></tr></tbody></table>');
         Check('MathJax display math stays within table cells', '<table><tr><td>a</td><td><mjx-container>visual</mjx-container>' +
-            '</td><td>b</td></tr></table>', 'a\t$$x$$\tb', root => {
+            '</td><td>b</td></tr></table>', '<table><tbody><tr><td>a</td><td>$$x$$</td><td>b</td></tr></tbody></table>', root => {
                 window.MathJax = {startup: {document: {math: [
                     {typesetRoot: root.querySelector('mjx-container'), math: 'x', display: true}
                 ]}}};
             });
 
+        Check('table captions, alignment and short rows', '<p>Before.</p><table><caption>Scores</caption><thead><tr>' +
+            '<td align="left">Name</td><td style="text-align:right">Value</td></tr></thead><tbody>' +
+            '<tr><td>A</td><td>1</td></tr><tr><td>B</td></tr></tbody></table><p>After.</p>',
+            'Before.\n\nScores\n\n| Name | Value |\n| :--- | ---: |\n| A | 1 |\n| B |  |\n\nAfter.');
+        Check('table pipes, backslashes and TeX do not split columns', '<table><tr><th>Text</th><th>Math</th></tr>' +
+            '<tr><td>a|b\\|c<br>d</td><td>' + Katex('a\\mid b') + '</td></tr></table>',
+            '| Text | Math |\n| --- | --- |\n| a\\|b\\\\\\|c<br>d | $a\\mid b$ |');
+        Check('merged tables retain HTML structure and original TeX', '<table><tr><th colspan="2">Group</th></tr>' +
+            '<tr><td rowspan="2">' + Katex('a_i') + '</td><td>A</td></tr><tr><td>B</td></tr></table>',
+            '<table><tbody><tr><th colspan="2">Group</th></tr><tr><td rowspan="2">$a_i$</td><td>A</td></tr><tr><td>B</td></tr></tbody></table>');
+        Check('HTML table images and links keep their source URLs', '<table><tr><td><a href="../problem.php?id=1">' +
+            '<img src="../Images/1.png"></a></td></tr></table>', '<table><tbody><tr><td><a href="' +
+            new URL('../problem.php?id=1', location.href).href + '"><img src="' +
+            new URL('../Images/1.png', location.href).href + '"></a></td></tr></tbody></table>');
+        Check('nested tables retain HTML structure', '<table><tr><td>Outer<table><tr><td>Inner</td></tr></table></td></tr></table>',
+            '<table><tbody><tr><td>Outer<table><tbody><tr><td>Inner</td></tr></tbody></table></td></tr></tbody></table>');
+        Check('merged tables restore MathJax source', '<table><tr><td colspan="2"><mjx-container>visual</mjx-container></td></tr></table>',
+            '<table><tbody><tr><td colspan="2">$$x$$</td></tr></tbody></table>', root => {
+                window.MathJax = {startup: {document: {math: [
+                    {typesetRoot: root.querySelector('mjx-container'), math: 'x', display: true}
+                ]}}};
+            });
         const Section = (heading, content) => '<div class="cnt-row"><div class="cnt-row-head">' + heading +
             '</div><div class="cnt-row-body">' + content + '</div></div>';
         const sampleBody = '<div class="data-sample"><div class="in-out">' +
@@ -159,6 +181,19 @@
             '<div><div class="title">样例说明 #2</div><div class="content">Explanation.</div></div></div>'),
             '## 样例输入输出\n\n### 样例说明 #2\n\nExplanation.', () => {}, true,
             root => GetProblemSectionMarkdown(root.firstElementChild));
+
+        fixture.innerHTML = '<h2>问题 1000: Table</h2>' + Section('题目描述', '<div class="content"><table>' +
+            '<tr><th>Name</th><th>Value</th></tr><tr><td>A</td><td>1</td></tr></table></div>');
+        let tableCopied;
+        window.GM_setClipboard = text => { tableCopied = text; };
+        InitializeProblemMarkdownCopy(fixture);
+        const tableSection = '## 题目描述\n\n| Name | Value |\n| --- | --- |\n| A | 1 |';
+        fixture.querySelector('[data-xmoj-script="copy-section"]').click();
+        if (tableCopied !== tableSection) throw new Error('human review table section copy: ' + JSON.stringify(tableCopied));
+        fixture.querySelector('[data-xmoj-script="copy-problem"]').click();
+        if (tableCopied !== '# Table\n\n' + tableSection) throw new Error('human review table full copy: ' + JSON.stringify(tableCopied));
+        delete window.GM_setClipboard;
+        results.push('human review table section and full copy controls');
 
         // Reproduce the human review: fenced seat diagrams followed by indented HTML paragraphs.
         const reviewParagraphs = [

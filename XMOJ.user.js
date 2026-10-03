@@ -7685,6 +7685,84 @@ function GetMDText(element) {
         result += content;
     }
 
+    function ReadMath(node) {
+        const math = mathItems.get(node);
+        if (math) return math;
+        if (node.nodeType === Node.ELEMENT_NODE && (node.classList.contains('katex') ||
+            node.classList.contains('katex-display') || node.nodeName.toUpperCase() === 'MATH')) {
+            const annotation = node.querySelector('annotation[encoding="application/x-tex"]');
+            if (annotation) return {math: annotation.textContent, display: node.classList.contains('katex-display') ||
+                node.parentElement?.classList.contains('katex-display') || node.getAttribute('display') === 'block'};
+        }
+        return null;
+    }
+
+    function AppendTable(table) {
+        const rows = [...table.rows];
+        const first = rows[0];
+        const hasHeader = first && first.cells.length > 0 && (first.parentElement.nodeName === 'THEAD' ||
+            [...first.cells].every(cell => cell.nodeName === 'TH'));
+        // Pipe tables require a header and cannot represent merged cells, nested tables or code blocks.
+        // Retain their HTML structure, replacing rendered math with its source.
+        if (!hasHeader || table.querySelector('table, pre') || rows.some(row => [...row.cells].some(cell => cell.colSpan !== 1 || cell.rowSpan !== 1)) ||
+            table.tHead?.rows.length > 1) {
+            const copy = table.cloneNode(true);
+            function RestoreMath(original, clone) {
+                if (original.nodeName === 'PRE') return;
+                const math = ReadMath(original);
+                if (math) {
+                    clone.replaceWith(document.createTextNode((math.display ? '$$' : '$') + math.math + (math.display ? '$$' : '$')));
+                    return;
+                }
+                for (const attribute of ['src', 'href']) {
+                    const value = original.getAttribute?.(attribute);
+                    if (value) {
+                        try {
+                            clone.setAttribute(attribute, new URL(value, location.href).href);
+                        } catch (e) {
+                            // Keep the source value when it is not a valid URL.
+                        }
+                    }
+                }
+                const children = [...clone.childNodes];
+                [...original.childNodes].forEach((child, index) => RestoreMath(child, children[index]));
+            }
+            RestoreMath(table, copy);
+            AppendBreak(2);
+            // Encode literal line endings so blank lines inside HTML do not end
+            // the Markdown HTML block. PRE contents retain them after rendering.
+            AppendContent(copy.outerHTML.replace(/\r\n|\r|\n/g, '&#10;'));
+            AppendBreak(2);
+            return;
+        }
+        if (table.caption) {
+            AppendBreak(2);
+            Traverse(table.caption);
+            AppendBreak(2);
+        }
+        if (!rows.length || !rows.some(row => row.cells.length)) return;
+        const values = rows.map(row => [...row.cells].map(cell => {
+            const previous = result;
+            result = '';
+            Traverse(cell);
+            const value = result.replace(/\t$/, '').trim().replace(/(\\*)\|/g, (_, slashes) => slashes + slashes + '\\|')
+                .replace(/ *\r?\n/g, '<br>');
+            result = previous;
+            return value;
+        }));
+        const width = Math.max(...values.map(row => row.length));
+        const header = values.shift();
+        const Line = row => '| ' + Array.from({length: width}, (_, index) => row[index] || '').join(' | ') + ' |';
+        const separators = Array.from({length: width}, (_, index) => {
+            const cell = first.cells[index];
+            const alignment = cell?.style.textAlign || cell?.getAttribute('align');
+            return alignment === 'center' ? ':---:' : alignment === 'right' ? '---:' : alignment === 'left' ? ':---' : '---';
+        });
+        AppendBreak(2);
+        AppendContent([Line(header), Line(separators), ...values.map(Line)].join('\n'));
+        AppendBreak(2);
+    }
+
     function AppendMath(tex, display, inCell) {
         // Keep a table cell on its row, including its trailing tab separator.
         if (display && !inCell) AppendBreak(2);
@@ -7739,19 +7817,16 @@ function GetMDText(element) {
             return;
         }
 
+        if (tag === 'TABLE') {
+            AppendTable(node);
+            return;
+        }
+
         // Copy the source once, rather than the visual and accessibility trees.
-        const math = mathItems.get(node);
+        const math = ReadMath(node);
         if (math) {
             AppendMath(math.math, math.display, inCell);
             return;
-        }
-        if (node.classList.contains('katex') || node.classList.contains('katex-display') || tag === 'MATH') {
-            const annotation = node.querySelector('annotation[encoding="application/x-tex"]');
-            if (annotation) {
-                AppendMath(annotation.textContent, node.classList.contains('katex-display') ||
-                    node.parentElement?.classList.contains('katex-display') || node.getAttribute('display') === 'block', inCell);
-                return;
-            }
         }
 
         // Preserve line breaks for <br>
