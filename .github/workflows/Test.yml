@@ -1,0 +1,20 @@
+name: Test
+on:
+  pull_request:
+  push:
+    branches:
+      - dev
+      - master
+jobs:
+  Test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - run: npm test
