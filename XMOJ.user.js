@@ -2961,8 +2961,12 @@ class NavbarStyler {
             let spacer = document.getElementById('navbar-spacer');
             let newHeight = this.navbar.offsetHeight + 24;
             if (!spacer) {
-                spacer = document.createElement('div');
+                // Legacy page handlers use body > div for the content container.
+                // A block span reserves space without becoming their first match.
+                spacer = document.createElement('span');
                 spacer.id = 'navbar-spacer';
+                spacer.setAttribute('aria-hidden', 'true');
+                spacer.style.display = 'block';
                 spacer.style.width = '100%';
                 document.body.insertBefore(spacer, document.body.firstChild);
                 this.spacer = spacer;

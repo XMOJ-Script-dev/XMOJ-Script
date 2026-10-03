@@ -133,3 +133,56 @@ test('navbar refreshes keep one resize listener and release replaced navbars', {
         await browser.close();
     }
 });
+
+test('downloads stay in the page container below the fixed navbar', {timeout: 60000}, async () => {
+    const navbarStart = 'let navbarStyler = null;';
+    const navbarEnd = '// Wrapped in an async IIFE';
+    const downloadsStart = '} else if (location.pathname == "/downloads.php") {';
+    const downloadsEnd = '} else if (location.pathname == "/problemstatus.php") {';
+    for (const marker of [navbarStart, navbarEnd, downloadsStart, downloadsEnd]) {
+        assert.equal(source.split(marker).length - 1, 1, 'expected one extraction marker: ' + marker);
+    }
+    const navbarSource = source.slice(source.indexOf(navbarStart), source.indexOf(navbarEnd));
+    const downloadsSource = source.slice(source.indexOf(downloadsStart) + downloadsStart.length, source.indexOf(downloadsEnd));
+    const browser = await chromium.launch({executablePath: process.env.XMOJ_CHROMIUM || undefined});
+    const page = await browser.newPage();
+    try {
+        // Run the real downloads handler without external image requests or login.
+        await page.route('**/*', route => route.abort());
+        await page.setContent(`<style>
+            body { margin: 0; }
+            .navbar { height: 64px; }
+            .fixed-top { top: 0; left: 0; right: 0; }
+            .mt-3 { margin-top: 16px; }
+            .software_list { margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); }
+            .software_item { list-style: none; min-height: 150px; }
+        </style><div id="page-content"><nav class="navbar navbar-expand-lg bg-body-tertiary">Navbar</nav><ul class="software_list"><li>Original download</li></ul></div>`);
+        await page.evaluate(() => { window.UtilityEnabled = name => ['NewTopBar', 'NewDownload', 'MonochromeUI'].includes(name); });
+        await page.addScriptTag({content: navbarSource + '\nUpdateNavbarStyler();\n' + downloadsSource});
+        const before = await page.evaluate(() => {
+            const list = document.querySelector('.software_list');
+            return {
+                inPageContainer: document.getElementById('page-content').contains(list),
+                inSpacer: document.getElementById('navbar-spacer').contains(list),
+                navbarBottom: document.querySelector('nav').getBoundingClientRect().bottom,
+                firstCardTop: list.firstElementChild.getBoundingClientRect().top,
+                cards: list.children.length
+            };
+        });
+        assert.equal(before.inPageContainer, true, 'downloads must not be appended to the spacer');
+        assert.equal(before.inSpacer, false);
+        assert.equal(before.cards, 15);
+        assert.ok(before.firstCardTop >= before.navbarBottom, 'the fixed navbar must not cover the first download row');
+        const after = await page.evaluate(() => {
+            document.querySelector('nav').style.height = '96px';
+            UpdateNavbarStyler();
+            return {
+                navbarBottom: document.querySelector('nav').getBoundingClientRect().bottom,
+                firstCardTop: document.querySelector('.software_item').getBoundingClientRect().top
+            };
+        });
+        assert.ok(after.firstCardTop >= after.navbarBottom, 'the spacing must follow navbar height changes');
+    } finally {
+        await browser.close();
+    }
+});
