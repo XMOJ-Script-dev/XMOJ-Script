@@ -7867,6 +7867,7 @@ function InitializeProblemMarkdownCopy(root, sourceRoot = root, addCopy = null) 
         const button = document.createElement("button");
         button.type = "button";
         button.className = "btn btn-sm btn-outline-secondary copy-btn";
+        button.style.marginLeft = "10px";
         button.setAttribute("data-xmoj-script", name);
         button.textContent = "复制";
         button.addEventListener("click", () => {
