@@ -7703,8 +7703,9 @@ function GetMDText(element) {
         const hasHeader = first && first.cells.length > 0 && (first.parentElement.nodeName === 'THEAD' ||
             [...first.cells].every(cell => cell.nodeName === 'TH'));
         // Pipe tables require a header and cannot represent merged cells, nested tables or code blocks.
-        // Retain their HTML structure, replacing rendered math with its source.
-        if (!hasHeader || table.querySelector('table, pre') || rows.some(row => [...row.cells].some(cell => cell.colSpan !== 1 || cell.rowSpan !== 1)) ||
+        // Also retain HTML for links so their destinations are preserved.
+        // Replace rendered math with its source.
+        if (!hasHeader || table.querySelector('table, pre, a') || rows.some(row => [...row.cells].some(cell => cell.colSpan !== 1 || cell.rowSpan !== 1)) ||
             table.tHead?.rows.length > 1) {
             const copy = table.cloneNode(true);
             function RestoreMath(original, clone) {

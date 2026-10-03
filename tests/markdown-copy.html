@@ -125,6 +125,10 @@
             '<img src="../Images/1.png"></a></td></tr></table>', '<table><tbody><tr><td><a href="' +
             new URL('../problem.php?id=1', location.href).href + '"><img src="' +
             new URL('../Images/1.png', location.href).href + '"></a></td></tr></tbody></table>');
+        Check('header tables preserve link destinations and math', '<table><tr><th><a href="../problem.php?id=1">Problem</a></th><th>Value</th></tr>' +
+            '<tr><td><a href="https://example.com/task">Reference</a></td><td>' + Katex('x') + '</td></tr></table>',
+            '<table><tbody><tr><th><a href="' + new URL('../problem.php?id=1', location.href).href + '">Problem</a></th><th>Value</th></tr>' +
+            '<tr><td><a href="https://example.com/task">Reference</a></td><td>$x$</td></tr></tbody></table>');
         Check('nested tables retain HTML structure', '<table><tr><td>Outer<table><tr><td>Inner</td></tr></table></td></tr></table>',
             '<table><tbody><tr><td>Outer<table><tbody><tr><td>Inner</td></tr></tbody></table></td></tr></tbody></table>');
         Check('merged tables restore MathJax source', '<table><tr><td colspan="2"><mjx-container>visual</mjx-container></td></tr></table>',
