@@ -139,8 +139,8 @@
         Check('classic statement selects Chinese content and numbers samples', classic,
             '# Graph: Paths\n\n## 题目描述\n\nA\n\nB\n\n## 样例输入输出\n\n### 样例输入 #1\n\n' + fence + 'plain\nx\n' + fence,
             () => {}, true, root => GetProblemStatementMarkdown(root));
-        Check('classic statement selects English content', classic,
-            '# Graph: English\n\n## Description\n\nEnglish.\n\n## 样例输入输出\n\n### 样例输入 #1\n\n' + fence + 'plain\nx\n' + fence,
+        const classicFullEnglish = '# Graph: English\n\n## Description\n\nEnglish.\n\n## 样例输入输出\n\n### 样例输入 #1\n\n' + fence + 'plain\nx\n' + fence;
+        Check('classic statement selects English content', classic, classicFullEnglish,
             () => {}, true, root => GetProblemStatementMarkdown(root, 'en'));
         Check('sample code uses a fence longer than its backticks', Section('样例输入输出',
             '<div class="in-out"><div class="in-out-item"><span class="title">Input #1</span><pre class="content">' +
@@ -181,8 +181,7 @@
                 for (const node of fixture.querySelectorAll('.lang_cn')) node.style.display = 'none';
                 for (const node of fixture.querySelectorAll('.lang_en')) node.style.display = '';
                 fixture.querySelector('h2.lang_en [data-xmoj-script="copy-problem"]').click();
-                const english = '# Graph: English\n\n## Description\n\nEnglish.\n\n' + sampleExpected;
-                if (copied !== english) throw new Error(name + ': full copy did not follow English visibility: ' + JSON.stringify(copied));
+                if (copied !== classicFullEnglish) throw new Error(name + ': full copy did not follow English visibility: ' + JSON.stringify(copied));
                 buttons[0].click();
                 if (copied !== '## Description\n\nEnglish.') throw new Error(name + ': section copy did not follow English visibility');
                 for (const node of fixture.querySelectorAll('.lang_en')) node.style.display = 'none';
