@@ -3802,6 +3802,21 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "3.8.0": {
+            "UpdateDate": 1791031311300,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 1028,
+                    "Description": "fix: 修复异常页面的 TypeError，并兼容新版 /web/contest 比赛页面"
+                },
+                {
+                    "PR": 1031,
+                    "Description": "fix: preserve problem Markdown and add full-statement copying"
+                }
+            ],
+            "Notes": "修复页面初始化和空值处理异常，恢复新版比赛页面、题目切换和提交状态分数显示；改善页面加载布局稳定性，并修复题目 Markdown 复制中的公式、表格和样例格式。"
         }
     }
 }
