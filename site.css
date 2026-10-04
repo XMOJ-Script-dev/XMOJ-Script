@@ -126,7 +126,7 @@ footer a:not(.btn):hover {
 
 .site-nav .navbar-brand img {
     height: 32px;
-    width: 32px;
+    width: auto;
 }
 
 .site-nav .nav-link {
@@ -244,7 +244,31 @@ footer a:not(.btn):hover {
     color: var(--mono-gray-500);
 }
 
-/* 首屏右侧的“提交状态”示意 */
+/* 首屏截图：按主题切换亮色/暗色版本 */
+.hero-shot img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 2px solid var(--mono-black);
+}
+
+.hero-shot figcaption {
+    font-family: var(--mono-font-mono);
+    font-size: 0.75rem;
+    color: var(--mono-gray-500);
+    margin-top: 0.5rem;
+}
+
+.theme-dark-only,
+[data-bs-theme='dark'] .theme-light-only {
+    display: none !important;
+}
+
+[data-bs-theme='dark'] .theme-dark-only {
+    display: block !important;
+}
+
+/* 404 页的“评测结果”示意 */
 .status-demo {
     border: 2px solid var(--mono-black);
     background-color: var(--mono-white);
