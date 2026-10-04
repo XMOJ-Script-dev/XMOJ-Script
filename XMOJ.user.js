@@ -2255,6 +2255,240 @@ function CreateProblemSwitcher(ProblemList, IsCurrent) {
     return problemSwitcher;
 }
 
+// Read server-rendered links, or the numeric p(id, count) calls in unexecuted HTML.
+// Never eval profile scripts: document.write after page load can replace the page.
+function GetProfileSolvedProblems(root = document) {
+    let table = root.querySelector("#statics");
+    let problems = new Set();
+    for (let link of table?.querySelectorAll("a[href]") || []) {
+        try {
+            let url = new URL(link.getAttribute("href"), location.href);
+            let value = url.searchParams.get("id");
+            let id = Number(value);
+            if (url.pathname == "/problem.php" && /^\d+$/.test(value) && Number.isSafeInteger(id) && id > 0) problems.add(id);
+        } catch { /* Ignore malformed links rather than aborting the profile. */ }
+    }
+    for (let script of table?.querySelectorAll("script") || []) {
+        for (let match of script.textContent.matchAll(/\bp\(\s*(\d+)\s*,\s*\d+\s*\)/g)) {
+            if (Number.isSafeInteger(Number(match[1])) && Number(match[1]) > 0) problems.add(Number(match[1]));
+        }
+    }
+    return [...problems];
+}
+
+function InitializeProfileBadge(container, userID, isAdmin) {
+    let badge = document.createElement("span");
+    badge.className = "badge me-2";
+    badge.id = "UserScriptProfileBadge";
+    let status = document.createElement("span");
+    status.setAttribute("role", "status");
+    let retry = document.createElement("button");
+    retry.type = "button";
+    retry.className = "btn btn-outline-secondary btn-sm";
+    retry.textContent = "重试加载标签";
+    let controls = document.createElement("span");
+    container.append(badge, status, retry, controls);
+    const ClearCache = () => {
+        let keys = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            let key = localStorage.key(i);
+            if (key.startsWith("UserScript-User-" + userID + "-Badge-")) keys.push(key);
+        }
+        keys.forEach(key => localStorage.removeItem(key));
+    };
+    const Fail = message => {
+        status.textContent = "标签暂不可用：" + message;
+        retry.hidden = false;
+        retry.disabled = false;
+    };
+    const Load = () => {
+        status.textContent = "正在加载标签...";
+        retry.hidden = true;
+        retry.disabled = true;
+        controls.replaceChildren();
+        RequestAPI("GetBadge", {UserID: userID}, response => {
+            if (!response?.Success) { Fail(response?.Message || "服务器响应异常，请重试"); return; }
+            let data = response.Data ?? {};
+            let content = String(data.Content ?? "");
+            badge.textContent = content;
+            badge.hidden = content === "";
+            badge.style.backgroundColor = /^#[0-9a-f]{6}$/i.test(data.BackgroundColor) ? data.BackgroundColor : "#000000";
+            badge.style.color = /^#[0-9a-f]{6}$/i.test(data.Color) ? data.Color : "#ffffff";
+            status.textContent = "";
+            retry.disabled = false;
+            if (!isAdmin) return;
+            let button = document.createElement("button");
+            button.type = "button";
+            button.className = "btn btn-outline-primary btn-sm";
+            button.textContent = content === "" ? "添加标签" : "删除标签";
+            controls.appendChild(button);
+            button.addEventListener("click", () => {
+                if (content !== "" && !confirm("您确定要删除此标签吗？")) return;
+                button.disabled = true;
+                const Failed = message => { status.textContent = message; button.disabled = false; };
+                RequestAPI(content === "" ? "NewBadge" : "DeleteBadge", {UserID: userID}, result => {
+                    if (!result?.Success) { Failed(result?.Message || "服务器响应异常，请重试"); return; }
+                    ClearCache();
+                    Load();
+                }, Failed);
+            });
+        }, Fail);
+    };
+    retry.addEventListener("click", Load);
+    Load();
+}
+
+function InitializeProfileChart(table) {
+    let chart = table.querySelector("#PieDiv");
+    if (!chart) return;
+    let entries = [...table.rows].filter(row => row.cells[1]?.querySelector('a[href*="jresult="]') && !/^(解决|Solved)/i.test(row.cells[0]?.textContent.trim()))
+        .map(row => ({label: row.cells[0].textContent.trim(), value: Number(row.cells[1].textContent.trim())}))
+        .filter(entry => Number.isFinite(entry.value) && entry.value >= 0);
+    let total = entries.reduce((sum, entry) => sum + entry.value, 0);
+    if (!entries.length) return;
+    let colors = ["#FF8080", "#8080FF", "#80bb80", "#FF0066", "#9900FF", "#996633", "#006633", "#000000", "#66cddd", "#0066FF"];
+    let pie = document.createElement("div");
+    pie.setAttribute("role", "img");
+    pie.setAttribute("aria-label", "判题结果分布");
+    pie.style.cssText = "width:100px;height:100px;border-radius:50%;flex-shrink:0";
+    pie.style.setProperty("border-radius", "50%", "important");
+    let legend = document.createElement("ul");
+    legend.className = "list-unstyled mb-0";
+    legend.style.textAlign = "left";
+    let position = 0;
+    let segments = entries.map((entry, index) => {
+        let start = position;
+        position += total ? entry.value / total * 100 : 0;
+        let color = colors[index % colors.length];
+        let item = document.createElement("li");
+        let marker = document.createElement("span");
+        marker.style.cssText = "display:inline-block;width:10px;height:10px;margin-right:6px;background:" + color;
+        item.append(marker, document.createTextNode(entry.label + " [" + (total ? Math.round(entry.value / total * 100) : 0) + "%]"));
+        legend.appendChild(item);
+        return color + " " + start + "% " + position + "%";
+    });
+    pie.style.background = total ? "conic-gradient(" + segments.join(",") + ")" : "#808080";
+    // The old canvas positions ten labels within 100px; normal flow prevents overlap.
+    chart.style.cssText = "display:flex;flex-wrap:wrap;align-items:center;gap:12px;width:auto;height:auto";
+    chart.replaceChildren(pie, legend);
+}
+
+// Commit the complete profile before any optional API call can fail or stall.
+function InitializeUserProfile(isAdmin = false) {
+    if (location.pathname != "/userinfo.php" || new URLSearchParams(location.search).has("ByUserScript") || document.getElementById("UserScriptProfile")) return;
+    let table = document.getElementById("statics");
+    if (!table) return;
+    let caption = table.caption?.cloneNode(true);
+    caption?.querySelectorAll("a").forEach(link => link.remove());
+    let identity = caption?.textContent.trim() || "";
+    let separator = identity.indexOf("--");
+    let userID = separator >= 0 ? identity.slice(0, separator).trim() : new URLSearchParams(location.search).get("user");
+    let nickname = separator >= 0 ? identity.slice(separator + 2).trim() : identity;
+    if (!userID) return;
+    let problems = GetProfileSolvedProblems();
+    let rows = [...table.rows];
+    const Value = pattern => rows.find(row => pattern.test(row.cells[0]?.textContent.trim() || ""))?.cells[1]?.textContent.trim();
+    let email = Value(/^(电子邮箱|Email:?)$/i) || "";
+    let submitted = Number(Value(/^(提交|Submit(?:ted)?|Submissions?:?)$/i));
+    let accepted = Number(Value(/^(正确|Accepted:?)$/i));
+    let rating = submitted > 0 && Number.isFinite(accepted) ? Math.round(accepted / submitted * 1000) : 0;
+    let profile = document.createElement("div");
+    profile.id = "UserScriptProfile";
+    profile.className = "row text-start text-left";
+    let left = document.createElement("div");
+    left.className = "col-md-5";
+    let right = document.createElement("div");
+    right.className = "col-md-7";
+    profile.append(left, right);
+    let header = document.createElement("div");
+    header.className = "row mb-2";
+    let avatarContainer = document.createElement("div");
+    avatarContainer.className = "col-auto";
+    let avatar = document.createElement("img");
+    avatar.className = "rounded me-2";
+    avatar.alt = userID + " 的头像";
+    avatar.width = avatar.height = 120;
+    avatar.src = "https://cravatar.cn/avatar/00000000000000000000000000000000?d=mp&f=y";
+    // The native profile already contains the email and statistics. No second
+    // profile fetch is needed to show the avatar or compute the rating.
+    if (email) {
+        try { avatar.src = "https://cravatar.cn/avatar/" + CryptoJS.MD5(email).toString() + "?d=retro"; }
+        catch (error) { console.error("[XMOJ-Script] Profile avatar:", error); }
+    }
+    avatarContainer.appendChild(avatar);
+    let info = document.createElement("div");
+    info.className = "col-auto";
+    info.style.lineHeight = "40px";
+    const Line = text => {
+        let line = document.createElement("div");
+        line.textContent = text;
+        info.appendChild(line);
+        return line;
+    };
+    Line("用户名：" + userID);
+    Line("昵称：" + nickname);
+    if (UtilityEnabled("Rating")) Line("评分：" + rating);
+    let lastOnline = Line("最后在线：加载中...");
+    lastOnline.id = "UserScriptProfileLastOnline";
+    let badges = document.createElement("div");
+    info.appendChild(badges);
+    header.append(avatarContainer, info);
+    left.appendChild(header);
+    let heading = document.createElement("h5");
+    heading.textContent = "已解决题目";
+    right.appendChild(heading);
+    let solved = document.createElement("div");
+    solved.id = "UserScriptProfileSolved";
+    solved.style.lineHeight = "1.8";
+    for (let id of problems) {
+        let link = document.createElement("a");
+        link.href = "/problem.php?id=" + id;
+        link.target = "_blank";
+        link.textContent = id;
+        solved.append(link, document.createTextNode(" "));
+    }
+    right.appendChild(solved);
+
+    // Move the original statistics/chart nodes so their links and handlers survive.
+    table.insertAdjacentElement("beforebegin", profile);
+    for (let link of table.caption?.querySelectorAll("a") || []) info.appendChild(link);
+    table.caption?.remove();
+    let solvedCell = [...table.querySelectorAll("td[rowspan]")].find(cell =>
+        cell.querySelector('a[href*="problem.php"]') || [...cell.querySelectorAll("script")].some(script => /\bfunction\s+p\s*\(/.test(script.textContent)));
+    let activity = document.getElementById("submission");
+    if (solvedCell?.querySelector('a[href*="problem.php"]')) {
+        // Keep the native per-problem submission-count links and their handlers.
+        solved.replaceChildren();
+        let group = null;
+        for (let node of [...solvedCell.childNodes]) {
+            if (node.nodeName == "SCRIPT" || node === activity) continue;
+            if (node.nodeName == "A" && node.getAttribute("href")?.includes("problem.php")) {
+                group = document.createElement("span");
+                group.style.cssText = "display:inline-block;white-space:nowrap;margin-right:8px";
+                solved.appendChild(group);
+            }
+            (group || solved).appendChild(node);
+        }
+    }
+    if (activity && !UtilityEnabled("RemoveUseless")) right.appendChild(activity);
+    solvedCell?.remove();
+    let firstRow = table.rows[0];
+    if (firstRow?.cells.length >= 2 && !firstRow.cells[0].textContent.trim() && !firstRow.cells[1].textContent.trim()) firstRow.remove();
+    for (let row of table.rows) {
+        if (row.cells[0]?.textContent.trim() == "Statistics") row.cells[0].textContent = "统计";
+        if (row.cells[0]?.textContent.trim() == "Email:") row.cells[0].textContent = "电子邮箱";
+        for (let cell of row.cells) cell.removeAttribute("align");
+    }
+    table.removeAttribute("width");
+    left.appendChild(table);
+    InitializeProfileChart(table);
+    document.title = "用户 " + userID + " 的个人中心";
+    InitializeProfileBadge(badges, userID, isAdmin);
+    RequestAPI("LastOnline", {Username: userID}, response => {
+        lastOnline.textContent = "最后在线：" + (response?.Success && response.Data?.logintime != null ? GetRelativeTime(response.Data.logintime) : "暂无记录");
+    }, () => { lastOnline.textContent = "最后在线：暂不可用"; });
+}
+
 function IsAccountSettingsPage(pathname) {
     return pathname == "/modify_user_info.php";
 }
@@ -3291,6 +3525,7 @@ CurrentUsername = CurrentUsername.replaceAll(/[^a-zA-Z0-9]/g, "");
 // Initialize migrated account tools independently of the legacy navbar/layout handler.
 InitializeAccountFeatures(logined || (CurrentUsername && !/^(Login|Guest)$/i.test(CurrentUsername)));
 let IsAdmin = AdminUserList.indexOf(CurrentUsername) !== -1;
+InitializeUserProfile(IsAdmin);
 
 const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
 const applyTheme = (theme) => {
@@ -3351,13 +3586,13 @@ async function main() {
                 }
                 // Preserve native account listeners during page-wide customization.
                 RequestAPI("SendData", {});
-                // These native forms rely on site-installed listeners. Whole-body
-                // replacements discard them even when the account handler keeps the form.
-                let preserveAccountForm = location.pathname == "/modify_user_info.php" || location.pathname == "/modify_password.php";
-                if (UtilityEnabled("ReplaceLinks") && !preserveAccountForm) {
+                // Whole-body replacements discard native forms, profile charts,
+                // and listeners already installed on the enhanced profile.
+                let preserveNativePage = ["/modify_user_info.php", "/modify_password.php", "/userinfo.php"].includes(location.pathname);
+                if (UtilityEnabled("ReplaceLinks") && !preserveNativePage) {
                     document.body.innerHTML = String(document.body.innerHTML).replaceAll(/\[<a href="([^"]*)">([^<]*)<\/a>\]/g, "<button onclick=\"location.href='$1'\" class=\"btn btn-outline-secondary\">$2</button>");
                 }
-                if (UtilityEnabled("ReplaceXM") && !preserveAccountForm) {
+                if (UtilityEnabled("ReplaceXM") && !preserveNativePage) {
                     document.body.innerHTML = String(document.body.innerHTML).replaceAll("我", "高老师");
                     document.body.innerHTML = String(document.body.innerHTML).replaceAll("小明", "高老师");
                     document.body.innerHTML = String(document.body.innerHTML).replaceAll("下海", "上海");
@@ -5450,158 +5685,7 @@ async function main() {
                 } else if (location.pathname == "/userinfo.php" && document.querySelector("body > div > div") == null) {
                     //页面结构异常（如403/404页面），跳过处理
                 } else if (location.pathname == "/userinfo.php") {
-                    if (SearchParams.get("ByUserScript") === null) {
-                        if (UtilityEnabled("RemoveUseless")) {
-                            let Temp = document.getElementById("submission").childNodes;
-                            for (let i = 0; i < Temp.length; i++) {
-                                Temp[i].remove();
-                            }
-                        }
-                        if (document.querySelector("body > script:nth-child(5)") != null) eval(document.querySelector("body > script:nth-child(5)").innerHTML);
-                        if (document.querySelector("#statics > tbody > tr:nth-child(1)") != null) document.querySelector("#statics > tbody > tr:nth-child(1)").remove();
-
-                        let Temp = (document.querySelector("#statics > tbody") != null) ? document.querySelector("#statics > tbody").children : [];
-                        for (let i = 0; i < Temp.length; i++) {
-                            if (Temp[i].children[0] != undefined) {
-                                if (Temp[i].children[0].innerText == "Statistics") {
-                                    Temp[i].children[0].innerText = "统计";
-                                } else if (Temp[i].children[0].innerText == "Email:") {
-                                    Temp[i].children[0].innerText = "电子邮箱";
-                                }
-                                Temp[i].children[1].removeAttribute("align");
-                            }
-                        }
-
-                        Temp = (document.querySelector("#statics > tbody > tr:nth-child(1) > td:nth-child(3)") != null) ? document.querySelector("#statics > tbody > tr:nth-child(1) > td:nth-child(3)").childNodes : [];
-                        let ACProblems = [];
-                        for (let i = 0; i < Temp.length; i++) {
-                            if (Temp[i].tagName == "A" && Temp[i].href.indexOf("problem.php?id=") != -1) {
-                                ACProblems.push(Number(Temp[i].innerText.trim()));
-                            }
-                        }
-                        if (document.querySelector("#statics > tbody > tr:nth-child(1) > td:nth-child(3)") != null) document.querySelector("#statics > tbody > tr:nth-child(1) > td:nth-child(3)").remove();
-
-                        let UserID, UserNick;
-                        if (document.querySelector("#statics > caption") != null) [UserID, UserNick] = document.querySelector("#statics > caption").childNodes[0].data.trim().split("--");
-                        if (document.querySelector("#statics > caption") != null) document.querySelector("#statics > caption").remove();
-                        document.title = "用户 " + UserID + " 的个人中心";
-                        let Row = document.createElement("div");
-                        Row.className = "row";
-                        let LeftDiv = document.createElement("div");
-                        LeftDiv.className = "col-md-5";
-                        Row.appendChild(LeftDiv);
-
-                        let LeftTopDiv = document.createElement("div");
-                        LeftTopDiv.className = "row mb-2";
-                        LeftDiv.appendChild(LeftTopDiv);
-                        let AvatarContainer = document.createElement("div");
-                        AvatarContainer.classList.add("col-auto");
-                        let AvatarElement = document.createElement("img");
-                        let UserEmailHash = (await GetUserInfo(UserID)).EmailHash;
-                        if (UserEmailHash == undefined) {
-                            AvatarElement.src = `https://cravatar.cn/avatar/00000000000000000000000000000000?d=mp&f=y`;
-                        } else {
-                            AvatarElement.src = `https://cravatar.cn/avatar/${UserEmailHash}?d=retro`;
-                        }
-                        AvatarElement.classList.add("rounded", "me-2");
-                        AvatarElement.style.height = "120px";
-                        AvatarContainer.appendChild(AvatarElement);
-                        LeftTopDiv.appendChild(AvatarContainer);
-
-                        let UserInfoElement = document.createElement("div");
-                        UserInfoElement.classList.add("col-auto");
-                        UserInfoElement.style.lineHeight = "40px";
-                        UserInfoElement.innerHTML += "用户名：" + escapeHTML(UserID) + "<br>";
-                        UserInfoElement.innerHTML += "昵称：" + escapeHTML(UserNick) + "<br>";
-                        if (UtilityEnabled("Rating")) {
-                            UserInfoElement.innerHTML += "评分：" + ((await GetUserInfo(UserID)).Rating) + "<br>";
-                        }
-                        // Create a placeholder for the last online time
-                        let lastOnlineElement = document.createElement('div');
-                        lastOnlineElement.innerHTML = "最后在线：加载中...<br>";
-                        UserInfoElement.appendChild(lastOnlineElement);
-                        let BadgeInfo = await GetUserBadge(UserID);
-                        if (IsAdmin) {
-                            if (BadgeInfo.Content !== "") {
-                                let DeleteBadgeButton = document.createElement("button");
-                                DeleteBadgeButton.className = "btn btn-outline-danger btn-sm";
-                                DeleteBadgeButton.innerText = "删除标签";
-                                DeleteBadgeButton.addEventListener("click", async () => {
-                                    if (confirm("您确定要删除此标签吗？")) {
-                                        RequestAPI("DeleteBadge", {
-                                            "UserID": UserID
-                                        }, (Response) => {
-                                            if (UtilityEnabled("DebugMode")) console.log(Response);
-                                            if (Response.Success) {
-                                                let Temp = [];
-                                                for (let i = 0; i < localStorage.length; i++) {
-                                                    if (localStorage.key(i).startsWith("UserScript-User-" + UserID + "-Badge-")) {
-                                                        Temp.push(localStorage.key(i));
-                                                    }
-                                                }
-                                                for (let i = 0; i < Temp.length; i++) {
-                                                    localStorage.removeItem(Temp[i]);
-                                                }
-                                                window.location.reload();
-                                            } else {
-                                                SmartAlert(Response.Message);
-                                            }
-                                        });
-                                    }
-                                });
-                                UserInfoElement.appendChild(DeleteBadgeButton);
-                            } else {
-                                let AddBadgeButton = document.createElement("button");
-                                AddBadgeButton.className = "btn btn-outline-primary btn-sm";
-                                AddBadgeButton.innerText = "添加标签";
-                                AddBadgeButton.addEventListener("click", async () => {
-                                    RequestAPI("NewBadge", {
-                                        "UserID": UserID
-                                    }, (Response) => {
-                                        if (Response.Success) {
-                                            let Temp = [];
-                                            for (let i = 0; i < localStorage.length; i++) {
-                                                if (localStorage.key(i).startsWith("UserScript-User-" + UserID + "-Badge-")) {
-                                                    Temp.push(localStorage.key(i));
-                                                }
-                                            }
-                                            for (let i = 0; i < Temp.length; i++) {
-                                                localStorage.removeItem(Temp[i]);
-                                            }
-                                            window.location.reload();
-                                        } else {
-                                            SmartAlert(Response.Message);
-                                        }
-                                    });
-                                });
-                                UserInfoElement.appendChild(AddBadgeButton);
-                            }
-                        }
-                        RequestAPI("LastOnline", {"Username": UserID}, (result) => {
-                            if (result.Success) {
-                                if (UtilityEnabled("DebugMode")) {
-                                    console.log('lastOnline:' + result.Data.logintime);
-                                }
-                                lastOnlineElement.innerHTML = "最后在线：" + GetRelativeTime(result.Data.logintime) + "<br>";
-                            } else {
-                                lastOnlineElement.innerHTML = "最后在线：近三个月内从未<br>";
-                            }
-                        });
-                        LeftTopDiv.appendChild(UserInfoElement);
-                        LeftDiv.appendChild(LeftTopDiv);
-
-                        let LeftTable = document.querySelector("body > div > div > center > table");
-                        LeftDiv.appendChild(LeftTable);
-                        let RightDiv = document.createElement("div");
-                        RightDiv.className = "col-md-7";
-                        Row.appendChild(RightDiv);
-                        RightDiv.innerHTML = "<h5>已解决题目</h5>";
-                        for (let i = 0; i < ACProblems.length; i++) {
-                            RightDiv.innerHTML += "<a href=\"https://www.xmoj.tech/problem.php?id=" + ACProblems[i] + "\" target=\"_blank\">" + ACProblems[i] + "</a> ";
-                        }
-                        if (document.querySelector("body > div > div") != null) document.querySelector("body > div > div").innerHTML = "";
-                        if (document.querySelector("body > div > div") != null) document.querySelector("body > div > div").appendChild(Row);
-                    } else {
+                    if (SearchParams.get("ByUserScript") !== null) {
                         document.title = "上传标程";
                         if (document.querySelector("body > div > div.mt-3") != null) document.querySelector("body > div > div.mt-3").innerHTML = `<button id="UploadStd" class="btn btn-primary mb-2">上传标程</button>
                 <div class="alert alert-danger mb-3" role="alert" id="ErrorElement" style="display: none;"></div>
@@ -5629,12 +5713,7 @@ async function main() {
                                     return Response.text();
                                 }).then((Response) => {
                                     let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
-                                    let ScriptData = (ParsedDocument.querySelector("#statics > tbody > tr:nth-child(2) > td:nth-child(3) > script") != null) ? ParsedDocument.querySelector("#statics > tbody > tr:nth-child(2) > td:nth-child(3) > script").innerText : "";
-                                    ScriptData = ScriptData.substr(ScriptData.indexOf("}") + 1).trim();
-                                    ScriptData = ScriptData.split(";");
-                                    for (let i = 0; i < ScriptData.length; i++) {
-                                        ACList.push(Number(ScriptData[i].substring(2, ScriptData[i].indexOf(","))));
-                                    }
+                                    ACList = GetProfileSolvedProblems(ParsedDocument);
                                 });
                             RequestAPI("GetStdList", {}, async (Result) => {
                                 if (Result.Success) {
