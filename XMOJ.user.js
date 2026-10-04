@@ -143,6 +143,9 @@ const MonochromeSkinCSS = `
                     --mono-border-thin: 1px solid var(--mono-gray-300);
                     --mono-font-heading: 'Playfair Display', Georgia, serif;
                     --mono-font-body: 'Source Serif 4', 'Source Serif Pro', Georgia, serif;
+                    /* Source Serif has no Chinese glyphs. An explicit navbar fallback
+                       avoids different fonts under legacy lang=en and /web lang=zh-CN. */
+                    --mono-font-navbar: 'Source Serif 4', 'Source Serif Pro', Georgia, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', serif;
                     --mono-font-mono: 'JetBrains Mono', 'Consolas', monospace;
                     --mono-transition: 100ms ease;
                 }
@@ -197,6 +200,7 @@ const MonochromeSkinCSS = `
 
                 /* Navbar */
                 .navbar, nav.navbar {
+                    font-family: var(--mono-font-navbar) !important;
                     border-bottom: 4px solid var(--mono-black) !important;
                     background-color: var(--mono-white) !important;
                     opacity: 1 !important;
@@ -204,7 +208,7 @@ const MonochromeSkinCSS = `
                 .navbar .nav-link {
                     color: var(--mono-black) !important;
                     text-decoration: none !important;
-                    font-family: var(--mono-font-body) !important;
+                    font-family: var(--mono-font-navbar) !important;
                     text-transform: uppercase !important;
                     letter-spacing: 0.05em !important;
                     font-size: 0.85rem !important;
@@ -2922,7 +2926,7 @@ class NavbarStyler {
             this.navbar = navbar;
             this.addedClasses = ['fixed-top', 'container', 'ml-auto'].filter(name => !navbar.classList.contains(name));
             this.restoreNavbarStyles = this.preserveStyles(navbar, [
-                'position', 'border-top-left-radius', 'border-top-right-radius',
+                'position', 'top', 'border-top-left-radius', 'border-top-right-radius',
                 'border-bottom-left-radius', 'border-bottom-right-radius', 'box-shadow',
                 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
                 'max-width', 'background-color', 'opacity', 'z-index'
@@ -2981,6 +2985,9 @@ class NavbarStyler {
         try {
             let n = this.navbar;
             n.classList.add('fixed-top', 'container', 'ml-auto');
+            // The CDN fallback may still be loading when the top bar starts. Without
+            // Bootstrap's .fixed-top rule, top:auto moves it down with the spacer.
+            n.style.top = '0';
             if (UtilityEnabled("MonochromeUI")) {
                 Object.assign(n.style, {
                     position: 'fixed',

@@ -3830,15 +3830,15 @@
             "Notes": "<p>修复新版比赛页面和旧版界面顶部导航栏持续增加窗口缩放监听器的问题，减少长时间打开页面后的内存占用和缩放卡顿；页面导航栏被替换时会清理旧监听器。修复下载页面的卡片被插入导航栏占位元素、导致首行被顶部导航栏遮挡的问题。新版 /web 页面与旧版页面共享黑白主题字体加载，避免菜单栏使用不同字体。</p>"
         },
         "3.8.2": {
-            "UpdateDate": 1791073903614,
+            "UpdateDate": 1791075550636,
             "Prerelease": true,
             "UpdateContents": [
                 {
-                    "PR": 1040,
-                    "Description": "fix: support migrated account settings page"
+                    "PR": 1039,
+                    "Description": "fix: match Chinese navbar fonts between web and classic UI"
                 }
             ],
-            "Notes": "<p>修复修改账号页面迁移后菜单与更新日志无法访问的问题，保留新版账号表单及标签编辑、AC 代码导出功能。</p>"
+            "Notes": "<p>修复新版比赛页面与旧版页面导航栏中文字体不一致的问题。</p>"
         }
     }
 }
