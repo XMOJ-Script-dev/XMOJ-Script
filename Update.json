@@ -3841,15 +3841,15 @@
             "Notes": "<p>修复新版比赛页面与旧版页面导航栏中文字体不一致的问题。</p>"
         },
         "3.8.3": {
-            "UpdateDate": 1791093993813,
+            "UpdateDate": 1791094033746,
             "Prerelease": true,
             "UpdateContents": [
                 {
                     "PR": 1040,
-                    "Description": "fix: restore account settings and enforce Chinese UI"
+                    "Description": "fix: restore account and profile pages and enforce Chinese UI"
                 }
             ],
-            "Notes": "<p>修复修改账号页面迁移后菜单与更新日志无法访问的问题，保留新版账号表单，在当前账号页面独立显示标签编辑，并保留 AC 代码导出功能。旧账号链接自动跳转到当前页面。移除语言切换入口，经典界面和新版竞赛界面统一使用中文。</p>"
+            "Notes": "<p>修复修改账号页面迁移后菜单与更新日志无法访问的问题，保留新版账号表单，在当前账号页面独立显示标签编辑，并保留 AC 代码导出功能。旧账号链接自动跳转到当前页面。恢复个人中心的身份信息、评分、标签、最后在线与已解决题目，修复请求失败后的空白信息及图例重叠。移除语言切换入口，经典界面和新版竞赛界面统一使用中文。</p>"
         }
     }
 }
