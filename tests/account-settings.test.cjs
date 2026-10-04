@@ -44,11 +44,17 @@ test('account-page migration browser regressions', {timeout: 60000}, async t => 
             document.cookie = 'PHPSESSID=fixture; path=/';
             window.GM_info = {script: {version: 'test'}};
             window.badgeFailureMode = options.badgeFailureMode;
+            window.badgeLoadFailureMode = options.badgeLoadFailureMode;
+            window.badgeAccessDenied = options.noBadge;
             window.GM_xmlhttpRequest = request => {
                 const action = new URL(request.url).pathname.slice(1);
                 if (action !== 'SendData') apiCalls.push({action, data: JSON.parse(request.data).Data});
-                if (action === 'EditBadge') {
-                    const mode = window.badgeFailureMode;
+                if (action === 'EditBadge' || action === 'GetBadge') {
+                    const mode = action === 'GetBadge' ? window.badgeLoadFailureMode : window.badgeFailureMode;
+                    if (mode === 'pending') {
+                        window.pendingBadgeRequest = request;
+                        return;
+                    }
                     if (['network', 'timeout', 'abort'].includes(mode)) {
                         window.requestTimeout = request.timeout;
                         request[{network: 'onerror', timeout: 'ontimeout', abort: 'onabort'}[mode]]();
@@ -64,7 +70,7 @@ test('account-page migration browser regressions', {timeout: 60000}, async t => 
                     }
                 }
                 request.onload({status: 200, responseText: JSON.stringify(action === 'GetBadge' ? {
-                    Success: !options.noBadge, Data: Object.hasOwn(options, 'badgeData') ? options.badgeData :
+                    Success: !window.badgeAccessDenied, Message: 'Load denied', Data: Object.hasOwn(options, 'badgeData') ? options.badgeData :
                         {Content: 'Badge', BackgroundColor: '#112233', Color: '#ffffff'}
                 } : {Success: !options.badgeFailure, Message: 'Save failed'})});
             };
@@ -178,11 +184,69 @@ test('account-page migration browser regressions', {timeout: 60000}, async t => 
         }
         await t.test('badge access denial leaves the native form usable', async () => {
             const page = await Page('/modify_user_info.php', nativeForm, {noBadge: true});
-            assert.equal(await page.locator('#UserScriptBadgeContent').count(), 0);
+            assert.equal(await page.locator('#UserScriptBadgeContent').isDisabled(), true);
+            assert.match(await page.getByRole('status').innerText(), /Load denied/);
             await page.getByRole('button', {name: 'Save account'}).click();
             assert.equal(await page.evaluate(() => nativeSubmitCount), 1);
             await page.close();
         });
+        for (const route of ['/modify_user_info.php', '/modifypage.php']) {
+            const legacy = route === '/modifypage.php';
+            const content = legacy ? '#BadgeContent' : '#UserScriptBadgeContent';
+            const save = legacy ? '#ModifyInfo' : 'button:has-text("修改标签")';
+            const status = legacy ? '#BadgeLoadStatus' : '[role="status"]';
+            for (const mode of ['network', 'timeout', 'abort', 'throw', 'invalid-json', 'invalid-response', 'http', 'denied']) {
+                await t.test('protects existing badges and retries a ' + mode + ' load failure on ' + route, async () => {
+                    const page = await Page(route, legacy ? legacyForm : nativeForm,
+                        {badgeLoadFailureMode: mode, noBadge: mode === 'denied'});
+                    assert.match(await page.locator(status).innerText(), /标签加载失败：/);
+                    assert.equal(await page.locator(content).isDisabled(), true);
+                    assert.equal(await page.getByRole('button', {name: '重试加载标签', exact: true}).isVisible(), true);
+                    await page.evaluate(() => localStorage.setItem('UserScript-User-Tester-Badge-Content', 'existing badge'));
+                    if (legacy) {
+                        // An unrelated account edit must not send unloaded badge values.
+                        await page.locator('#Nickname').fill('Edited account');
+                        await page.locator(save).click();
+                        assert.deepEqual(await page.evaluate(() => requests), ['https://www.xmoj.tech/modify.php']);
+                    } else {
+                        assert.equal(await page.locator(save).isDisabled(), true);
+                        await page.locator(save).dispatchEvent('click');
+                        await page.getByRole('button', {name: 'Save account'}).click();
+                        assert.equal(await page.evaluate(() => nativeSubmitCount), 1);
+                    }
+                    assert.deepEqual(await page.evaluate(() => apiCalls.filter(call => call.action === 'EditBadge')), []);
+                    assert.equal(await page.evaluate(() => localStorage.getItem('UserScript-User-Tester-Badge-Content')), 'existing badge');
+                    await page.evaluate(() => {
+                        window.badgeLoadFailureMode = null;
+                        window.badgeAccessDenied = false;
+                    });
+                    await page.getByRole('button', {name: '重试加载标签', exact: true}).click();
+                    assert.equal(await page.locator(content).isEnabled(), true);
+                    assert.equal(await page.locator(content).inputValue(), 'Badge');
+                    assert.equal(await page.getByRole('button', {name: '重试加载标签', exact: true}).isHidden(), true);
+                    if (legacy) assert.equal(await page.locator('#Nickname').inputValue(), 'Edited account');
+                    await page.locator(content).fill('Recovered badge');
+                    await page.locator(save).click();
+                    assert.equal(await page.evaluate(() => apiCalls.find(call => call.action === 'EditBadge').data.Content), 'Recovered badge');
+                    assert.equal(await page.evaluate(() => localStorage.getItem('UserScript-User-Tester-Badge-Content')), null);
+                    await page.close();
+                });
+            }
+            await t.test('blocks badge writes while the initial load is pending on ' + route, async () => {
+                const page = await Page(route, legacy ? legacyForm : nativeForm, {badgeLoadFailureMode: 'pending'});
+                assert.match(await page.locator(status).innerText(), /正在加载标签/);
+                assert.equal(await page.locator(content).isDisabled(), true);
+                if (legacy) await page.locator(save).click();
+                else await page.locator(save).dispatchEvent('click');
+                assert.deepEqual(await page.evaluate(() => apiCalls.filter(call => call.action === 'EditBadge')), []);
+                await page.evaluate(() => pendingBadgeRequest.onload({status: 200, responseText: JSON.stringify({
+                    Success: true, Data: {Content: 'Existing badge', BackgroundColor: '#112233', Color: '#ffffff'}
+                })}));
+                assert.equal(await page.locator(content).isEnabled(), true);
+                assert.equal(await page.locator(content).inputValue(), 'Existing badge');
+                await page.close();
+            });
+        }
         for (const route of ['/modify_user_info.php', '/modifypage.php']) {
             await t.test('renders changelog on ' + route + ' even without an account form', async () => {
                 const page = await Page(route + '?ByUserScript=1', 'Please log in', {export: true});

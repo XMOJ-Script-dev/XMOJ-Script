@@ -2178,9 +2178,12 @@ function IsAccountSettingsPage(pathname) {
     return pathname == "/modifypage.php" || pathname == "/modify_user_info.php";
 }
 
-function LoadAccountBadge(content, background, color, onLoad) {
+function LoadAccountBadge(content, background, color, onLoad, onError) {
     RequestAPI("GetBadge", {"UserID": String(CurrentUsername)}, (response) => {
-        if (!response?.Success) return;
+        if (!response?.Success) {
+            onError(response?.Message || "服务器响应异常，请重试");
+            return;
+        }
         let badge = response.Data ?? {};
         content.value = String(badge.Content ?? "");
         // Color inputs cannot represent an empty value. Use explicit defaults
@@ -2188,7 +2191,39 @@ function LoadAccountBadge(content, background, color, onLoad) {
         background.value = /^#[0-9a-f]{6}$/i.test(badge.BackgroundColor) ? badge.BackgroundColor : "#000000";
         color.value = /^#[0-9a-f]{6}$/i.test(badge.Color) ? badge.Color : "#ffffff";
         onLoad();
-    });
+    }, onError);
+}
+
+// Unloaded fields must never be saved as a blank replacement for an existing badge.
+function InitializeAccountBadgeLoading(content, background, color, status, onReady = () => {}) {
+    let state = {loaded: false};
+    let retry = document.createElement("button");
+    retry.type = "button";
+    retry.className = "btn btn-outline-secondary mt-2";
+    retry.innerText = "重试加载标签";
+    status.insertAdjacentElement("afterend", retry);
+    let Load = () => {
+        state.loaded = false;
+        [content, background, color].forEach(input => { input.disabled = true; });
+        onReady(false);
+        status.innerText = "正在加载标签...";
+        retry.hidden = true;
+        retry.disabled = true;
+        LoadAccountBadge(content, background, color, () => {
+            state.loaded = true;
+            [content, background, color].forEach(input => { input.disabled = false; });
+            status.innerText = "";
+            retry.disabled = false;
+            onReady(true);
+        }, message => {
+            status.innerText = "标签加载失败：" + message;
+            retry.hidden = false;
+            retry.disabled = false;
+        });
+    };
+    retry.addEventListener("click", Load);
+    Load();
+    return state;
 }
 
 function SaveAccountBadge(content, background, color) {
@@ -2234,7 +2269,12 @@ function InitializeAccountBadgeEditor(container) {
     let color = editor.querySelector("#UserScriptBadgeColor");
     let button = editor.querySelector("button");
     let status = editor.querySelector("[role='status']");
+    container.appendChild(editor);
+    let badgeState = InitializeAccountBadgeLoading(content, background, color, status, loaded => {
+        button.disabled = !loaded;
+    });
     button.addEventListener("click", async () => {
+        if (!badgeState.loaded) return;
         button.disabled = true;
         status.innerText = "";
         try {
@@ -2244,7 +2284,6 @@ function InitializeAccountBadgeEditor(container) {
             button.disabled = false;
         }
     });
-    LoadAccountBadge(content, background, color, () => container.appendChild(editor));
 }
 
 // The ResetType user menu. Shared by the legacy navbar and the /web app so both
@@ -5341,9 +5380,12 @@ async function main() {
                         document.getElementById("AtcoderAccount").value = AtcoderAccount;
                         document.getElementById("USACOAccount").value = USACOAccount;
                         document.getElementById("LuoguAccount").value = LuoguAccount;
-                        LoadAccountBadge(BadgeContent, BadgeBackgroundColor, BadgeColor, () => {
-                            BadgeRow.style.display = "";
-                        });
+                        BadgeRow.style.display = "";
+                        let badgeLoadStatus = document.createElement("div");
+                        badgeLoadStatus.id = "BadgeLoadStatus";
+                        badgeLoadStatus.role = "status";
+                        BadgeRow.insertAdjacentElement("afterend", badgeLoadStatus);
+                        let badgeState = InitializeAccountBadgeLoading(BadgeContent, BadgeBackgroundColor, BadgeColor, badgeLoadStatus);
                         ModifyInfo.addEventListener("click", async () => {
                             ModifyInfo.disabled = true;
                             if (ModifyInfo.querySelector("span") != null) ModifyInfo.querySelector("span").style.display = "";
@@ -5360,13 +5402,17 @@ async function main() {
                             let BadgeContent = document.querySelector("#BadgeContent").value;
                             let BadgeBackgroundColor = document.querySelector("#BadgeBackgroundColor").value;
                             let BadgeColor = document.querySelector("#BadgeColor").value;
-                            let badgeResult = await SaveAccountBadge(BadgeContent, BadgeBackgroundColor, BadgeColor);
-                            if (!badgeResult.Success) {
-                                ModifyInfo.disabled = false;
-                                if (ModifyInfo.querySelector("span") != null) ModifyInfo.querySelector("span").style.display = "none";
-                                ErrorElement.style.display = "block";
-                                ErrorElement.innerText = badgeResult.Message;
-                                return;
+                            // Account-only edits remain available when the badge API is
+                            // unavailable; never send the unloaded badge inputs to EditBadge.
+                            if (badgeState.loaded) {
+                                let badgeResult = await SaveAccountBadge(BadgeContent, BadgeBackgroundColor, BadgeColor);
+                                if (!badgeResult.Success) {
+                                    ModifyInfo.disabled = false;
+                                    if (ModifyInfo.querySelector("span") != null) ModifyInfo.querySelector("span").style.display = "none";
+                                    ErrorElement.style.display = "block";
+                                    ErrorElement.innerText = badgeResult.Message;
+                                    return;
+                                }
                             }
                             let Nickname = document.querySelector("#Nickname").value;
                             let OldPassword = document.querySelector("#OldPassword").value;
