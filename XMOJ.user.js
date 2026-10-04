@@ -3462,6 +3462,7 @@ class NavbarStyler {
         this.overlay?.remove();
         this.overlayStyle?.remove();
         this.spacer?.remove();
+        this.spacerStyle?.remove();
         this.navbar = null;
     }
 
@@ -3577,14 +3578,20 @@ class NavbarStyler {
         try {
             let spacer = document.getElementById('navbar-spacer');
             let newHeight = this.navbar.offsetHeight + 24;
+            // Browser cosmetic filters can hide empty body children whose inline
+            // style starts with display:block; width:100%; height:. Keep static
+            // layout rules outside that attribute, including when Bootstrap is late.
+            if (!this.spacerStyle?.isConnected) {
+                this.spacerStyle = document.createElement('style');
+                this.spacerStyle.textContent = '#navbar-spacer { display: block; width: 100%; }';
+                (document.head || document.documentElement).appendChild(this.spacerStyle);
+            }
             if (!spacer) {
                 // Legacy page handlers use body > div for the content container.
                 // A block span reserves space without becoming their first match.
                 spacer = document.createElement('span');
                 spacer.id = 'navbar-spacer';
                 spacer.setAttribute('aria-hidden', 'true');
-                spacer.style.display = 'block';
-                spacer.style.width = '100%';
                 document.body.insertBefore(spacer, document.body.firstChild);
                 this.spacer = spacer;
             } else if (spacer !== this.spacer && spacer !== this.borrowedSpacer) {
