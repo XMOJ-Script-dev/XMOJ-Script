@@ -1,0 +1,37 @@
+name: Deploy
+on:
+  push:
+    branches:
+      - master
+      - dev
+  workflow_dispatch:
+# master 与 dev 共用同一个 GitHub Pages 站点，避免两次部署同时进行
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  Deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+      deployments: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: cloudflare/pages-action@v1
+        if: github.ref == 'refs/heads/master'
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: 89969bdf9d5ab8202f8ad8b8ae2c40b8
+          projectName: xmoj-script
+          directory: .
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - id: deployment
+        uses: actions/deploy-pages@v4
