@@ -27,7 +27,7 @@ test('profile page browser regressions', {timeout: 60000}, async t => {
             window.CurrentUsername = 'Viewer';
             window.GM_info = {script: {version: 'test'}};
             document.cookie = 'PHPSESSID=fixture; path=/';
-            window.UtilityEnabled = name => ['Rating', 'ReplaceLinks', 'ReplaceXM'].includes(name) || (name === 'RemoveUseless' && options.removeActivity);
+            window.UtilityEnabled = name => ['Rating', 'ReplaceLinks', 'ReplaceXM'].includes(name) || (name === 'RemoveUseless' && options.removeActivity !== false);
             window.CryptoJS = {MD5: email => { window.avatarEmail = email; return {toString: () => '123456789012345678901234567890abcf'}; }};
             window.GetUserInfo = window.GetUserBadge = () => { throw new Error('Profile must not wait for these APIs'); };
             window.onlineTimestamp = options.onlineTimestamp ?? 1234;
@@ -183,13 +183,52 @@ test('profile page browser regressions', {timeout: 60000}, async t => {
             await page.close();
         });
         for (const removeActivity of [false, true]) {
-            await t.test('respects the activity-chart setting: ' + removeActivity, async () => {
+            await t.test('draws submission history without Flot with cleanup=' + removeActivity, async () => {
                 const page = await Page({removeActivity});
-                assert.equal(await page.locator('#submission').count(), removeActivity ? 0 : 1);
-                if (!removeActivity) assert.equal(await page.evaluate(() => document.getElementById('submission') === nativeActivity), true);
+                const graph = page.getByRole('img', {name: '提交与正确数量随时间的变化'});
+                assert.equal(await graph.isVisible(), true);
+                assert.equal(await page.evaluate(() => document.getElementById('submission') === nativeActivity), true);
+                assert.equal(await page.locator('#submission canvas').count(), 0);
+                assert.equal(await page.evaluate(() => window.jQuery), undefined);
+                assert.equal(await page.evaluate(() => window.nativeHistoryRuns), undefined, 'never execute the broken native graph script');
+                assert.deepEqual(await page.evaluate(() => GetProfileActivityData()), [
+                    [[1704067200000, 20], [1704153600000, 5], [1704240000000, 12]],
+                    [[1704067200000, 8], [1704153600000, 2], [1704240000000, 4]]
+                ]);
+                assert.equal(await graph.locator('path[data-series="submitted"]').count(), 1);
+                assert.equal(await graph.locator('circle[data-series="submitted"]').count(), 3);
+                assert.equal(await graph.locator('rect[data-series="accepted"]').count(), 3);
+                assert.deepEqual(await graph.locator('circle title').allTextContents(), ['2024-01-01 提交：20', '2024-01-02 提交：5', '2024-01-03 提交：12']);
+                assert.deepEqual(await graph.locator('rect title').allTextContents(), ['2024-01-01 正确：8', '2024-01-02 正确：2', '2024-01-03 正确：4']);
+                assert.ok((await graph.locator('path').getAttribute('d')).startsWith('M'));
+                await page.addStyleTag({content: '#UserScriptProfile {display:flex} #UserScriptProfile > div {width:50%;min-width:0}'});
+                await page.setViewportSize({width: 640, height: 800});
+                await page.waitForFunction(() => Number(document.querySelector('#submission svg').getAttribute('viewBox').split(' ')[2]) < 400);
+                const boxes = await graph.locator('text').evaluateAll(nodes => nodes.map(node => ({x: node.getBBox().x, right: node.getBBox().x + node.getBBox().width})));
+                assert.ok(boxes.every(box => box.x >= 0 && box.right <= 320), 'axis labels must fit the narrow viewBox');
+                assert.ok(await graph.locator('rect').evaluateAll(nodes => nodes.every(node => Number(node.getAttribute('height')) > 0)));
                 await page.close();
             });
         }
+        await t.test('history parsing ignores executable values, sorts dates and handles empty or missing data', async () => {
+            const page = await Page();
+            const parsed = await page.evaluate(() => {
+                window.historyScriptExecuted = false;
+                const doc = new DOMParser().parseFromString('<script>window.historyScriptExecuted=true;var d1=[],d2=[];d1.push([1704067200000,3]);d1.push([1704067200000,4]);d2.push([1704153600000,2]);d1.push([0,1]);d1.push([99999999999999999,1]);d2.push([1704067200000,-1]);d1.push([1704067200000,evil()]);$.plot($("#submission"),[]);<\/script>', 'text/html');
+                return GetProfileActivityData(doc);
+            });
+            assert.deepEqual(parsed, [[[1704067200000, 4]], [[1704153600000, 2]]]);
+            assert.equal(await page.evaluate(() => historyScriptExecuted), false);
+            await page.close();
+            for (const [script, message] of [
+                ['<script>var d1=[],d2=[];if(false) $.plot($("#submission"),[]);<\/script>', '暂无提交记录'],
+                ['', '暂时无法读取提交记录']
+            ]) {
+                const empty = await Page({html: fixture.replace(/<script>\n\/\/ Match the history[\s\S]*?<\/script>/, script)});
+                assert.equal(await empty.locator('#submission').innerText(), message);
+                await empty.close();
+            }
+        });
         await t.test('chart legend uses separate non-overlapping rows', async () => {
             const page = await Page();
             await page.addScriptTag({content: Between('const MonochromeSkinCSS', 'const NewBootstrapSkinCSS')});

@@ -2371,6 +2371,102 @@ function InitializeProfileBadge(container, userID, isAdmin) {
     Load();
 }
 
+function GetProfileActivityData(root = document) {
+    // Read only the numeric history statements emitted by userinfo.php. Never eval
+    // the page's graph initializer: the old Flot renderer is unreliable here.
+    const script = [...root.querySelectorAll("script")].find(node => /\$\.plot\s*\(/.test(node.textContent) && /["']#submission["']/.test(node.textContent));
+    if (!script) return null;
+    const series = [new Map(), new Map()];
+    for (const match of script.textContent.matchAll(/\bd([12])\.push\(\s*\[\s*(\d+)\s*,\s*(\d+)\s*\]\s*\)\s*;?/g)) {
+        const timestamp = Number(match[2]), count = Number(match[3]);
+        if (!Number.isSafeInteger(timestamp) || timestamp <= 0 || timestamp > 8640000000000000 || !Number.isSafeInteger(count)) continue;
+        series[Number(match[1]) - 1].set(timestamp, count);
+    }
+    return series.map(points => [...points].sort((a, b) => a[0] - b[0]));
+}
+
+function InitializeProfileActivityChart(chart) {
+    const data = GetProfileActivityData();
+    chart.style.cssText = "width:100%;max-width:600px;text-align:left";
+    chart.replaceChildren();
+    if (!data || !data.some(points => points.length)) {
+        chart.textContent = data ? "暂无提交记录" : "暂时无法读取提交记录";
+        chart.setAttribute("role", "status");
+        return;
+    }
+    const colors = ["#d4a017", "#4799cc"], labels = ["提交", "正确"];
+    const legend = document.createElement("div");
+    legend.className = "d-flex gap-3 mb-2";
+    for (let i = 0; i < labels.length; i++) {
+        const item = document.createElement("span"), marker = document.createElement("span");
+        marker.style.cssText = "display:inline-block;width:12px;height:12px;margin-right:6px;background:" + colors[i];
+        item.append(marker, document.createTextNode(labels[i]));
+        legend.appendChild(item);
+    }
+    chart.appendChild(legend);
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", "提交与正确数量随时间的变化");
+    svg.style.cssText = "display:block;width:100%;height:auto";
+    chart.appendChild(svg);
+    const Node = (tag, attributes, text, parent = svg) => {
+        const node = document.createElementNS(svg.namespaceURI, tag);
+        for (const [name, value] of Object.entries(attributes)) node.setAttribute(name, value);
+        if (text != null) node.textContent = text;
+        parent.appendChild(node);
+        return node;
+    };
+    const date = new Intl.DateTimeFormat("zh-CN", {timeZone: "Asia/Shanghai", year: "numeric", month: "2-digit", day: "2-digit"});
+    const DateLabel = timestamp => date.format(new Date(timestamp)).replaceAll("/", "-");
+    const points = data.flat();
+    let min = Math.min(...points.map(point => point[0])), max = Math.max(...points.map(point => point[0]));
+    const day = 86400000;
+    min -= day / 2;
+    max += day / 2;
+    const maximum = Math.max(1, ...points.map(point => point[1]));
+    const power = 10 ** Math.floor(Math.log10(maximum / 4));
+    const step = Math.max(1, [1, 2, 5, 10].find(value => value * power >= maximum / 4) * power);
+    const limit = Math.ceil(maximum / step) * step;
+    let previousWidth = 0;
+    const Draw = () => {
+        const width = Math.max(280, Math.min(600, chart.clientWidth || 600));
+        if (width === previousWidth) return;
+        previousWidth = width;
+        svg.replaceChildren();
+        svg.setAttribute("viewBox", "0 0 " + width + " 280");
+        const left = 45, right = width - 12, top = 12, bottom = 238;
+        const X = timestamp => left + (timestamp - min) / (max - min) * (right - left);
+        const Y = count => bottom - count / limit * (bottom - top);
+        for (let tick = 0; tick <= limit; tick += step) {
+            Node("line", {x1: left, x2: right, y1: Y(tick), y2: Y(tick), stroke: "var(--bs-border-color, #adb5bd)", opacity: "0.5"});
+            Node("text", {x: left - 6, y: Y(tick) + 4, "text-anchor": "end", "font-size": "12", fill: "var(--bs-body-color, currentColor)"}, Number(tick.toPrecision(12)));
+        }
+        const ticks = Math.max(2, Math.floor((right - left) / 110));
+        for (let i = 0; i < ticks; i++) {
+            const timestamp = min + day / 2 + i / (ticks - 1) * (max - min - day);
+            Node("text", {x: X(timestamp), y: bottom + 22, "text-anchor": i === 0 ? "start" : i === ticks - 1 ? "end" : "middle", "font-size": "11", fill: "var(--bs-body-color, currentColor)"}, DateLabel(timestamp));
+        }
+        const barWidth = Math.max(2, Math.min(12, (right - left) * day / (max - min) * 0.6));
+        for (const [timestamp, count] of data[1]) {
+            const bar = Node("rect", {x: X(timestamp) - barWidth / 2, y: Y(count), width: barWidth, height: bottom - Y(count), fill: colors[1], "data-series": "accepted"});
+            Node("title", {}, DateLabel(timestamp) + " 正确：" + count, bar);
+        }
+        if (data[0].length) Node("path", {d: data[0].map(([timestamp, count], index) => (index ? "L" : "M") + X(timestamp) + " " + Y(count)).join(" "), fill: "none", stroke: colors[0], "stroke-width": "2", "data-series": "submitted"});
+        for (const [timestamp, count] of data[0]) {
+            const dot = Node("circle", {cx: X(timestamp), cy: Y(count), r: "3", fill: colors[0], "data-series": "submitted"});
+            Node("title", {}, DateLabel(timestamp) + " 提交：" + count, dot);
+        }
+    };
+    Draw();
+    if (typeof ResizeObserver === "function") {
+        const observer = new ResizeObserver(() => {
+            if (!chart.isConnected) { observer.disconnect(); return; }
+            Draw();
+        });
+        observer.observe(chart);
+    }
+}
+
 function InitializeProfileChart(table) {
     let chart = table.querySelector("#PieDiv");
     if (!chart) return;
@@ -2482,7 +2578,7 @@ function InitializeUserProfile(isAdmin = false) {
     }
     right.appendChild(solved);
 
-    // Move the original statistics/chart nodes so their links and handlers survive.
+    // Move the original statistics nodes so their links and handlers survive.
     table.insertAdjacentElement("beforebegin", profile);
     for (let link of table.caption?.querySelectorAll("a") || []) info.appendChild(link);
     table.caption?.remove();
@@ -2503,7 +2599,11 @@ function InitializeUserProfile(isAdmin = false) {
             (group || solved).appendChild(node);
         }
     }
-    if (activity && !UtilityEnabled("RemoveUseless")) right.appendChild(activity);
+    // Submission history is functional and must survive the default cleanup setting.
+    if (activity) {
+        right.appendChild(activity);
+        InitializeProfileActivityChart(activity);
+    }
     solvedCell?.remove();
     let firstRow = table.rows[0];
     if (firstRow?.cells.length >= 2 && !firstRow.cells[0].textContent.trim() && !firstRow.cells[1].textContent.trim()) firstRow.remove();

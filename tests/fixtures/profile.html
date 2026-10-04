@@ -18,4 +18,18 @@ p(1000,7);p(1010,1);
 <tr id="pie"><td>Statistics</td><td><div id="PieDiv" style="position:relative;height:105px;width:120px"><span>Old overlapping legend</span></div></td></tr>
 <tr><td>Email:</td><td align="center">profile@example.test</td></tr>
 </table></center></div></div>
+<script>
+// Match the history data supplied by the native profile. Its renderer is absent.
+if (window.jQuery) $(function () {
+    window.nativeHistoryRuns = (window.nativeHistoryRuns || 0) + 1;
+    var d1 = [], d2 = [];
+    d1.push([1704240000000, 12]);
+    d1.push([1704067200000, 20]);
+    d1.push([1704153600000, 5]);
+    d2.push([1704240000000, 4]);
+    d2.push([1704067200000, 8]);
+    d2.push([1704153600000, 2]);
+    $.plot($("#submission"), [{label:"提交",data:d1}, {label:"正确",data:d2}], {xaxis:{mode:"time"}});
+});
+</script>
 </body></html>
