@@ -44,6 +44,82 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+// Set the app preference at document-start, before Vue requests /api/nav.
+function InitializeChineseLanguage() {
+    let wasEnglish = document.cookie.split(";").some(cookie => cookie.trim() == "XMOJ_LANG=en");
+    document.cookie = "XMOJ_LANG=zh; path=/; max-age=31536000; SameSite=Lax" + (location.protocol == "https:" ? "; Secure" : "");
+    return wasEnglish;
+}
+
+function EnforceChineseView(root = document) {
+    document.documentElement.lang = "zh-CN";
+    if (!document.getElementById("UserScript-ChineseLanguage")) {
+        let style = document.createElement("style");
+        style.id = "UserScript-ChineseLanguage";
+        style.textContent = `#lang_cn_to_en, #lang_en_to_cn, .xmoj-lang-switch,
+            [data-xmoj-script-language-selector] { display: none !important; }
+            .lang_en { display: none !important; }
+            .lang_cn { display: revert !important; }`;
+        document.head.appendChild(style);
+    }
+    // Keep Vue's nodes and handlers intact; it can replace the navbar on navigation.
+    for (let link of root.querySelectorAll('#xmoj-navbar > ul.navbar-right > li > a[href="#"]:not(.dropdown-toggle)')) {
+        if (/^(English|中文)$/.test(link.textContent.trim())) link.setAttribute("data-xmoj-script-language-selector", "");
+    }
+    // The problem/solution selector has its own reactive language, separate from nav.
+    for (let button of root.querySelectorAll(".xmoj-lang-switch button")) {
+        if (button.textContent.trim() == "中文" && !button.classList.contains("hidden") && !button.hidden) button.click();
+    }
+}
+
+async function EnsureChinesePage() {
+    EnforceChineseView();
+    const retryKey = "UserScript-ChineseLanguageReload";
+    const pageKey = location.pathname + location.search + location.hash;
+    const classicEnglish = document.querySelector('a#lang_en_to_cn[href*="change_lang.php"]') != null;
+    if (!classicEnglish && !(IsContestWebApp() && initiallyEnglishLanguage)) {
+        sessionStorage.removeItem(retryKey);
+        return false;
+    }
+    try {
+        // A server that refuses the preference must not trap the user in a reload loop.
+        if (sessionStorage.getItem(retryKey) == pageKey) throw new Error("中文设置未生效");
+        if (classicEnglish) {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 10000);
+            try {
+                const response = await fetch("/change_lang.php?lang=cn", {credentials: "same-origin", cache: "no-store", signal: controller.signal});
+                if (!response.ok) throw new Error("HTTP " + response.status);
+            } finally {
+                clearTimeout(timeout);
+            }
+        }
+        sessionStorage.setItem(retryKey, pageKey);
+        location.reload();
+    } catch (error) {
+        console.error("[XMOJ-Script] Chinese language:", error);
+        let alert = document.createElement("div");
+        alert.className = "alert alert-warning";
+        alert.role = "alert";
+        alert.textContent = "切换中文失败，请检查网络后重试。 ";
+        let retry = document.createElement("button");
+        retry.type = "button";
+        retry.className = "btn btn-outline-secondary";
+        retry.textContent = "重试";
+        retry.addEventListener("click", () => {
+            sessionStorage.removeItem(retryKey);
+            location.reload();
+        });
+        alert.appendChild(retry);
+        document.body.prepend(alert);
+        RevealPage();
+        return false;
+    }
+    return true;
+}
+
+const initiallyEnglishLanguage = InitializeChineseLanguage();
+
 // The /web application owns its DOM. Never run the legacy body.innerHTML rewrites
 // inside it; InitializeContestWebApp maps its Bootstrap 3 markup to Bootstrap 5.
 function IsContestWebApp(pathname = location.pathname) {
@@ -2887,6 +2963,7 @@ async function InitializeContestWebApp() {
                 return false;
             });
             if (UtilityEnabled("NewBootstrap")) ApplyBootstrap5Markup();
+            EnforceChineseView(root);
             EnhanceNav();
             if (!revealed && root.querySelector(".navbar")) {
                 // As on the legacy pages: top bar first, then show the page.
@@ -3164,6 +3241,7 @@ if (_foucStyle) {
     }
     setTimeout(RevealPage, 4000);
 }
+if (await EnsureChinesePage()) return;
 if (IsContestWebApp()) {
     await InitializeContestWebApp();
     return;
@@ -3764,7 +3842,7 @@ async function main() {
                             }, {"ID": "AddAnimation", "Type": "A", "Name": "增加动画"}, {
                                 "ID": "ReplaceYN", "Type": "F", "Name": "题目前状态提示替换为好看的图标"
                             }, {"ID": "RemoveAlerts", "Type": "D", "Name": "去除多余反复的提示"}, {
-                                "ID": "Translate", "Type": "F", "Name": "统一使用中文，翻译了部分英文*"
+                                "ID": "Translate", "Type": "F", "Name": "翻译部分英文和统一用语*"
                             }, {
                                 "ID": "ReplaceLinks", "Type": "F", "Name": "将网站中所有以方括号包装的链接替换为按钮"
                             }, {"ID": "RemoveUseless", "Type": "D", "Name": "删去无法使用的功能*"}, {
