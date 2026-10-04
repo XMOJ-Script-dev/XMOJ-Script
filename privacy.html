@@ -18,13 +18,6 @@
             document.documentElement.setAttribute("data-bs-theme", theme);
         })();
     </script>
-    <script type="text/javascript">
-        (function (c, l, a, r, i, t, y) {
-            c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments) };
-            t = l.createElement(r); t.async = 1; t.src = "https://www.clarity.ms/tag/" + i;
-            y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
-        })(window, document, "clarity", "script", "mdy1fivbnd");
-    </script>
     <link rel="preconnect" href="https://fonts.loli.net">
     <link href="https://fonts.loli.net/css2?family=Playfair+Display:wght@400;700&family=Source+Serif+4:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet" integrity="sha512-jnSuA4Ss2PkkikSOLtYs8BlYIeeIK1h99ty4YfvRPAlzr377vr3CXDb7sb7eEEBYjDtcYj+AjBH3FLv5uSJuXg==" crossorigin="anonymous" referrerpolicy="no-referrer">
@@ -61,9 +54,9 @@
         <span class="section-label">隐私说明</span>
         <h1>我们收集什么数据</h1>
         <p class="doc-date">生效日期：2026-10-04</p>
-        <p>XMOJ-Script 是学生维护的开源项目，没有公司，也没有律师。这页用大白话写清楚脚本和我们的服务器实际处理了哪些数据。代码全部<a href="https://github.com/XMOJ-Script-dev/XMOJ-Script" target="_blank" rel="noopener noreferrer">公开</a>，以代码为准。</p>
+        <p>XMOJ-Script 是学生维护的开源项目，没有公司，也没有律师。这页用大白话写清楚脚本和我们的服务器实际处理了哪些数据。代码全部<a href="https://github.com/XMOJ-Script-dev/XMOJ-Script" target="_blank" rel="noopener noreferrer">公开</a>，你也可以通过源代码核实这里的说明。实际的数据处理方式变了，我们会同步更新本页。</p>
         <div class="alert-mono">
-            <p><strong>本产品不面向欧盟居民。</strong>XMOJ-Script 是为小明的OJ用户制作的，不打算向欧盟（EU）境内的居民提供服务。</p>
+            <p><strong>本产品不面向欧盟居民。</strong>XMOJ-Script 主要面向小明的OJ用户，没有专门为欧盟、英国或瑞士的用户提供服务。</p>
         </div>
 
         <h2>只留在你电脑上的</h2>
@@ -83,8 +76,8 @@
                 <tbody>
                     <tr><td>xmoj 用户名和登录会话（PHPSESSID）</td><td>服务器拿你的会话去 xmoj.tech 确认你是谁。数据库里只存会话的哈希值和用户名。</td><td>哈希值最多保存 5 天</td></tr>
                     <tr><td>帖子、回复</td><td>显示给所有脚本用户。</td><td>直到你或管理员删除</td></tr>
-                    <tr><td>短消息</td><td>显示给你和对方。消息在数据库里加密保存，管理员不修改服务器代码就看不到内容。不过它不是端到端加密，解密在服务器上完成。</td><td>对方读过的消息，发送 5 天后自动删除；未读消息保留到被读取</td></tr>
-                    <tr><td>上传的图片</td><td>插入帖子和短消息。图片存放在 GitHub 仓库中，拿到链接的人都能看到。</td><td>长期</td></tr>
+                    <tr><td>短消息</td><td>显示给你和对方。消息在数据库里加密保存，管理员不修改服务器代码就看不到内容。不过它不是端到端加密，解密在服务器上完成。</td><td>对方读过的消息，发送 5 天后自动删除。未读消息目前没有保存期限，会一直保留到对方读取</td></tr>
+                    <tr><td>上传的图片</td><td>插入帖子和短消息。图片存放在 GitHub 上，但<strong>任何拿到图片链接的人都能打开，不需要登录</strong>。</td><td>长期。目前不能自己删除，需要联系我们</td></tr>
                     <tr><td>标程</td><td>你使用「上传标程」时，服务器会用你的会话从 xmoj.tech 读取一份该题的通过代码，供其他用户参考。</td><td>长期</td></tr>
                     <tr><td>徽章</td><td>显示在你的用户名旁边。修改时，徽章文字会交给 Cloudflare Workers AI 自动审核。</td><td>直到你删除</td></tr>
                     <tr><td>云同步的设置</td><td>在不同设备间保持一致。</td><td>直到你删除</td></tr>
@@ -95,8 +88,25 @@
         <p>发帖等操作可能需要通过 Cloudflare Turnstile 人机验证，验证时你的 IP 地址会发送给 Cloudflare。</p>
         <p>服务器的运行日志会记录用户名和会话哈希值的前几位，用于排查故障，不包含会话本身。</p>
 
-        <h2>本网站</h2>
-        <p>本网站的页面使用 Microsoft Clarity 统计访问量和页面点击，首页还会加载 Statuspage 显示服务状态。字体和样式从 fonts.loli.net 和 cdnjs 加载。我们不投放广告。</p>
+        <div class="alert-mono">
+            <p><strong>上传图片前想一想。</strong>请不要上传带有真实姓名、学校、联系方式、人脸或其他个人信息的图片。图片发出去以后，拿到链接的人都能看到。</p>
+        </div>
+
+        <h2>会经手数据的第三方服务</h2>
+        <p>项目没有自己的机房，下面这些服务商会处理部分数据。本网站不使用任何统计或广告追踪工具。</p>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr><th>服务</th><th>用来做什么</th><th>可能收到的数据</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Cloudflare</td><td>运行服务器和数据库、托管本网站、Turnstile 人机验证、Workers AI 审核徽章、记录访问</td><td>IP 地址、浏览器和请求信息，以及上文「会发到我们服务器的」所有数据</td></tr>
+                    <tr><td>GitHub</td><td>存放上传的图片、托管项目代码和本网站的备用站点</td><td>上传的图片；访问备用站点时的 IP 地址和请求信息</td></tr>
+                    <tr><td>Statuspage（Atlassian）</td><td>在首页显示服务状态</td><td>IP 地址、浏览器和请求信息</td></tr>
+                    <tr><td>cdnjs、fonts.loli.net</td><td>加载网页样式、脚本和字体</td><td>IP 地址、请求信息</td></tr>
+                </tbody>
+            </table>
+        </div>
 
         <h2>谁能看到</h2>
         <ul>
@@ -104,7 +114,7 @@
             <li>短消息：只有你和对方。</li>
             <li>访问记录：只有项目维护者。</li>
         </ul>
-        <p>我们不出售、不出租任何数据，也不拿去做广告。除非法律要求，不会交给其他人。</p>
+        <p>我们不出售、不出租个人数据，也不会用这些数据投放广告。为了提供服务，部分数据会由上面列出的服务商处理。除此之外，除非法律要求，我们不会主动把你的个人数据提供给其他人。</p>
 
         <h2>怎么删除</h2>
         <p>在脚本设置里关掉讨论区、短消息等联网功能，可以减少发给服务器的数据。帖子和回复可以自己删除。想删除其他数据，发邮件到 <span class="font-mono">seanoj_noreply@yeah.net</span> 或在 <a href="https://github.com/XMOJ-Script-dev/XMOJ-Script/issues" target="_blank" rel="noopener noreferrer">GitHub</a> 联系我们，写清楚你的 xmoj 用户名。</p>
