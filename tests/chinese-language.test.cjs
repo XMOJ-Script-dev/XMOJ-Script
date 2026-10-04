@@ -132,7 +132,11 @@ test('hides classic and Vue language selectors while preserving forms and Chines
 
 test('startup enforces Chinese before either UI initializer and Vue refreshes reapply it', () => {
     const startup = Between('(async () => {\nif (GetContestWebRedirect()) return;', '//otherwise CurrentUsername might be undefined');
-    assert.ok(startup.indexOf('await EnsureChinesePage()') < startup.indexOf('await InitializeContestWebApp()'));
+    const enforce = startup.indexOf('await EnsureChinesePage()');
+    const initialize = startup.indexOf('await InitializeContestWebApp()');
+    assert.ok(enforce >= 0, 'Chinese initialization must exist');
+    assert.ok(initialize >= 0, 'Vue initialization must exist');
+    assert.ok(enforce < initialize);
     const enhance = Between('function Enhance() {', 'function ScheduleEnhance() {');
     assert.match(enhance, /EnforceChineseView\(root\)/);
 });

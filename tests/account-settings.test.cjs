@@ -23,17 +23,19 @@ const nativeForm = `<form action="/modify_user_info.php" method="post">
     <input name="nick" value="Nickname"><input name="school" value="School">
     <input name="email" value="user@example.test"><input name="csrf" value="token">
     <button type="submit">Save account</button></form>`;
-const legacyForm = nativeForm.replace('</form>', '<input name="acc_cf"><input name="acc_atc"><input name="acc_usaco"><input name="acc_luogu"></form>');
+const startup = 'window.RunAccountStartup = authenticated => { const logined = authenticated; ' + Between(
+    '// Initialize migrated account tools independently of the legacy navbar/layout handler.',
+    'let IsAdmin = AdminUserList.indexOf(CurrentUsername)') + '};';
 
 test('account-page migration browser regressions', {timeout: 60000}, async t => {
     const browser = await chromium.launch({executablePath: process.env.XMOJ_CHROMIUM || undefined});
     async function Page(route, content = nativeForm, options = {}) {
         const page = await browser.newPage();
-        await page.route('**/*', request => request.fulfill({contentType: 'text/html', body:
-            `<div class="container"><nav></nav><div class="mt-3">${content}</div></div>`}));
+        await page.route('**/*', request => request.fulfill({contentType: 'text/html; charset=utf-8', body:
+            options.markup || `<div class="container"><nav></nav><div class="mt-3">${content}</div></div>`}));
         await page.goto('https://account-settings.test' + route);
         await page.evaluate(options => {
-            window.CurrentUsername = 'Tester';
+            window.CurrentUsername = options.signedOut ? 'Login' : 'Tester';
             window.SearchParams = new URL(location.href).searchParams;
             window.UtilityEnabled = name => ['ReplaceLinks', 'ReplaceXM'].includes(name) || (name === 'ExportACCode' && options.export);
             window.ServerURL = 'https://updates.test';
@@ -86,12 +88,13 @@ test('account-page migration browser regressions', {timeout: 60000}, async t => 
                 event.preventDefault();
                 window.nativeSubmitCount = (window.nativeSubmitCount || 0) + 1;
             });
-        }, options);
-        await page.addScriptTag({content: api + helpers + preprocessing + handler});
-        await page.evaluate(async () => {
+        }, {...options, signedOut: options.signedOut || content === 'Please log in'});
+        await page.addScriptTag({content: api + helpers + preprocessing + handler + startup});
+        await page.evaluate(async authenticated => {
+            RunAccountStartup(authenticated);
             RunAccountPreprocessing();
             await RunAccountPage();
-        });
+        }, !options.signedOut && content !== 'Please log in');
         return page;
     }
     try {
@@ -108,6 +111,37 @@ test('account-page migration browser regressions', {timeout: 60000}, async t => 
             assert.equal(await page.evaluate(() => nativeSubmitCount), 1);
             assert.equal(await page.getByRole('button', {name: '导出AC代码', exact: true}).count(), 1);
             assert.deepEqual(await page.evaluate(() => requests), []);
+            await page.close();
+        });
+        for (const [layout, markup] of [
+            ['main without a form', '<main><section><input name="nick" value="Nickname"></section></main>'],
+            ['direct body form', nativeForm],
+            ['changed container and navbar', '<div class="container"><header></header><section>' + nativeForm + '</section></div>']
+        ]) {
+            await t.test('shows and saves the badge editor with ' + layout, async () => {
+                const page = await Page('/modify_user_info.php', nativeForm, {markup});
+                assert.equal(await page.locator('#UserScriptBadgeEditor').isVisible(), true);
+                assert.equal(await page.getByRole('heading', {name: '标签编辑'}).isVisible(), true);
+                assert.equal(await page.locator('#UserScriptBadgeContent').inputValue(), 'Badge');
+                assert.equal(await page.locator('form #UserScriptBadgeEditor').count(), 0);
+                await page.evaluate(() => RunAccountStartup(true));
+                assert.equal(await page.locator('#UserScriptBadgeEditor').count(), 1);
+                await page.locator('#UserScriptBadgeContent').fill('Restored badge');
+                await page.getByRole('button', {name: '修改标签', exact: true}).click();
+                assert.equal(await page.getByRole('status').innerText(), '修改成功');
+                assert.deepEqual(await page.evaluate(() => apiCalls.filter(call => call.action === 'EditBadge').map(call => call.data.Content)), ['Restored badge']);
+                assert.equal(await page.locator('[name="nick"]').inputValue(), 'Nickname');
+                await page.close();
+            });
+        }
+        await t.test('uses the signed-in profile if the old login check no longer matches', async () => {
+            const page = await Page('/modify_user_info.php');
+            await page.evaluate(() => {
+                document.getElementById('UserScriptBadgeEditor').remove();
+                RunAccountStartup(false);
+            });
+            assert.equal(await page.locator('#UserScriptBadgeEditor').isVisible(), true);
+            assert.equal(await page.locator('#UserScriptBadgeContent').inputValue(), 'Badge');
             await page.close();
         });
         for (const failure of [false, true]) {
@@ -130,15 +164,14 @@ test('account-page migration browser regressions', {timeout: 60000}, async t => 
                 await page.close();
             });
         }
-        for (const route of ['/modify_user_info.php', '/modifypage.php']) {
-            const legacy = route === '/modifypage.php';
-            const button = legacy ? '#ModifyInfo' : 'button:has-text("修改标签")';
-            const content = legacy ? '#BadgeContent' : '#UserScriptBadgeContent';
-            const background = legacy ? '#BadgeBackgroundColor' : '#UserScriptBadgeBackground';
-            const color = legacy ? '#BadgeColor' : '#UserScriptBadgeColor';
+        for (const route of ['/modify_user_info.php']) {
+            const button = 'button:has-text("修改标签")';
+            const content = '#UserScriptBadgeContent';
+            const background = '#UserScriptBadgeBackground';
+            const color = '#UserScriptBadgeColor';
             for (const badgeData of [null, {}, {Content: null, BackgroundColor: '', Color: 'invalid'}]) {
                 await t.test('normalizes incomplete badge data on ' + route + ': ' + JSON.stringify(badgeData), async () => {
-                    const page = await Page(route, legacy ? legacyForm : nativeForm, {badgeData});
+                    const page = await Page(route, nativeForm, {badgeData});
                     assert.equal(await page.locator(content).inputValue(), '');
                     assert.equal(await page.locator(background).inputValue(), '#000000');
                     assert.equal(await page.locator(color).inputValue(), '#ffffff');
@@ -157,7 +190,7 @@ test('account-page migration browser regressions', {timeout: 60000}, async t => 
                 ['http', '请求失败（HTTP 503），请重试']
             ]) {
                 await t.test('recovers and retries a ' + mode + ' badge failure on ' + route, async () => {
-                    const page = await Page(route, legacy ? legacyForm : nativeForm, {badgeFailureMode: mode});
+                    const page = await Page(route, nativeForm, {badgeFailureMode: mode});
                     await page.evaluate(() => {
                         localStorage.setItem('UserScript-User-Tester-Badge-Content', 'stale');
                         localStorage.setItem('UserScript-User-Other-Badge-Content', 'keep');
@@ -165,7 +198,7 @@ test('account-page migration browser regressions', {timeout: 60000}, async t => 
                     await page.locator(content).fill('New badge');
                     await page.locator(button).click();
                     assert.equal(await page.locator(button).isEnabled(), true);
-                    assert.equal(await page.locator(legacy ? '#ErrorElement' : '[role="status"]').innerText(), message);
+                    assert.equal(await page.locator('[role="status"]').innerText(), message);
                     assert.equal(await page.evaluate(() => localStorage.getItem('UserScript-User-Tester-Badge-Content')), 'stale');
                     assert.deepEqual(await page.evaluate(() => requests), []);
                     if (['network', 'timeout', 'abort'].includes(mode)) {
@@ -174,10 +207,10 @@ test('account-page migration browser regressions', {timeout: 60000}, async t => 
                     await page.evaluate(() => { window.badgeFailureMode = null; });
                     await page.locator(button).click();
                     assert.equal(await page.locator(button).isEnabled(), true);
-                    assert.equal(await page.locator(legacy ? '#SuccessElement' : '[role="status"]').innerText(), '修改成功');
+                    assert.equal(await page.locator('[role="status"]').innerText(), '修改成功');
                     assert.equal(await page.evaluate(() => localStorage.getItem('UserScript-User-Tester-Badge-Content')), null);
                     assert.equal(await page.evaluate(() => localStorage.getItem('UserScript-User-Other-Badge-Content')), 'keep');
-                    assert.deepEqual(await page.evaluate(() => requests), legacy ? ['https://www.xmoj.tech/modify.php'] : []);
+                    assert.deepEqual(await page.evaluate(() => requests), []);
                     await page.close();
                 });
             }
@@ -190,30 +223,22 @@ test('account-page migration browser regressions', {timeout: 60000}, async t => 
             assert.equal(await page.evaluate(() => nativeSubmitCount), 1);
             await page.close();
         });
-        for (const route of ['/modify_user_info.php', '/modifypage.php']) {
-            const legacy = route === '/modifypage.php';
-            const content = legacy ? '#BadgeContent' : '#UserScriptBadgeContent';
-            const save = legacy ? '#ModifyInfo' : 'button:has-text("修改标签")';
-            const status = legacy ? '#BadgeLoadStatus' : '[role="status"]';
+        for (const route of ['/modify_user_info.php']) {
+            const content = '#UserScriptBadgeContent';
+            const save = 'button:has-text("修改标签")';
+            const status = '[role="status"]';
             for (const mode of ['network', 'timeout', 'abort', 'throw', 'invalid-json', 'invalid-response', 'http', 'denied']) {
                 await t.test('protects existing badges and retries a ' + mode + ' load failure on ' + route, async () => {
-                    const page = await Page(route, legacy ? legacyForm : nativeForm,
+                    const page = await Page(route, nativeForm,
                         {badgeLoadFailureMode: mode, noBadge: mode === 'denied'});
                     assert.match(await page.locator(status).innerText(), /标签加载失败：/);
                     assert.equal(await page.locator(content).isDisabled(), true);
                     assert.equal(await page.getByRole('button', {name: '重试加载标签', exact: true}).isVisible(), true);
                     await page.evaluate(() => localStorage.setItem('UserScript-User-Tester-Badge-Content', 'existing badge'));
-                    if (legacy) {
-                        // An unrelated account edit must not send unloaded badge values.
-                        await page.locator('#Nickname').fill('Edited account');
-                        await page.locator(save).click();
-                        assert.deepEqual(await page.evaluate(() => requests), ['https://www.xmoj.tech/modify.php']);
-                    } else {
-                        assert.equal(await page.locator(save).isDisabled(), true);
-                        await page.locator(save).dispatchEvent('click');
-                        await page.getByRole('button', {name: 'Save account'}).click();
-                        assert.equal(await page.evaluate(() => nativeSubmitCount), 1);
-                    }
+                    assert.equal(await page.locator(save).isDisabled(), true);
+                    await page.locator(save).dispatchEvent('click');
+                    await page.getByRole('button', {name: 'Save account'}).click();
+                    assert.equal(await page.evaluate(() => nativeSubmitCount), 1);
                     assert.deepEqual(await page.evaluate(() => apiCalls.filter(call => call.action === 'EditBadge')), []);
                     assert.equal(await page.evaluate(() => localStorage.getItem('UserScript-User-Tester-Badge-Content')), 'existing badge');
                     await page.evaluate(() => {
@@ -224,7 +249,6 @@ test('account-page migration browser regressions', {timeout: 60000}, async t => 
                     assert.equal(await page.locator(content).isEnabled(), true);
                     assert.equal(await page.locator(content).inputValue(), 'Badge');
                     assert.equal(await page.getByRole('button', {name: '重试加载标签', exact: true}).isHidden(), true);
-                    if (legacy) assert.equal(await page.locator('#Nickname').inputValue(), 'Edited account');
                     await page.locator(content).fill('Recovered badge');
                     await page.locator(save).click();
                     assert.equal(await page.evaluate(() => apiCalls.find(call => call.action === 'EditBadge').data.Content), 'Recovered badge');
@@ -233,11 +257,10 @@ test('account-page migration browser regressions', {timeout: 60000}, async t => 
                 });
             }
             await t.test('blocks badge writes while the initial load is pending on ' + route, async () => {
-                const page = await Page(route, legacy ? legacyForm : nativeForm, {badgeLoadFailureMode: 'pending'});
+                const page = await Page(route, nativeForm, {badgeLoadFailureMode: 'pending'});
                 assert.match(await page.locator(status).innerText(), /正在加载标签/);
                 assert.equal(await page.locator(content).isDisabled(), true);
-                if (legacy) await page.locator(save).click();
-                else await page.locator(save).dispatchEvent('click');
+                await page.locator(save).dispatchEvent('click');
                 assert.deepEqual(await page.evaluate(() => apiCalls.filter(call => call.action === 'EditBadge')), []);
                 await page.evaluate(() => pendingBadgeRequest.onload({status: 200, responseText: JSON.stringify({
                     Success: true, Data: {Content: 'Existing badge', BackgroundColor: '#112233', Color: '#ffffff'}
@@ -247,7 +270,7 @@ test('account-page migration browser regressions', {timeout: 60000}, async t => 
                 await page.close();
             });
         }
-        for (const route of ['/modify_user_info.php', '/modifypage.php']) {
+        for (const route of ['/modify_user_info.php']) {
             await t.test('renders changelog on ' + route + ' even without an account form', async () => {
                 const page = await Page(route + '?ByUserScript=1', 'Please log in', {export: true});
                 assert.equal(await page.title(), 'XMOJ-Script 更新日志');
@@ -269,10 +292,13 @@ test('account-page migration browser regressions', {timeout: 60000}, async t => 
                 await page.close();
             });
         }
-        await t.test('retains the legacy account enhancement', async () => {
-            const page = await Page('/modifypage.php', legacyForm, {noBadge: true});
-            assert.equal(await page.locator('#Nickname').inputValue(), 'Nickname');
-            assert.equal(await page.locator('#ModifyInfo').count(), 1);
+        await t.test('redirects defunct account links to the current page preserving the query and fragment', async () => {
+            const page = await Page('/modifypage.php?ByUserScript=1#latest');
+            assert.equal(await page.locator('#UserScriptBadgeEditor').count(), 0);
+            await Promise.all([
+                page.waitForURL('https://account-settings.test/modify_user_info.php?ByUserScript=1#latest'),
+                page.evaluate(() => location.replace(GetAccountSettingsRedirect()))
+            ]);
             await page.close();
         });
         await t.test('leaves the separate password form intact', async () => {
@@ -294,4 +320,13 @@ test('account-page migration browser regressions', {timeout: 60000}, async t => 
     } finally {
         await browser.close();
     }
+});
+
+test('current account tools initialize before the monolithic page handler', () => {
+    const call = source.indexOf('InitializeAccountFeatures(logined');
+    const main = source.indexOf('await main();');
+    assert.ok(call >= 0);
+    assert.ok(main >= 0);
+    assert.ok(call < main);
+    assert.match(source, /const AccountRedirect = GetAccountSettingsRedirect\(\);/);
 });

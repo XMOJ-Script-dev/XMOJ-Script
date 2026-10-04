@@ -681,6 +681,11 @@ let _earlyObs = null;
 // the saved theme and inject Bootstrap CSS + the skin CSS before the first paint,
 // and we block the page's own old stylesheets from loading at all.
 (() => {
+    const AccountRedirect = GetAccountSettingsRedirect();
+    if (AccountRedirect) {
+        location.replace(AccountRedirect);
+        return;
+    }
     // Old contest pages: move to the /web app before anything is drawn.
     const ContestWebRedirect = GetContestWebRedirect();
     if (ContestWebRedirect) {
@@ -2251,7 +2256,16 @@ function CreateProblemSwitcher(ProblemList, IsCurrent) {
 }
 
 function IsAccountSettingsPage(pathname) {
-    return pathname == "/modifypage.php" || pathname == "/modify_user_info.php";
+    return pathname == "/modify_user_info.php";
+}
+
+function GetAccountSettingsRedirect() {
+    return location.pathname == "/modifypage.php" ? "/modify_user_info.php" + location.search + location.hash : null;
+}
+
+function InitializeAccountFeatures(authenticated) {
+    if (!authenticated || !CurrentUsername || !IsAccountSettingsPage(location.pathname) || new URLSearchParams(location.search).has("ByUserScript")) return;
+    InitializeAccountBadgeEditor();
 }
 
 function LoadAccountBadge(content, background, color, onLoad, onError) {
@@ -2328,10 +2342,13 @@ function SaveAccountBadge(content, background, color) {
 
 // Keep the migrated site's form, including its submit handler and CSRF fields.
 // Script badges are saved separately so they cannot interfere with account edits.
-function InitializeAccountBadgeEditor(container) {
+function InitializeAccountBadgeEditor() {
+    if (document.getElementById("UserScriptBadgeEditor")) return;
+    let container = document.querySelector("main") || document.querySelector("body > .container") || document.body;
     let editor = document.createElement("div");
+    editor.id = "UserScriptBadgeEditor";
     editor.className = "border p-2 my-3";
-    editor.innerHTML = `<h5>标签</h5>
+    editor.innerHTML = `<h5>标签编辑</h5>
         <div class="mb-2"><label class="form-label" for="UserScriptBadgeContent">内容</label>
             <input class="form-control" id="UserScriptBadgeContent"></div>
         <div class="mb-2"><label class="form-label" for="UserScriptBadgeBackground">背景颜色</label>
@@ -3224,6 +3241,7 @@ class NavbarStyler {
 // which executes userscripts as classic scripts (not ES modules).
 (async () => {
 if (GetContestWebRedirect()) return;
+if (GetAccountSettingsRedirect()) return;
 if (document.readyState === "loading") {
     await new Promise(r => document.addEventListener("DOMContentLoaded", r, { once: true }));
 }
@@ -3270,6 +3288,8 @@ if (profileElement === null) {
 }
 CurrentUsername = profileElement.innerText;
 CurrentUsername = CurrentUsername.replaceAll(/[^a-zA-Z0-9]/g, "");
+// Initialize migrated account tools independently of the legacy navbar/layout handler.
+InitializeAccountFeatures(logined || (CurrentUsername && !/^(Login|Guest)$/i.test(CurrentUsername)));
 let IsAdmin = AdminUserList.indexOf(CurrentUsername) !== -1;
 
 const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
@@ -5365,155 +5385,6 @@ async function main() {
                                     UpdateDataCardLink.innerText = "查看该版本";
                                 }
                             });
-                    } else if (location.pathname == "/modify_user_info.php") {
-                        InitializeAccountBadgeEditor(document.querySelector("body > div > div"));
-                    } else {
-                        document.title = "修改账号";
-                        let Nickname = document.getElementsByName("nick")[0].value;
-                        let School = document.getElementsByName("school")[0].value;
-                        let EmailAddress = document.getElementsByName("email")[0].value;
-                        let CodeforcesAccount = document.getElementsByName("acc_cf")[0].value;
-                        let AtcoderAccount = document.getElementsByName("acc_atc")[0].value;
-                        let USACOAccount = document.getElementsByName("acc_usaco")[0].value;
-                        let LuoguAccount = document.getElementsByName("acc_luogu")[0].value;
-                        if (document.querySelector("body > div > div") != null) document.querySelector("body > div > div").innerHTML = `<div class="row g-2 align-items-center col-6 mb-1">
-                    <div class="col-3"><label for="UserID" class="col-form-label">用户ID</label></div>
-                    <div class="col-9"><input id="UserID" class="form-control" disabled readonly value="${CurrentUsername}"></div>
-                </div>
-                <div class="row g-2 align-items-center col-6 mb-1">
-                    <div class="col-3"><label for="Avatar" class="col-form-label">头像</label></div>
-                    <div class="col-9">
-                        <img width="64" height="64" src="https://cravatar.cn/avatar/` + (await GetUserInfo(CurrentUsername)).EmailHash + `?d=retro">
-                        <a href="https://cravatar.cn/avatars" target="_blank">修改头像</a>
-                    </div>
-                </div>
-                <div class="row g-2 align-items-center col-6 pb-1 ps-2 pe-2 mt-3 mb-3 border" id="BadgeRow" style="display: none">
-                    <div class="col-3">标签</div>
-                    <div class="col-9">
-                        <div class="row g-2 align-items-center mb-1">
-                            <div class="col-3"><label for="BadgeContent" class="col-form-label">内容</label></div>
-                            <div class="col-9"><input class="form-control" id="BadgeContent"></div>
-                        </div>
-                        <div class="row g-2 align-items-center mb-1">
-                            <div class="col-3"><label for="BadgeBackgroundColor" class="col-form-label">背景颜色</label></div>
-                            <div class="col-9"><input class="form-control form-control-color" type="color" id="BadgeBackgroundColor"></div>
-                        </div>
-                        <div class="row g-2 align-items-center mb-1">
-                            <div class="col-3"><label for="BadgeColor" class="col-form-label">文字颜色</label></div>
-                            <div class="col-9"><input class="form-control form-control-color" type="color" id="BadgeColor"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="row g-2 align-items-center col-6 mb-1">
-                    <div class="col-3"><label for="Nickname" class="col-form-label">昵称</label></div>
-                    <div class="col-9"><input id="Nickname" class="form-control"></div>
-                </div>
-                <div class="row g-2 align-items-center col-6 mb-1">
-                    <div class="col-3"><label for="OldPassword" class="col-form-label">旧密码</label></div>
-                    <div class="col-9"><input type="password" id="OldPassword" class="form-control"></div>
-                </div>
-                <div class="row g-2 align-items-center col-6 mb-1">
-                    <div class="col-3"><label for="NewPassword" class="col-form-label">新密码</label></div>
-                    <div class="col-9"><input type="password" id="NewPassword" class="form-control"></div>
-                </div>
-                <div class="row g-2 align-items-center col-6 mb-1">
-                    <div class="col-3"><label for="NewPasswordAgain" class="col-form-label">请重复密码</label></div>
-                    <div class="col-9"><input type="password" id="NewPasswordAgain" class="form-control"></div>
-                </div>
-                <div class="row g-2 align-items-center col-6 mb-1">
-                    <div class="col-3"><label for="School" class="col-form-label">学校</label></div>
-                    <div class="col-9"><input id="School" class="form-control"></div>
-                </div>
-                <div class="row g-2 align-items-center col-6 mb-1">
-                    <div class="col-3"><label for="EmailAddress" class="col-form-label">电子邮箱</label></div>
-                    <div class="col-9"><input id="EmailAddress" class="form-control"></div>
-                </div>
-                <div class="row g-2 align-items-center col-6 mb-1">
-                    <div class="col-3"><label for="CodeforcesAccount" class="col-form-label">Codeforces账号</label></div>
-                    <div class="col-9"><input id="CodeforcesAccount" class="form-control"></div>
-                </div>
-                <div class="row g-2 align-items-center col-6 mb-1">
-                    <div class="col-3"><label for="AtcoderAccount" class="col-form-label">Atcoder账号</label></div>
-                    <div class="col-9"><input id="AtcoderAccount" class="form-control"></div>
-                </div>
-                <div class="row g-2 align-items-center col-6 mb-1">
-                    <div class="col-3"><label for="USACOAccount" class="col-form-label">USACO账号</label></div>
-                    <div class="col-9"><input id="USACOAccount" class="form-control"></div>
-                </div>
-                <div class="row g-2 align-items-center col-6 mb-1">
-                    <div class="col-3"><label for="LuoguAccount" class="col-form-label">洛谷账号</label></div>
-                    <div class="col-9"><input id="LuoguAccount" class="form-control"></div>
-                </div>
-                <button type="submit" class="btn btn-primary mb-2" id="ModifyInfo">
-                    修改
-                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none"></span>
-                </button>
-                <div class="alert alert-danger mb-3" role="alert" id="ErrorElement" style="display: none;"></div>
-                <div class="alert alert-success mb-3" role="alert" id="SuccessElement" style="display: none;">修改成功</div>
-                <br>`;
-                        document.getElementById("Nickname").value = Nickname;
-                        document.getElementById("School").value = School;
-                        document.getElementById("EmailAddress").value = EmailAddress;
-                        document.getElementById("CodeforcesAccount").value = CodeforcesAccount;
-                        document.getElementById("AtcoderAccount").value = AtcoderAccount;
-                        document.getElementById("USACOAccount").value = USACOAccount;
-                        document.getElementById("LuoguAccount").value = LuoguAccount;
-                        BadgeRow.style.display = "";
-                        let badgeLoadStatus = document.createElement("div");
-                        badgeLoadStatus.id = "BadgeLoadStatus";
-                        badgeLoadStatus.role = "status";
-                        BadgeRow.insertAdjacentElement("afterend", badgeLoadStatus);
-                        let badgeState = InitializeAccountBadgeLoading(BadgeContent, BadgeBackgroundColor, BadgeColor, badgeLoadStatus);
-                        ModifyInfo.addEventListener("click", async () => {
-                            ModifyInfo.disabled = true;
-                            if (ModifyInfo.querySelector("span") != null) ModifyInfo.querySelector("span").style.display = "";
-                            ErrorElement.style.display = "none";
-                            SuccessElement.style.display = "none";
-                            //表单元素缺失时不提交，避免用空值覆盖用户信息
-                            if (document.querySelector("#BadgeContent") == null || document.querySelector("#BadgeBackgroundColor") == null || document.querySelector("#BadgeColor") == null || document.querySelector("#Nickname") == null || document.querySelector("#OldPassword") == null || document.querySelector("#NewPassword") == null || document.querySelector("#NewPasswordAgain") == null || document.querySelector("#School") == null || document.querySelector("#EmailAddress") == null || document.querySelector("#CodeforcesAccount") == null || document.querySelector("#AtcoderAccount") == null || document.querySelector("#USACOAccount") == null || document.querySelector("#LuoguAccount") == null) {
-                                ModifyInfo.disabled = false;
-                                if (ModifyInfo.querySelector("span") != null) ModifyInfo.querySelector("span").style.display = "none";
-                                ErrorElement.style.display = "block";
-                                ErrorElement.innerText = "页面加载异常，请刷新后重试";
-                                return;
-                            }
-                            let BadgeContent = document.querySelector("#BadgeContent").value;
-                            let BadgeBackgroundColor = document.querySelector("#BadgeBackgroundColor").value;
-                            let BadgeColor = document.querySelector("#BadgeColor").value;
-                            // Account-only edits remain available when the badge API is
-                            // unavailable; never send the unloaded badge inputs to EditBadge.
-                            if (badgeState.loaded) {
-                                let badgeResult = await SaveAccountBadge(BadgeContent, BadgeBackgroundColor, BadgeColor);
-                                if (!badgeResult.Success) {
-                                    ModifyInfo.disabled = false;
-                                    if (ModifyInfo.querySelector("span") != null) ModifyInfo.querySelector("span").style.display = "none";
-                                    ErrorElement.style.display = "block";
-                                    ErrorElement.innerText = badgeResult.Message;
-                                    return;
-                                }
-                            }
-                            let Nickname = document.querySelector("#Nickname").value;
-                            let OldPassword = document.querySelector("#OldPassword").value;
-                            let NewPassword = document.querySelector("#NewPassword").value;
-                            let NewPasswordAgain = document.querySelector("#NewPasswordAgain").value;
-                            let School = document.querySelector("#School").value;
-                            let EmailAddress = document.querySelector("#EmailAddress").value;
-                            let CodeforcesAccount = document.querySelector("#CodeforcesAccount").value;
-                            let AtcoderAccount = document.querySelector("#AtcoderAccount").value;
-                            let USACOAccount = document.querySelector("#USACOAccount").value;
-                            let LuoguAccount = document.querySelector("#LuoguAccount").value;
-                            await fetch("https://www.xmoj.tech/modify.php", {
-                                "headers": {
-                                    "content-type": "application/x-www-form-urlencoded"
-                                },
-                                "referrer": location.href,
-                                "method": "POST",
-                                "body": "nick=" + encodeURIComponent(Nickname) + "&" + "opassword=" + encodeURIComponent(OldPassword) + "&" + "npassword=" + encodeURIComponent(NewPassword) + "&" + "rptpassword=" + encodeURIComponent(NewPasswordAgain) + "&" + "school=" + encodeURIComponent(School) + "&" + "email=" + encodeURIComponent(EmailAddress) + "&" + "acc_cf=" + encodeURIComponent(CodeforcesAccount) + "&" + "acc_atc=" + encodeURIComponent(AtcoderAccount) + "&" + "acc_usaco=" + encodeURIComponent(USACOAccount) + "&" + "acc_luogu=" + encodeURIComponent(LuoguAccount)
-                            });
-                            ModifyInfo.disabled = false;
-                            if (ModifyInfo.querySelector("span") != null) ModifyInfo.querySelector("span").style.display = "none";
-                            SuccessElement.style.display = "block";
-                        });
                     }
                     if (SearchParams.get("ByUserScript") == null && UtilityEnabled("ExportACCode")) {
                         let ExportACCode = document.createElement("button");

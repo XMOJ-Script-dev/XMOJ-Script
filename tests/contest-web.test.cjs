@@ -178,7 +178,8 @@ test('the load-time hide keeps innerText readable for the page handlers', () => 
 });
 
 test('web and classic pages load the same monochrome fonts before either Bootstrap path', () => {
-    const early = between('// Set to true by the early block', 'const CaptchaSiteKey');
+    const early = between('function GetAccountSettingsRedirect(', 'function InitializeAccountFeatures(') +
+        between('// Set to true by the early block', 'const CaptchaSiteKey');
     const fontURLs = new Set();
     for (const pathname of ['/web/contest', '/problem.php?id=1000']) {
         for (const cachedBootstrap of [false, true]) {
