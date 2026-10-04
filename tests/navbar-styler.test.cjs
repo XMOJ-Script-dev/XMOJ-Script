@@ -223,3 +223,44 @@ test('Chinese navbar glyphs use the same fonts under legacy and web document lan
         await browser.close();
     }
 });
+
+test('navbar reserves content space before Bootstrap CSS loads and restores its original top', {timeout: 60000}, async () => {
+    const start = 'let navbarStyler = null;';
+    const end = '// Wrapped in an async IIFE';
+    const navbarSource = source.slice(source.indexOf(start), source.indexOf(end));
+    const browser = await chromium.launch({executablePath: process.env.XMOJ_CHROMIUM || undefined});
+    try {
+        for (const width of [375, 1440]) {
+            const page = await browser.newPage({viewport: {width, height: 800}});
+            for (const mono of [false, true]) {
+                // The resource cache can be empty and the CDN fallback can be slow
+                // or fail. No .fixed-top rule is available yet in this fixture.
+                await page.setContent('<div class="container"><nav class="navbar navbar-expand-lg bg-body-tertiary" style="height:64px">Navbar</nav><main id="content">Page content</main></div>');
+                await page.evaluate(mono => { window.UtilityEnabled = name => name === 'MonochromeUI' ? mono : name === 'NewTopBar'; }, mono);
+                await page.addScriptTag({content: '{\n' + navbarSource + '\nUpdateNavbarStyler(); window.testStyler = navbarStyler;\n}'});
+                const Measure = () => page.evaluate(() => ({
+                    navbarTop: document.querySelector('nav').getBoundingClientRect().top,
+                    navbarBottom: document.querySelector('nav').getBoundingClientRect().bottom,
+                    contentTop: document.getElementById('content').getBoundingClientRect().top
+                }));
+                const before = await Measure();
+                assert.equal(before.navbarTop, mono ? 0 : 16, 'the navbar must anchor to the viewport without Bootstrap');
+                assert.ok(before.contentTop >= before.navbarBottom, 'the navbar must not cover content while CSS is unavailable');
+                // When Bootstrap finally arrives, the reserved space still works.
+                await page.addStyleTag({content: '.fixed-top { position: fixed; top: 0; right: 0; left: 0; }'});
+                const after = await Measure();
+                assert.ok(after.contentTop >= after.navbarBottom);
+                await page.evaluate(() => window.testStyler.destroy());
+                assert.equal(await page.locator('nav').evaluate(node => node.style.top), '', 'remove the owned offset on teardown');
+            }
+            await page.close();
+        }
+        const page = await browser.newPage();
+        await page.setContent('<nav class="navbar navbar-expand-lg bg-body-tertiary" style="height:64px;top:7px!important">Navbar</nav>');
+        await page.evaluate(() => { window.UtilityEnabled = () => true; });
+        await page.addScriptTag({content: navbarSource + '\nUpdateNavbarStyler(); navbarStyler.destroy();'});
+        assert.deepEqual(await page.locator('nav').evaluate(node => [node.style.top, node.style.getPropertyPriority('top')]), ['7px', 'important']);
+    } finally {
+        await browser.close();
+    }
+});

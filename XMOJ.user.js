@@ -2827,7 +2827,7 @@ class NavbarStyler {
             this.navbar = navbar;
             this.addedClasses = ['fixed-top', 'container', 'ml-auto'].filter(name => !navbar.classList.contains(name));
             this.restoreNavbarStyles = this.preserveStyles(navbar, [
-                'position', 'border-top-left-radius', 'border-top-right-radius',
+                'position', 'top', 'border-top-left-radius', 'border-top-right-radius',
                 'border-bottom-left-radius', 'border-bottom-right-radius', 'box-shadow',
                 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
                 'max-width', 'background-color', 'opacity', 'z-index'
@@ -2886,6 +2886,9 @@ class NavbarStyler {
         try {
             let n = this.navbar;
             n.classList.add('fixed-top', 'container', 'ml-auto');
+            // The CDN fallback may still be loading when the top bar starts. Without
+            // Bootstrap's .fixed-top rule, top:auto moves it down with the spacer.
+            n.style.top = '0';
             if (UtilityEnabled("MonochromeUI")) {
                 Object.assign(n.style, {
                     position: 'fixed',
