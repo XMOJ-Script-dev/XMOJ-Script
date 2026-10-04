@@ -198,15 +198,23 @@ test('profile page browser regressions', {timeout: 60000}, async t => {
                 assert.equal(await graph.locator('path[data-series="submitted"]').count(), 1);
                 assert.equal(await graph.locator('circle[data-series="submitted"]').count(), 3);
                 assert.equal(await graph.locator('rect[data-series="accepted"]').count(), 3);
-                assert.deepEqual(await graph.locator('[data-panel] > text:first-child').allTextContents(), ['提交', '正确']);
-                const panels = await graph.locator('[data-panel]').evaluateAll(nodes => nodes.map(node => ({top: node.getBBox().y, bottom: node.getBBox().y + node.getBBox().height})));
-                assert.ok(panels[0].bottom < panels[1].top, 'submission and accepted panels must not overlap');
+                assert.equal(await graph.locator('[data-panel]').count(), 0, 'both series belong on one graph');
+                assert.deepEqual(await graph.locator('[data-layer]').evaluateAll(nodes => nodes.map(node => node.getAttribute('data-layer'))), ['accepted', 'submitted'], 'accepted bars must paint behind the submission line');
+                assert.equal(await graph.locator('rect').evaluateAll(nodes => nodes.every(node => Number(node.getAttribute('fill-opacity')) < 1)), true, 'overlapping bars must be translucent');
+                assert.ok(Number(await graph.locator('path').getAttribute('stroke-width')) < 1.5, 'dense submissions use a thin line');
+                assert.ok(Number(await graph.locator('path').getAttribute('stroke-opacity')) < 1, 'the line must allow the underlying bars to show through');
                 assert.equal(await graph.locator('circle').evaluateAll(nodes => nodes.every(node => node.getAttribute('fill') === 'transparent')), true, 'dense dates must not paint overlapping dot markers');
                 const timeline = await graph.evaluate(svg => [...svg.querySelectorAll('circle')].map((dot, index) => {
                     const bar = svg.querySelectorAll('rect')[index];
                     return Math.abs(Number(dot.getAttribute('cx')) - Number(bar.getAttribute('x')) - Number(bar.getAttribute('width')) / 2);
                 }));
-                assert.ok(timeline.every(offset => offset < 0.00001), 'matching dates must align across both panels');
+                assert.ok(timeline.every(offset => offset < 0.00001), 'matching dates must align on the shared timeline');
+                const scales = await graph.evaluate(svg => [...svg.querySelectorAll('circle')].map((dot, index) => {
+                    const bar = svg.querySelectorAll('rect')[index], bottom = Number(bar.getAttribute('y')) + Number(bar.getAttribute('height'));
+                    const submitted = [20, 5, 12][index], accepted = [8, 2, 4][index];
+                    return Math.abs((bottom - Number(dot.getAttribute('cy'))) / submitted - Number(bar.getAttribute('height')) / accepted);
+                }));
+                assert.ok(scales.every(offset => offset < 0.00001), 'both series must share the same count scale and baseline');
                 assert.deepEqual(await graph.locator('circle title').allTextContents(), ['2024-01-01 提交：20', '2024-01-02 提交：5', '2024-01-03 提交：12']);
                 assert.deepEqual(await graph.locator('rect title').allTextContents(), ['2024-01-01 正确：8', '2024-01-02 正确：2', '2024-01-03 正确：4']);
                 assert.ok((await graph.locator('path').getAttribute('d')).startsWith('M'));
@@ -219,6 +227,24 @@ test('profile page browser regressions', {timeout: 60000}, async t => {
                 await page.close();
             });
         }
+        await t.test('a single history point is visible with one centered date label', async () => {
+            const html = fixture.replace(/<script>\n\/\/ Match the history[\s\S]*?<\/script>/,
+                '<script>if(false){var d1=[],d2=[];d1.push([1704067200000,5]);d2.push([1704067200000,2]);$.plot($("#submission"),[]);}<\/script>');
+            const page = await Page({html});
+            const graph = page.getByRole('img', {name: '提交与正确数量随时间的变化'});
+            assert.equal(await graph.isVisible(), true);
+            const point = graph.locator('circle');
+            assert.equal(await point.count(), 1);
+            assert.notEqual(await point.getAttribute('fill'), 'transparent');
+            assert.ok(Number(await point.getAttribute('r')) > 0);
+            const date = graph.locator('[data-axis="date"]');
+            assert.equal(await date.count(), 1);
+            assert.equal(await date.textContent(), '2024-01-01');
+            assert.equal(await date.getAttribute('text-anchor'), 'middle');
+            assert.equal(await date.getAttribute('x'), await point.getAttribute('cx'));
+            assert.equal(await graph.locator('circle title').textContent(), '2024-01-01 提交：5');
+            await page.close();
+        });
         await t.test('history parsing ignores executable values, sorts dates and handles empty or missing data', async () => {
             const page = await Page();
             const parsed = await page.evaluate(() => {

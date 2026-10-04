@@ -2,6 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const vm = require('node:vm');
 const {chromium} = require('playwright');
 
 const source = fs.readFileSync(path.join(__dirname, '../XMOJ.user.js'), 'utf8');
@@ -322,6 +323,28 @@ test('account-page migration browser regressions', {timeout: 60000}, async t => 
         }
     } finally {
         await browser.close();
+    }
+});
+
+test('ordinary API requests retain the stashed timeout and log failures once', () => {
+    for (const event of ['onerror', 'ontimeout', 'onabort']) {
+        let request;
+        const errors = [], responses = [];
+        const context = vm.createContext({
+            document: {cookie: 'PHPSESSID=fixture'}, CurrentUsername: 'Viewer',
+            GM_info: {script: {version: 'test'}}, UtilityEnabled: () => false,
+            GM_xmlhttpRequest: options => { request = options; },
+            console: {error: message => errors.push(message)},
+            saveResponse: response => responses.push(response)
+        });
+        vm.runInContext(api + '\nRequestAPI("GetUserInfo", {}, saveResponse);', context);
+        assert.equal(request.timeout, 30000);
+        request[event]();
+        request[event]();
+        request.onload({status: 200, responseText: '{"Success":true}'});
+        assert.equal(errors.length, 1, 'duplicate transport events must log only once');
+        assert.match(errors[0], /Request GetUserInfo/);
+        assert.equal(responses.length, 0, 'a late response must not revive a failed request');
     }
 });
 
