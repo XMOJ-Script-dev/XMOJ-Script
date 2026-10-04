@@ -12,6 +12,7 @@ function Between(start, end) {
 }
 const profile = Between('function GetProfileSolvedProblems(', 'function IsAccountSettingsPage(');
 const api = Between('let RequestAPI = (', 'let SyncSettingsToCloud = (');
+const relativeTime = Between('let GetRelativeTime = (', 'function compareVersions(');
 const preprocessing = 'window.RunProfilePreprocessing = () => {' + Between(
     '// Preserve native account listeners during page-wide customization.',
     '// Bootstrap stylesheet and markup migration.') + '};';
@@ -29,7 +30,7 @@ test('profile page browser regressions', {timeout: 60000}, async t => {
             window.UtilityEnabled = name => ['Rating', 'ReplaceLinks', 'ReplaceXM'].includes(name) || (name === 'RemoveUseless' && options.removeActivity);
             window.CryptoJS = {MD5: email => { window.avatarEmail = email; return {toString: () => '123456789012345678901234567890abcf'}; }};
             window.GetUserInfo = window.GetUserBadge = () => { throw new Error('Profile must not wait for these APIs'); };
-            window.GetRelativeTime = timestamp => 'relative(' + timestamp + ')';
+            window.onlineTimestamp = options.onlineTimestamp ?? 1234;
             window.confirm = () => true;
             window.apiCalls = [];
             window.requests = {};
@@ -58,7 +59,7 @@ test('profile page browser regressions', {timeout: 60000}, async t => {
                 if (!mode && action === 'NewBadge') window.badgeData = {Content: 'New badge'};
                 if (!mode && action === 'DeleteBadge') window.badgeData = null;
                 request.onload({status: 200, responseText: JSON.stringify({Success: mode !== 'denied', Message: 'Denied',
-                    Data: action === 'GetBadge' ? badgeData : action === 'LastOnline' ? {logintime: 1234} : {}})});
+                    Data: action === 'GetBadge' ? badgeData : action === 'LastOnline' ? {logintime: onlineTimestamp} : {}})});
             };
             window.nativeStats = document.getElementById('statics');
             window.nativePie = document.getElementById('PieDiv');
@@ -68,7 +69,7 @@ test('profile page browser regressions', {timeout: 60000}, async t => {
             nativePie?.addEventListener('click', () => { pieClicks++; });
             nativeCountLink?.addEventListener('click', event => { event.preventDefault(); countClicks++; });
         }, options);
-        await page.addScriptTag({content: api + profile + preprocessing});
+        await page.addScriptTag({content: api + relativeTime + profile + preprocessing});
         await page.evaluate(isAdmin => {
             InitializeUserProfile(isAdmin);
             RunProfilePreprocessing();
@@ -98,7 +99,7 @@ test('profile page browser regressions', {timeout: 60000}, async t => {
             const page = await Page();
             await AssertCore(page);
             assert.equal(await page.locator('#UserScriptProfileBadge').innerText(), '省一');
-            assert.equal(await page.locator('#UserScriptProfileLastOnline').innerText(), '最后在线：relative(1234)');
+            assert.match(await page.locator('#UserScriptProfileLastOnline').innerText(), /^最后在线：\d+年前$/);
             assert.deepEqual(await page.evaluate(() => apiCalls), [
                 {action: 'GetBadge', data: {UserID: 'ProfileTarget'}, timeout: 15000},
                 {action: 'LastOnline', data: {Username: 'ProfileTarget'}, timeout: 15000}
@@ -118,6 +119,15 @@ test('profile page browser regressions', {timeout: 60000}, async t => {
             assert.match(await page.getByRole('status').innerText(), /正在加载标签/);
             await page.evaluate(() => requests.LastOnline.ontimeout());
             assert.equal(await page.locator('#UserScriptProfileLastOnline').innerText(), '最后在线：暂不可用');
+            await page.close();
+        });
+        await t.test('renders relative timestamps as readable text with the formatter tooltip', async () => {
+            const timestamp = Date.now() - 90 * 60 * 1000;
+            const page = await Page({onlineTimestamp: timestamp});
+            const lastOnline = page.locator('#UserScriptProfileLastOnline');
+            assert.equal(await lastOnline.innerText(), '最后在线：1小时前');
+            assert.equal(await lastOnline.locator('span').count(), 1);
+            assert.equal(await lastOnline.locator('span').getAttribute('title'), await page.evaluate(value => new Date(value).toLocaleString(), timestamp));
             await page.close();
         });
         for (const mode of ['network', 'timeout', 'abort', 'throw', 'invalid-json', 'http', 'denied']) {

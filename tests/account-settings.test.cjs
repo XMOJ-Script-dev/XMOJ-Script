@@ -13,6 +13,8 @@ function Between(start, end) {
     return source.slice(source.indexOf(start), source.indexOf(end));
 }
 const helpers = Between('function IsAccountSettingsPage(', 'function InitializeUserMenu(');
+const earlyRedirect = Between('function GetAccountSettingsRedirect(', 'function InitializeAccountFeatures(') +
+    Between('// Set to true by the early block', 'const CaptchaSiteKey');
 const api = Between('let RequestAPI = (', 'let SyncSettingsToCloud = (');
 const preprocessing = 'window.RunAccountPreprocessing = () => {' + Between(
     '// Preserve native account listeners during page-wide customization.',
@@ -293,12 +295,13 @@ test('account-page migration browser regressions', {timeout: 60000}, async t => 
             });
         }
         await t.test('redirects defunct account links to the current page preserving the query and fragment', async () => {
-            const page = await Page('/modifypage.php?ByUserScript=1#latest');
-            assert.equal(await page.locator('#UserScriptBadgeEditor').count(), 0);
-            await Promise.all([
-                page.waitForURL('https://account-settings.test/modify_user_info.php?ByUserScript=1#latest'),
-                page.evaluate(() => location.replace(GetAccountSettingsRedirect()))
-            ]);
+            const page = await browser.newPage();
+            await page.route('**/*', request => request.fulfill({contentType: 'text/html', body: nativeForm}));
+            // Run the actual document-start block, rather than redirecting from the test.
+            await page.addInitScript({content: 'function GetContestWebRedirect() { return null; }\nfunction IsContestWebApp() { return false; }\nlocalStorage.setItem("UserScript-Setting-NewBootstrap", "false");\n' + earlyRedirect});
+            await page.goto('https://account-settings.test/modifypage.php?ByUserScript=1#latest');
+            await page.waitForURL('https://account-settings.test/modify_user_info.php?ByUserScript=1#latest');
+            assert.equal(await page.locator('form').getAttribute('action'), '/modify_user_info.php');
             await page.close();
         });
         await t.test('leaves the separate password form intact', async () => {

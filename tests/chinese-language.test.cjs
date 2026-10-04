@@ -51,13 +51,12 @@ test('forces the web cookie before requests and reloads an existing English app 
     assert.equal(reloads(), 1, 'refusing the preference must not create a reload loop');
 });
 
-test('switches the classic English session before processing the page', async () => {
+test('classic English pages do not call the broken language endpoint or reload', async () => {
     const {scope, requests, reloads} = Context({english: true});
-    assert.equal(await scope.EnsureChinesePage(), true);
-    assert.equal(requests[0].url, '/change_lang.php?lang=cn');
-    assert.equal(requests[0].options.credentials, 'same-origin');
-    assert.equal(requests[0].options.cache, 'no-store');
-    assert.equal(reloads(), 1);
+    assert.equal(await scope.EnsureChinesePage(), false);
+    assert.equal(scope.document.documentElement.lang, 'zh-CN');
+    assert.equal(requests.length, 0);
+    assert.equal(reloads(), 0);
 });
 
 test('Chinese classic pages do not reload merely because html declares lang=en', async () => {
@@ -71,10 +70,12 @@ test('Chinese classic pages do not reload merely because html declares lang=en',
     assert.equal(storage.size, 0);
 });
 
-test('failed classic language switches show a retry message without reloading', async () => {
-    const {scope, reloads, nodes} = Context({english: true, fail: true});
+test('an English web app refusing Chinese shows a retry message without reloading again', async () => {
+    const {scope, reloads, nodes, storage, requests} = Context({cookie: 'XMOJ_LANG=en', pathname: '/web/contest/123/A'});
+    storage.set('UserScript-ChineseLanguageReload', scope.location.pathname + scope.location.search + scope.location.hash);
     assert.equal(await scope.EnsureChinesePage(), false);
     assert.equal(reloads(), 0);
+    assert.equal(requests.length, 0);
     assert.match(nodes.find(node => node.role === 'alert').textContent, /切换中文失败/);
 });
 
@@ -128,6 +129,53 @@ test('hides classic and Vue language selectors while preserving forms and Chines
     } finally {
         await browser.close();
     }
+});
+
+test('hides the native account language group and submits Chinese with other account fields intact', {timeout: 60000}, async t => {
+    const browser = await chromium.launch({executablePath: process.env.XMOJ_CHROMIUM || undefined});
+    try {
+        for (const [layout, fields, value] of [
+            ['radio row', '<label>界面语言</label><div class="row"><div><label><input type="radio" name="lang" value="cn"> 中文</label></div><div><label><input type="radio" name="lang" value="en" checked> English</label></div></div>', 'cn'],
+            ['fieldset with numeric values', '<fieldset><legend>界面语言</legend><label><input type="radio" name="lang" value="0">中文</label><label><input type="radio" name="lang" value="1" checked>English</label></fieldset>', '0'],
+            ['direct form children', '<label>界面语言</label><input id="cn" type="radio" name="lang" value="zh"><label for="cn">中文</label><input id="en" type="radio" name="lang" value="en" checked><label for="en">English</label>', 'zh']
+        ]) {
+            await t.test(layout, async () => {
+                const page = await browser.newPage();
+                await page.route('**/*', route => route.fulfill({contentType: 'text/html; charset=utf-8', body: '<form><label>昵称<input name="nick" value="boomzero"></label><input type="hidden" name="csrf" value="token">' + fields + '<button type="submit">提交</button></form>'}));
+                await page.goto('https://chinese-language.test/modify_user_info.php');
+                await page.evaluate(() => {
+                    window.accountForm = document.querySelector('form');
+                    window.nativeSubmits = 0;
+                    accountForm.addEventListener('submit', event => {
+                        event.preventDefault();
+                        nativeSubmits++;
+                        window.submittedData = Object.fromEntries(new FormData(accountForm));
+                    });
+                });
+                await page.addScriptTag({content: route + language});
+                await page.evaluate(() => { EnforceChineseView(); EnforceChineseView(); });
+                assert.equal(await page.getByText('界面语言', {exact: true}).isHidden(), true);
+                assert.equal(await page.getByText('English', {exact: true}).isHidden(), true);
+                assert.equal(await page.getByText('中文', {exact: true}).isHidden(), true);
+                assert.equal(await page.locator('input[type="radio"]:checked').inputValue(), value);
+                assert.equal(await page.locator('input[type="radio"]').evaluateAll(inputs => inputs.every(input => !input.disabled)), true);
+                assert.equal(await page.locator('[name="nick"]').isVisible(), true);
+                assert.equal(await page.getByRole('button', {name: '提交'}).isVisible(), true);
+                assert.equal(await page.evaluate(() => document.querySelector('form') === accountForm), true);
+                // Native submit handlers and FormData must receive Chinese even if
+                // another script reselects English after initialization.
+                await page.evaluate(() => { document.querySelector('input[value="en"], input[value="1"]').checked = true; });
+                await page.getByRole('button', {name: '提交'}).click();
+                assert.equal(await page.evaluate(() => nativeSubmits), 1);
+                assert.deepEqual(await page.evaluate(() => submittedData), {nick: 'boomzero', csrf: 'token', lang: value});
+                assert.equal(await page.evaluate(() => {
+                    document.querySelector('input[value="en"], input[value="1"]').checked = true;
+                    return new FormData(accountForm).get('lang');
+                }), value);
+                await page.close();
+            });
+        }
+    } finally { await browser.close(); }
 });
 
 test('startup enforces Chinese before either UI initializer and Vue refreshes reapply it', () => {

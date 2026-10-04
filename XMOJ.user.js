@@ -51,6 +51,47 @@ function InitializeChineseLanguage() {
     return wasEnglish;
 }
 
+const chineseAccountForms = new WeakSet();
+function EnforceChineseAccountLanguage(root) {
+    const radios = [...root.querySelectorAll('input[type="radio"]')];
+    const Matches = (radio, language) => {
+        const label = [...radio.labels || []].map(node => node.textContent.trim());
+        return language == "zh" ? /^(cn|zh|zh[-_]cn)$/i.test(radio.value) || label.some(text => /^(中文|简体中文|Chinese)$/i.test(text)) :
+            /^en(?:[-_]us)?$/i.test(radio.value) || label.some(text => /^English$/i.test(text));
+    };
+    for (const chinese of radios.filter(radio => Matches(radio, "zh"))) {
+        const english = radios.find(radio => radio !== chinese && radio.name === chinese.name && radio.form === chinese.form && Matches(radio, "en"));
+        if (!chinese.name || !english) continue;
+        if (!chinese.checked) chinese.click();
+        chinese.setAttribute("data-xmoj-script-chinese-language", "");
+        let group = chinese.parentElement;
+        while (group && !group.contains(english)) group = group.parentElement;
+        if (group && !group.matches("form, body, html") && !group.querySelector('input:not([type="radio"]), select, textarea, button')) {
+            group.setAttribute("data-xmoj-script-language-selector", "");
+            const heading = group.previousElementSibling;
+            if (heading && /^(界面语言|语言|Language)$/i.test(heading.textContent.trim())) heading.setAttribute("data-xmoj-script-language-selector", "");
+        } else {
+            for (const radio of [chinese, english]) {
+                radio.setAttribute("data-xmoj-script-language-selector", "");
+                for (const label of radio.labels || []) label.setAttribute("data-xmoj-script-language-selector", "");
+            }
+        }
+        for (const label of root.querySelectorAll("label, legend")) {
+            if (/^(界面语言|语言|Language)$/i.test(label.textContent.trim())) label.setAttribute("data-xmoj-script-language-selector", "");
+        }
+        const form = chinese.form;
+        if (form && !chineseAccountForms.has(form)) {
+            chineseAccountForms.add(form);
+            // Keep the native field enabled so the hidden Chinese value is submitted.
+            form.addEventListener("submit", () => EnforceChineseAccountLanguage(form), true);
+            form.addEventListener("formdata", event => {
+                EnforceChineseAccountLanguage(form);
+                for (const radio of form.querySelectorAll("input[data-xmoj-script-chinese-language]")) event.formData.set(radio.name, radio.value);
+            });
+        }
+    }
+}
+
 function EnforceChineseView(root = document) {
     document.documentElement.lang = "zh-CN";
     if (!document.getElementById("UserScript-ChineseLanguage")) {
@@ -62,6 +103,7 @@ function EnforceChineseView(root = document) {
             .lang_cn { display: revert !important; }`;
         document.head.appendChild(style);
     }
+    if (location.pathname === "/modify_user_info.php") EnforceChineseAccountLanguage(root);
     // Keep Vue's nodes and handlers intact; it can replace the navbar on navigation.
     for (let link of root.querySelectorAll('#xmoj-navbar > ul.navbar-right > li > a[href="#"]:not(.dropdown-toggle)')) {
         if (/^(English|中文)$/.test(link.textContent.trim())) link.setAttribute("data-xmoj-script-language-selector", "");
@@ -76,24 +118,15 @@ async function EnsureChinesePage() {
     EnforceChineseView();
     const retryKey = "UserScript-ChineseLanguageReload";
     const pageKey = location.pathname + location.search + location.hash;
-    const classicEnglish = document.querySelector('a#lang_en_to_cn[href*="change_lang.php"]') != null;
-    if (!classicEnglish && !(IsContestWebApp() && initiallyEnglishLanguage)) {
+    // Classic pages persist the preference through the current account form.
+    // change_lang.php is defunct; do not call it or reload classic pages for it.
+    if (!(IsContestWebApp() && initiallyEnglishLanguage)) {
         sessionStorage.removeItem(retryKey);
         return false;
     }
     try {
         // A server that refuses the preference must not trap the user in a reload loop.
         if (sessionStorage.getItem(retryKey) == pageKey) throw new Error("中文设置未生效");
-        if (classicEnglish) {
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 10000);
-            try {
-                const response = await fetch("/change_lang.php?lang=cn", {credentials: "same-origin", cache: "no-store", signal: controller.signal});
-                if (!response.ok) throw new Error("HTTP " + response.status);
-            } finally {
-                clearTimeout(timeout);
-            }
-        }
         sessionStorage.setItem(retryKey, pageKey);
         location.reload();
     } catch (error) {
@@ -2485,7 +2518,7 @@ function InitializeUserProfile(isAdmin = false) {
     document.title = "用户 " + userID + " 的个人中心";
     InitializeProfileBadge(badges, userID, isAdmin);
     RequestAPI("LastOnline", {Username: userID}, response => {
-        lastOnline.textContent = "最后在线：" + (response?.Success && response.Data?.logintime != null ? GetRelativeTime(response.Data.logintime) : "暂无记录");
+        lastOnline.innerHTML = "最后在线：" + (response?.Success && response.Data?.logintime != null ? GetRelativeTime(response.Data.logintime) : "暂无记录");
     }, () => { lastOnline.textContent = "最后在线：暂不可用"; });
 }
 
