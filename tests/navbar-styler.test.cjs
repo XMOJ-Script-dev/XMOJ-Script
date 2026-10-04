@@ -264,3 +264,79 @@ test('navbar reserves content space before Bootstrap CSS loads and restores its 
         await browser.close();
     }
 });
+
+test('browser cosmetic filtering does not hide the navbar spacer', {timeout: 60000}, async () => {
+    const start = 'let navbarStyler = null;';
+    const end = '// Wrapped in an async IIFE';
+    const navbarSource = source.slice(source.indexOf(start), source.indexOf(end));
+    const browser = await chromium.launch({executablePath: process.env.XMOJ_CHROMIUM || undefined});
+    const page = await browser.newPage();
+    try {
+        // The reporter's video shows this browser-injected cosmetic rule. A block
+        // spacer whose inline style begins with these declarations is hidden.
+        await page.setContent(`<style>
+            body > [style^="display: block; width: 100%; height:"]:empty { display: none !important; }
+            body { margin: 0; }
+            .navbar { height: 64px; }
+            .fixed-top { top: 0; left: 0; right: 0; }
+        </style><div id="content"><nav class="navbar navbar-expand-lg bg-body-tertiary">Navbar</nav><main>Page content</main></div>`);
+        await page.evaluate(() => { window.UtilityEnabled = () => true; });
+        await page.addScriptTag({content: navbarSource + '\nUpdateNavbarStyler();'});
+        const Measure = () => page.evaluate(() => {
+            const spacer = document.getElementById('navbar-spacer');
+            return {
+                display: getComputedStyle(spacer).display,
+                height: spacer.getBoundingClientRect().height,
+                filtered: spacer.matches('body > [style^="display: block; width: 100%; height:"]:empty'),
+                navbarBottom: document.querySelector('nav').getBoundingClientRect().bottom,
+                contentTop: document.querySelector('main').getBoundingClientRect().top
+            };
+        });
+        for (const height of [64, 96]) {
+            await page.evaluate(height => { document.querySelector('nav').style.height = height + 'px'; UpdateNavbarStyler(); }, height);
+            const result = await Measure();
+            assert.equal(result.display, 'block');
+            assert.equal(result.filtered, false, 'our spacer must not match the recorded browser filter');
+            assert.equal(result.height, height + 24);
+            assert.ok(result.contentTop >= result.navbarBottom, 'the first content must remain below the navbar');
+        }
+        // Switching navbars releases and recreates the spacer and its stylesheet.
+        await page.evaluate(() => {
+            document.querySelector('nav').outerHTML = '<nav class="navbar navbar-expand-lg bg-body-tertiary" style="height:48px">Replacement</nav>';
+            UpdateNavbarStyler();
+        });
+        assert.equal((await Measure()).height, 72);
+        await page.evaluate(() => { window.UtilityEnabled = () => false; UpdateNavbarStyler(); });
+        assert.equal(await page.locator('#navbar-spacer').count(), 0);
+        assert.equal(await page.locator('head style').count(), 1, 'remove the owned styles but keep the browser-rule fixture');
+        // An existing spacer from an earlier initializer can carry the old inline
+        // fingerprint. Borrow it without losing its styles or page-added changes.
+        await page.evaluate(() => {
+            document.body.innerHTML = '<span id="navbar-spacer" style="display: block; width: 100%; height: 9px;"></span><div id="content"><nav class="navbar navbar-expand-lg bg-body-tertiary" style="height:64px">Navbar</nav><main>Page content</main></div>';
+            window.originalSpacer = document.getElementById('navbar-spacer');
+            window.UtilityEnabled = () => true;
+        });
+        assert.equal((await Measure()).display, 'none', 'the old borrowed spacer must reproduce the filter');
+        await page.evaluate(() => UpdateNavbarStyler());
+        const borrowed = await Measure();
+        assert.equal(borrowed.display, 'block');
+        assert.equal(borrowed.filtered, false);
+        assert.equal(borrowed.height, 88);
+        assert.ok(borrowed.contentTop >= borrowed.navbarBottom);
+        await page.evaluate(() => {
+            document.getElementById('navbar-spacer').style.color = 'red';
+            window.UtilityEnabled = () => false;
+            UpdateNavbarStyler();
+        });
+        assert.deepEqual(await page.locator('#navbar-spacer').evaluate(node => ({
+            sameNode: node === window.originalSpacer,
+            display: node.style.display, width: node.style.width, height: node.style.height,
+            color: node.style.color,
+            originalOrder: node.getAttribute('style').startsWith('display: block; width: 100%; height:'),
+            filteredAgain: getComputedStyle(node).display === 'none'
+        })), {sameNode: true, display: 'block', width: '100%', height: '9px', color: 'red', originalOrder: true, filteredAgain: true});
+        assert.equal(await page.locator('head style').count(), 1);
+    } finally {
+        await browser.close();
+    }
+});
