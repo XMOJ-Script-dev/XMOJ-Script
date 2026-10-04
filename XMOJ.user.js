@@ -2395,15 +2395,6 @@ function InitializeProfileActivityChart(chart) {
         return;
     }
     const colors = ["#d4a017", "#4799cc"], labels = ["提交", "正确"];
-    const legend = document.createElement("div");
-    legend.className = "d-flex gap-3 mb-2";
-    for (let i = 0; i < labels.length; i++) {
-        const item = document.createElement("span"), marker = document.createElement("span");
-        marker.style.cssText = "display:inline-block;width:12px;height:12px;margin-right:6px;background:" + colors[i];
-        item.append(marker, document.createTextNode(labels[i]));
-        legend.appendChild(item);
-    }
-    chart.appendChild(legend);
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute("role", "img");
     svg.setAttribute("aria-label", "提交与正确数量随时间的变化");
@@ -2433,28 +2424,32 @@ function InitializeProfileActivityChart(chart) {
         if (width === previousWidth) return;
         previousWidth = width;
         svg.replaceChildren();
-        svg.setAttribute("viewBox", "0 0 " + width + " 280");
-        const left = 45, right = width - 12, top = 12, bottom = 238;
+        svg.setAttribute("viewBox", "0 0 " + width + " 410");
+        const left = 45, right = width - 12;
         const X = timestamp => left + (timestamp - min) / (max - min) * (right - left);
-        const Y = count => bottom - count / limit * (bottom - top);
-        for (let tick = 0; tick <= limit; tick += step) {
-            Node("line", {x1: left, x2: right, y1: Y(tick), y2: Y(tick), stroke: "var(--bs-border-color, #adb5bd)", opacity: "0.5"});
-            Node("text", {x: left - 6, y: Y(tick) + 4, "text-anchor": "end", "font-size": "12", fill: "var(--bs-body-color, currentColor)"}, Number(tick.toPrecision(12)));
+        const barWidth = Math.max(2, Math.min(12, (right - left) * day / (max - min) * 0.6));
+        // Separate panels share both scales so dense submissions cannot cover
+        // accepted counts. Keep hover targets without painting a dot at every day.
+        for (let index = 0; index < data.length; index++) {
+            const panel = Node("g", {"data-panel": index === 0 ? "submitted" : "accepted"});
+            const top = 28 + index * 190, bottom = top + 150;
+            const Y = count => bottom - count / limit * (bottom - top);
+            Node("text", {x: left, y: top - 10, "font-size": "13", fill: colors[index]}, labels[index], panel);
+            for (let tick = 0; tick <= limit; tick += step) {
+                Node("line", {x1: left, x2: right, y1: Y(tick), y2: Y(tick), stroke: "var(--bs-border-color, #adb5bd)", opacity: "0.5"}, null, panel);
+                Node("text", {x: left - 6, y: Y(tick) + 4, "text-anchor": "end", "font-size": "12", fill: "var(--bs-body-color, currentColor)"}, Number(tick.toPrecision(12)), panel);
+            }
+            if (index === 0 && data[index].length) Node("path", {d: data[index].map(([timestamp, count], i) => (i ? "L" : "M") + X(timestamp) + " " + Y(count)).join(" "), fill: "none", stroke: colors[index], "stroke-width": "1.5", "data-series": "submitted"}, null, panel);
+            for (const [timestamp, count] of data[index]) {
+                const point = index === 0 ? Node("circle", {cx: X(timestamp), cy: Y(count), r: "5", fill: "transparent", "data-series": "submitted"}, null, panel) :
+                    Node("rect", {x: X(timestamp) - barWidth / 2, y: Y(count), width: barWidth, height: bottom - Y(count), fill: colors[index], "data-series": "accepted"}, null, panel);
+                Node("title", {}, DateLabel(timestamp) + " " + labels[index] + "：" + count, point);
+            }
         }
         const ticks = Math.max(2, Math.floor((right - left) / 110));
         for (let i = 0; i < ticks; i++) {
             const timestamp = min + day / 2 + i / (ticks - 1) * (max - min - day);
-            Node("text", {x: X(timestamp), y: bottom + 22, "text-anchor": i === 0 ? "start" : i === ticks - 1 ? "end" : "middle", "font-size": "11", fill: "var(--bs-body-color, currentColor)"}, DateLabel(timestamp));
-        }
-        const barWidth = Math.max(2, Math.min(12, (right - left) * day / (max - min) * 0.6));
-        for (const [timestamp, count] of data[1]) {
-            const bar = Node("rect", {x: X(timestamp) - barWidth / 2, y: Y(count), width: barWidth, height: bottom - Y(count), fill: colors[1], "data-series": "accepted"});
-            Node("title", {}, DateLabel(timestamp) + " 正确：" + count, bar);
-        }
-        if (data[0].length) Node("path", {d: data[0].map(([timestamp, count], index) => (index ? "L" : "M") + X(timestamp) + " " + Y(count)).join(" "), fill: "none", stroke: colors[0], "stroke-width": "2", "data-series": "submitted"});
-        for (const [timestamp, count] of data[0]) {
-            const dot = Node("circle", {cx: X(timestamp), cy: Y(count), r: "3", fill: colors[0], "data-series": "submitted"});
-            Node("title", {}, DateLabel(timestamp) + " 提交：" + count, dot);
+            Node("text", {x: X(timestamp), y: 390, "text-anchor": i === 0 ? "start" : i === ticks - 1 ? "end" : "middle", "font-size": "11", fill: "var(--bs-body-color, currentColor)"}, DateLabel(timestamp));
         }
     };
     Draw();

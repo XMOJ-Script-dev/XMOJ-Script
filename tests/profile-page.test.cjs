@@ -198,6 +198,15 @@ test('profile page browser regressions', {timeout: 60000}, async t => {
                 assert.equal(await graph.locator('path[data-series="submitted"]').count(), 1);
                 assert.equal(await graph.locator('circle[data-series="submitted"]').count(), 3);
                 assert.equal(await graph.locator('rect[data-series="accepted"]').count(), 3);
+                assert.deepEqual(await graph.locator('[data-panel] > text:first-child').allTextContents(), ['提交', '正确']);
+                const panels = await graph.locator('[data-panel]').evaluateAll(nodes => nodes.map(node => ({top: node.getBBox().y, bottom: node.getBBox().y + node.getBBox().height})));
+                assert.ok(panels[0].bottom < panels[1].top, 'submission and accepted panels must not overlap');
+                assert.equal(await graph.locator('circle').evaluateAll(nodes => nodes.every(node => node.getAttribute('fill') === 'transparent')), true, 'dense dates must not paint overlapping dot markers');
+                const timeline = await graph.evaluate(svg => [...svg.querySelectorAll('circle')].map((dot, index) => {
+                    const bar = svg.querySelectorAll('rect')[index];
+                    return Math.abs(Number(dot.getAttribute('cx')) - Number(bar.getAttribute('x')) - Number(bar.getAttribute('width')) / 2);
+                }));
+                assert.ok(timeline.every(offset => offset < 0.00001), 'matching dates must align across both panels');
                 assert.deepEqual(await graph.locator('circle title').allTextContents(), ['2024-01-01 提交：20', '2024-01-02 提交：5', '2024-01-03 提交：12']);
                 assert.deepEqual(await graph.locator('rect title').allTextContents(), ['2024-01-01 正确：8', '2024-01-02 正确：2', '2024-01-03 正确：4']);
                 assert.ok((await graph.locator('path').getAttribute('d')).startsWith('M'));
