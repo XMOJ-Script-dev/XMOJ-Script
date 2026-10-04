@@ -1691,7 +1691,13 @@ let clearCredential = async () => {
         }
     }
 };
-let RequestAPI = (Action, Data, CallBack) => {
+let RequestAPI = (Action, Data, CallBack, ErrorCallBack) => {
+    let completed = false;
+    let Fail = (message) => {
+        if (completed) return;
+        completed = true;
+        if (ErrorCallBack) ErrorCallBack(message);
+    };
     try {
         let Session = "";
         let Temp = document.cookie.split(";");
@@ -1734,18 +1740,38 @@ let RequestAPI = (Action, Data, CallBack) => {
                 "DebugMode": UtilityEnabled("DebugMode")
             },
             data: DataString,
+            // Existing callers keep their timeout behavior; badge saves opt in.
+            timeout: ErrorCallBack ? 15000 : 0,
+            onerror: () => Fail("网络错误，请重试"),
+            ontimeout: () => Fail("请求超时，请重试"),
+            onabort: () => Fail("请求已取消，请重试"),
             onload: (Response) => {
+                if (completed) return;
                 if (UtilityEnabled("DebugMode")) {
                     console.log("Received for", Action + ":", Response.responseText);
                 }
+                if (ErrorCallBack && (Response.status < 200 || Response.status >= 300)) {
+                    Fail("请求失败（HTTP " + Response.status + "），请重试");
+                    return;
+                }
+                let result;
                 try {
-                    CallBack(JSON.parse(Response.responseText));
+                    result = JSON.parse(Response.responseText);
                 } catch (Error) {
                     console.log(Response.responseText);
+                    Fail("服务器响应异常，请重试");
+                    return;
+                }
+                completed = true;
+                try {
+                    if (CallBack) CallBack(result);
+                } catch (Error) {
+                    console.error(Error);
                 }
             }
         });
     } catch (e) {
+        Fail("请求失败，请重试");
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
             SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
@@ -2148,53 +2174,73 @@ function IsAccountSettingsPage(pathname) {
     return pathname == "/modifypage.php" || pathname == "/modify_user_info.php";
 }
 
+function LoadAccountBadge(content, background, color, onLoad) {
+    RequestAPI("GetBadge", {"UserID": String(CurrentUsername)}, (response) => {
+        if (!response?.Success) return;
+        let badge = response.Data ?? {};
+        content.value = String(badge.Content ?? "");
+        // Color inputs cannot represent an empty value. Use explicit defaults
+        // for missing/invalid colors rather than the browser's silent fallback.
+        background.value = /^#[0-9a-f]{6}$/i.test(badge.BackgroundColor) ? badge.BackgroundColor : "#000000";
+        color.value = /^#[0-9a-f]{6}$/i.test(badge.Color) ? badge.Color : "#ffffff";
+        onLoad();
+    });
+}
+
+function SaveAccountBadge(content, background, color) {
+    let userID = String(CurrentUsername);
+    return new Promise(resolve => {
+        RequestAPI("EditBadge", {
+            "UserID": userID,
+            "Content": String(content),
+            "BackgroundColor": String(background),
+            "Color": String(color)
+        }, (response) => {
+            if (!response?.Success) {
+                resolve({Success: false, Message: response?.Message || "服务器响应异常，请重试"});
+                return;
+            }
+            let keys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                let key = localStorage.key(i);
+                if (key.startsWith("UserScript-User-" + userID + "-Badge-")) keys.push(key);
+            }
+            keys.forEach(key => localStorage.removeItem(key));
+            resolve(response);
+        }, message => resolve({Success: false, Message: message}));
+    });
+}
+
 // Keep the migrated site's form, including its submit handler and CSRF fields.
 // Script badges are saved separately so they cannot interfere with account edits.
 function InitializeAccountBadgeEditor(container) {
-    RequestAPI("GetBadge", {"UserID": String(CurrentUsername)}, (response) => {
-        if (!response.Success) return;
-        let editor = document.createElement("div");
-        editor.className = "border p-2 my-3";
-        editor.innerHTML = `<h5>标签</h5>
-            <div class="mb-2"><label class="form-label" for="UserScriptBadgeContent">内容</label>
-                <input class="form-control" id="UserScriptBadgeContent"></div>
-            <div class="mb-2"><label class="form-label" for="UserScriptBadgeBackground">背景颜色</label>
-                <input class="form-control form-control-color" type="color" id="UserScriptBadgeBackground"></div>
-            <div class="mb-2"><label class="form-label" for="UserScriptBadgeColor">文字颜色</label>
-                <input class="form-control form-control-color" type="color" id="UserScriptBadgeColor"></div>
-            <button type="button" class="btn btn-primary">修改标签</button>
-            <div class="mt-2" role="status"></div>`;
-        let content = editor.querySelector("#UserScriptBadgeContent");
-        let background = editor.querySelector("#UserScriptBadgeBackground");
-        let color = editor.querySelector("#UserScriptBadgeColor");
-        let button = editor.querySelector("button");
-        let status = editor.querySelector("[role='status']");
-        content.value = response.Data.Content;
-        background.value = response.Data.BackgroundColor;
-        color.value = response.Data.Color;
-        button.addEventListener("click", () => {
-            button.disabled = true;
-            status.innerText = "";
-            RequestAPI("EditBadge", {
-                "UserID": String(CurrentUsername),
-                "Content": content.value,
-                "BackgroundColor": background.value,
-                "Color": color.value
-            }, (result) => {
-                button.disabled = false;
-                status.innerText = result.Success ? "修改成功" : result.Message;
-                if (result.Success) {
-                    let keys = [];
-                    for (let i = 0; i < localStorage.length; i++) {
-                        let key = localStorage.key(i);
-                        if (key.startsWith("UserScript-User-" + CurrentUsername + "-Badge-")) keys.push(key);
-                    }
-                    keys.forEach(key => localStorage.removeItem(key));
-                }
-            });
-        });
-        container.appendChild(editor);
+    let editor = document.createElement("div");
+    editor.className = "border p-2 my-3";
+    editor.innerHTML = `<h5>标签</h5>
+        <div class="mb-2"><label class="form-label" for="UserScriptBadgeContent">内容</label>
+            <input class="form-control" id="UserScriptBadgeContent"></div>
+        <div class="mb-2"><label class="form-label" for="UserScriptBadgeBackground">背景颜色</label>
+            <input class="form-control form-control-color" type="color" id="UserScriptBadgeBackground"></div>
+        <div class="mb-2"><label class="form-label" for="UserScriptBadgeColor">文字颜色</label>
+            <input class="form-control form-control-color" type="color" id="UserScriptBadgeColor"></div>
+        <button type="button" class="btn btn-primary">修改标签</button>
+        <div class="mt-2" role="status"></div>`;
+    let content = editor.querySelector("#UserScriptBadgeContent");
+    let background = editor.querySelector("#UserScriptBadgeBackground");
+    let color = editor.querySelector("#UserScriptBadgeColor");
+    let button = editor.querySelector("button");
+    let status = editor.querySelector("[role='status']");
+    button.addEventListener("click", async () => {
+        button.disabled = true;
+        status.innerText = "";
+        try {
+            let result = await SaveAccountBadge(content.value, background.value, color.value);
+            status.innerText = result.Success ? "修改成功" : result.Message;
+        } finally {
+            button.disabled = false;
+        }
     });
+    LoadAccountBadge(content, background, color, () => container.appendChild(editor));
 }
 
 // The ResetType user menu. Shared by the legacy navbar and the /web app so both
@@ -3159,12 +3205,15 @@ async function main() {
                 if (UtilityEnabled("Translate")) {
                     if (document.querySelector("#navbar > ul:nth-child(1) > li:nth-child(2) > a") != null) document.querySelector("#navbar > ul:nth-child(1) > li:nth-child(2) > a").innerText = "题库";
                 }
-                //send analytics
+                // Preserve native account listeners during page-wide customization.
                 RequestAPI("SendData", {});
-                if (UtilityEnabled("ReplaceLinks")) {
+                // These native forms rely on site-installed listeners. Whole-body
+                // replacements discard them even when the account handler keeps the form.
+                let preserveAccountForm = location.pathname == "/modify_user_info.php" || location.pathname == "/modify_password.php";
+                if (UtilityEnabled("ReplaceLinks") && !preserveAccountForm) {
                     document.body.innerHTML = String(document.body.innerHTML).replaceAll(/\[<a href="([^"]*)">([^<]*)<\/a>\]/g, "<button onclick=\"location.href='$1'\" class=\"btn btn-outline-secondary\">$2</button>");
                 }
-                if (UtilityEnabled("ReplaceXM")) {
+                if (UtilityEnabled("ReplaceXM") && !preserveAccountForm) {
                     document.body.innerHTML = String(document.body.innerHTML).replaceAll("我", "高老师");
                     document.body.innerHTML = String(document.body.innerHTML).replaceAll("小明", "高老师");
                     document.body.innerHTML = String(document.body.innerHTML).replaceAll("下海", "上海");
@@ -3177,6 +3226,7 @@ async function main() {
                     document.title = String(document.title).replaceAll("小明", "高老师");
                 }
 
+                // Bootstrap stylesheet and markup migration.
                 if (UtilityEnabled("NewBootstrap")) {
                     // Remove any old Bootstrap/theme stylesheets that the browser's preload
                     // scanner may have fetched and applied before the document-start
@@ -5284,24 +5334,8 @@ async function main() {
                         document.getElementById("AtcoderAccount").value = AtcoderAccount;
                         document.getElementById("USACOAccount").value = USACOAccount;
                         document.getElementById("LuoguAccount").value = LuoguAccount;
-                        RequestAPI("GetBadge", {
-                            "UserID": String(CurrentUsername)
-                        }, (Response) => {
-                            if (Response.Success) {
-                                BadgeRow.style.display = "";
-                                BadgeContent.value = Response.Data.Content;
-                                BadgeBackgroundColor.value = Response.Data.BackgroundColor;
-                                BadgeColor.value = Response.Data.Color;
-                                let Temp = [];
-                                for (let i = 0; i < localStorage.length; i++) {
-                                    if (localStorage.key(i).startsWith("UserScript-User-" + CurrentUsername + "-Badge-")) {
-                                        Temp.push(localStorage.key(i));
-                                    }
-                                }
-                                for (let i = 0; i < Temp.length; i++) {
-                                    localStorage.removeItem(Temp[i]);
-                                }
-                            }
+                        LoadAccountBadge(BadgeContent, BadgeBackgroundColor, BadgeColor, () => {
+                            BadgeRow.style.display = "";
                         });
                         ModifyInfo.addEventListener("click", async () => {
                             ModifyInfo.disabled = true;
@@ -5319,23 +5353,14 @@ async function main() {
                             let BadgeContent = document.querySelector("#BadgeContent").value;
                             let BadgeBackgroundColor = document.querySelector("#BadgeBackgroundColor").value;
                             let BadgeColor = document.querySelector("#BadgeColor").value;
-                            await new Promise((Resolve) => {
-                                RequestAPI("EditBadge", {
-                                    "UserID": String(CurrentUsername),
-                                    "Content": String(BadgeContent),
-                                    "BackgroundColor": String(BadgeBackgroundColor),
-                                    "Color": String(BadgeColor)
-                                }, (Response) => {
-                                    if (Response.Success) {
-                                        Resolve();
-                                    } else {
-                                        ModifyInfo.disabled = false;
-                                        if (ModifyInfo.querySelector("span") != null) ModifyInfo.querySelector("span").style.display = "none";
-                                        ErrorElement.style.display = "block";
-                                        ErrorElement.innerText = Response.Message;
-                                    }
-                                });
-                            });
+                            let badgeResult = await SaveAccountBadge(BadgeContent, BadgeBackgroundColor, BadgeColor);
+                            if (!badgeResult.Success) {
+                                ModifyInfo.disabled = false;
+                                if (ModifyInfo.querySelector("span") != null) ModifyInfo.querySelector("span").style.display = "none";
+                                ErrorElement.style.display = "block";
+                                ErrorElement.innerText = badgeResult.Message;
+                                return;
+                            }
                             let Nickname = document.querySelector("#Nickname").value;
                             let OldPassword = document.querySelector("#OldPassword").value;
                             let NewPassword = document.querySelector("#NewPassword").value;

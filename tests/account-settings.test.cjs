@@ -13,12 +13,17 @@ function Between(start, end) {
     return source.slice(source.indexOf(start), source.indexOf(end));
 }
 const helpers = Between('function IsAccountSettingsPage(', 'function InitializeUserMenu(');
+const api = Between('let RequestAPI = (', 'let SyncSettingsToCloud = (');
+const preprocessing = 'window.RunAccountPreprocessing = () => {' + Between(
+    '// Preserve native account listeners during page-wide customization.',
+    '// Bootstrap stylesheet and markup migration.') + '};';
 const handler = 'window.RunAccountPage = async () => { if (false) {' +
     Between('} else if (IsAccountSettingsPage(location.pathname) &&', '} else if (location.pathname == "/userinfo.php" &&') + '}};';
 const nativeForm = `<form action="/modify_user_info.php" method="post">
     <input name="nick" value="Nickname"><input name="school" value="School">
     <input name="email" value="user@example.test"><input name="csrf" value="token">
     <button type="submit">Save account</button></form>`;
+const legacyForm = nativeForm.replace('</form>', '<input name="acc_cf"><input name="acc_atc"><input name="acc_usaco"><input name="acc_luogu"></form>');
 
 test('account-page migration browser regressions', {timeout: 60000}, async t => {
     const browser = await chromium.launch({executablePath: process.env.XMOJ_CHROMIUM || undefined});
@@ -30,17 +35,38 @@ test('account-page migration browser regressions', {timeout: 60000}, async t => 
         await page.evaluate(options => {
             window.CurrentUsername = 'Tester';
             window.SearchParams = new URL(location.href).searchParams;
-            window.UtilityEnabled = name => name === 'ExportACCode' && options.export;
+            window.UtilityEnabled = name => ['ReplaceLinks', 'ReplaceXM'].includes(name) || (name === 'ExportACCode' && options.export);
             window.ServerURL = 'https://updates.test';
             window.GetRelativeTime = () => 'today';
             window.escapeHTML = value => value;
             window.GetUserInfo = async () => ({EmailHash: 'hash'});
             window.apiCalls = [];
-            window.RequestAPI = (action, data, callback) => {
-                apiCalls.push({action, data});
-                callback(action === 'GetBadge' ? {
-                    Success: !options.noBadge, Data: {Content: 'Badge', BackgroundColor: '#112233', Color: '#ffffff'}
-                } : {Success: !options.badgeFailure, Message: 'Save failed'});
+            document.cookie = 'PHPSESSID=fixture; path=/';
+            window.GM_info = {script: {version: 'test'}};
+            window.badgeFailureMode = options.badgeFailureMode;
+            window.GM_xmlhttpRequest = request => {
+                const action = new URL(request.url).pathname.slice(1);
+                if (action !== 'SendData') apiCalls.push({action, data: JSON.parse(request.data).Data});
+                if (action === 'EditBadge') {
+                    const mode = window.badgeFailureMode;
+                    if (['network', 'timeout', 'abort'].includes(mode)) {
+                        window.requestTimeout = request.timeout;
+                        request[{network: 'onerror', timeout: 'ontimeout', abort: 'onabort'}[mode]]();
+                        // A late callback must not turn a failed save into success.
+                        request.onload({status: 200, responseText: '{"Success":true}'});
+                        return;
+                    }
+                    if (mode === 'throw') throw new Error('Transport initialization failed');
+                    if (['invalid-json', 'invalid-response', 'http'].includes(mode)) {
+                        request.onload({status: mode === 'http' ? 503 : 200,
+                            responseText: mode === 'invalid-json' ? '<html>Error</html>' : 'null'});
+                        return;
+                    }
+                }
+                request.onload({status: 200, responseText: JSON.stringify(action === 'GetBadge' ? {
+                    Success: !options.noBadge, Data: Object.hasOwn(options, 'badgeData') ? options.badgeData :
+                        {Content: 'Badge', BackgroundColor: '#112233', Color: '#ffffff'}
+                } : {Success: !options.badgeFailure, Message: 'Save failed'})});
             };
             window.requests = [];
             window.fetch = async url => {
@@ -55,8 +81,11 @@ test('account-page migration browser regressions', {timeout: 60000}, async t => 
                 window.nativeSubmitCount = (window.nativeSubmitCount || 0) + 1;
             });
         }, options);
-        await page.addScriptTag({content: helpers + handler});
-        await page.evaluate(() => RunAccountPage());
+        await page.addScriptTag({content: api + helpers + preprocessing + handler});
+        await page.evaluate(async () => {
+            RunAccountPreprocessing();
+            await RunAccountPage();
+        });
         return page;
     }
     try {
@@ -66,6 +95,8 @@ test('account-page migration browser regressions', {timeout: 60000}, async t => 
             assert.equal(await page.locator('form').getAttribute('action'), '/modify_user_info.php');
             assert.equal(await page.locator('[name="csrf"]').inputValue(), 'token');
             assert.equal(await page.locator('[name="nick"]').inputValue(), 'Nickname');
+            assert.equal(await page.locator('[name="school"]').inputValue(), 'School');
+            assert.equal(await page.locator('[name="email"]').inputValue(), 'user@example.test');
             assert.equal(await page.locator('input[type="password"]').count(), 0);
             await page.getByRole('button', {name: 'Save account'}).click();
             assert.equal(await page.evaluate(() => nativeSubmitCount), 1);
@@ -92,6 +123,58 @@ test('account-page migration browser regressions', {timeout: 60000}, async t => 
                 assert.equal(await page.evaluate(() => window.nativeSubmitCount || 0), 0);
                 await page.close();
             });
+        }
+        for (const route of ['/modify_user_info.php', '/modifypage.php']) {
+            const legacy = route === '/modifypage.php';
+            const button = legacy ? '#ModifyInfo' : 'button:has-text("修改标签")';
+            const content = legacy ? '#BadgeContent' : '#UserScriptBadgeContent';
+            const background = legacy ? '#BadgeBackgroundColor' : '#UserScriptBadgeBackground';
+            const color = legacy ? '#BadgeColor' : '#UserScriptBadgeColor';
+            for (const badgeData of [null, {}, {Content: null, BackgroundColor: '', Color: 'invalid'}]) {
+                await t.test('normalizes incomplete badge data on ' + route + ': ' + JSON.stringify(badgeData), async () => {
+                    const page = await Page(route, legacy ? legacyForm : nativeForm, {badgeData});
+                    assert.equal(await page.locator(content).inputValue(), '');
+                    assert.equal(await page.locator(background).inputValue(), '#000000');
+                    assert.equal(await page.locator(color).inputValue(), '#ffffff');
+                    await page.locator(button).click();
+                    assert.deepEqual(await page.evaluate(() => apiCalls.find(call => call.action === 'EditBadge').data), {
+                        UserID: 'Tester', Content: '', BackgroundColor: '#000000', Color: '#ffffff'
+                    });
+                    assert.equal(await page.locator(button).isEnabled(), true);
+                    await page.close();
+                });
+            }
+            for (const [mode, message] of [
+                ['network', '网络错误，请重试'], ['timeout', '请求超时，请重试'],
+                ['abort', '请求已取消，请重试'], ['throw', '请求失败，请重试'],
+                ['invalid-json', '服务器响应异常，请重试'], ['invalid-response', '服务器响应异常，请重试'],
+                ['http', '请求失败（HTTP 503），请重试']
+            ]) {
+                await t.test('recovers and retries a ' + mode + ' badge failure on ' + route, async () => {
+                    const page = await Page(route, legacy ? legacyForm : nativeForm, {badgeFailureMode: mode});
+                    await page.evaluate(() => {
+                        localStorage.setItem('UserScript-User-Tester-Badge-Content', 'stale');
+                        localStorage.setItem('UserScript-User-Other-Badge-Content', 'keep');
+                    });
+                    await page.locator(content).fill('New badge');
+                    await page.locator(button).click();
+                    assert.equal(await page.locator(button).isEnabled(), true);
+                    assert.equal(await page.locator(legacy ? '#ErrorElement' : '[role="status"]').innerText(), message);
+                    assert.equal(await page.evaluate(() => localStorage.getItem('UserScript-User-Tester-Badge-Content')), 'stale');
+                    assert.deepEqual(await page.evaluate(() => requests), []);
+                    if (['network', 'timeout', 'abort'].includes(mode)) {
+                        assert.equal(await page.evaluate(() => requestTimeout), 15000);
+                    }
+                    await page.evaluate(() => { window.badgeFailureMode = null; });
+                    await page.locator(button).click();
+                    assert.equal(await page.locator(button).isEnabled(), true);
+                    assert.equal(await page.locator(legacy ? '#SuccessElement' : '[role="status"]').innerText(), '修改成功');
+                    assert.equal(await page.evaluate(() => localStorage.getItem('UserScript-User-Tester-Badge-Content')), null);
+                    assert.equal(await page.evaluate(() => localStorage.getItem('UserScript-User-Other-Badge-Content')), 'keep');
+                    assert.deepEqual(await page.evaluate(() => requests), legacy ? ['https://www.xmoj.tech/modify.php'] : []);
+                    await page.close();
+                });
+            }
         }
         await t.test('badge access denial leaves the native form usable', async () => {
             const page = await Page('/modify_user_info.php', nativeForm, {noBadge: true});
@@ -123,8 +206,7 @@ test('account-page migration browser regressions', {timeout: 60000}, async t => 
             });
         }
         await t.test('retains the legacy account enhancement', async () => {
-            const legacy = nativeForm.replace('</form>', '<input name="acc_cf"><input name="acc_atc"><input name="acc_usaco"><input name="acc_luogu"></form>');
-            const page = await Page('/modifypage.php', legacy, {noBadge: true});
+            const page = await Page('/modifypage.php', legacyForm, {noBadge: true});
             assert.equal(await page.locator('#Nickname').inputValue(), 'Nickname');
             assert.equal(await page.locator('#ModifyInfo').count(), 1);
             await page.close();
