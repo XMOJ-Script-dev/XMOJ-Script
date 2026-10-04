@@ -2388,7 +2388,7 @@ function GetProfileActivityData(root = document) {
 
 function InitializeProfileActivityChart(chart) {
     const data = GetProfileActivityData();
-    chart.style.cssText = "width:100%;max-width:600px;text-align:left";
+    chart.style.cssText = "width:100%;max-width:600px;text-align:left;border:1px solid var(--bs-border-color, #adb5bd);box-sizing:border-box";
     chart.replaceChildren();
     if (!data || !data.some(points => points.length)) {
         chart.textContent = data ? "暂无提交记录" : "暂时无法读取提交记录";
