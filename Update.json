@@ -3841,7 +3841,7 @@
             "Notes": "<p>修复新版比赛页面与旧版页面导航栏中文字体不一致的问题。</p>"
         },
         "3.8.3": {
-            "UpdateDate": 1791091969345,
+            "UpdateDate": 1791092727050,
             "Prerelease": true,
             "UpdateContents": [
                 {
