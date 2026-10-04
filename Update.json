@@ -3839,6 +3839,17 @@
                 }
             ],
             "Notes": "<p>修复新版比赛页面与旧版页面导航栏中文字体不一致的问题。</p>"
+        },
+        "3.8.3": {
+            "UpdateDate": 1791090686677,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 1040,
+                    "Description": "fix: support migrated account settings page"
+                }
+            ],
+            "Notes": "<p>修复修改账号页面迁移后菜单与更新日志无法访问的问题，保留新版账号表单及标签编辑、AC 代码导出功能。</p>"
         }
     }
 }
