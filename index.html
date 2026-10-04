@@ -27,9 +27,9 @@
     </script>
     <link rel="preconnect" href="https://fonts.loli.net">
     <link href="https://fonts.loli.net/css2?family=Playfair+Display:wght@400;700&family=Source+Serif+4:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet" integrity="sha512-jnSuA4Ss2PkkikSOLtYs8BlYIeeIK1h99ty4YfvRPAlzr377vr3CXDb7sb7eEEBYjDtcYj+AjBH3FLv5uSJuXg==" crossorigin="anonymous" referrerpolicy="no-referrer">
     <link href="site.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js" integrity="sha512-7Pi/otdlbbCR+LnW+F7PwFcSDJOuUJB3OxtEHbg4vSMvzvJjde4Po1v4BR9Gdc9aXNUNFVUY+SK51wWT8WF0Gg==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
     <script src="site.js" defer></script>
 </head>
 
@@ -48,8 +48,9 @@
                     <li class="nav-item"><a class="nav-link" href="./#Features">功能</a></li>
                     <li class="nav-item"><a class="nav-link" href="./#Install">安装</a></li>
                     <li class="nav-item"><a class="nav-link" href="./#FAQ">常见问题</a></li>
-                    <li class="nav-item"><a class="nav-link" href="https://docs.xmoj-script.uk" target="_blank" rel="noopener noreferrer">文档 ↗</a></li>
-                    <li class="nav-item"><a class="nav-link" href="https://github.com/XMOJ-Script-dev/XMOJ-Script" target="_blank" rel="noopener noreferrer">GitHub ↗</a></li>
+                    <li class="nav-item"><a class="nav-link" href="messages.html">短消息</a></li>
+                    <li class="nav-item"><a class="nav-link ext" href="https://docs.xmoj-script.uk" target="_blank" rel="noopener noreferrer">文档</a></li>
+                    <li class="nav-item"><a class="nav-link ext" href="https://github.com/XMOJ-Script-dev/XMOJ-Script" target="_blank" rel="noopener noreferrer">GitHub</a></li>
                     <li class="nav-item"><button class="btn btn-sm ms-lg-2 my-2 my-lg-0" type="button" id="ThemeToggle">暗色</button></li>
                 </ul>
             </div>
@@ -139,16 +140,31 @@
             </div>
         </section>
 
+        <section class="site-section" id="Messages">
+            <div class="container">
+                <div class="row align-items-center g-4">
+                    <div class="col-lg-8">
+                        <span class="section-label">短消息在线看</span>
+                        <h2 class="section-title mb-3">手机上也能收发短消息。</h2>
+                        <p class="mb-0">不用装脚本，任何浏览器都能打开，包括 iPhone 上的 Safari。用 xmoj 账号登录后，就能查看和回复脚本里的短消息。</p>
+                    </div>
+                    <div class="col-lg-4 text-lg-end">
+                        <a class="btn btn-primary btn-lg" href="messages.html">打开短消息</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section class="site-section" id="Install">
             <div class="container">
                 <span class="section-label">安装</span>
                 <h2 class="section-title">三步装好。</h2>
                 <p class="browser-hint" id="BrowserHint">选择你的浏览器：</p>
-                <div class="browser-tabs" role="tablist" aria-label="选择浏览器">
-                    <button type="button" role="tab" data-browser="chrome" aria-selected="true">Chrome</button>
-                    <button type="button" role="tab" data-browser="edge" aria-selected="false">Edge</button>
-                    <button type="button" role="tab" data-browser="firefox" aria-selected="false">Firefox</button>
-                    <button type="button" role="tab" data-browser="safari" aria-selected="false">Safari</button>
+                <div class="browser-tabs" role="group" aria-label="选择浏览器">
+                    <button type="button" data-browser="chrome" aria-pressed="true">Chrome</button>
+                    <button type="button" data-browser="edge" aria-pressed="false">Edge</button>
+                    <button type="button" data-browser="firefox" aria-pressed="false">Firefox</button>
+                    <button type="button" data-browser="safari" aria-pressed="false">Safari</button>
                 </div>
 
                 <div data-for="safari" hidden>
@@ -194,7 +210,7 @@
                                 <p>新版 Chrome 默认不让扩展运行用户脚本，<strong>不做这一步脚本不会生效</strong>。<span id="ChromeVersionNote">在地址栏打开 <code>chrome://version</code> 可以查看版本号。</span></p>
                                 <p class="mb-1"><strong>Chrome 138 及以上：</strong></p>
                                 <ol>
-                                    <li>右键点工具栏上的 Tampermonkey 图标，选「管理扩展程序」。</li>
+                                    <li>右键点工具栏上的脚本管理器图标（Tampermonkey 或 ScriptCat），选「管理扩展程序」。</li>
                                     <li>打开「允许用户脚本」开关。</li>
                                 </ol>
                                 <p class="mb-1"><strong>Chrome 137 及以下：</strong></p>

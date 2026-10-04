@@ -27,7 +27,7 @@
 
     function SelectBrowser(browser) {
         document.querySelectorAll(".browser-tabs button").forEach((button) => {
-            button.setAttribute("aria-selected", button.dataset.browser === browser ? "true" : "false");
+            button.setAttribute("aria-pressed", button.dataset.browser === browser ? "true" : "false");
         });
         document.querySelectorAll("[data-for]").forEach((element) => {
             element.hidden = !element.dataset.for.split(" ").includes(browser);
@@ -76,8 +76,10 @@
             fetch("Update.json", {cache: "no-cache"})
                 .then((response) => response.json())
                 .then((data) => {
+                    // 只显示正式版；全部是预发布版时才退回到最新一条
                     const versions = Object.keys(data.UpdateHistory);
-                    const latest = versions[versions.length - 1];
+                    const releases = versions.filter((version) => !data.UpdateHistory[version].Prerelease);
+                    const latest = releases.length > 0 ? releases[releases.length - 1] : versions[versions.length - 1];
                     versionElements.forEach((element) => {
                         element.textContent = "v" + latest;
                     });

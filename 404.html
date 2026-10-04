@@ -6,8 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex">
     <title>404 · XMOJ-Script</title>
-    <!-- 404 页面可能出现在任意路径下，所有资源使用绝对路径 -->
-    <link rel="icon" href="/favicon.ico">
+    <!-- 404 页面可能出现在任意路径下：用 base 把相对路径固定到站点根目录（GitHub Pages 项目地址下是 /XMOJ-Script/） -->
+    <script>
+        (function () {
+            var base = document.createElement("base");
+            base.href = /\.github\.io$/.test(location.hostname) ? "/XMOJ-Script/" : "/";
+            document.head.appendChild(base);
+        })();
+    </script>
+    <link rel="icon" href="favicon.ico">
     <script>
         (function () {
             var theme = null;
@@ -20,29 +27,30 @@
     </script>
     <link rel="preconnect" href="https://fonts.loli.net">
     <link href="https://fonts.loli.net/css2?family=Playfair+Display:wght@400;700&family=Source+Serif+4:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/site.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js" defer></script>
-    <script src="/site.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet" integrity="sha512-jnSuA4Ss2PkkikSOLtYs8BlYIeeIK1h99ty4YfvRPAlzr377vr3CXDb7sb7eEEBYjDtcYj+AjBH3FLv5uSJuXg==" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link href="site.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js" integrity="sha512-7Pi/otdlbbCR+LnW+F7PwFcSDJOuUJB3OxtEHbg4vSMvzvJjde4Po1v4BR9Gdc9aXNUNFVUY+SK51wWT8WF0Gg==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
+    <script src="site.js" defer></script>
 </head>
 
 <body class="page-fill">
     <!-- 导航栏：与 index.html 保持一致 -->
     <nav class="navbar navbar-expand-lg site-nav">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center gap-2" href="/">
-                <img src="/XMOJ.png" alt="">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="./">
+                <img src="XMOJ.png" alt="">
                 XMOJ-Script
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#SiteNav"
                 aria-controls="SiteNav" aria-expanded="false" aria-label="展开导航">菜单</button>
             <div class="collapse navbar-collapse" id="SiteNav">
                 <ul class="navbar-nav ms-auto align-items-lg-center">
-                    <li class="nav-item"><a class="nav-link" href="/#Features">功能</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/#Install">安装</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/#FAQ">常见问题</a></li>
-                    <li class="nav-item"><a class="nav-link" href="https://docs.xmoj-script.uk" target="_blank" rel="noopener noreferrer">文档 ↗</a></li>
-                    <li class="nav-item"><a class="nav-link" href="https://github.com/XMOJ-Script-dev/XMOJ-Script" target="_blank" rel="noopener noreferrer">GitHub ↗</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#Features">功能</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#Install">安装</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#FAQ">常见问题</a></li>
+                    <li class="nav-item"><a class="nav-link" href="messages.html">短消息</a></li>
+                    <li class="nav-item"><a class="nav-link ext" href="https://docs.xmoj-script.uk" target="_blank" rel="noopener noreferrer">文档</a></li>
+                    <li class="nav-item"><a class="nav-link ext" href="https://github.com/XMOJ-Script-dev/XMOJ-Script" target="_blank" rel="noopener noreferrer">GitHub</a></li>
                     <li class="nav-item"><button class="btn btn-sm ms-lg-2 my-2 my-lg-0" type="button" id="ThemeToggle">暗色</button></li>
                 </ul>
             </div>
@@ -57,8 +65,8 @@
                 <h1 class="h2 mb-3">这个页面没 AC。</h1>
                 <p class="lead mb-4">地址可能打错了，或者页面已经搬走了。</p>
                 <div class="d-flex flex-wrap gap-3">
-                    <a class="btn btn-primary btn-lg" href="/">回首页</a>
-                    <a class="btn btn-lg" href="/#Install">安装脚本</a>
+                    <a class="btn btn-primary btn-lg" href="./">回首页</a>
+                    <a class="btn btn-lg" href="#Install">安装脚本</a>
                 </div>
             </div>
             <div class="col-lg-6">
@@ -90,10 +98,10 @@
             <ul class="footer-links">
                 <li><a href="https://docs.xmoj-script.uk" target="_blank" rel="noopener noreferrer">文档</a></li>
                 <li><a href="https://elxmoj.xmoj-script.uk" target="_blank" rel="noopener noreferrer">ELXMOJ 客户端</a></li>
-                <li><a href="/messages.html">短消息在线看</a></li>
-                <li><a href="/privacy.html">隐私说明</a></li>
-                <li><a href="/terms.html">使用条款</a></li>
-                <li><a href="/child-protection.html">未成年人保护</a></li>
+                <li><a href="messages.html">短消息在线看</a></li>
+                <li><a href="privacy.html">隐私说明</a></li>
+                <li><a href="terms.html">使用条款</a></li>
+                <li><a href="child-protection.html">未成年人保护</a></li>
             </ul>
             <div class="footer-meta">
                 <div>以 <a href="https://github.com/XMOJ-Script-dev/XMOJ-Script/blob/master/LICENSE" target="_blank" rel="noopener noreferrer">GPL-3.0</a> 开源 · 原项目作者 <a href="https://github.com/langningchen" target="_blank" rel="noopener noreferrer">langningchen</a> · 由 <a href="https://github.com/XMOJ-Script-dev" target="_blank" rel="noopener noreferrer">XMOJ-Script-dev</a> 维护</div>
@@ -102,7 +110,9 @@
         </div>
     </footer>
     <script>
-        document.getElementById("RequestedPath").textContent = decodeURI(location.pathname);
+        var requestedPath = location.pathname;
+        try { requestedPath = decodeURI(requestedPath); } catch (e) { }
+        document.getElementById("RequestedPath").textContent = requestedPath;
     </script>
 </body>
 

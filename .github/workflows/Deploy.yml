@@ -5,30 +5,39 @@ on:
       - master
       - dev
   workflow_dispatch:
-# master 与 dev 共用同一个 GitHub Pages 站点，避免两次部署同时进行
-concurrency:
-  group: pages
-  cancel-in-progress: false
 jobs:
-  Deploy:
+  # 正式站（www.xmoj-script.uk），只部署 master
+  Cloudflare:
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pages: write
-      id-token: write
       deployments: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v6
       - uses: cloudflare/pages-action@v1
-        if: github.ref == 'refs/heads/master'
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: 89969bdf9d5ab8202f8ad8b8ae2c40b8
           projectName: xmoj-script
           directory: .
+  # GitHub Pages（ghpages.xmoj-script.uk），master 和 dev 都部署，与原 Release/Prerelease 行为一致。
+  # 和 Cloudflare 分成两个 job，一边失败不会挡住另一边。
+  GitHubPages:
+    runs-on: ubuntu-latest
+    # master 与 dev 共用同一个 GitHub Pages 站点，避免两次部署同时进行
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

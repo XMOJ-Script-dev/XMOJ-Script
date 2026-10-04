@@ -154,6 +154,19 @@ footer a:not(.btn):hover {
     padding: 0.25rem 0.6rem;
 }
 
+/* 外链箭头：用 CSS 画，避免 ↗ 在苹果设备上显示成彩色 emoji */
+.ext::after {
+    content: '';
+    display: inline-block;
+    width: 0.7em;
+    height: 0.7em;
+    margin-left: 0.3em;
+    vertical-align: 0.05em;
+    background-color: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M2 8 8 2M3.5 2H8v4.5' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='square'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M2 8 8 2M3.5 2H8v4.5' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='square'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
 /* 按钮 */
 .btn {
     --bs-btn-padding-x: 1.1rem;
@@ -388,7 +401,7 @@ footer a:not(.btn):hover {
 }
 
 .browser-tabs button:hover,
-.browser-tabs button[aria-selected='true'] {
+.browser-tabs button[aria-pressed='true'] {
     background-color: var(--mono-black);
     color: var(--mono-white);
 }
