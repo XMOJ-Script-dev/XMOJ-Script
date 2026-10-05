@@ -3863,7 +3863,7 @@
             "Notes": "<p>修复浏览器过滤规则隐藏导航栏占位元素、导致页面顶部内容被遮挡的问题。</p>"
         },
         "3.8.5": {
-            "UpdateDate": 1791200581643,
+            "UpdateDate": 1791201776409,
             "Prerelease": true,
             "UpdateContents": [
                 {
