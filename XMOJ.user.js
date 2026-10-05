@@ -945,9 +945,9 @@ let RenderMathJax = async () => {
 };
 let GetUserInfo = async (Username) => {
     try {
-        if (localStorage.getItem("UserScript-User-" + Username + "-UserRating") != null && new Date().getTime() - parseInt(localStorage.getItem("UserScript-User-" + Username + "-LastUpdateTime")) < 1000 * 60 * 60 * 24) {
+        if (localStorage.getItem("UserScript-User-" + Username + "-UserRatingV2") != null && new Date().getTime() - parseInt(localStorage.getItem("UserScript-User-" + Username + "-LastUpdateTime")) < 1000 * 60 * 60 * 24) {
             return {
-                "Rating": localStorage.getItem("UserScript-User-" + Username + "-UserRating"),
+                "Rating": localStorage.getItem("UserScript-User-" + Username + "-UserRatingV2"),
                 "EmailHash": localStorage.getItem("UserScript-User-" + Username + "-EmailHash")
             }
         }
@@ -958,7 +958,7 @@ let GetUserInfo = async (Username) => {
                 return null;
             }
             const ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
-            let Rating = (ParsedDocument.querySelector("#statics > tbody > tr:nth-child(4) > td:nth-child(2)") != null && ParsedDocument.querySelector("#statics > tbody > tr:nth-child(3) > td:nth-child(2)") != null) ? (parseInt(ParsedDocument.querySelector("#statics > tbody > tr:nth-child(4) > td:nth-child(2)").innerText.trim()) / parseInt(ParsedDocument.querySelector("#statics > tbody > tr:nth-child(3) > td:nth-child(2)").innerText.trim())).toFixed(3) * 1000 : 0;
+            let Rating = CalculateUserRating(ParsedDocument);
             let Temp = (ParsedDocument.querySelector("#statics > tbody") != null) ? ParsedDocument.querySelector("#statics > tbody").children : [];
             //页面结构异常（如403/404页面）时返回默认值，不写入缓存
             if (Temp.length == 0) {
@@ -968,7 +968,7 @@ let GetUserInfo = async (Username) => {
             }
             let Email = Temp[Temp.length - 1].children[1].innerText.trim();
             let EmailHash = CryptoJS.MD5(Email).toString();
-            localStorage.setItem("UserScript-User-" + Username + "-UserRating", Rating);
+            localStorage.setItem("UserScript-User-" + Username + "-UserRatingV2", Rating);
             if (Email == "") {
                 EmailHash = undefined;
             } else {
@@ -1611,14 +1611,18 @@ let GetUsernameHTML = async (Element, Username, Simple = false, Href = "https://
             //     HTMLData += "link-fuchsia"
             // }
             // else
-            if (Rating > 500) {
+            if (Rating >= 2400) {
                 HTMLData += "link-danger";
-            } else if (Rating >= 400) {
+            } else if (Rating >= 2000) {
                 HTMLData += "link-warning";
-            } else if (Rating >= 300) {
+            } else if (Rating >= 1600) {
+                HTMLData += "link-primary";
+            } else if (Rating >= 1200) {
                 HTMLData += "link-success";
-            } else {
+            } else if (Rating >= 800) {
                 HTMLData += "link-info";
+            } else {
+                HTMLData += "link-secondary";
             }
         } else {
             HTMLData += "link-info";
@@ -2393,6 +2397,43 @@ function GetProfileActivityData(root = document) {
     return series.map(points => [...points].sort((a, b) => a[0] - b[0]));
 }
 
+// Deterministic 0-3000 rating computed from a single userinfo.php page. It only
+// reads the p(id, attempts) list and the daily history, and never uses the
+// current time, so every viewer gets the same number for the same profile.
+function CalculateUserRating(root = document) {
+    let attempts = [];
+    for (let script of root.querySelector("#statics")?.querySelectorAll("script") || []) {
+        for (let match of script.textContent.matchAll(/\bp\(\s*\d+\s*,\s*(\d+)\s*\)/g)) attempts.push(Math.max(1, Number(match[1])));
+    }
+    let solved = attempts.length;
+    if (solved == 0) return 0;
+    let activity = GetProfileActivityData(root) || [[], []];
+    // Soft-cap ACs per day: normal training days count fully, while a day with
+    // dozens of ACs (pasted solutions, bulk resubmits) adds only logarithmically.
+    const DailyCap = 8;
+    let totalAC = 0, cappedAC = 0;
+    for (let [, count] of activity[1]) {
+        totalAC += count;
+        cappedAC += count <= DailyCap ? count : DailyCap + DailyCap * Math.log(1 + (count - DailyCap) / DailyCap);
+    }
+    let burst = totalAC > 0 ? cappedAC / totalAC : 1;
+    // Volume: each solve is worth 1 on the first try and decays slowly with retries.
+    let weighted = attempts.reduce((sum, count) => sum + 1 / (1 + 0.4 * Math.log(count)), 0);
+    let volume = 1 - Math.exp(-weighted * burst / 350);
+    // Accuracy: first-try rate and per-attempt rate, both shrunk toward typical
+    // values so small samples cannot score high.
+    let firstTry = (attempts.filter(count => count == 1).length + 20 * 0.25) / (solved + 20);
+    let perAttempt = (solved + 60 * 0.2) / (attempts.reduce((sum, count) => sum + count, 0) + 60);
+    let accuracyRaw = 0.5 * firstTry + 0.5 * perAttempt;
+    // Strong users still fail on hard problems, so credit peaks around 45%-60%;
+    // near-perfect accuracy over hundreds of solves looks copied and earns less.
+    let accuracy = accuracyRaw < 0.15 ? 0 : accuracyRaw < 0.45 ? (accuracyRaw - 0.15) / 0.3 : accuracyRaw < 0.6 ? 1 : Math.max(0.3, 1 - (accuracyRaw - 0.6) * 2);
+    let confidence = solved / (solved + 80);
+    let consistency = 1 - Math.exp(-activity[0].length / 250);
+    let score = 0.57 * volume + 0.33 * accuracy * confidence + 0.1 * consistency;
+    return Math.round(3000 * Math.pow(score, 0.9));
+}
+
 function InitializeProfileActivityChart(chart) {
     const data = GetProfileActivityData();
     chart.style.cssText = "width:100%;max-width:600px;text-align:left;border:1px solid var(--bs-border-color, #adb5bd);box-sizing:border-box;padding:12px;margin-top:12px";
@@ -2523,9 +2564,7 @@ function InitializeUserProfile(isAdmin = false) {
     let rows = [...table.rows];
     const Value = pattern => rows.find(row => pattern.test(row.cells[0]?.textContent.trim() || ""))?.cells[1]?.textContent.trim();
     let email = Value(/^(电子邮箱|Email:?)$/i) || "";
-    let submitted = Number(Value(/^(提交|Submit(?:ted)?|Submissions?:?)$/i));
-    let accepted = Number(Value(/^(正确|Accepted:?)$/i));
-    let rating = submitted > 0 && Number.isFinite(accepted) ? Math.round(accepted / submitted * 1000) : 0;
+    let rating = CalculateUserRating();
     let profile = document.createElement("div");
     profile.id = "UserScriptProfile";
     profile.className = "row text-start text-left";
