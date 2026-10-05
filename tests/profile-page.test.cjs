@@ -56,8 +56,18 @@ test('profile page browser regressions', {timeout: 60000}, async t => {
                     request.onload({status: mode === 'http' ? 503 : 200, responseText: '<html>Error</html>'});
                     return;
                 }
-                if (!mode && action === 'NewBadge') window.badgeData = {Content: 'New badge'};
-                if (!mode && action === 'DeleteBadge') window.badgeData = null;
+                if (mode === 'missing') {
+                    request.onload({status: 200, responseText: JSON.stringify({Success: false, Message: '获取标签失败，该标签在数据库中不存在', Data: {}})});
+                    return;
+                }
+                if (!mode && action === 'NewBadge') {
+                    window.badgeData = {Content: 'New badge'};
+                    window.badgeMode = null;
+                }
+                if (!mode && action === 'DeleteBadge') {
+                    window.badgeData = null;
+                    window.badgeMode = 'missing';
+                }
                 request.onload({status: 200, responseText: JSON.stringify({Success: mode !== 'denied', Message: 'Denied',
                     Data: action === 'GetBadge' ? badgeData : action === 'LastOnline' ? {logintime: onlineTimestamp} : {}})});
             };
@@ -132,14 +142,42 @@ test('profile page browser regressions', {timeout: 60000}, async t => {
         });
         for (const mode of ['network', 'timeout', 'abort', 'throw', 'invalid-json', 'http', 'denied']) {
             await t.test('preserves the profile and retries a ' + mode + ' badge failure', async () => {
-                const page = await Page({badgeMode: mode, onlineMode: mode});
+                const page = await Page({badgeMode: mode, onlineMode: mode, admin: true});
                 await AssertCore(page);
                 assert.match(await page.getByRole('status').innerText(), /标签暂不可用/);
                 assert.equal(await page.getByRole('button', {name: '重试加载标签'}).isVisible(), true);
+                assert.equal(await page.getByRole('button', {name: '添加标签'}).count(), 0);
                 await page.evaluate(() => { window.badgeMode = null; });
                 await page.getByRole('button', {name: '重试加载标签'}).click();
                 assert.equal(await page.locator('#UserScriptProfileBadge').innerText(), '省一');
                 assert.equal(await page.getByRole('button', {name: '重试加载标签'}).isHidden(), true);
+                await page.close();
+            });
+        }
+        for (const admin of [false, true]) {
+            await t.test('an absent database badge is an empty profile state with admin=' + admin, async () => {
+                const page = await Page({badgeMode: 'missing', admin});
+                await AssertCore(page);
+                assert.equal(await page.locator('#UserScriptProfileBadge').isHidden(), true);
+                assert.equal(await page.getByRole('status').innerText(), '');
+                assert.equal(await page.getByRole('button', {name: '重试加载标签'}).isHidden(), true);
+                assert.equal(await page.getByRole('button', {name: '添加标签'}).count(), admin ? 1 : 0);
+                assert.equal(await page.getByRole('button', {name: '删除标签'}).count(), 0);
+                if (admin) {
+                    const add = page.getByRole('button', {name: '添加标签'});
+                    assert.equal(await add.isVisible(), true);
+                    await page.evaluate(() => { window.actionMode = 'denied'; });
+                    await add.click();
+                    assert.equal(await add.isEnabled(), true);
+                    assert.equal(await page.getByRole('status').innerText(), 'Denied');
+                    await page.evaluate(() => { window.actionMode = null; });
+                    await add.click();
+                    assert.equal(await page.locator('#UserScriptProfileBadge').innerText(), 'New badge');
+                    assert.equal(await page.getByRole('button', {name: '删除标签'}).isVisible(), true);
+                    assert.equal(await page.getByRole('status').innerText(), '');
+                    assert.deepEqual(await page.evaluate(() => apiCalls.filter(call => call.action === 'NewBadge').map(call => call.data)),
+                        [{UserID: 'ProfileTarget'}, {UserID: 'ProfileTarget'}]);
+                }
                 await page.close();
             });
         }

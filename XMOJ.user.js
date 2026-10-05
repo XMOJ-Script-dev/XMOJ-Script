@@ -2341,8 +2341,10 @@ function InitializeProfileBadge(container, userID, isAdmin) {
         retry.disabled = true;
         controls.replaceChildren();
         RequestAPI("GetBadge", {UserID: userID}, response => {
-            if (!response?.Success) { Fail(response?.Message || "服务器响应异常，请重试"); return; }
-            let data = response.Data ?? {};
+            // GetBadge reports an absent database row as a failure; most users have no badge.
+            let missing = response?.Success === false && response.Message === "获取标签失败，该标签在数据库中不存在";
+            if (!response?.Success && !missing) { Fail(response?.Message || "服务器响应异常，请重试"); return; }
+            let data = missing ? {} : response.Data ?? {};
             let content = String(data.Content ?? "");
             badge.textContent = content;
             badge.hidden = content === "";
