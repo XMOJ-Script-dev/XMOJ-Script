@@ -21,7 +21,8 @@
     }
 
     function MajorVersion(browser) {
-        const pattern = browser === "edge" ? /Edg(?:e|A|iOS)?\/(\d+)/ : /Chrom(?:e|ium)\/(\d+)/;
+        // Chromium Edge 的标识是 Edg/（以及 EdgA/、EdgiOS/）；旧版 EdgeHTML 的 Edge/18 不参与版本判断
+        const pattern = browser === "edge" ? /Edg(?:A|iOS)?\/(\d+)/ : /Chrom(?:e|ium)\/(\d+)/;
         const match = navigator.userAgent.match(pattern);
         return match ? parseInt(match[1], 10) : 0;
     }
