@@ -1,3 +1,4 @@
 [submodule "backend"]
 	path = backend
 	url = https://github.com/XMOJ-Script-dev/XMOJ-bbs
+	branch = master

@@ -1,36 +1,145 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-bs-theme="light">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>隐私协议 - 小明的OJ增强脚本</title>
+    <title>隐私说明 · XMOJ-Script</title>
+    <meta name="description" content="XMOJ-Script 收集哪些数据、为什么、存多久、怎么删除。">
     <link rel="icon" href="favicon.ico">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 主题初始化需在渲染前执行，避免闪烁；各页面保持一致 -->
+    <script>
+        (function () {
+            var theme = null;
+            try { theme = localStorage.getItem("theme"); } catch (e) { }
+            if (theme !== "light" && theme !== "dark") {
+                theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+            }
+            document.documentElement.setAttribute("data-bs-theme", theme);
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.loli.net">
+    <link href="https://fonts.loli.net/css2?family=Playfair+Display:wght@400;700&family=Source+Serif+4:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet" integrity="sha512-jnSuA4Ss2PkkikSOLtYs8BlYIeeIK1h99ty4YfvRPAlzr377vr3CXDb7sb7eEEBYjDtcYj+AjBH3FLv5uSJuXg==" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link href="site.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js" integrity="sha512-7Pi/otdlbbCR+LnW+F7PwFcSDJOuUJB3OxtEHbg4vSMvzvJjde4Po1v4BR9Gdc9aXNUNFVUY+SK51wWT8WF0Gg==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
+    <script src="site.js" defer></script>
 </head>
+
 <body>
-    <div class="container py-4">
-        <h1 class="mb-3">隐私协议</h1>
-        <p class="text-muted">生效日期：2026-04-24</p>
+    <!-- 导航栏：与 404.html、privacy.html、terms.html、child-protection.html、messages.html 保持一致 -->
+    <nav class="navbar navbar-expand-lg site-nav">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="./">
+                <img src="XMOJ.png" alt="">
+                XMOJ-Script
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#SiteNav"
+                aria-controls="SiteNav" aria-expanded="false" aria-label="展开导航">菜单</button>
+            <div class="collapse navbar-collapse" id="SiteNav">
+                <ul class="navbar-nav ms-auto align-items-lg-center">
+                    <li class="nav-item"><a class="nav-link" href="./#Features">功能</a></li>
+                    <li class="nav-item"><a class="nav-link" href="./#Install">安装</a></li>
+                    <li class="nav-item"><a class="nav-link" href="./#FAQ">常见问题</a></li>
+                    <li class="nav-item"><a class="nav-link" href="messages.html">短消息</a></li>
+                    <li class="nav-item"><a class="nav-link ext" href="https://docs.xmoj-script.uk" target="_blank" rel="noopener noreferrer">文档</a></li>
+                    <li class="nav-item"><a class="nav-link ext" href="https://github.com/XMOJ-Script-dev/XMOJ-Script" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+                    <li class="nav-item"><button class="btn btn-sm ms-lg-2 my-2 my-lg-0" type="button" id="ThemeToggle">暗色</button></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
 
-        <h3>一、我们收集的信息</h3>
-        <p>为提供基础功能，我们可能会处理您在使用脚本时主动提供的数据，包括账号标识、消息内容、页面偏好设置、日志与故障排查信息。</p>
+    <main class="container doc">
+        <span class="section-label">隐私说明</span>
+        <h1>我们收集什么数据</h1>
+        <p class="doc-date">生效日期：2026-10-04</p>
+        <p>XMOJ-Script 是学生维护的开源项目，没有公司，也没有律师。这页用大白话写清楚脚本和我们的服务器实际处理了哪些数据。代码全部<a href="https://github.com/XMOJ-Script-dev/XMOJ-Script" target="_blank" rel="noopener noreferrer">公开</a>，你也可以通过源代码核实这里的说明。实际的数据处理方式变了，我们会同步更新本页。</p>
+        <div class="alert-mono">
+            <p><strong>本产品不面向欧盟居民。</strong>XMOJ-Script 主要面向小明的OJ用户，没有专门为欧盟、英国或瑞士的用户提供服务。</p>
+        </div>
 
-        <h3>二、信息使用目的</h3>
-        <p>我们仅在实现脚本功能、改进产品体验、保障服务安全与处理用户反馈的必要范围内使用信息，不会将您的信息用于与服务无关的用途。</p>
+        <h2>只留在你电脑上的</h2>
+        <ul>
+            <li><strong>脚本设置</strong>：存在你的脚本管理器里。</li>
+            <li><strong>保存的密码</strong>：开启「自动保存用户名与密码」后，密码交给浏览器自带的密码管理器保存，<strong>不会发送给我们</strong>。</li>
+            <li><strong>短消息在线看</strong>：在 messages.html 填写的用户名和会话 ID 存在本网站的浏览器本地存储里，点「退出登录」即清除。</li>
+        </ul>
 
-        <h3>三、信息存储与保护</h3>
-        <p>我们采取合理的技术与管理措施保护数据安全，尽量减少未授权访问、披露、篡改或丢失风险。数据仅在达到处理目的所需期限内保存。</p>
+        <h2>会发到我们服务器的</h2>
+        <p>讨论区、短消息、标程、徽章和设置云同步等功能需要连接我们的服务器 <code>api.xmoj-script.uk</code>（运行在 Cloudflare 上）。</p>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr><th>数据</th><th>用途</th><th>保存多久</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>xmoj 用户名和登录会话（PHPSESSID）</td><td>服务器拿你的会话去 xmoj.tech 确认你是谁。数据库里只存会话的哈希值和用户名。</td><td>哈希值最多保存 5 天</td></tr>
+                    <tr><td>帖子、回复</td><td>显示给所有脚本用户。</td><td>直到你或管理员删除</td></tr>
+                    <tr><td>短消息</td><td>显示给你和对方。消息在数据库里加密保存，管理员不修改服务器代码就看不到内容。不过它不是端到端加密，解密在服务器上完成。</td><td>对方读过的消息，发送 5 天后自动删除。未读消息目前没有保存期限，会一直保留到对方读取</td></tr>
+                    <tr><td>上传的图片</td><td>插入帖子和短消息。图片存放在 GitHub 上，但<strong>任何拿到图片链接的人都能打开，不需要登录</strong>。</td><td>长期。目前不能自己删除，需要联系我们</td></tr>
+                    <tr><td>标程</td><td>你使用「上传标程」时，服务器会用你的会话从 xmoj.tech 读取一份该题的通过代码，供其他用户参考。</td><td>长期</td></tr>
+                    <tr><td>徽章</td><td>显示在你的用户名旁边。修改时，徽章文字会交给 Cloudflare Workers AI 自动审核。</td><td>直到你删除</td></tr>
+                    <tr><td>云同步的设置</td><td>在不同设备间保持一致。</td><td>直到你删除</td></tr>
+                    <tr><td>访问记录：IP 地址、用户名、调用的功能、脚本版本</td><td>统计使用情况、排查故障，并用来显示个人主页上的「最后在线」时间。</td><td>由 Cloudflare 保存，约 3 个月</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p>发帖等操作可能需要通过 Cloudflare Turnstile 人机验证，验证时你的 IP 地址会发送给 Cloudflare。</p>
+        <p>服务器的运行日志会记录用户名和会话哈希值的前几位，用于排查故障，不包含会话本身。</p>
 
-        <h3>四、信息共享与披露</h3>
-        <p>除法律法规另有要求，或经您明确同意外，我们不会向无关第三方出售、出租或共享您的个人信息。</p>
+        <div class="alert-mono">
+            <p><strong>上传图片前想一想。</strong>请不要上传带有真实姓名、学校、联系方式、人脸或其他个人信息的图片。图片发出去以后，拿到链接的人都能看到。</p>
+        </div>
 
-        <h3>五、您的权利</h3>
-        <p>您有权访问、更正、删除相关信息，也可以通过项目反馈渠道申请注销相关服务能力。我们会在合理期限内处理您的请求。</p>
+        <h2>会经手数据的第三方服务</h2>
+        <p>项目没有自己的机房，下面这些服务商会处理部分数据。本网站不使用任何统计或广告追踪工具。</p>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr><th>服务</th><th>用来做什么</th><th>可能收到的数据</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Cloudflare</td><td>运行服务器和数据库、托管本网站、Turnstile 人机验证、Workers AI 审核徽章、记录访问</td><td>IP 地址、浏览器和请求信息，以及上文「会发到我们服务器的」所有数据</td></tr>
+                    <tr><td>GitHub</td><td>存放上传的图片、托管项目代码和本网站的备用站点</td><td>上传的图片；访问备用站点时的 IP 地址和请求信息</td></tr>
+                    <tr><td>Statuspage（Atlassian）</td><td>在首页显示服务状态</td><td>IP 地址、浏览器和请求信息</td></tr>
+                    <tr><td>cdnjs、fonts.loli.net</td><td>加载网页样式、脚本和字体</td><td>IP 地址、请求信息</td></tr>
+                </tbody>
+            </table>
+        </div>
 
-        <h3>六、协议更新</h3>
-        <p>本协议可能根据功能调整而更新。更新后将通过官网页面公示，继续使用服务即视为您已阅读并同意更新内容。</p>
+        <h2>谁能看到</h2>
+        <ul>
+            <li>帖子和回复：所有脚本用户。</li>
+            <li>短消息：只有你和对方。</li>
+            <li>访问记录：只有项目维护者。</li>
+        </ul>
+        <p>我们不出售、不出租个人数据，也不会用这些数据投放广告。为了提供服务，部分数据会由上面列出的服务商处理。除此之外，除非法律要求，我们不会主动把你的个人数据提供给其他人。</p>
 
-        <p class="mt-4"><a href="index.html">返回首页</a></p>
-    </div>
+        <h2>怎么删除</h2>
+        <p>在脚本设置里关掉讨论区、短消息等联网功能，可以减少发给服务器的数据。帖子和回复可以自己删除。想删除其他数据，发邮件到 <span class="font-mono">seanoj_noreply@yeah.net</span> 或在 <a href="https://github.com/XMOJ-Script-dev/XMOJ-Script/issues" target="_blank" rel="noopener noreferrer">GitHub</a> 联系我们，写清楚你的 xmoj 用户名。</p>
+
+        <h2>这页会更新</h2>
+        <p>功能变了，这页也会跟着改，并更新上面的生效日期。改动记录可以在 GitHub 上看到。</p>
+    </main>
+
+    <!-- 页脚：与其他页面保持一致 -->
+    <footer class="site-footer">
+        <div class="container">
+            <ul class="footer-links">
+                <li><a href="https://docs.xmoj-script.uk" target="_blank" rel="noopener noreferrer">文档</a></li>
+                <li><a href="https://elxmoj.xmoj-script.uk" target="_blank" rel="noopener noreferrer">ELXMOJ 客户端</a></li>
+                <li><a href="messages.html">短消息在线看</a></li>
+                <li><a href="privacy.html">隐私说明</a></li>
+                <li><a href="terms.html">使用条款</a></li>
+                <li><a href="child-protection.html">未成年人保护</a></li>
+            </ul>
+            <div class="footer-meta">
+                <div>以 <a href="https://github.com/XMOJ-Script-dev/XMOJ-Script/blob/master/LICENSE" target="_blank" rel="noopener noreferrer">GPL-3.0</a> 开源 · 原项目作者 <a href="https://github.com/langningchen" target="_blank" rel="noopener noreferrer">langningchen</a> · 由 <a href="https://github.com/XMOJ-Script-dev" target="_blank" rel="noopener noreferrer">XMOJ-Script-dev</a> 维护</div>
+                <div>我们的网站在萌国备案啦！备案号：<a href="https://icp.gov.moe/?keyword=20240425" target="_blank" rel="noopener noreferrer">萌ICP备20240425号</a></div>
+            </div>
+        </div>
+    </footer>
 </body>
+
 </html>

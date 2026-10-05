@@ -1,0 +1,605 @@
+/*
+ * xmoj-script.uk 官网样式
+ * 视觉规范来自 XMOJ.user.js 中的 MonochromeSkinCSS（黑白主题），两边修改时请保持同步。
+ * 依赖 Bootstrap 5.3（暗色模式通过 data-bs-theme 切换）。
+ */
+:root {
+    --mono-black: #000;
+    --mono-white: #fff;
+    --mono-gray-100: #f5f5f5;
+    --mono-gray-200: #e5e5e5;
+    --mono-gray-300: #d4d4d4;
+    --mono-gray-400: #a3a3a3;
+    --mono-gray-500: #737373;
+    --mono-ok: #52c41a;
+    --mono-err: #fe4c61;
+    --mono-warn: #ffa900;
+    --mono-transition: 100ms ease;
+    --mono-cjk-serif: 'Noto Serif CJK SC', 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'STSong', 'SimSun', serif;
+    --mono-font-heading: 'Playfair Display', Georgia, var(--mono-cjk-serif);
+    --mono-font-body: 'Source Serif 4', 'Source Serif Pro', Georgia, var(--mono-cjk-serif);
+    --mono-font-mono: 'JetBrains Mono', Consolas, 'Courier New', monospace;
+}
+
+[data-bs-theme='dark'] {
+    --mono-black: #e5e5e5;
+    --mono-white: #1a1a1a;
+    --mono-gray-100: #222;
+    --mono-gray-200: #2a2a2a;
+    --mono-gray-300: #404040;
+    --mono-gray-400: #737373;
+    --mono-gray-500: #a3a3a3;
+}
+
+*,
+*::before,
+*::after {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+html {
+    scroll-padding-top: 5rem;
+}
+
+body {
+    font-family: var(--mono-font-body);
+    background-color: var(--mono-white);
+    color: var(--mono-black);
+    line-height: 1.75;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--mono-font-heading);
+    font-weight: 700;
+    color: var(--mono-black);
+}
+
+code, kbd, pre, .font-mono {
+    font-family: var(--mono-font-mono);
+}
+
+code {
+    color: var(--mono-black);
+    background-color: var(--mono-gray-100);
+    padding: 0.1em 0.35em;
+    font-size: 0.875em;
+}
+
+kbd {
+    background-color: var(--mono-black);
+    color: var(--mono-white);
+    font-size: 0.8em;
+}
+
+main a:not(.btn),
+footer a:not(.btn) {
+    color: var(--mono-black);
+    text-decoration: none;
+    border-bottom: 1px solid var(--mono-gray-400);
+    padding-bottom: 1px;
+    transition: border-color var(--mono-transition);
+}
+
+main a:not(.btn):hover,
+footer a:not(.btn):hover {
+    border-bottom-color: var(--mono-black);
+}
+
+::selection {
+    background-color: var(--mono-black);
+    color: var(--mono-white);
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--mono-white);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--mono-black);
+}
+
+:focus-visible {
+    outline: 2px solid var(--mono-black) !important;
+    outline-offset: 2px;
+}
+
+/* 顶部导航栏 */
+.site-nav {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background-color: var(--mono-white);
+    border-bottom: 4px solid var(--mono-black);
+}
+
+.site-nav .navbar-brand {
+    font-family: var(--mono-font-heading);
+    font-weight: 700;
+    color: var(--mono-black);
+}
+
+.site-nav .navbar-brand img {
+    height: 32px;
+    width: auto;
+}
+
+.site-nav .nav-link {
+    color: var(--mono-black);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.5rem 0.85rem !important;
+    transition: background-color var(--mono-transition), color var(--mono-transition);
+}
+
+.site-nav .nav-link:hover,
+.site-nav .nav-link:focus,
+.site-nav .nav-link.active {
+    background-color: var(--mono-black);
+    color: var(--mono-white);
+}
+
+.site-nav .navbar-toggler {
+    border: 2px solid var(--mono-black);
+    color: var(--mono-black);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.25rem 0.6rem;
+}
+
+/* 外链箭头：用 CSS 画，避免 ↗ 在苹果设备上显示成彩色 emoji */
+.ext::after {
+    content: '';
+    display: inline-block;
+    width: 0.7em;
+    height: 0.7em;
+    margin-left: 0.3em;
+    vertical-align: 0.05em;
+    background-color: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M2 8 8 2M3.5 2H8v4.5' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='square'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M2 8 8 2M3.5 2H8v4.5' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='square'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+/* 按钮 */
+.btn {
+    --bs-btn-padding-x: 1.1rem;
+    border: 2px solid var(--mono-black);
+    background-color: var(--mono-white);
+    color: var(--mono-black);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    transition: background-color var(--mono-transition), color var(--mono-transition);
+}
+
+.btn:hover,
+.btn:focus-visible,
+.btn:active,
+.btn.active {
+    background-color: var(--mono-black) !important;
+    color: var(--mono-white) !important;
+    border-color: var(--mono-black) !important;
+}
+
+.btn-primary {
+    background-color: var(--mono-black);
+    color: var(--mono-white);
+}
+
+.btn-primary:hover,
+.btn-primary:focus-visible,
+.btn-primary:active {
+    background-color: var(--mono-white) !important;
+    color: var(--mono-black) !important;
+}
+
+.btn-lg {
+    --bs-btn-padding-y: 0.75rem;
+    --bs-btn-padding-x: 1.6rem;
+    font-size: 1rem;
+}
+
+/* 区块 */
+.site-section {
+    padding-block: 4.5rem;
+    border-bottom: 2px solid var(--mono-black);
+}
+
+.site-section:last-of-type {
+    border-bottom: none;
+}
+
+.section-label {
+    display: inline-block;
+    font-family: var(--mono-font-mono);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--mono-gray-500);
+    margin-bottom: 0.5rem;
+}
+
+.section-title {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    margin-bottom: 1.5rem;
+}
+
+.lead {
+    color: var(--mono-black);
+}
+
+.text-muted-mono {
+    color: var(--mono-gray-500);
+}
+
+/* 首屏 */
+.hero {
+    padding-block: 5rem 4.5rem;
+    border-bottom: 2px solid var(--mono-black);
+}
+
+.hero h1 {
+    font-size: clamp(2.5rem, 7vw, 4.5rem);
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+}
+
+.hero-meta {
+    font-family: var(--mono-font-mono);
+    font-size: 0.85rem;
+    color: var(--mono-gray-500);
+}
+
+/* 首屏截图：按主题切换亮色/暗色版本 */
+.hero-shot img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 2px solid var(--mono-black);
+}
+
+.hero-shot figcaption {
+    font-family: var(--mono-font-mono);
+    font-size: 0.75rem;
+    color: var(--mono-gray-500);
+    margin-top: 0.5rem;
+}
+
+.theme-dark-only,
+[data-bs-theme='dark'] .theme-light-only {
+    display: none !important;
+}
+
+[data-bs-theme='dark'] .theme-dark-only {
+    display: block !important;
+}
+
+/* 404 页的“评测结果”示意 */
+.status-demo {
+    border: 2px solid var(--mono-black);
+    background-color: var(--mono-white);
+    font-size: 0.9rem;
+}
+
+.status-demo-head {
+    background-color: var(--mono-black);
+    color: var(--mono-white);
+    font-family: var(--mono-font-heading);
+    padding: 0.6em 1em;
+    display: flex;
+    justify-content: space-between;
+}
+
+.status-demo table {
+    width: 100%;
+    margin: 0;
+    font-family: var(--mono-font-mono);
+    font-size: 0.8rem;
+}
+
+.status-demo th {
+    font-family: var(--mono-font-body);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--mono-gray-500);
+    border-bottom: 1px solid var(--mono-gray-300);
+    padding: 0.5rem 0.75rem;
+}
+
+.status-demo td {
+    padding: 0.55rem 0.75rem;
+    border-bottom: 1px solid var(--mono-gray-200);
+}
+
+.status-demo tr:last-child td {
+    border-bottom: none;
+}
+
+.status-tag {
+    display: inline-block;
+    min-width: 3em;
+    text-align: center;
+    color: #fff;
+    font-weight: 500;
+    padding: 0 0.4em;
+}
+
+.status-tag.ok { background-color: var(--mono-ok); }
+.status-tag.err { background-color: var(--mono-err); }
+.status-tag.warn { background-color: var(--mono-warn); }
+
+.status-demo-foot {
+    border-top: 1px solid var(--mono-gray-300);
+    padding: 0.5em 1em;
+    font-family: var(--mono-font-mono);
+    font-size: 0.75rem;
+    color: var(--mono-gray-500);
+}
+
+/* 功能卡片 */
+.mono-card {
+    border: 2px solid var(--mono-black);
+    background-color: var(--mono-white);
+    height: 100%;
+}
+
+.mono-card-head {
+    background-color: var(--mono-black);
+    color: var(--mono-white);
+    font-family: var(--mono-font-heading);
+    font-weight: 700;
+    font-size: 1.15rem;
+    padding: 0.6em 1em;
+}
+
+.mono-card-body {
+    padding: 1rem 1.1rem;
+}
+
+.mono-card-body p:last-child,
+.mono-card-body ul:last-child {
+    margin-bottom: 0;
+}
+
+.mono-card-body ul {
+    padding-left: 1.1rem;
+}
+
+/* 安装步骤 */
+.browser-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    border: 2px solid var(--mono-black);
+    margin-bottom: 2rem;
+}
+
+.browser-tabs button {
+    flex: 1 1 auto;
+    background: var(--mono-white);
+    color: var(--mono-black);
+    border: none;
+    border-right: 2px solid var(--mono-black);
+    padding: 0.6rem 1rem;
+    font-family: var(--mono-font-body);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: background-color var(--mono-transition), color var(--mono-transition);
+}
+
+.browser-tabs button:last-child {
+    border-right: none;
+}
+
+.browser-tabs button:hover,
+.browser-tabs button[aria-pressed='true'] {
+    background-color: var(--mono-black);
+    color: var(--mono-white);
+}
+
+.browser-hint {
+    font-family: var(--mono-font-mono);
+    font-size: 0.8rem;
+    color: var(--mono-gray-500);
+    margin-bottom: 0.75rem;
+}
+
+.install-step {
+    display: grid;
+    grid-template-columns: 3.5rem 1fr;
+    gap: 0 1.25rem;
+    padding-block: 1.5rem;
+    border-top: 1px solid var(--mono-gray-300);
+}
+
+.install-step:first-child {
+    border-top: none;
+    padding-top: 0;
+}
+
+.step-num {
+    font-family: var(--mono-font-heading);
+    font-size: 2.5rem;
+    line-height: 1;
+    font-weight: 700;
+}
+
+.install-step h3 {
+    font-size: 1.35rem;
+    margin-bottom: 0.5rem;
+}
+
+.install-step ol,
+.install-step ul {
+    padding-left: 1.2rem;
+}
+
+.install-step .alert-mono {
+    margin-top: 0.75rem;
+}
+
+.alert-mono {
+    border: 2px solid var(--mono-black);
+    border-left-width: 8px;
+    padding: 0.75rem 1rem;
+    background-color: var(--mono-white);
+}
+
+.alert-mono p:last-child {
+    margin-bottom: 0;
+}
+
+/* 常见问题 */
+.faq details {
+    border-bottom: 1px solid var(--mono-gray-300);
+}
+
+.faq details:first-child {
+    border-top: 2px solid var(--mono-black);
+}
+
+.faq summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 1rem 2.5rem 1rem 0;
+    position: relative;
+    font-family: var(--mono-font-heading);
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.faq summary::-webkit-details-marker {
+    display: none;
+}
+
+.faq summary::after {
+    content: '+';
+    position: absolute;
+    right: 0.25rem;
+    top: 0.85rem;
+    font-family: var(--mono-font-mono);
+    font-size: 1.25rem;
+}
+
+.faq details[open] summary::after {
+    content: '−';
+}
+
+.faq details > div {
+    padding-bottom: 1rem;
+}
+
+/* 页脚 */
+.site-footer {
+    border-top: 4px solid var(--mono-black);
+    padding-block: 2.5rem;
+    font-size: 0.9rem;
+}
+
+.site-footer .footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+    padding: 0;
+    margin: 0 0 1rem;
+    list-style: none;
+}
+
+.site-footer .footer-meta {
+    color: var(--mono-gray-500);
+    font-family: var(--mono-font-mono);
+    font-size: 0.8rem;
+}
+
+.site-footer .footer-meta a {
+    color: var(--mono-gray-500);
+}
+
+/* 协议类页面 */
+.doc {
+    max-width: 44rem;
+    padding-block: 3.5rem;
+}
+
+.doc h1 {
+    font-size: clamp(2rem, 5vw, 2.75rem);
+    margin-bottom: 0.5rem;
+}
+
+.doc h2 {
+    font-size: 1.35rem;
+    margin-top: 2.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--mono-gray-300);
+}
+
+.doc-date {
+    font-family: var(--mono-font-mono);
+    font-size: 0.85rem;
+    color: var(--mono-gray-500);
+}
+
+.doc table {
+    width: 100%;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.doc th {
+    background-color: var(--mono-black);
+    color: var(--mono-white);
+    font-weight: 600;
+    padding: 0.5rem 0.75rem;
+}
+
+.doc td {
+    border-bottom: 1px solid var(--mono-gray-300);
+    padding: 0.5rem 0.75rem;
+    vertical-align: top;
+}
+
+/* 404 */
+.page-fill {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.page-fill > main {
+    flex: 1 0 auto;
+}
+
+.not-found {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-block: 4rem;
+}
+
+.not-found .code {
+    font-family: var(--mono-font-heading);
+    font-size: clamp(5.5rem, 18vw, 10rem);
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 1.5rem;
+}
+
+.not-found .status-demo-foot {
+    word-break: break-all;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+        scroll-behavior: auto !important;
+    }
+}
