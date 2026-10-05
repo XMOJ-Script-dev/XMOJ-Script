@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      3.8.3
+// @version      3.8.4
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -3442,12 +3442,22 @@ class NavbarStyler {
         }
     }
 
-    preserveStyles(element, properties) {
+    preserveStyles(element, properties, preserveOrder = false) {
+        const order = preserveOrder ? Array.from(element.style) : null;
         const original = properties.map(property => [property, element.style.getPropertyValue(property), element.style.getPropertyPriority(property)]);
         return () => {
             for (const [property, value, priority] of original) {
                 if (value) element.style.setProperty(property, value, priority);
                 else element.style.removeProperty(property);
+            }
+            if (order) {
+                // Attribute selectors can depend on declaration order. Restore that
+                // order while retaining unrelated styles changed by the page.
+                const current = Array.from(element.style);
+                const names = [...order.filter(name => current.includes(name)), ...current.filter(name => !order.includes(name))];
+                const values = names.map(name => [name, element.style.getPropertyValue(name), element.style.getPropertyPriority(name)]);
+                element.style.cssText = '';
+                for (const [name, value, priority] of values) element.style.setProperty(name, value, priority);
             }
         };
     }
@@ -3459,9 +3469,11 @@ class NavbarStyler {
         this.restoreNavbarStyles();
         this.restoreOverlayStyles?.();
         this.restoreSpacerStyles?.();
+        this.restoreSpacerLayoutStyles?.();
         this.overlay?.remove();
         this.overlayStyle?.remove();
         this.spacer?.remove();
+        this.spacerStyle?.remove();
         this.navbar = null;
     }
 
@@ -3577,19 +3589,35 @@ class NavbarStyler {
         try {
             let spacer = document.getElementById('navbar-spacer');
             let newHeight = this.navbar.offsetHeight + 24;
+            // Browser cosmetic filters can hide empty body children whose inline
+            // style starts with display:block; width:100%; height:. Keep static
+            // layout rules outside that attribute, including when Bootstrap is late.
+            if (!this.spacerStyle?.isConnected) {
+                this.spacerStyle = document.createElement('style');
+                this.spacerStyle.textContent = '#navbar-spacer { display: block; width: 100%; }';
+                (document.head || document.documentElement).appendChild(this.spacerStyle);
+            }
             if (!spacer) {
                 // Legacy page handlers use body > div for the content container.
                 // A block span reserves space without becoming their first match.
                 spacer = document.createElement('span');
                 spacer.id = 'navbar-spacer';
                 spacer.setAttribute('aria-hidden', 'true');
-                spacer.style.display = 'block';
-                spacer.style.width = '100%';
                 document.body.insertBefore(spacer, document.body.firstChild);
                 this.spacer = spacer;
             } else if (spacer !== this.spacer && spacer !== this.borrowedSpacer) {
+                this.restoreSpacerStyles?.();
+                this.restoreSpacerLayoutStyles?.();
+                this.restoreSpacerLayoutStyles = null;
                 this.borrowedSpacer = spacer;
                 this.restoreSpacerStyles = this.preserveStyles(spacer, ['height']);
+            }
+            // Older initializers may leave the same fingerprint on a borrowed spacer.
+            // Normalize only matching nodes, then restore their layout on teardown.
+            if (spacer !== this.spacer && spacer.matches('body > [style^="display: block; width: 100%; height:"]:empty')) {
+                if (!this.restoreSpacerLayoutStyles) this.restoreSpacerLayoutStyles = this.preserveStyles(spacer, ['display', 'width'], true);
+                spacer.style.removeProperty('display');
+                spacer.style.removeProperty('width');
             }
             // Update in place so an existing page-owned spacer is never replaced.
             if (spacer.style.height !== `${newHeight}px`) spacer.style.height = `${newHeight}px`;
