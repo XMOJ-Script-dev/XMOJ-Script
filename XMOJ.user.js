@@ -2909,9 +2909,10 @@ function ApplyContestWebTheme() {
         #app .xmoj-script-has-editors .xmoj-std-code { display: none !important; }
         #app .xmoj-std-overlay { pointer-events: none; }
         #app .xmoj-script-code-ready { display: none !important; }
+        #app .xmoj-scroll-x:has(> #rank) { overflow: visible; }
         #app #rank td, #app #rank th { vertical-align: middle; }
         #app #rank td.well { color: ${dark ? "white" : "black"} !important; padding: 0.5rem; margin: 0; border: 0; border-radius: 0; }
-        #app #rank tbody td:not(:nth-child(2)) a { color: inherit; text-decoration: none; }` + (get("MonochromeUI") ? `
+        #app #rank tbody td:not(:nth-child(2)) a { color: inherit; text-decoration: none; border-bottom: 0 !important; }` + (get("MonochromeUI") ? `
         #app #rank thead th, #app #rank thead th a { background-color: black !important; color: white !important; }` : "") + `
         #app .xmoj-problem-head h3 { font-size: 1rem; font-weight: inherit !important; font-family: inherit !important; margin: 0; }
         #app .xmoj-problem-actions .btn { margin: 0 5px; }
