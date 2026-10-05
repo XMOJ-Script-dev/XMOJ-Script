@@ -986,6 +986,23 @@ let GetUserInfo = async (Username) => {
         }
     }
 };
+// Ratings cached before the 0-3000 rating used the AC-rate formula under the
+// "-UserRating" key. Remove them once so they don't linger in localStorage.
+try {
+    if (localStorage.getItem("UserScript-RatingV2-Migrated") === null) {
+        let Temp = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            let key = localStorage.key(i);
+            if (key && key.startsWith("UserScript-User-") && key.endsWith("-UserRating")) Temp.push(key);
+        }
+        for (let i = 0; i < Temp.length; i++) {
+            localStorage.removeItem(Temp[i]);
+        }
+        localStorage.setItem("UserScript-RatingV2-Migrated", "true");
+    }
+} catch (e) {
+    console.error(e);
+}
 /**
  * Retrieves the badge information for a given user.
  *
