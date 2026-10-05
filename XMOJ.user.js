@@ -3247,7 +3247,7 @@ async function InitializeContestWebApp() {
     }
 
     function EnhanceRankBadge(cell) {
-        // The server styles the whole cell as an orange badge; show the rank in a
+        // The server styles the whole cell as an orange badge. Show the rank in a
         // badge like the legacy page instead. Vue rewrites the text if it changes,
         // which also drops the owned badge, so it is rebuilt on the next pass.
         if (!cell || cell.querySelector(`[${owned}="rank-badge"]`)) return;
@@ -3257,7 +3257,8 @@ async function InitializeContestWebApp() {
             if (node.nodeType === Node.TEXT_NODE) node.nodeValue = "";
         }
         cell.className = "";
-        const badge = MakeControl("span", "rank-badge", text);
+        // The server labels first place "Winner"; the OI rank page shows its number.
+        const badge = MakeControl("span", "rank-badge", text === "Winner" ? "1" : text);
         badge.className = "badge text-bg-primary";
         cell.appendChild(badge);
     }
