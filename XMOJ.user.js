@@ -2909,7 +2909,10 @@ function ApplyContestWebTheme() {
         #app .xmoj-script-has-editors .xmoj-std-code { display: none !important; }
         #app .xmoj-std-overlay { pointer-events: none; }
         #app .xmoj-script-code-ready { display: none !important; }
-        #app #rank td.well { color: #222 !important; }
+        #app #rank td, #app #rank th { vertical-align: middle; }
+        #app #rank td.well { color: ${dark ? "white" : "black"} !important; padding: 0.5rem; margin: 0; border: 0; border-radius: 0; }
+        #app #rank tbody td:not(:nth-child(2)) a { color: inherit; text-decoration: none; }` + (get("MonochromeUI") ? `
+        #app #rank thead th, #app #rank thead th a { background-color: black !important; color: white !important; }` : "") + `
         #app .xmoj-problem-head h3 { font-size: 1rem; font-weight: inherit !important; font-family: inherit !important; margin: 0; }
         #app .xmoj-problem-actions .btn { margin: 0 5px; }
         #app .xmoj-problem-body pre { font-size: 1rem; padding: 0.3em 0.5em; margin: 0.5em 0; }
@@ -3224,6 +3227,8 @@ async function InitializeContestWebApp() {
         // rank pages. Vue owns its link and may reuse the row for another user when
         // it re-sorts, so hide its link and keep an owned copy keyed by username.
         for (const row of root.querySelectorAll("#rank tbody tr")) {
+            EnhanceRankBadge(row.cells[0]);
+            for (const cell of row.querySelectorAll("td.well")) EnhanceRankCell(cell);
             const cell = row.cells[1];
             const link = cell?.querySelector(`a:not([${owned}] a)`);
             if (!link) continue;
@@ -3238,6 +3243,55 @@ async function InitializeContestWebApp() {
             cell.appendChild(span);
             GetUsernameHTML(span, username);
         }
+    }
+
+    function EnhanceRankBadge(cell) {
+        // The server styles the whole cell as an orange badge; show the rank in a
+        // badge like the legacy page instead. Vue rewrites the text if it changes,
+        // which also drops the owned badge, so it is rebuilt on the next pass.
+        if (!cell || cell.querySelector(`[${owned}="rank-badge"]`)) return;
+        const text = cell.textContent.trim();
+        if (!text) return;
+        for (const node of cell.childNodes) {
+            if (node.nodeType === Node.TEXT_NODE) node.nodeValue = "";
+        }
+        cell.className = "";
+        const badge = MakeControl("span", "rank-badge", text);
+        badge.className = "badge text-bg-primary";
+        cell.appendChild(badge);
+    }
+
+    function EnhanceRankCell(cell) {
+        // Decode the server's cell color like the legacy OI rank page: green 255
+        // means solved, and the blue channel encodes the number of failed tries.
+        // Vue resets the inline color whenever it patches the row, so remember the
+        // color it set and the one applied here to tell the two apart.
+        const current = cell.style.backgroundColor;
+        let tries = cell.querySelector(`[${owned}="rank-tries"]`);
+        if (tries && current === cell.dataset.xmojColor) return;
+        const source = current === cell.dataset.xmojColor ? cell.dataset.xmojSource : current;
+        const match = (source || "").match(/^rgb\((\d+), (\d+), (\d+)\)$/);
+        if (!match) return;
+        tries?.remove();
+        const [Red, Green, Blue] = match.slice(1).map(Number);
+        let BackgroundColor, Suffix = "";
+        if (Red == 238 && Green == 238 && Blue == 238) {
+            BackgroundColor = "";
+        } else if (Red == 170 && Green == 170 && Blue == 255) {
+            BackgroundColor = "rgb(127, 127, 255)";
+        } else if (Green == 255) {
+            let ErrorCount = (Blue == 170 ? 5 : (Blue - 51) / 32);
+            BackgroundColor = "rgba(0, 255, 0, " + Math.max(1 / 10 * (10 - ErrorCount), 0.2) + ")";
+            if (ErrorCount != 0) Suffix = " (" + (ErrorCount == 5 ? "4+" : ErrorCount) + ")";
+        } else {
+            let ErrorCount = (Blue == 22 ? 15 : (170 - Blue) / 10);
+            BackgroundColor = "rgba(255, 0, 0, " + Math.min(ErrorCount / 10 + 0.2, 1) + ")";
+            if (ErrorCount != 0) Suffix = " (" + (ErrorCount == 15 ? "14+" : ErrorCount) + ")";
+        }
+        cell.style.backgroundColor = BackgroundColor;
+        cell.dataset.xmojSource = source;
+        cell.dataset.xmojColor = cell.style.backgroundColor;
+        cell.appendChild(MakeControl("span", "rank-tries", Suffix));
     }
 
     function EnhanceContest() {
@@ -3445,7 +3499,7 @@ async function InitializeContestWebApp() {
                 }
             }
             UpdateCountdowns();
-        } finally { observer.observe(root, {childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["class"]}); }
+        } finally { observer.observe(root, {childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["class", "style"]}); }
     }
 
     function ScheduleEnhance() {
