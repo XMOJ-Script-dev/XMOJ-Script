@@ -2398,15 +2398,26 @@ function GetProfileActivityData(root = document) {
 }
 
 // Deterministic 0-3000 rating computed from a single userinfo.php page. It only
-// reads the p(id, attempts) list and the daily history, and never uses the
-// current time, so every viewer gets the same number for the same profile.
+// reads the solved list, the verdict totals and the daily history, and never
+// uses the current time, so every viewer gets the same number for the same
+// profile. The count after each solved problem includes submissions made after
+// AC, so it is not used: accuracy comes from the exact verdict totals instead.
 function CalculateUserRating(root = document) {
-    let attempts = [];
-    for (let script of root.querySelector("#statics")?.querySelectorAll("script") || []) {
-        for (let match of script.textContent.matchAll(/\bp\(\s*\d+\s*,\s*(\d+)\s*\)/g)) attempts.push(Math.max(1, Number(match[1])));
+    let table = root.querySelector("#statics");
+    let solvedProblems = new Set();
+    for (let script of table?.querySelectorAll("script") || []) {
+        for (let match of script.textContent.matchAll(/\bp\(\s*(\d+)\s*,\s*\d+\s*\)/g)) solvedProblems.add(match[1]);
     }
-    let solved = attempts.length;
+    let solved = solvedProblems.size;
     if (solved == 0) return 0;
+    // Judged failures: PE, WA, TLE, MLE, OLE and RE. Compile errors and ignored
+    // submissions are not counted. Resubmitting AC code adds nothing here and
+    // cannot raise the solved count either.
+    let failures = 0;
+    for (let link of table.querySelectorAll("a[href*='jresult=']")) {
+        let result = Number((link.getAttribute("href").match(/jresult=(\d+)/) || [])[1]);
+        if (result >= 5 && result <= 10) failures += Number(link.textContent.trim()) || 0;
+    }
     let activity = GetProfileActivityData(root) || [[], []];
     // Soft-cap ACs per day: normal training days count fully, while a day with
     // dozens of ACs (pasted solutions, bulk resubmits) adds only logarithmically.
@@ -2417,17 +2428,13 @@ function CalculateUserRating(root = document) {
         cappedAC += count <= DailyCap ? count : DailyCap + DailyCap * Math.log(1 + (count - DailyCap) / DailyCap);
     }
     let burst = totalAC > 0 ? cappedAC / totalAC : 1;
-    // Volume: each solve is worth 1 on the first try and decays slowly with retries.
-    let weighted = attempts.reduce((sum, count) => sum + 1 / (1 + 0.4 * Math.log(count)), 0);
-    let volume = 1 - Math.exp(-weighted * burst / 350);
-    // Accuracy: first-try rate and per-attempt rate, both shrunk toward typical
-    // values so small samples cannot score high.
-    let firstTry = (attempts.filter(count => count == 1).length + 20 * 0.25) / (solved + 20);
-    let perAttempt = (solved + 60 * 0.2) / (attempts.reduce((sum, count) => sum + count, 0) + 60);
-    let accuracyRaw = 0.5 * firstTry + 0.5 * perAttempt;
-    // Strong users still fail on hard problems, so credit peaks around 45%-60%;
-    // near-perfect accuracy over hundreds of solves looks copied and earns less.
-    let accuracy = accuracyRaw < 0.15 ? 0 : accuracyRaw < 0.45 ? (accuracyRaw - 0.15) / 0.3 : accuracyRaw < 0.6 ? 1 : Math.max(0.3, 1 - (accuracyRaw - 0.6) * 2);
+    let volume = 1 - Math.exp(-solved * burst / 350);
+    // Share of judged submissions that solved a new problem, shrunk toward 25%
+    // with 40 virtual submissions so small samples cannot score high.
+    let precision = (solved + 40 * 0.25) / (solved + failures + 40);
+    // Strong users still fail on hard problems, so credit peaks at 40%-55%;
+    // near-perfect precision over hundreds of solves looks copied and earns less.
+    let accuracy = precision < 0.15 ? 0 : precision < 0.4 ? (precision - 0.15) / 0.25 : precision < 0.55 ? 1 : Math.max(0.3, 1 - (precision - 0.55) * 2);
     let confidence = solved / (solved + 80);
     let consistency = 1 - Math.exp(-activity[0].length / 250);
     let score = 0.57 * volume + 0.33 * accuracy * confidence + 0.1 * consistency;
