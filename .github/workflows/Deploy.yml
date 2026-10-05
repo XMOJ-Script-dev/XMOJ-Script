@@ -10,6 +10,10 @@ jobs:
   Cloudflare:
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
+    # 连续推送时按顺序部署，最后一次推送的内容最后上线
+    concurrency:
+      group: cloudflare-pages
+      cancel-in-progress: false
     permissions:
       contents: read
       deployments: write

@@ -20,8 +20,9 @@
         return "chrome";
     }
 
-    function ChromeMajorVersion() {
-        const match = navigator.userAgent.match(/Chrom(?:e|ium)\/(\d+)/);
+    function MajorVersion(browser) {
+        const pattern = browser === "edge" ? /Edg(?:e|A|iOS)?\/(\d+)/ : /Chrom(?:e|ium)\/(\d+)/;
+        const match = navigator.userAgent.match(pattern);
         return match ? parseInt(match[1], 10) : 0;
     }
 
@@ -56,12 +57,14 @@
                 const names = {chrome: "Chrome", edge: "Edge", firefox: "Firefox", safari: "Safari"};
                 hint.textContent = "检测到你正在使用 " + names[browser] + "，已自动选择对应步骤。";
             }
-            const chromeVersion = ChromeMajorVersion();
-            if (browser === "chrome" && chromeVersion > 0) {
-                const note = document.getElementById("ChromeVersionNote");
+            // Chrome 和 Edge 都从 138 起改用「允许用户脚本」开关
+            const version = MajorVersion(browser);
+            if ((browser === "chrome" || browser === "edge") && version > 0) {
+                const name = browser === "edge" ? "Edge" : "Chrome";
+                const note = document.getElementById(name + "VersionNote");
                 if (note) {
-                    note.textContent = "你的 Chrome 版本是 " + chromeVersion + "，" +
-                        (chromeVersion >= 138 ? "请按「Chrome 138 及以上」操作。" : "请按「Chrome 137 及以下」操作。");
+                    note.textContent = "你的 " + name + " 版本是 " + version + "，" +
+                        (version >= 138 ? "请按「" + name + " 138 及以上」操作。" : "请按「" + name + " 137 及以下」操作。");
                 }
             }
             tabs.addEventListener("click", (event) => {

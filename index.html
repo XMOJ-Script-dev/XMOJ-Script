@@ -66,7 +66,7 @@
                     </div>
                     <div class="col-lg-6">
                         <figure class="hero-shot mb-0">
-                            <img class="theme-light-only" src="Images/hero-light.png" width="1280" height="700" alt="装上脚本后的小明的OJ比赛题目页：黑白主题、左侧题目切换栏、每个小节旁的复制按钮">
+                            <img class="theme-light-only" src="Images/hero-light.png" width="1280" height="700" loading="lazy" alt="装上脚本后的小明的OJ比赛题目页：黑白主题、左侧题目切换栏、每个小节旁的复制按钮">
                             <img class="theme-dark-only" src="Images/hero-dark.png" width="1280" height="700" alt="暗色模式下的同一页面" loading="lazy">
                             <figcaption>真实截图：比赛题目页，黑白主题</figcaption>
                         </figure>
@@ -213,7 +213,13 @@
                                 </ol>
                             </div>
                             <div data-for="edge" hidden>
-                                <p>Edge 默认不让扩展运行用户脚本，<strong>不做这一步脚本不会生效</strong>。</p>
+                                <p>Edge 默认不让扩展运行用户脚本，<strong>不做这一步脚本不会生效</strong>。<span id="EdgeVersionNote">在地址栏打开 <code>edge://version</code> 可以查看版本号。</span></p>
+                                <p class="mb-1"><strong>Edge 138 及以上：</strong></p>
+                                <ol>
+                                    <li>地址栏打开 <code>edge://extensions</code>，在脚本管理器（Tampermonkey 或 ScriptCat）下面点「详细信息」。</li>
+                                    <li>打开「允许用户脚本」开关。</li>
+                                </ol>
+                                <p class="mb-1"><strong>Edge 137 及以下：</strong></p>
                                 <ol>
                                     <li>地址栏打开 <code>edge://extensions</code>。</li>
                                     <li>打开左侧的「开发人员模式」。</li>
