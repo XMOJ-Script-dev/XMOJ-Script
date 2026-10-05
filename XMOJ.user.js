@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      3.8.4
+// @version      3.8.5
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -2310,6 +2310,12 @@ function GetProfileSolvedProblems(root = document) {
     return [...problems];
 }
 
+function IsMissingUserBadge(response) {
+    // Missing rows use an error message rather than a separate status code.
+    // Match the missing-tag phrase; authentication and other failures also have no data.
+    return response?.Success === false && typeof response.Message === "string" && /标签\s*(?:在数据库中\s*)?不存在/.test(response.Message);
+}
+
 function InitializeProfileBadge(container, userID, isAdmin) {
     let badge = document.createElement("span");
     badge.className = "badge me-2";
@@ -2341,8 +2347,9 @@ function InitializeProfileBadge(container, userID, isAdmin) {
         retry.disabled = true;
         controls.replaceChildren();
         RequestAPI("GetBadge", {UserID: userID}, response => {
-            if (!response?.Success) { Fail(response?.Message || "服务器响应异常，请重试"); return; }
-            let data = response.Data ?? {};
+            let missing = IsMissingUserBadge(response);
+            if (!response?.Success && !missing) { Fail(response?.Message || "服务器响应异常，请重试"); return; }
+            let data = missing ? {} : response.Data ?? {};
             let content = String(data.Content ?? "");
             badge.textContent = content;
             badge.hidden = content === "";
@@ -2635,23 +2642,24 @@ function InitializeAccountFeatures(authenticated) {
 
 function LoadAccountBadge(content, background, color, onLoad, onError) {
     RequestAPI("GetBadge", {"UserID": String(CurrentUsername)}, (response) => {
-        if (!response?.Success) {
+        let missing = IsMissingUserBadge(response);
+        if (!response?.Success && !missing) {
             onError(response?.Message || "服务器响应异常，请重试");
             return;
         }
-        let badge = response.Data ?? {};
+        let badge = missing ? {} : response.Data ?? {};
         content.value = String(badge.Content ?? "");
         // Color inputs cannot represent an empty value. Use explicit defaults
         // for missing/invalid colors rather than the browser's silent fallback.
         background.value = /^#[0-9a-f]{6}$/i.test(badge.BackgroundColor) ? badge.BackgroundColor : "#000000";
         color.value = /^#[0-9a-f]{6}$/i.test(badge.Color) ? badge.Color : "#ffffff";
-        onLoad();
+        onLoad(!missing);
     }, onError);
 }
 
 // Unloaded fields must never be saved as a blank replacement for an existing badge.
 function InitializeAccountBadgeLoading(content, background, color, status, onReady = () => {}) {
-    let state = {loaded: false};
+    let state = {loaded: false, exists: false};
     let retry = document.createElement("button");
     retry.type = "button";
     retry.className = "btn btn-outline-secondary mt-2";
@@ -2659,17 +2667,19 @@ function InitializeAccountBadgeLoading(content, background, color, status, onRea
     status.insertAdjacentElement("afterend", retry);
     let Load = () => {
         state.loaded = false;
+        state.exists = false;
         [content, background, color].forEach(input => { input.disabled = true; });
         onReady(false);
         status.innerText = "正在加载标签...";
         retry.hidden = true;
         retry.disabled = true;
-        LoadAccountBadge(content, background, color, () => {
+        LoadAccountBadge(content, background, color, exists => {
             state.loaded = true;
-            [content, background, color].forEach(input => { input.disabled = false; });
+            state.exists = exists;
+            [content, background, color].forEach(input => { input.disabled = !exists; });
             status.innerText = "";
             retry.disabled = false;
-            onReady(true);
+            onReady(true, exists);
         }, message => {
             status.innerText = "标签加载失败：" + message;
             retry.hidden = false;
@@ -2728,11 +2738,12 @@ function InitializeAccountBadgeEditor() {
     let button = editor.querySelector("button");
     let status = editor.querySelector("[role='status']");
     container.appendChild(editor);
-    let badgeState = InitializeAccountBadgeLoading(content, background, color, status, loaded => {
-        button.disabled = !loaded;
+    let badgeState = InitializeAccountBadgeLoading(content, background, color, status, (loaded, exists) => {
+        editor.hidden = loaded && !exists;
+        button.disabled = !loaded || !exists;
     });
     button.addEventListener("click", async () => {
-        if (!badgeState.loaded) return;
+        if (!badgeState.loaded || !badgeState.exists) return;
         button.disabled = true;
         status.innerText = "";
         try {
