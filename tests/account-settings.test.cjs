@@ -13,7 +13,8 @@ function Between(start, end) {
     assert.ok(source.indexOf(start) < source.indexOf(end));
     return source.slice(source.indexOf(start), source.indexOf(end));
 }
-const helpers = Between('function IsAccountSettingsPage(', 'function InitializeUserMenu(');
+const helpers = Between('function IsMissingUserBadge(', 'function InitializeProfileBadge(') +
+    Between('function IsAccountSettingsPage(', 'function InitializeUserMenu(');
 const earlyRedirect = Between('function GetAccountSettingsRedirect(', 'function InitializeAccountFeatures(') +
     Between('// Set to true by the early block', 'const CaptchaSiteKey');
 const api = Between('let RequestAPI = (', 'let SyncSettingsToCloud = (');
@@ -58,6 +59,11 @@ test('account-page migration browser regressions', {timeout: 60000}, async t => 
                     const mode = action === 'GetBadge' ? window.badgeLoadFailureMode : window.badgeFailureMode;
                     if (mode === 'pending') {
                         window.pendingBadgeRequest = request;
+                        return;
+                    }
+                    if (mode === 'missing') {
+                        request.onload({status: 200, responseText: JSON.stringify({Success: false,
+                            Message: options.missingBadgeMessage ?? '获取标签失败，该标签在数据库中不存在', Data: {}})});
                         return;
                     }
                     if (['network', 'timeout', 'abort'].includes(mode)) {
@@ -147,6 +153,28 @@ test('account-page migration browser regressions', {timeout: 60000}, async t => 
             assert.equal(await page.locator('#UserScriptBadgeContent').inputValue(), 'Badge');
             await page.close();
         });
+        for (const missingBadgeMessage of ['获取标签失败，该标签在数据库中不存在', '  该标签在数据库中不存在。  ', '标签不存在']) {
+            await t.test('hides account tag editing for a missing badge: ' + missingBadgeMessage, async () => {
+                const page = await Page('/modify_user_info.php', nativeForm, {badgeLoadFailureMode: 'missing', missingBadgeMessage});
+                const editor = page.locator('#UserScriptBadgeEditor');
+                assert.equal(await editor.isHidden(), true);
+                assert.equal(await editor.locator('[role="status"]').textContent(), '');
+                assert.equal(await editor.locator('button:has-text("重试加载标签")').isHidden(), true);
+                assert.equal(await page.locator('#UserScriptBadgeContent').inputValue(), '');
+                assert.equal(await page.locator('#UserScriptBadgeContent').isDisabled(), true);
+                // Even a programmatic click must not submit an EditBadge request for a missing row.
+                await page.evaluate(() => {
+                    const button = document.querySelector('#UserScriptBadgeEditor button');
+                    button.disabled = false;
+                    button.click();
+                });
+                assert.deepEqual(await page.evaluate(() => apiCalls), [{action: 'GetBadge', data: {UserID: 'Tester'}}]);
+                await page.getByRole('button', {name: 'Save account'}).click();
+                assert.equal(await page.evaluate(() => nativeSubmitCount), 1);
+                assert.equal(await page.locator('[name="nick"]').inputValue(), 'Nickname');
+                await page.close();
+            });
+        }
         for (const failure of [false, true]) {
             await t.test('badge save ' + (failure ? 'reports failure and retains cache' : 'clears only this user’s badge cache'), async () => {
                 const page = await Page('/modify_user_info.php', nativeForm, {badgeFailure: failure});
@@ -219,11 +247,21 @@ test('account-page migration browser regressions', {timeout: 60000}, async t => 
             }
         }
         await t.test('badge access denial leaves the native form usable', async () => {
-            const page = await Page('/modify_user_info.php', nativeForm, {noBadge: true});
+            const page = await Page('/modify_user_info.php', nativeForm, {noBadge: true, badgeData: {}});
             assert.equal(await page.locator('#UserScriptBadgeContent').isDisabled(), true);
             assert.match(await page.getByRole('status').innerText(), /Load denied/);
             await page.getByRole('button', {name: 'Save account'}).click();
             assert.equal(await page.evaluate(() => nativeSubmitCount), 1);
+            await page.close();
+        });
+        await t.test('a retry finding no badge clears the error and hides the editor', async () => {
+            const page = await Page('/modify_user_info.php', nativeForm, {noBadge: true});
+            assert.match(await page.getByRole('status').innerText(), /Load denied/);
+            await page.evaluate(() => { window.badgeLoadFailureMode = 'missing'; });
+            await page.getByRole('button', {name: '重试加载标签'}).click();
+            assert.equal(await page.locator('#UserScriptBadgeEditor').isHidden(), true);
+            assert.equal(await page.locator('#UserScriptBadgeEditor [role="status"]').textContent(), '');
+            assert.equal(await page.locator('#UserScriptBadgeEditor button').first().isDisabled(), true);
             await page.close();
         });
         for (const route of ['/modify_user_info.php']) {

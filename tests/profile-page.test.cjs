@@ -57,7 +57,8 @@ test('profile page browser regressions', {timeout: 60000}, async t => {
                     return;
                 }
                 if (mode === 'missing') {
-                    request.onload({status: 200, responseText: JSON.stringify({Success: false, Message: '获取标签失败，该标签在数据库中不存在', Data: {}})});
+                    request.onload({status: 200, responseText: JSON.stringify({Success: false,
+                        Message: options.missingBadgeMessage ?? '获取标签失败，该标签在数据库中不存在', Data: {}})});
                     return;
                 }
                 if (!mode && action === 'NewBadge') {
@@ -69,7 +70,7 @@ test('profile page browser regressions', {timeout: 60000}, async t => {
                     window.badgeMode = 'missing';
                 }
                 request.onload({status: 200, responseText: JSON.stringify({Success: mode !== 'denied', Message: 'Denied',
-                    Data: action === 'GetBadge' ? badgeData : action === 'LastOnline' ? {logintime: onlineTimestamp} : {}})});
+                    Data: action === 'GetBadge' ? (mode === 'denied' ? {} : badgeData) : action === 'LastOnline' ? {logintime: onlineTimestamp} : {}})});
             };
             window.nativeStats = document.getElementById('statics');
             window.nativePie = document.getElementById('PieDiv');
@@ -178,6 +179,15 @@ test('profile page browser regressions', {timeout: 60000}, async t => {
                     assert.deepEqual(await page.evaluate(() => apiCalls.filter(call => call.action === 'NewBadge').map(call => call.data)),
                         [{UserID: 'ProfileTarget'}, {UserID: 'ProfileTarget'}]);
                 }
+                await page.close();
+            });
+        }
+        for (const missingBadgeMessage of ['  该标签在数据库中不存在。  ', '标签不存在']) {
+            await t.test('recognizes a missing tag after message wording changes: ' + missingBadgeMessage, async () => {
+                const page = await Page({badgeMode: 'missing', missingBadgeMessage, admin: true});
+                assert.equal(await page.getByRole('status').innerText(), '');
+                assert.equal(await page.getByRole('button', {name: '添加标签'}).isVisible(), true);
+                assert.equal(await page.getByRole('button', {name: '重试加载标签'}).isHidden(), true);
                 await page.close();
             });
         }
