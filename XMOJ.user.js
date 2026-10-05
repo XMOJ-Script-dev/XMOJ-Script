@@ -3219,6 +3219,27 @@ async function InitializeContestWebApp() {
         }
     }
 
+    function EnhanceRank() {
+        // Give rank usernames the same avatar, rating color and badge as the legacy
+        // rank pages. Vue owns its link and may reuse the row for another user when
+        // it re-sorts, so hide its link and keep an owned copy keyed by username.
+        for (const row of root.querySelectorAll("#rank tbody tr")) {
+            const cell = row.cells[1];
+            const link = cell?.querySelector(`a:not([${owned}] a)`);
+            if (!link) continue;
+            const username = link.textContent.trim();
+            let span = cell.querySelector(`[${owned}="rank-user"]`);
+            if (span?.dataset.username === username) continue;
+            span?.remove();
+            if (!username) continue;
+            link.hidden = true;
+            span = MakeControl("span", "rank-user", "");
+            span.dataset.username = username;
+            cell.appendChild(span);
+            GetUsernameHTML(span, username);
+        }
+    }
+
     function EnhanceContest() {
         const table = root.querySelector(".xmoj-problems-table");
         if (!table || !routeData?.problems) return;
@@ -3415,6 +3436,7 @@ async function InitializeContestWebApp() {
             if (route.page === "contest") EnhanceContest();
             if (route.page === "problem") EnhanceProblem();
             if (route.page === "std" || route.page === "solution") EnhanceCode();
+            if (route.page === "rank") EnhanceRank();
             if (UtilityEnabled("NewBootstrap")) root.querySelector("#rank")?.classList.add("table", "table-hover");
             if (UtilityEnabled("Translate")) {
                 const labels = {Rank: "排名", User: "用户", Nick: "昵称", Name: "姓名", Solved: "AC数", Mark: "得分"};
