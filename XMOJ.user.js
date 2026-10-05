@@ -685,6 +685,18 @@ const ThemeCanvasCSS = `
         html[data-bs-theme='light'] { background: var(--mono-white, var(--bs-body-bg, #fff)); color-scheme: light; }
 `;
 
+// Username colors by rating tier. Each color keeps at least 3.4:1 contrast on both
+// the light and the dark background, so one palette is used on every page and
+// theme instead of Bootstrap's link-* colors, which change with theme and hover.
+const RatingColorCSS = `
+        a.xmoj-rating-red, a.xmoj-rating-red:hover, a.xmoj-rating-red:focus { color: #e8434b !important; text-decoration-color: rgba(232, 67, 75, 0.5) !important; }
+        a.xmoj-rating-orange, a.xmoj-rating-orange:hover, a.xmoj-rating-orange:focus { color: #e8590c !important; text-decoration-color: rgba(232, 89, 12, 0.5) !important; }
+        a.xmoj-rating-blue, a.xmoj-rating-blue:hover, a.xmoj-rating-blue:focus { color: #337cf2 !important; text-decoration-color: rgba(51, 124, 242, 0.5) !important; }
+        a.xmoj-rating-green, a.xmoj-rating-green:hover, a.xmoj-rating-green:focus { color: #2b9f4f !important; text-decoration-color: rgba(43, 159, 79, 0.5) !important; }
+        a.xmoj-rating-cyan, a.xmoj-rating-cyan:hover, a.xmoj-rating-cyan:focus { color: #1798b0 !important; text-decoration-color: rgba(23, 152, 176, 0.5) !important; }
+        a.xmoj-rating-gray, a.xmoj-rating-gray:hover, a.xmoj-rating-gray:focus { color: #78828c !important; text-decoration-color: rgba(120, 130, 140, 0.5) !important; }
+`;
+
 // Both UI initializers use this link; loading only in legacy main() leaves /web
 // on the fallback fonts even though it applies the same monochrome font stack.
 function LoadMonochromeFonts() {
@@ -1629,17 +1641,17 @@ let GetUsernameHTML = async (Element, Username, Simple = false, Href = "https://
             // }
             // else
             if (Rating >= 2400) {
-                HTMLData += "link-danger";
+                HTMLData += "xmoj-rating-red";
             } else if (Rating >= 2000) {
-                HTMLData += "link-warning";
+                HTMLData += "xmoj-rating-orange";
             } else if (Rating >= 1600) {
-                HTMLData += "link-primary";
+                HTMLData += "xmoj-rating-blue";
             } else if (Rating >= 1200) {
-                HTMLData += "link-success";
+                HTMLData += "xmoj-rating-green";
             } else if (Rating >= 800) {
-                HTMLData += "link-info";
+                HTMLData += "xmoj-rating-cyan";
             } else {
-                HTMLData += "link-secondary";
+                HTMLData += "xmoj-rating-gray";
             }
         } else {
             HTMLData += "link-info";
@@ -2917,7 +2929,7 @@ function ApplyContestWebTheme() {
     document.documentElement.setAttribute("data-bs-theme", dark ? "dark" : "light");
     localStorage.setItem("UserScript-Setting-DarkMode", String(dark));
     const modern = get("NewBootstrap");
-    style.textContent = ThemeCanvasCSS + `
+    style.textContent = ThemeCanvasCSS + RatingColorCSS + `
         #app .xmoj-script-tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
         #app .copy-btn { margin-left: 10px; }
         #app .xmoj-script-countdown { margin-left: 8px; white-space: nowrap; }
@@ -4021,6 +4033,7 @@ async function main() {
                     if (UtilityEnabled("AddAnimation")) Style.innerHTML += `.status, .test-case { transition: ${_isMono ? "100ms ease" : "0.5s"} !important; }`;
                     if (UtilityEnabled("AddColorText")) Style.innerHTML += `.red { color: red !important; } .green { color: green !important; } .blue { color: blue !important; }`;
                 }
+                Style.innerHTML += RatingColorCSS;
 
                 if (UtilityEnabled("RemoveUseless")) {
                     if (document.getElementsByClassName("footer")[0] != null) {
