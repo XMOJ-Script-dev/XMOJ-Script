@@ -687,14 +687,21 @@ const ThemeCanvasCSS = `
 
 // Username colors by rating tier. Each color keeps at least 3.4:1 contrast on both
 // the light and the dark background, so one palette is used on every page and
-// theme instead of Bootstrap's link-* colors, which change with theme and hover.
+// theme instead of Bootstrap's link-* colors, which change with theme. Like
+// Bootstrap, hover darkens the color by 20% and makes the underline opaque.
 const RatingColorCSS = `
-        a.xmoj-rating-red, a.xmoj-rating-red:hover, a.xmoj-rating-red:focus { color: #e8434b !important; text-decoration-color: rgba(232, 67, 75, 0.5) !important; }
-        a.xmoj-rating-orange, a.xmoj-rating-orange:hover, a.xmoj-rating-orange:focus { color: #e8590c !important; text-decoration-color: rgba(232, 89, 12, 0.5) !important; }
-        a.xmoj-rating-blue, a.xmoj-rating-blue:hover, a.xmoj-rating-blue:focus { color: #337cf2 !important; text-decoration-color: rgba(51, 124, 242, 0.5) !important; }
-        a.xmoj-rating-green, a.xmoj-rating-green:hover, a.xmoj-rating-green:focus { color: #2b9f4f !important; text-decoration-color: rgba(43, 159, 79, 0.5) !important; }
-        a.xmoj-rating-cyan, a.xmoj-rating-cyan:hover, a.xmoj-rating-cyan:focus { color: #1798b0 !important; text-decoration-color: rgba(23, 152, 176, 0.5) !important; }
-        a.xmoj-rating-gray, a.xmoj-rating-gray:hover, a.xmoj-rating-gray:focus { color: #78828c !important; text-decoration-color: rgba(120, 130, 140, 0.5) !important; }
+        a.xmoj-rating-red { color: #e8434b !important; text-decoration-color: rgba(232, 67, 75, 0.5) !important; }
+        a.xmoj-rating-red:hover, a.xmoj-rating-red:focus { color: #ba363c !important; text-decoration-color: #ba363c !important; }
+        a.xmoj-rating-orange { color: #e8590c !important; text-decoration-color: rgba(232, 89, 12, 0.5) !important; }
+        a.xmoj-rating-orange:hover, a.xmoj-rating-orange:focus { color: #ba470a !important; text-decoration-color: #ba470a !important; }
+        a.xmoj-rating-blue { color: #337cf2 !important; text-decoration-color: rgba(51, 124, 242, 0.5) !important; }
+        a.xmoj-rating-blue:hover, a.xmoj-rating-blue:focus { color: #2963c2 !important; text-decoration-color: #2963c2 !important; }
+        a.xmoj-rating-green { color: #2b9f4f !important; text-decoration-color: rgba(43, 159, 79, 0.5) !important; }
+        a.xmoj-rating-green:hover, a.xmoj-rating-green:focus { color: #227f3f !important; text-decoration-color: #227f3f !important; }
+        a.xmoj-rating-cyan { color: #1798b0 !important; text-decoration-color: rgba(23, 152, 176, 0.5) !important; }
+        a.xmoj-rating-cyan:hover, a.xmoj-rating-cyan:focus { color: #127a8d !important; text-decoration-color: #127a8d !important; }
+        a.xmoj-rating-gray { color: #78828c !important; text-decoration-color: rgba(120, 130, 140, 0.5) !important; }
+        a.xmoj-rating-gray:hover, a.xmoj-rating-gray:focus { color: #606870 !important; text-decoration-color: #606870 !important; }
 `;
 
 // Both UI initializers use this link; loading only in legacy main() leaves /web
