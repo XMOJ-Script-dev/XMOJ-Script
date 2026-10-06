@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      3.8.7
+// @version      3.8.8
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -269,7 +269,8 @@ const MonochromeSkinCSS = `
                     --mono-gray-500: #a3a3a3;
                 }
 
-                * {
+                /* The video player draws its controls with rounded shapes and sized icons; leave it alone */
+                *:not(.prism-player *) {
                     border-radius: 0 !important;
                     box-shadow: none !important;
                 }
@@ -613,7 +614,7 @@ const MonochromeSkinCSS = `
                     }
                 }
                 /* Contain images */
-                img {
+                img:not(.prism-player img) {
                     max-width: 100% !important;
                     height: auto !important;
                 }
@@ -6246,6 +6247,14 @@ async function main() {
                     }
                 } else if (location.pathname == "/contest_video.php" || location.pathname == "/problem_video.php") {
                     let ScriptData = (document.querySelector("body > div > div.mt-3 > center > script") != null) ? document.querySelector("body > div > div.mt-3 > center > script").innerHTML : "";
+                    let VideoHeading = document.querySelector("center h1, center h2, center h3");
+                    if (VideoHeading != null && VideoHeading.innerText.trim() != "") {
+                        document.title = "回放: " + VideoHeading.innerText.trim();
+                    } else if (SearchParams.get("cid") != null) {
+                        document.title = "比赛 " + Number(SearchParams.get("cid")) + " 回放";
+                    } else {
+                        document.title = "回放";
+                    }
                     if (document.getElementById("J_prismPlayer0").innerHTML != "") {
                         document.getElementById("J_prismPlayer0").innerHTML = "";
                         if (player) {
@@ -8983,6 +8992,7 @@ function InitializeImageEnlarger() {
                     const effectiveSrc = img.currentSrc || img.src;
                     if (!img.classList.contains("xmoj-image-preview") &&
                         !img.closest(".xmoj-image-modal") &&
+                        !img.closest(".prism-player, [id^=\"J_prismPlayer\"]") && // video player controls (e.g. progress bar thumb)
                         effectiveSrc &&
                         !effectiveSrc.includes("gravatar") &&
                         !effectiveSrc.includes("cravatar")) {
