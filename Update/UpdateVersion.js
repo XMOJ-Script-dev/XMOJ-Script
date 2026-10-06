@@ -131,10 +131,27 @@ if (ForkMerged) {
     execSync("git commit -a -m \"" + CommitMessage + "\"");
     execSync("git push -u origin " + ForkBranch + " -f");
     console.log("Pushed to " + ForkBranch + ".");
-    var VersionPR = execSync("gh pr create --base dev --head " + ForkBranch + " --title \"" + CommitMessage + " (#" + CurrentPR + ")\" --body \"Version bump for fork PR #" + CurrentPR + ".\"").toString().trim();
-    console.log("Created " + VersionPR + ".");
+    // A rerun may find the PR from an earlier attempt; reuse it instead of failing to create a duplicate.
+    var VersionPR = execSync("gh pr list --base dev --head " + ForkBranch + " --state open --json url --jq '.[0].url // empty'").toString().trim();
+    if (VersionPR) {
+        console.log("Reusing " + VersionPR + ".");
+    } else {
+        VersionPR = execSync("gh pr create --base dev --head " + ForkBranch + " --title \"" + CommitMessage + " (#" + CurrentPR + ")\" --body \"Version bump for fork PR #" + CurrentPR + ".\"").toString().trim();
+        console.log("Created " + VersionPR + ".");
+    }
     execSync("gh pr merge " + VersionPR + " --merge --auto");
     console.log("Enabled auto merge.");
+    // Wait for the merge, so the next fork PR is bumped from a dev that already has this version.
+    for (var Attempt = 0; ; Attempt++) {
+        var State = execSync("gh pr view " + VersionPR + " --json state --jq .state").toString().trim();
+        if (State == "MERGED") break;
+        if (State == "CLOSED" || Attempt >= 120) {
+            console.error(VersionPR + " was not merged (state: " + State + ").");
+            process.exit(1);
+        }
+        execSync("sleep 10");
+    }
+    console.log(VersionPR + " has been merged.");
     process.exit(0);
 }
 execSync("git config pull.rebase false");
