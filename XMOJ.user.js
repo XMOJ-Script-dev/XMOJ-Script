@@ -3844,7 +3844,7 @@ if (UtilityEnabled("AutoLogin") && document.querySelector("body > a:nth-child(1)
 }
 
 SearchParams = new URLSearchParams(location.search);
-let ServerURL = (UtilityEnabled("DebugMode") ? "https://ghpages.xmoj-script.uk/" : "https://www.xmoj-script.uk")
+let ServerURL = (UtilityEnabled("DebugMode") ? "https://dev.xmoj-script.uk/" : "https://www.xmoj-script.uk")
 const profileElement = document.querySelector("#profile");
 if (profileElement === null) {
     RevealPage();
