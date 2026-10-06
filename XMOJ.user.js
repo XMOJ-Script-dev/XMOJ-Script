@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      3.8.6
+// @version      3.8.7
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -685,10 +685,11 @@ const ThemeCanvasCSS = `
         html[data-bs-theme='light'] { background: var(--mono-white, var(--bs-body-bg, #fff)); color-scheme: light; }
 `;
 
-// Username colors by rating tier. Each color keeps at least 3.3:1 contrast on both
-// the light and the dark background, so one palette is used on every page and
-// theme instead of Bootstrap's link-* colors, which change with theme. Like
-// Bootstrap, hover darkens the color by 20% and makes the underline opaque.
+// Username colors by rating tier, plus violet for script admins. Each color keeps
+// at least 3.3:1 contrast on both the light and the dark background, so one
+// palette is used on every page and theme instead of Bootstrap's link-* colors,
+// which change with theme. Like Bootstrap, hover darkens the color by 20% and
+// makes the underline opaque.
 const RatingColorCSS = `
         a.xmoj-rating-red { color: #dc2f5a !important; text-decoration-color: rgba(220, 47, 90, 0.5) !important; }
         a.xmoj-rating-red:hover, a.xmoj-rating-red:focus { color: #b02648 !important; text-decoration-color: #b02648 !important; }
@@ -702,6 +703,8 @@ const RatingColorCSS = `
         a.xmoj-rating-cyan:hover, a.xmoj-rating-cyan:focus { color: #127a8d !important; text-decoration-color: #127a8d !important; }
         a.xmoj-rating-gray { color: #78828c !important; text-decoration-color: rgba(120, 130, 140, 0.5) !important; }
         a.xmoj-rating-gray:hover, a.xmoj-rating-gray:focus { color: #606870 !important; text-decoration-color: #606870 !important; }
+        a.xmoj-rating-admin { color: #a855f7 !important; text-decoration-color: rgba(168, 85, 247, 0.5) !important; }
+        a.xmoj-rating-admin:hover, a.xmoj-rating-admin:focus { color: #8644c6 !important; text-decoration-color: #8644c6 !important; }
 `;
 
 // Both UI initializers use this link; loading only in legacy main() leaves /web
@@ -1640,13 +1643,14 @@ let GetUsernameHTML = async (Element, Username, Simple = false, Href = "https://
             }
             HTMLData += `" class="rounded me-2" style="width: 20px; height: 20px; ">`;
         }
-        HTMLData += `<a href="${Href}${Username}" class="link-offset-2 link-underline-opacity-50 `
-        if (UtilityEnabled("Rating")) {
+        let IsScriptAdmin = AdminUserList.includes(Username);
+        HTMLData += `<a href="${Href}${Username}"${IsScriptAdmin ? ` title="脚本管理员"` : ""} class="link-offset-2 link-underline-opacity-50 `
+        if (IsScriptAdmin) {
+            // Violet is reserved for script admins and replaces the old badge, so it
+            // applies whether or not ratings are shown and never means a rating tier.
+            HTMLData += "xmoj-rating-admin";
+        } else if (UtilityEnabled("Rating")) {
             let Rating = UserInfo.Rating;
-            // if(AdminUserList.includes(Username)){
-            //     HTMLData += "link-fuchsia"
-            // }
-            // else
             if (Rating >= 2400) {
                 HTMLData += "xmoj-rating-red";
             } else if (Rating >= 2000) {
@@ -1665,9 +1669,6 @@ let GetUsernameHTML = async (Element, Username, Simple = false, Href = "https://
         }
         HTMLData += `\";"></a>`;
         if (!Simple) {
-            if (AdminUserList.includes(Username)) {
-                HTMLData += `<span class="badge text-bg-danger ms-2">脚本管理员</span>`;
-            }
             let BadgeInfo = await GetUserBadge(Username);
             if (BadgeInfo.Content != "") {
                 HTMLData += `<span class="badge ms-2" style="background-color: ${BadgeInfo.BackgroundColor}; color: ${BadgeInfo.Color}">${BadgeInfo.Content}</span>`;
