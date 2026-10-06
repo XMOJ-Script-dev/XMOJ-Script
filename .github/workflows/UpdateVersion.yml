@@ -24,6 +24,11 @@ jobs:
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - uses: actions/checkout@v6
       - name: Update version
+        # PR 标题不可信，通过环境变量传入，不直接拼进 shell 命令
         env:
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+          PR_NUMBER: ${{ github.event.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
           PR_BODY: ${{ github.event.pull_request.body }}
-        run: node ./Update/UpdateVersion.js ${{ steps.generate_token.outputs.token }} ${{ github.event.number }} "${{ github.event.pull_request.title }}" "$PR_BODY" "${{ github.event.action }}"
+          PR_ACTION: ${{ github.event.action }}
+        run: node ./Update/UpdateVersion.js "$GITHUB_TOKEN" "$PR_NUMBER" "$PR_TITLE" "$PR_BODY" "$PR_ACTION"
