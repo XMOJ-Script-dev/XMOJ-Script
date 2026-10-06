@@ -2666,7 +2666,11 @@ function InitializeUserProfile(isAdmin = false) {
 
     // Move the original statistics nodes so their links and handlers survive.
     table.insertAdjacentElement("beforebegin", profile);
-    for (let link of table.caption?.querySelectorAll("a") || []) info.appendChild(link);
+    for (let link of table.caption?.querySelectorAll("a") || []) {
+        // There is no point in messaging yourself.
+        if (userID == CurrentUsername && link.getAttribute("href")?.includes("mail.php")) continue;
+        info.appendChild(link);
+    }
     table.caption?.remove();
     let solvedCell = [...table.querySelectorAll("td[rowspan]")].find(cell =>
         cell.querySelector('a[href*="problem.php"]') || [...cell.querySelectorAll("script")].some(script => /\bfunction\s+p\s*\(/.test(script.textContent)));
