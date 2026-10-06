@@ -1,0 +1,35 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"></head><body>
+<div class="container"><nav id="navbar"><span id="profile">Viewer</span></nav>
+<div class="jumbotron"><center>
+<table class="table table-striped" id="statics" width="70%">
+<caption>ProfileTarget--昵称--后缀<a href="mail.php?to_user=ProfileTarget">短消息</a></caption>
+<tr><td width="15%"></td><td width="25%" align="center"></td><td width="70%" align="center">Solved Problems List</td></tr>
+<tr><td>解决</td><td align="center"><a href="status.php?user_id=ProfileTarget&jresult=4">2</a></td>
+<td rowspan="6" align="center"><script>
+window.nativeProfileRuns = (window.nativeProfileRuns || 0) + 1;
+function p(id,c) {
+    document.write("<a href='problem.php?id="+id+"' target='_blank'>"+id+" </a>(<a href='status.php?user_id=ProfileTarget&problem_id="+id+"'>"+c+"</a>)");
+}
+p(1000,7);p(1010,1);
+</script><div id="submission" style="width:600px;height:300px">Activity chart</div></td></tr>
+<tr><td>提交</td><td align="center"><a href="status.php?user_id=ProfileTarget">20</a></td></tr>
+<tr><td>正确</td><td align="center"><a href="status.php?user_id=ProfileTarget&jresult=4">8</a></td></tr>
+<tr><td>答案错误</td><td align="center"><a href="status.php?user_id=ProfileTarget&jresult=6">12</a></td></tr>
+<tr id="pie"><td>Statistics</td><td><div id="PieDiv" style="position:relative;height:105px;width:120px"><span>Old overlapping legend</span></div></td></tr>
+<tr><td>Email:</td><td align="center">profile@example.test</td></tr>
+</table></center></div></div>
+<script>
+// Match the history data supplied by the native profile. Its renderer is absent.
+window.nativeHistoryRuns = (window.nativeHistoryRuns || 0) + 1;
+if (window.jQuery) $(function () {
+    var d1 = [], d2 = [];
+    d1.push([1704240000000, 12]);
+    d1.push([1704067200000, 20]);
+    d1.push([1704153600000, 5]);
+    d2.push([1704240000000, 4]);
+    d2.push([1704067200000, 8]);
+    d2.push([1704153600000, 2]);
+    $.plot($("#submission"), [{label:"提交",data:d1}, {label:"正确",data:d2}], {xaxis:{mode:"time"}});
+});
+</script>
+</body></html>

@@ -1,36 +1,94 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-bs-theme="light">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>儿童保护协议 - 小明的OJ增强脚本</title>
+    <title>未成年人保护 · XMOJ-Script</title>
+    <meta name="description" content="XMOJ-Script 如何处理未成年用户的数据，以及家长如何申请删除。">
     <link rel="icon" href="favicon.ico">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 主题初始化需在渲染前执行，避免闪烁；各页面保持一致 -->
+    <script>
+        (function () {
+            var theme = null;
+            try { theme = localStorage.getItem("theme"); } catch (e) { }
+            if (theme !== "light" && theme !== "dark") {
+                theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+            }
+            document.documentElement.setAttribute("data-bs-theme", theme);
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.loli.net">
+    <link href="https://fonts.loli.net/css2?family=Playfair+Display:wght@400;700&family=Source+Serif+4:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet" integrity="sha512-jnSuA4Ss2PkkikSOLtYs8BlYIeeIK1h99ty4YfvRPAlzr377vr3CXDb7sb7eEEBYjDtcYj+AjBH3FLv5uSJuXg==" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link href="site.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js" integrity="sha512-7Pi/otdlbbCR+LnW+F7PwFcSDJOuUJB3OxtEHbg4vSMvzvJjde4Po1v4BR9Gdc9aXNUNFVUY+SK51wWT8WF0Gg==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
+    <script src="site.js" defer></script>
 </head>
+
 <body>
-    <div class="container py-4">
-        <h1 class="mb-3">儿童保护协议</h1>
-        <p class="text-muted">生效日期：2026-04-24</p>
+    <!-- 导航栏：与 404.html、privacy.html、terms.html、child-protection.html、messages.html 保持一致 -->
+    <nav class="navbar navbar-expand-lg site-nav">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="./">
+                <img src="XMOJ.png" alt="">
+                XMOJ-Script
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#SiteNav"
+                aria-controls="SiteNav" aria-expanded="false" aria-label="展开导航">菜单</button>
+            <div class="collapse navbar-collapse" id="SiteNav">
+                <ul class="navbar-nav ms-auto align-items-lg-center">
+                    <li class="nav-item"><a class="nav-link" href="./#Features">功能</a></li>
+                    <li class="nav-item"><a class="nav-link" href="./#Install">安装</a></li>
+                    <li class="nav-item"><a class="nav-link" href="./#FAQ">常见问题</a></li>
+                    <li class="nav-item"><a class="nav-link" href="messages.html">短消息</a></li>
+                    <li class="nav-item"><a class="nav-link ext" href="https://docs.xmoj-script.uk" target="_blank" rel="noopener noreferrer">文档</a></li>
+                    <li class="nav-item"><a class="nav-link ext" href="https://github.com/XMOJ-Script-dev/XMOJ-Script" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+                    <li class="nav-item"><button class="btn btn-sm ms-lg-2 my-2 my-lg-0" type="button" id="ThemeToggle">暗色</button></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
 
-        <h3>一、适用范围</h3>
-        <p>本协议适用于未满十四周岁儿童相关信息处理活动，以及监护人对儿童使用服务的管理与监督。</p>
+    <main class="container doc">
+        <span class="section-label">未成年人保护</span>
+        <h1>未成年人保护</h1>
+        <p class="doc-date">生效日期：2026-10-04</p>
+        <p>小明的OJ的用户大多是中小学生，所以 XMOJ-Script 的大多数用户也是未成年人。我们按下面的方式对待这件事。</p>
 
-        <h3>二、监护人责任</h3>
-        <p>监护人应指导并监督儿童合理使用网络服务，避免泄露隐私信息，防止沉迷与不当互动。</p>
+        <h2>我们收集得很少</h2>
+        <p>我们不会要求你提供真实姓名、年龄、手机号、住址或个人照片，只处理<a href="privacy.html">隐私说明</a>里列出的数据：xmoj 用户名、你主动发布的内容和访问记录。我们没有办法知道某个用户的年龄，所以对所有用户采用同样的做法。</p>
 
-        <h3>三、儿童信息保护</h3>
-        <p>我们坚持最小必要原则处理信息，不会在无正当理由情况下收集与服务无关的儿童个人信息。</p>
+        <h2>请家长留意</h2>
+        <ul>
+            <li>讨论区的帖子所有用户都能看到，上传的图片拿到链接的人都能打开。提醒孩子不要在帖子或图片里透露真实姓名、学校、联系方式、人脸等个人信息。</li>
+            <li>短消息显示给收发双方，数据库加密保存；管理员不修改服务器代码就看不到内容，但这不是端到端加密，解密在服务器上完成。如果孩子收到骚扰或不当内容，请截图后联系我们处理。</li>
+        </ul>
 
-        <h3>四、风险防护措施</h3>
-        <p>我们将持续优化内容展示、交互提醒和异常行为识别机制，降低儿童接触不适宜内容和网络风险的可能性。</p>
+        <h2>申请删除</h2>
+        <p>家长或监护人可以发邮件到 <span class="font-mono">seanoj_noreply@yeah.net</span>，写明孩子的 xmoj 用户名，要求查看或删除相关数据，或者封禁该账号的联网功能。我们会尽快处理。</p>
 
-        <h3>五、监护人权利</h3>
-        <p>监护人有权查阅、更正或删除儿童相关信息，并可通过反馈渠道提出限制处理、停止服务等申请。</p>
+        <h2>举报</h2>
+        <p>看到针对未成年人的不当内容，请通过上面的邮箱或 <a href="https://github.com/XMOJ-Script-dev/XMOJ-Script/issues" target="_blank" rel="noopener noreferrer">GitHub</a> 告诉我们，我们会优先删除。GitHub Issues 是公开的，涉及孩子身份的信息请只通过邮件发送。</p>
+    </main>
 
-        <h3>六、联系我们</h3>
-        <p>如您对儿童信息保护有疑问，请通过项目公开反馈渠道联系我们，我们会及时处理并反馈结果。</p>
-
-        <p class="mt-4"><a href="index.html">返回首页</a></p>
-    </div>
+    <!-- 页脚：与其他页面保持一致 -->
+    <footer class="site-footer">
+        <div class="container">
+            <ul class="footer-links">
+                <li><a href="https://docs.xmoj-script.uk" target="_blank" rel="noopener noreferrer">文档</a></li>
+                <li><a href="https://elxmoj.xmoj-script.uk" target="_blank" rel="noopener noreferrer">ELXMOJ 客户端</a></li>
+                <li><a href="messages.html">短消息在线看</a></li>
+                <li><a href="privacy.html">隐私说明</a></li>
+                <li><a href="terms.html">使用条款</a></li>
+                <li><a href="child-protection.html">未成年人保护</a></li>
+            </ul>
+            <div class="footer-meta">
+                <div>以 <a href="https://github.com/XMOJ-Script-dev/XMOJ-Script/blob/master/LICENSE" target="_blank" rel="noopener noreferrer">GPL-3.0</a> 开源 · 原项目作者 <a href="https://github.com/langningchen" target="_blank" rel="noopener noreferrer">langningchen</a> · 由 <a href="https://github.com/XMOJ-Script-dev" target="_blank" rel="noopener noreferrer">XMOJ-Script-dev</a> 维护</div>
+                <div>我们的网站在萌国备案啦！备案号：<a href="https://icp.gov.moe/?keyword=20240425" target="_blank" rel="noopener noreferrer">萌ICP备20240425号</a></div>
+            </div>
+        </div>
+    </footer>
 </body>
+
 </html>

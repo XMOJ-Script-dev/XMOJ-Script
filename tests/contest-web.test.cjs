@@ -176,3 +176,47 @@ test('the load-time hide keeps innerText readable for the page handlers', () => 
     assert.match(hide, /body \{ opacity: 0 !important; \}/);
     assert.doesNotMatch(hide, /visibility/);
 });
+
+test('web and classic pages load the same monochrome fonts before either Bootstrap path', () => {
+    const early = between('function GetAccountSettingsRedirect(', 'function InitializeAccountFeatures(') +
+        between('// Set to true by the early block', 'const CaptchaSiteKey');
+    const fontURLs = new Set();
+    for (const pathname of ['/web/contest', '/problem.php?id=1000']) {
+        for (const cachedBootstrap of [false, true]) {
+            for (const headReady of [false, true]) {
+                const errors = [];
+                const {scope, styles} = context({
+                    location: new URL('https://www.xmoj.tech' + pathname),
+                    GM_getResourceText: () => cachedBootstrap ? 'body { color: black; }' : '',
+                    MutationObserver: class { observe() {} },
+                    console: {error: (...args) => errors.push(args)}
+                });
+                if (headReady) scope.document.head = {appendChild: node => styles.push(node)};
+                scope.document.querySelectorAll = () => [];
+                vm.runInContext(early, scope);
+                const fonts = styles.filter(node => node.id === 'xmoj-monochrome-fonts');
+                assert.equal(fonts.length, 1, pathname + ': font loading must not depend on the Bootstrap cache or head readiness');
+                assert.equal(fonts[0].rel, 'stylesheet');
+                fontURLs.add(fonts[0].href);
+                scope.LoadMonochromeFonts();
+                scope.LoadMonochromeFonts();
+                assert.equal(styles.filter(node => node.id === 'xmoj-monochrome-fonts').length, 1, 'late initializers must reuse the early font link');
+                assert.deepEqual(errors, []);
+            }
+        }
+    }
+    assert.equal(fontURLs.size, 1);
+    const url = [...fontURLs][0];
+    assert.match(url, /Source\+Serif\+4/);
+    assert.match(url, /Playfair\+Display/);
+    assert.match(url, /JetBrains\+Mono/);
+    for (const disabled of ['NewBootstrap', 'MonochromeUI']) {
+        const {scope, storage, styles} = context({
+            GM_getResourceText: () => '',
+            location: new URL('https://www.xmoj.tech/web/contest')
+        });
+        storage.set('UserScript-Setting-' + disabled, 'false');
+        vm.runInContext(early, scope);
+        assert.equal(styles.filter(node => node.id === 'xmoj-monochrome-fonts').length, 0, 'do not load fonts for a disabled skin');
+    }
+});

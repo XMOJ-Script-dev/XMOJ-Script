@@ -2937,7 +2937,7 @@
             ],
             "Notes": "No release notes were provided for this release."
         },
-        "1.999990.0": {
+        "1.10.0": {
             "UpdateDate": 1753443146018,
             "Prerelease": false,
             "UpdateContents": [
@@ -3817,6 +3817,133 @@
                 }
             ],
             "Notes": "<p>本次正式版整合自 3.7.0 以来的修复，恢复因页面结构变化而异常的脚本功能，并兼容新版比赛页面。旧版比赛入口会转到新版页面；题目与提交状态显示得到修复，页面加载时的闪烁和布局偏移减少。</p>\n<p>题目复制支持按章节、样例或完整题面生成 Markdown，并保留公式、代码语言、表格、链接与样例换行，便于直接使用复制结果。</p>"
+        },
+        "3.8.1": {
+            "UpdateDate": 1791033862020,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 1036,
+                    "Description": "fix: navbar listener leaks, download overlap, and web fonts"
+                }
+            ],
+            "Notes": "<p>修复新版比赛页面和旧版界面顶部导航栏持续增加窗口缩放监听器的问题，减少长时间打开页面后的内存占用和缩放卡顿；页面导航栏被替换时会清理旧监听器。修复下载页面的卡片被插入导航栏占位元素、导致首行被顶部导航栏遮挡的问题。新版 /web 页面与旧版页面共享黑白主题字体加载，避免菜单栏使用不同字体。</p>"
+        },
+        "3.8.2": {
+            "UpdateDate": 1791075550636,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 1039,
+                    "Description": "fix: match Chinese navbar fonts between web and classic UI"
+                }
+            ],
+            "Notes": "<p>修复新版比赛页面与旧版页面导航栏中文字体不一致的问题。</p>"
+        },
+        "3.8.3": {
+            "UpdateDate": 1791106754384,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 1040,
+                    "Description": "fix: restore account and profile pages and enforce Chinese UI"
+                }
+            ],
+            "Notes": "<p>修复修改账号页面迁移后菜单与更新日志无法访问的问题，保留新版账号表单，在当前账号页面独立显示标签编辑，并保留 AC 代码导出功能。旧账号链接自动跳转到当前页面。恢复个人中心的身份信息、评分、标签、最后在线与已解决题目，修复请求失败后的空白信息及图例重叠。移除语言切换入口，经典界面和新版竞赛界面统一使用中文，隐藏账号表单中的语言选项并统一提交中文。修复最后在线时间显示为 HTML 源码的问题。重新绘制个人中心提交与正确数量的历史图表，兼容浅色、深色主题及移动端，默认清理设置不再隐藏图表。提交与正确数量在同一图表中以细线和半透明柱形叠加展示，减少密集曲线遮挡。恢复暂存更改中的 API 请求超时和错误日志。</p>"
+        },
+        "3.8.4": {
+            "UpdateDate": 1791114523418,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 1044,
+                    "Description": "fix: keep navbar spacer visible under browser cosmetic filters"
+                }
+            ],
+            "Notes": "<p>修复浏览器过滤规则隐藏导航栏占位元素、导致页面顶部内容被遮挡的问题。</p>"
+        },
+        "3.8.5": {
+            "UpdateDate": 1791201776409,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 1045,
+                    "Description": "fix: restore admin add-tag button for users without tags"
+                }
+            ],
+            "Notes": "<p>修复用户没有标签时个人中心误显示加载错误和重试按钮的问题，恢复管理员的添加标签入口。修改账号页面在没有标签时隐藏标签编辑，避免提交无效修改；实际请求失败时仍可重试。</p>"
+        },
+        "3.8.6": {
+            "UpdateDate": 1791246612810,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 1048,
+                    "Description": "Redesign user rating to reward skill instead of AC rate"
+                }
+            ],
+            "Notes": "用户评分重新设计：从「AC 率 × 1000」改为综合做题量、准确度和坚持度的 0–3000 分，更难刷分，用户名颜色改为六档。详见 https://docs.xmoj-script.uk/features/rating.html"
+        },
+        "3.8.7": {
+            "UpdateDate": 1791247094090,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 1049,
+                    "Description": "Show script admins with violet names instead of a badge"
+                }
+            ],
+            "Notes": "脚本管理员的用户名改为紫色显示（悬停提示「脚本管理员」），不再单独显示「脚本管理员」徽章，为自定义徽章腾出空间。"
+        },
+        "3.8.8": {
+            "UpdateDate": 1791248477470,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 1051,
+                    "Description": "Fix image enlarger and minimalist skin on video replay pages; add page title"
+                }
+            ],
+            "Notes": "<ul><li>修复回放视频进度条拖动球被当作图片放大的问题</li><li>修复极简黑白界面下视频播放器按钮出现灰色方框的问题</li><li>回放页面增加页面标题</li></ul>"
+        },
+        "4.0.0": {
+            "UpdateDate": 1791249917714,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 1036,
+                    "Description": "fix: navbar listener leaks, download overlap, and web fonts"
+                },
+                {
+                    "PR": 1039,
+                    "Description": "fix: match Chinese navbar fonts between web and classic UI"
+                },
+                {
+                    "PR": 1040,
+                    "Description": "fix: restore account and profile pages and enforce Chinese UI"
+                },
+                {
+                    "PR": 1044,
+                    "Description": "fix: keep navbar spacer visible under browser cosmetic filters"
+                },
+                {
+                    "PR": 1045,
+                    "Description": "fix: restore admin add-tag button for users without tags"
+                },
+                {
+                    "PR": 1048,
+                    "Description": "Redesign user rating to reward skill instead of AC rate"
+                },
+                {
+                    "PR": 1049,
+                    "Description": "Show script admins with violet names instead of a badge"
+                },
+                {
+                    "PR": 1051,
+                    "Description": "Fix image enlarger and minimalist skin on video replay pages; add page title"
+                }
+            ],
+            "Notes": "<p><strong>重大变更：</strong>Rating 改用新的计算方式，按解题能力而不是 AC 率计分，所有用户的 Rating 都会变化，不能和旧版的分数直接比较；颜色分档也随之调整，原来的黄色一档改为橙色。</p>\n<p>本次正式版修复了截至发布时 GitHub 上所有未关闭的问题。顶栏不再遮挡页面内容（包括启用广告拦截等浏览器过滤规则时），新旧页面的顶栏字体保持一致；账号修改与个人信息页面恢复正常，提交统计图重新显示。</p>\n<p>用户 Rating 改为依据解题能力而非 AC 率计算，各页面和深浅色主题使用同一套更易辨认的颜色；比赛排名页面也会显示 Rating 颜色。脚本管理员改为以紫色用户名标识。回放视频页面的进度条不再被当作图片放大。</p>"
         }
     }
 }

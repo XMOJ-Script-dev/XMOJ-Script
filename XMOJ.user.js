@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      3.8.0
+// @version      4.0.0
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -43,6 +43,115 @@
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
+
+// Set the app preference at document-start, before Vue requests /api/nav.
+function InitializeChineseLanguage() {
+    let wasEnglish = document.cookie.split(";").some(cookie => cookie.trim() == "XMOJ_LANG=en");
+    document.cookie = "XMOJ_LANG=zh; path=/; max-age=31536000; SameSite=Lax" + (location.protocol == "https:" ? "; Secure" : "");
+    return wasEnglish;
+}
+
+const chineseAccountForms = new WeakSet();
+function EnforceChineseAccountLanguage(root) {
+    const radios = [...root.querySelectorAll('input[type="radio"]')];
+    const Matches = (radio, language) => {
+        const label = [...radio.labels || []].map(node => node.textContent.trim());
+        return language == "zh" ? /^(cn|zh|zh[-_]cn)$/i.test(radio.value) || label.some(text => /^(中文|简体中文|Chinese)$/i.test(text)) :
+            /^en(?:[-_]us)?$/i.test(radio.value) || label.some(text => /^English$/i.test(text));
+    };
+    for (const chinese of radios.filter(radio => Matches(radio, "zh"))) {
+        const english = radios.find(radio => radio !== chinese && radio.name === chinese.name && radio.form === chinese.form && Matches(radio, "en"));
+        if (!chinese.name || !english) continue;
+        if (!chinese.checked) chinese.click();
+        chinese.setAttribute("data-xmoj-script-chinese-language", "");
+        let group = chinese.parentElement;
+        while (group && !group.contains(english)) group = group.parentElement;
+        if (group && !group.matches("form, body, html") && !group.querySelector('input:not([type="radio"]), select, textarea, button')) {
+            group.setAttribute("data-xmoj-script-language-selector", "");
+            const heading = group.previousElementSibling;
+            if (heading && /^(界面语言|语言|Language)$/i.test(heading.textContent.trim())) heading.setAttribute("data-xmoj-script-language-selector", "");
+        } else {
+            for (const radio of [chinese, english]) {
+                radio.setAttribute("data-xmoj-script-language-selector", "");
+                for (const label of radio.labels || []) label.setAttribute("data-xmoj-script-language-selector", "");
+            }
+        }
+        for (const label of root.querySelectorAll("label, legend")) {
+            if (/^(界面语言|语言|Language)$/i.test(label.textContent.trim())) label.setAttribute("data-xmoj-script-language-selector", "");
+        }
+        const form = chinese.form;
+        if (form && !chineseAccountForms.has(form)) {
+            chineseAccountForms.add(form);
+            // Keep the native field enabled so the hidden Chinese value is submitted.
+            form.addEventListener("submit", () => EnforceChineseAccountLanguage(form), true);
+            form.addEventListener("formdata", event => {
+                EnforceChineseAccountLanguage(form);
+                for (const radio of form.querySelectorAll("input[data-xmoj-script-chinese-language]")) event.formData.set(radio.name, radio.value);
+            });
+        }
+    }
+}
+
+function EnforceChineseView(root = document) {
+    document.documentElement.lang = "zh-CN";
+    if (!document.getElementById("UserScript-ChineseLanguage")) {
+        let style = document.createElement("style");
+        style.id = "UserScript-ChineseLanguage";
+        style.textContent = `#lang_cn_to_en, #lang_en_to_cn, .xmoj-lang-switch,
+            [data-xmoj-script-language-selector] { display: none !important; }
+            .lang_en { display: none !important; }
+            .lang_cn { display: revert !important; }`;
+        document.head.appendChild(style);
+    }
+    if (location.pathname === "/modify_user_info.php") EnforceChineseAccountLanguage(root);
+    // Keep Vue's nodes and handlers intact; it can replace the navbar on navigation.
+    for (let link of root.querySelectorAll('#xmoj-navbar > ul.navbar-right > li > a[href="#"]:not(.dropdown-toggle)')) {
+        if (/^(English|中文)$/.test(link.textContent.trim())) link.setAttribute("data-xmoj-script-language-selector", "");
+    }
+    // The problem/solution selector has its own reactive language, separate from nav.
+    for (let button of root.querySelectorAll(".xmoj-lang-switch button")) {
+        if (button.textContent.trim() == "中文" && !button.classList.contains("hidden") && !button.hidden) button.click();
+    }
+}
+
+async function EnsureChinesePage() {
+    EnforceChineseView();
+    const retryKey = "UserScript-ChineseLanguageReload";
+    const pageKey = location.pathname + location.search + location.hash;
+    // Classic pages persist the preference through the current account form.
+    // change_lang.php is defunct; do not call it or reload classic pages for it.
+    if (!(IsContestWebApp() && initiallyEnglishLanguage)) {
+        sessionStorage.removeItem(retryKey);
+        return false;
+    }
+    try {
+        // A server that refuses the preference must not trap the user in a reload loop.
+        if (sessionStorage.getItem(retryKey) == pageKey) throw new Error("中文设置未生效");
+        sessionStorage.setItem(retryKey, pageKey);
+        location.reload();
+    } catch (error) {
+        console.error("[XMOJ-Script] Chinese language:", error);
+        let alert = document.createElement("div");
+        alert.className = "alert alert-warning";
+        alert.role = "alert";
+        alert.textContent = "切换中文失败，请检查网络后重试。 ";
+        let retry = document.createElement("button");
+        retry.type = "button";
+        retry.className = "btn btn-outline-secondary";
+        retry.textContent = "重试";
+        retry.addEventListener("click", () => {
+            sessionStorage.removeItem(retryKey);
+            location.reload();
+        });
+        alert.appendChild(retry);
+        document.body.prepend(alert);
+        RevealPage();
+        return false;
+    }
+    return true;
+}
+
+const initiallyEnglishLanguage = InitializeChineseLanguage();
 
 // The /web application owns its DOM. Never run the legacy body.innerHTML rewrites
 // inside it; InitializeContestWebApp maps its Bootstrap 3 markup to Bootstrap 5.
@@ -143,6 +252,9 @@ const MonochromeSkinCSS = `
                     --mono-border-thin: 1px solid var(--mono-gray-300);
                     --mono-font-heading: 'Playfair Display', Georgia, serif;
                     --mono-font-body: 'Source Serif 4', 'Source Serif Pro', Georgia, serif;
+                    /* Source Serif has no Chinese glyphs. An explicit navbar fallback
+                       avoids different fonts under legacy lang=en and /web lang=zh-CN. */
+                    --mono-font-navbar: 'Source Serif 4', 'Source Serif Pro', Georgia, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', serif;
                     --mono-font-mono: 'JetBrains Mono', 'Consolas', monospace;
                     --mono-transition: 100ms ease;
                 }
@@ -157,7 +269,8 @@ const MonochromeSkinCSS = `
                     --mono-gray-500: #a3a3a3;
                 }
 
-                * {
+                /* The video player draws its controls with rounded shapes and sized icons; leave it alone */
+                *:not(.prism-player *) {
                     border-radius: 0 !important;
                     box-shadow: none !important;
                 }
@@ -197,6 +310,7 @@ const MonochromeSkinCSS = `
 
                 /* Navbar */
                 .navbar, nav.navbar {
+                    font-family: var(--mono-font-navbar) !important;
                     border-bottom: 4px solid var(--mono-black) !important;
                     background-color: var(--mono-white) !important;
                     opacity: 1 !important;
@@ -204,7 +318,7 @@ const MonochromeSkinCSS = `
                 .navbar .nav-link {
                     color: var(--mono-black) !important;
                     text-decoration: none !important;
-                    font-family: var(--mono-font-body) !important;
+                    font-family: var(--mono-font-navbar) !important;
                     text-transform: uppercase !important;
                     letter-spacing: 0.05em !important;
                     font-size: 0.85rem !important;
@@ -500,7 +614,7 @@ const MonochromeSkinCSS = `
                     }
                 }
                 /* Contain images */
-                img {
+                img:not(.prism-player img) {
                     max-width: 100% !important;
                     height: auto !important;
                 }
@@ -572,6 +686,39 @@ const ThemeCanvasCSS = `
         html[data-bs-theme='light'] { background: var(--mono-white, var(--bs-body-bg, #fff)); color-scheme: light; }
 `;
 
+// Username colors by rating tier, plus violet for script admins. Each color keeps
+// at least 3.3:1 contrast on both the light and the dark background, so one
+// palette is used on every page and theme instead of Bootstrap's link-* colors,
+// which change with theme. Like Bootstrap, hover darkens the color by 20% and
+// makes the underline opaque.
+const RatingColorCSS = `
+        a.xmoj-rating-red { color: #dc2f5a !important; text-decoration-color: rgba(220, 47, 90, 0.5) !important; }
+        a.xmoj-rating-red:hover, a.xmoj-rating-red:focus { color: #b02648 !important; text-decoration-color: #b02648 !important; }
+        a.xmoj-rating-orange { color: #e8590c !important; text-decoration-color: rgba(232, 89, 12, 0.5) !important; }
+        a.xmoj-rating-orange:hover, a.xmoj-rating-orange:focus { color: #ba470a !important; text-decoration-color: #ba470a !important; }
+        a.xmoj-rating-blue { color: #337cf2 !important; text-decoration-color: rgba(51, 124, 242, 0.5) !important; }
+        a.xmoj-rating-blue:hover, a.xmoj-rating-blue:focus { color: #2963c2 !important; text-decoration-color: #2963c2 !important; }
+        a.xmoj-rating-green { color: #2b9f4f !important; text-decoration-color: rgba(43, 159, 79, 0.5) !important; }
+        a.xmoj-rating-green:hover, a.xmoj-rating-green:focus { color: #227f3f !important; text-decoration-color: #227f3f !important; }
+        a.xmoj-rating-cyan { color: #1798b0 !important; text-decoration-color: rgba(23, 152, 176, 0.5) !important; }
+        a.xmoj-rating-cyan:hover, a.xmoj-rating-cyan:focus { color: #127a8d !important; text-decoration-color: #127a8d !important; }
+        a.xmoj-rating-gray { color: #78828c !important; text-decoration-color: rgba(120, 130, 140, 0.5) !important; }
+        a.xmoj-rating-gray:hover, a.xmoj-rating-gray:focus { color: #606870 !important; text-decoration-color: #606870 !important; }
+        a.xmoj-rating-admin { color: #a855f7 !important; text-decoration-color: rgba(168, 85, 247, 0.5) !important; }
+        a.xmoj-rating-admin:hover, a.xmoj-rating-admin:focus { color: #8644c6 !important; text-decoration-color: #8644c6 !important; }
+`;
+
+// Both UI initializers use this link; loading only in legacy main() leaves /web
+// on the fallback fonts even though it applies the same monochrome font stack.
+function LoadMonochromeFonts() {
+    if (document.getElementById("xmoj-monochrome-fonts")) return;
+    const link = document.createElement("link");
+    link.id = "xmoj-monochrome-fonts";
+    link.rel = "stylesheet";
+    link.href = "https://fonts.loli.net/css2?family=Playfair+Display:wght@400;700&family=Source+Serif+4:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap";
+    (document.head || document.documentElement).appendChild(link);
+}
+
 // Set to true by the early block if Bootstrap CSS was injected from the @resource
 // cache. Checked in the IIFE to decide whether a CDN fallback is needed.
 let _earlyBootstrapInjected = false;
@@ -590,6 +737,11 @@ let _earlyObs = null;
 // the saved theme and inject Bootstrap CSS + the skin CSS before the first paint,
 // and we block the page's own old stylesheets from loading at all.
 (() => {
+    const AccountRedirect = GetAccountSettingsRedirect();
+    if (AccountRedirect) {
+        location.replace(AccountRedirect);
+        return;
+    }
     // Old contest pages: move to the /web app before anything is drawn.
     const ContestWebRedirect = GetContestWebRedirect();
     if (ContestWebRedirect) {
@@ -616,6 +768,7 @@ let _earlyObs = null;
         document.documentElement.setAttribute("data-bs-theme", dark ? "dark" : "light");
 
         let head = document.head || document.documentElement;
+        if (get("MonochromeUI")) LoadMonochromeFonts();
 
         let bootstrapCSS = GM_getResourceText("BootstrapCSS");
         if (!bootstrapCSS) {
@@ -815,9 +968,9 @@ let RenderMathJax = async () => {
 };
 let GetUserInfo = async (Username) => {
     try {
-        if (localStorage.getItem("UserScript-User-" + Username + "-UserRating") != null && new Date().getTime() - parseInt(localStorage.getItem("UserScript-User-" + Username + "-LastUpdateTime")) < 1000 * 60 * 60 * 24) {
+        if (localStorage.getItem("UserScript-User-" + Username + "-UserRatingV2") != null && new Date().getTime() - parseInt(localStorage.getItem("UserScript-User-" + Username + "-LastUpdateTime")) < 1000 * 60 * 60 * 24) {
             return {
-                "Rating": localStorage.getItem("UserScript-User-" + Username + "-UserRating"),
+                "Rating": localStorage.getItem("UserScript-User-" + Username + "-UserRatingV2"),
                 "EmailHash": localStorage.getItem("UserScript-User-" + Username + "-EmailHash")
             }
         }
@@ -828,7 +981,7 @@ let GetUserInfo = async (Username) => {
                 return null;
             }
             const ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
-            let Rating = (ParsedDocument.querySelector("#statics > tbody > tr:nth-child(4) > td:nth-child(2)") != null && ParsedDocument.querySelector("#statics > tbody > tr:nth-child(3) > td:nth-child(2)") != null) ? (parseInt(ParsedDocument.querySelector("#statics > tbody > tr:nth-child(4) > td:nth-child(2)").innerText.trim()) / parseInt(ParsedDocument.querySelector("#statics > tbody > tr:nth-child(3) > td:nth-child(2)").innerText.trim())).toFixed(3) * 1000 : 0;
+            let Rating = CalculateUserRating(ParsedDocument);
             let Temp = (ParsedDocument.querySelector("#statics > tbody") != null) ? ParsedDocument.querySelector("#statics > tbody").children : [];
             //页面结构异常（如403/404页面）时返回默认值，不写入缓存
             if (Temp.length == 0) {
@@ -838,7 +991,7 @@ let GetUserInfo = async (Username) => {
             }
             let Email = Temp[Temp.length - 1].children[1].innerText.trim();
             let EmailHash = CryptoJS.MD5(Email).toString();
-            localStorage.setItem("UserScript-User-" + Username + "-UserRating", Rating);
+            localStorage.setItem("UserScript-User-" + Username + "-UserRatingV2", Rating);
             if (Email == "") {
                 EmailHash = undefined;
             } else {
@@ -856,6 +1009,23 @@ let GetUserInfo = async (Username) => {
         }
     }
 };
+// Ratings cached before the 0-3000 rating used the AC-rate formula under the
+// "-UserRating" key. Remove them once so they don't linger in localStorage.
+try {
+    if (localStorage.getItem("UserScript-RatingV2-Migrated") === null) {
+        let Temp = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            let key = localStorage.key(i);
+            if (key && key.startsWith("UserScript-User-") && key.endsWith("-UserRating")) Temp.push(key);
+        }
+        for (let i = 0; i < Temp.length; i++) {
+            localStorage.removeItem(Temp[i]);
+        }
+        localStorage.setItem("UserScript-RatingV2-Migrated", "true");
+    }
+} catch (e) {
+    console.error(e);
+}
 /**
  * Retrieves the badge information for a given user.
  *
@@ -1474,30 +1644,32 @@ let GetUsernameHTML = async (Element, Username, Simple = false, Href = "https://
             }
             HTMLData += `" class="rounded me-2" style="width: 20px; height: 20px; ">`;
         }
-        HTMLData += `<a href="${Href}${Username}" class="link-offset-2 link-underline-opacity-50 `
-        if (UtilityEnabled("Rating")) {
+        let IsScriptAdmin = AdminUserList.includes(Username);
+        HTMLData += `<a href="${Href}${Username}"${IsScriptAdmin ? ` title="脚本管理员"` : ""} class="link-offset-2 link-underline-opacity-50 `
+        if (IsScriptAdmin) {
+            // Violet is reserved for script admins and replaces the old badge, so it
+            // applies whether or not ratings are shown and never means a rating tier.
+            HTMLData += "xmoj-rating-admin";
+        } else if (UtilityEnabled("Rating")) {
             let Rating = UserInfo.Rating;
-            // if(AdminUserList.includes(Username)){
-            //     HTMLData += "link-fuchsia"
-            // }
-            // else
-            if (Rating > 500) {
-                HTMLData += "link-danger";
-            } else if (Rating >= 400) {
-                HTMLData += "link-warning";
-            } else if (Rating >= 300) {
-                HTMLData += "link-success";
+            if (Rating >= 2400) {
+                HTMLData += "xmoj-rating-red";
+            } else if (Rating >= 2000) {
+                HTMLData += "xmoj-rating-orange";
+            } else if (Rating >= 1600) {
+                HTMLData += "xmoj-rating-blue";
+            } else if (Rating >= 1200) {
+                HTMLData += "xmoj-rating-green";
+            } else if (Rating >= 800) {
+                HTMLData += "xmoj-rating-cyan";
             } else {
-                HTMLData += "link-info";
+                HTMLData += "xmoj-rating-gray";
             }
         } else {
             HTMLData += "link-info";
         }
         HTMLData += `\";"></a>`;
         if (!Simple) {
-            if (AdminUserList.includes(Username)) {
-                HTMLData += `<span class="badge text-bg-danger ms-2">脚本管理员</span>`;
-            }
             let BadgeInfo = await GetUserBadge(Username);
             if (BadgeInfo.Content != "") {
                 HTMLData += `<span class="badge ms-2" style="background-color: ${BadgeInfo.BackgroundColor}; color: ${BadgeInfo.Color}">${BadgeInfo.Content}</span>`;
@@ -1679,7 +1851,14 @@ let clearCredential = async () => {
         }
     }
 };
-let RequestAPI = (Action, Data, CallBack) => {
+let RequestAPI = (Action, Data, CallBack, ErrorCallBack) => {
+    let completed = false;
+    let Fail = (message) => {
+        if (completed) return;
+        completed = true;
+        if (ErrorCallBack) ErrorCallBack(message);
+        else console.error("[XMOJ-Script] Request " + Action + ": " + message);
+    };
     try {
         let Session = "";
         let Temp = document.cookie.split(";");
@@ -1722,18 +1901,38 @@ let RequestAPI = (Action, Data, CallBack) => {
                 "DebugMode": UtilityEnabled("DebugMode")
             },
             data: DataString,
+            // Preserve the stashed general request limit and faster badge retries.
+            timeout: ErrorCallBack ? 15000 : 30000,
+            onerror: () => Fail("网络错误，请重试"),
+            ontimeout: () => Fail("请求超时，请重试"),
+            onabort: () => Fail("请求已取消，请重试"),
             onload: (Response) => {
+                if (completed) return;
                 if (UtilityEnabled("DebugMode")) {
                     console.log("Received for", Action + ":", Response.responseText);
                 }
+                if (ErrorCallBack && (Response.status < 200 || Response.status >= 300)) {
+                    Fail("请求失败（HTTP " + Response.status + "），请重试");
+                    return;
+                }
+                let result;
                 try {
-                    CallBack(JSON.parse(Response.responseText));
+                    result = JSON.parse(Response.responseText);
                 } catch (Error) {
                     console.log(Response.responseText);
+                    Fail("服务器响应异常，请重试");
+                    return;
+                }
+                completed = true;
+                try {
+                    if (CallBack) CallBack(result);
+                } catch (Error) {
+                    console.error(Error);
                 }
             }
         });
     } catch (e) {
+        Fail("请求失败，请重试");
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
             SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
@@ -2132,15 +2331,520 @@ function CreateProblemSwitcher(ProblemList, IsCurrent) {
     return problemSwitcher;
 }
 
+// Read server-rendered links, or the numeric p(id, count) calls in unexecuted HTML.
+// Never eval profile scripts: document.write after page load can replace the page.
+function GetProfileSolvedProblems(root = document) {
+    let table = root.querySelector("#statics");
+    let problems = new Set();
+    for (let link of table?.querySelectorAll("a[href]") || []) {
+        try {
+            let url = new URL(link.getAttribute("href"), location.href);
+            let value = url.searchParams.get("id");
+            let id = Number(value);
+            if (url.pathname == "/problem.php" && /^\d+$/.test(value) && Number.isSafeInteger(id) && id > 0) problems.add(id);
+        } catch { /* Ignore malformed links rather than aborting the profile. */ }
+    }
+    for (let script of table?.querySelectorAll("script") || []) {
+        for (let match of script.textContent.matchAll(/\bp\(\s*(\d+)\s*,\s*\d+\s*\)/g)) {
+            if (Number.isSafeInteger(Number(match[1])) && Number(match[1]) > 0) problems.add(Number(match[1]));
+        }
+    }
+    return [...problems];
+}
+
+function IsMissingUserBadge(response) {
+    // Missing rows use an error message rather than a separate status code.
+    // Match the missing-tag phrase; authentication and other failures also have no data.
+    return response?.Success === false && typeof response.Message === "string" && /标签\s*(?:在数据库中\s*)?不存在/.test(response.Message);
+}
+
+function InitializeProfileBadge(container, userID, isAdmin) {
+    let badge = document.createElement("span");
+    badge.className = "badge me-2";
+    badge.id = "UserScriptProfileBadge";
+    let status = document.createElement("span");
+    status.setAttribute("role", "status");
+    let retry = document.createElement("button");
+    retry.type = "button";
+    retry.className = "btn btn-outline-secondary btn-sm";
+    retry.textContent = "重试加载标签";
+    let controls = document.createElement("span");
+    container.append(badge, status, retry, controls);
+    const ClearCache = () => {
+        let keys = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            let key = localStorage.key(i);
+            if (key.startsWith("UserScript-User-" + userID + "-Badge-")) keys.push(key);
+        }
+        keys.forEach(key => localStorage.removeItem(key));
+    };
+    const Fail = message => {
+        status.textContent = "标签暂不可用：" + message;
+        retry.hidden = false;
+        retry.disabled = false;
+    };
+    const Load = () => {
+        status.textContent = "正在加载标签...";
+        retry.hidden = true;
+        retry.disabled = true;
+        controls.replaceChildren();
+        RequestAPI("GetBadge", {UserID: userID}, response => {
+            let missing = IsMissingUserBadge(response);
+            if (!response?.Success && !missing) { Fail(response?.Message || "服务器响应异常，请重试"); return; }
+            let data = missing ? {} : response.Data ?? {};
+            let content = String(data.Content ?? "");
+            badge.textContent = content;
+            badge.hidden = content === "";
+            badge.style.backgroundColor = /^#[0-9a-f]{6}$/i.test(data.BackgroundColor) ? data.BackgroundColor : "#000000";
+            badge.style.color = /^#[0-9a-f]{6}$/i.test(data.Color) ? data.Color : "#ffffff";
+            status.textContent = "";
+            retry.disabled = false;
+            if (!isAdmin) return;
+            let button = document.createElement("button");
+            button.type = "button";
+            button.className = "btn btn-outline-primary btn-sm";
+            button.textContent = content === "" ? "添加标签" : "删除标签";
+            controls.appendChild(button);
+            button.addEventListener("click", () => {
+                if (content !== "" && !confirm("您确定要删除此标签吗？")) return;
+                button.disabled = true;
+                const Failed = message => { status.textContent = message; button.disabled = false; };
+                RequestAPI(content === "" ? "NewBadge" : "DeleteBadge", {UserID: userID}, result => {
+                    if (!result?.Success) { Failed(result?.Message || "服务器响应异常，请重试"); return; }
+                    ClearCache();
+                    Load();
+                }, Failed);
+            });
+        }, Fail);
+    };
+    retry.addEventListener("click", Load);
+    Load();
+}
+
+function GetProfileActivityData(root = document) {
+    // Read only the numeric history statements emitted by userinfo.php. Never eval
+    // the page's graph initializer: the old Flot renderer is unreliable here.
+    const script = [...root.querySelectorAll("script")].find(node => /\$\.plot\s*\(/.test(node.textContent) && /["']#submission["']/.test(node.textContent));
+    if (!script) return null;
+    const series = [new Map(), new Map()];
+    for (const match of script.textContent.matchAll(/\bd([12])\.push\(\s*\[\s*(\d+)\s*,\s*(\d+)\s*\]\s*\)\s*;?/g)) {
+        const timestamp = Number(match[2]), count = Number(match[3]);
+        if (!Number.isSafeInteger(timestamp) || timestamp <= 0 || timestamp > 8640000000000000 || !Number.isSafeInteger(count)) continue;
+        series[Number(match[1]) - 1].set(timestamp, count);
+    }
+    return series.map(points => [...points].sort((a, b) => a[0] - b[0]));
+}
+
+// Deterministic 0-3000 rating computed from a single userinfo.php page. It only
+// reads the solved list, the verdict totals and the daily history, and never
+// uses the current time, so every viewer gets the same number for the same
+// profile. The count after each solved problem includes submissions made after
+// AC, so it is not used: accuracy comes from the exact verdict totals instead.
+function CalculateUserRating(root = document) {
+    let table = root.querySelector("#statics");
+    // Solved problems appear as p(id, count) calls or as rendered problem links.
+    let solved = GetProfileSolvedProblems(root).length;
+    if (solved == 0) return 0;
+    // Judged failures: PE, WA, TLE, MLE, OLE and RE. Compile errors and ignored
+    // submissions are not counted. Resubmitting AC code adds nothing here and
+    // cannot raise the solved count either.
+    let failures = 0;
+    for (let link of table.querySelectorAll("a[href*='jresult=']")) {
+        let result = Number((link.getAttribute("href").match(/jresult=(\d+)/) || [])[1]);
+        if (result >= 5 && result <= 10) failures += Number(link.textContent.trim()) || 0;
+    }
+    let activity = GetProfileActivityData(root) || [[], []];
+    // Soft-cap ACs per day: normal training days count fully, while a day with
+    // dozens of ACs (pasted solutions, bulk resubmits) adds only logarithmically.
+    const DailyCap = 8;
+    let totalAC = 0, cappedAC = 0;
+    for (let [, count] of activity[1]) {
+        totalAC += count;
+        cappedAC += count <= DailyCap ? count : DailyCap + DailyCap * Math.log(1 + (count - DailyCap) / DailyCap);
+    }
+    let burst = totalAC > 0 ? cappedAC / totalAC : 1;
+    let volume = 1 - Math.exp(-solved * burst / 350);
+    // Share of judged submissions that solved a new problem, shrunk toward 25%
+    // with 40 virtual submissions so small samples cannot score high.
+    let precision = (solved + 40 * 0.25) / (solved + failures + 40);
+    // Strong users still fail on hard problems, so credit peaks at 40%-55%;
+    // near-perfect precision over hundreds of solves looks copied and earns less.
+    let accuracy = precision < 0.15 ? 0 : precision < 0.4 ? (precision - 0.15) / 0.25 : precision < 0.55 ? 1 : Math.max(0.3, 1 - (precision - 0.55) * 2);
+    let confidence = solved / (solved + 80);
+    let consistency = 1 - Math.exp(-activity[0].length / 250);
+    let score = 0.57 * volume + 0.33 * accuracy * confidence + 0.1 * consistency;
+    return Math.round(3000 * Math.pow(score, 0.9));
+}
+
+function InitializeProfileActivityChart(chart) {
+    const data = GetProfileActivityData();
+    chart.style.cssText = "width:100%;max-width:600px;text-align:left;border:1px solid var(--bs-border-color, #adb5bd);box-sizing:border-box;padding:12px;margin-top:12px";
+    chart.replaceChildren();
+    if (!data || !data.some(points => points.length)) {
+        chart.textContent = data ? "暂无提交记录" : "暂时无法读取提交记录";
+        chart.setAttribute("role", "status");
+        return;
+    }
+    const colors = ["#d4a017", "#4799cc"], labels = ["提交", "正确"];
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", "提交与正确数量随时间的变化");
+    svg.style.cssText = "display:block;width:100%;height:auto";
+    chart.appendChild(svg);
+    const Node = (tag, attributes, text, parent = svg) => {
+        const node = document.createElementNS(svg.namespaceURI, tag);
+        for (const [name, value] of Object.entries(attributes)) node.setAttribute(name, value);
+        if (text != null) node.textContent = text;
+        parent.appendChild(node);
+        return node;
+    };
+    const date = new Intl.DateTimeFormat("zh-CN", {timeZone: "Asia/Shanghai", year: "numeric", month: "2-digit", day: "2-digit"});
+    const DateLabel = timestamp => date.format(new Date(timestamp)).replaceAll("/", "-");
+    const points = data.flat();
+    let min = Math.min(...points.map(point => point[0])), max = Math.max(...points.map(point => point[0]));
+    const day = 86400000;
+    min -= day / 2;
+    max += day / 2;
+    const maximum = Math.max(1, ...points.map(point => point[1]));
+    const power = 10 ** Math.floor(Math.log10(maximum / 4));
+    const step = Math.max(1, [1, 2, 5, 10].find(value => value * power >= maximum / 4) * power);
+    const limit = Math.ceil(maximum / step) * step;
+    let previousWidth = 0;
+    const Draw = () => {
+        const width = Math.max(280, Math.min(600, svg.clientWidth || 600));
+        if (width === previousWidth) return;
+        previousWidth = width;
+        svg.replaceChildren();
+        svg.setAttribute("viewBox", "0 0 " + width + " 280");
+        const left = 45, right = width - 12, top = 28, bottom = 238;
+        const X = timestamp => left + (timestamp - min) / (max - min) * (right - left);
+        const Y = count => bottom - count / limit * (bottom - top);
+        for (let tick = 0; tick <= limit; tick += step) {
+            Node("line", {x1: left, x2: right, y1: Y(tick), y2: Y(tick), stroke: "var(--bs-border-color, #adb5bd)", opacity: "0.5"});
+            Node("text", {x: left - 6, y: Y(tick) + 4, "text-anchor": "end", "font-size": "12", fill: "var(--bs-body-color, currentColor)"}, Number(tick.toPrecision(12)));
+        }
+        for (let index = 0; index < labels.length; index++) Node("text", {x: left + index * 65, y: 16, "font-size": "13", fill: colors[index]}, labels[index]);
+        // Paint translucent accepted bars first, with a thin submission line above
+        // them. Invisible hover targets preserve tooltips without dense dot markers.
+        const accepted = Node("g", {"data-layer": "accepted"});
+        const barWidth = Math.max(1, Math.min(12, (right - left) * day / (max - min) * 0.6));
+        for (const [timestamp, count] of data[1]) {
+            const bar = Node("rect", {x: X(timestamp) - barWidth / 2, y: Y(count), width: barWidth, height: bottom - Y(count), fill: colors[1], "fill-opacity": "0.55", "data-series": "accepted"}, null, accepted);
+            Node("title", {}, DateLabel(timestamp) + " 正确：" + count, bar);
+        }
+        const submitted = Node("g", {"data-layer": "submitted"});
+        if (data[0].length) Node("path", {d: data[0].map(([timestamp, count], index) => (index ? "L" : "M") + X(timestamp) + " " + Y(count)).join(" "), fill: "none", stroke: colors[0], "stroke-width": "1.25", "stroke-opacity": "0.8", "data-series": "submitted"}, null, submitted);
+        for (const [timestamp, count] of data[0]) {
+            const point = Node("circle", {cx: X(timestamp), cy: Y(count), r: data[0].length === 1 ? "3" : "5", fill: data[0].length === 1 ? colors[0] : "transparent", "data-series": "submitted"}, null, submitted);
+            Node("title", {}, DateLabel(timestamp) + " 提交：" + count, point);
+        }
+        const singleDate = max - min === day;
+        const ticks = singleDate ? 1 : Math.max(2, Math.floor((right - left) / 110));
+        for (let i = 0; i < ticks; i++) {
+            const timestamp = singleDate ? min + day / 2 : min + day / 2 + i / (ticks - 1) * (max - min - day);
+            Node("text", {x: X(timestamp), y: bottom + 22, "text-anchor": singleDate ? "middle" : i === 0 ? "start" : i === ticks - 1 ? "end" : "middle", "font-size": "11", fill: "var(--bs-body-color, currentColor)", "data-axis": "date"}, DateLabel(timestamp));
+        }
+    };
+    Draw();
+    if (typeof ResizeObserver === "function") {
+        const observer = new ResizeObserver(() => {
+            if (!chart.isConnected) { observer.disconnect(); return; }
+            Draw();
+        });
+        observer.observe(chart);
+    }
+}
+
+function InitializeProfileChart(table) {
+    let chart = table.querySelector("#PieDiv");
+    if (!chart) return;
+    let entries = [...table.rows].filter(row => row.cells[1]?.querySelector('a[href*="jresult="]') && !/^(解决|Solved)/i.test(row.cells[0]?.textContent.trim()))
+        .map(row => ({label: row.cells[0].textContent.trim(), value: Number(row.cells[1].textContent.trim())}))
+        .filter(entry => Number.isFinite(entry.value) && entry.value >= 0);
+    let total = entries.reduce((sum, entry) => sum + entry.value, 0);
+    if (!entries.length) return;
+    let colors = ["#FF8080", "#8080FF", "#80bb80", "#FF0066", "#9900FF", "#996633", "#006633", "#000000", "#66cddd", "#0066FF"];
+    let pie = document.createElement("div");
+    pie.setAttribute("role", "img");
+    pie.setAttribute("aria-label", "判题结果分布");
+    pie.style.cssText = "width:100px;height:100px;border-radius:50%;flex-shrink:0";
+    pie.style.setProperty("border-radius", "50%", "important");
+    let legend = document.createElement("ul");
+    legend.className = "list-unstyled mb-0";
+    legend.style.textAlign = "left";
+    let position = 0;
+    let segments = entries.map((entry, index) => {
+        let start = position;
+        position += total ? entry.value / total * 100 : 0;
+        let color = colors[index % colors.length];
+        let item = document.createElement("li");
+        let marker = document.createElement("span");
+        marker.style.cssText = "display:inline-block;width:10px;height:10px;margin-right:6px;background:" + color;
+        item.append(marker, document.createTextNode(entry.label + " [" + (total ? Math.round(entry.value / total * 100) : 0) + "%]"));
+        legend.appendChild(item);
+        return color + " " + start + "% " + position + "%";
+    });
+    pie.style.background = total ? "conic-gradient(" + segments.join(",") + ")" : "#808080";
+    // The old canvas positions ten labels within 100px; normal flow prevents overlap.
+    chart.style.cssText = "display:flex;flex-wrap:wrap;align-items:center;gap:12px;width:auto;height:auto";
+    chart.replaceChildren(pie, legend);
+}
+
+// Commit the complete profile before any optional API call can fail or stall.
+function InitializeUserProfile(isAdmin = false) {
+    if (location.pathname != "/userinfo.php" || new URLSearchParams(location.search).has("ByUserScript") || document.getElementById("UserScriptProfile")) return;
+    let table = document.getElementById("statics");
+    if (!table) return;
+    let caption = table.caption?.cloneNode(true);
+    caption?.querySelectorAll("a").forEach(link => link.remove());
+    let identity = caption?.textContent.trim() || "";
+    let separator = identity.indexOf("--");
+    let userID = separator >= 0 ? identity.slice(0, separator).trim() : new URLSearchParams(location.search).get("user");
+    let nickname = separator >= 0 ? identity.slice(separator + 2).trim() : identity;
+    if (!userID) return;
+    let problems = GetProfileSolvedProblems();
+    let rows = [...table.rows];
+    const Value = pattern => rows.find(row => pattern.test(row.cells[0]?.textContent.trim() || ""))?.cells[1]?.textContent.trim();
+    let email = Value(/^(电子邮箱|Email:?)$/i) || "";
+    let rating = CalculateUserRating();
+    let profile = document.createElement("div");
+    profile.id = "UserScriptProfile";
+    profile.className = "row text-start text-left";
+    let left = document.createElement("div");
+    left.className = "col-md-5";
+    let right = document.createElement("div");
+    right.className = "col-md-7";
+    profile.append(left, right);
+    let header = document.createElement("div");
+    header.className = "row mb-2";
+    let avatarContainer = document.createElement("div");
+    avatarContainer.className = "col-auto";
+    let avatar = document.createElement("img");
+    avatar.className = "rounded me-2";
+    avatar.alt = userID + " 的头像";
+    avatar.width = avatar.height = 120;
+    avatar.src = "https://cravatar.cn/avatar/00000000000000000000000000000000?d=mp&f=y";
+    // The native profile already contains the email and statistics. No second
+    // profile fetch is needed to show the avatar or compute the rating.
+    if (email) {
+        try { avatar.src = "https://cravatar.cn/avatar/" + CryptoJS.MD5(email).toString() + "?d=retro"; }
+        catch (error) { console.error("[XMOJ-Script] Profile avatar:", error); }
+    }
+    avatarContainer.appendChild(avatar);
+    let info = document.createElement("div");
+    info.className = "col-auto";
+    info.style.lineHeight = "40px";
+    const Line = text => {
+        let line = document.createElement("div");
+        line.textContent = text;
+        info.appendChild(line);
+        return line;
+    };
+    Line("用户名：" + userID);
+    Line("昵称：" + nickname);
+    if (UtilityEnabled("Rating")) Line("评分：" + rating);
+    let lastOnline = Line("最后在线：加载中...");
+    lastOnline.id = "UserScriptProfileLastOnline";
+    let badges = document.createElement("div");
+    info.appendChild(badges);
+    header.append(avatarContainer, info);
+    left.appendChild(header);
+    let heading = document.createElement("h5");
+    heading.textContent = "已解决题目";
+    right.appendChild(heading);
+    let solved = document.createElement("div");
+    solved.id = "UserScriptProfileSolved";
+    solved.style.lineHeight = "1.8";
+    for (let id of problems) {
+        let link = document.createElement("a");
+        link.href = "/problem.php?id=" + id;
+        link.target = "_blank";
+        link.textContent = id;
+        solved.append(link, document.createTextNode(" "));
+    }
+    right.appendChild(solved);
+
+    // Move the original statistics nodes so their links and handlers survive.
+    table.insertAdjacentElement("beforebegin", profile);
+    for (let link of table.caption?.querySelectorAll("a") || []) info.appendChild(link);
+    table.caption?.remove();
+    let solvedCell = [...table.querySelectorAll("td[rowspan]")].find(cell =>
+        cell.querySelector('a[href*="problem.php"]') || [...cell.querySelectorAll("script")].some(script => /\bfunction\s+p\s*\(/.test(script.textContent)));
+    let activity = document.getElementById("submission");
+    if (solvedCell?.querySelector('a[href*="problem.php"]')) {
+        // Keep the native per-problem submission-count links and their handlers.
+        solved.replaceChildren();
+        let group = null;
+        for (let node of [...solvedCell.childNodes]) {
+            if (node.nodeName == "SCRIPT" || node === activity) continue;
+            if (node.nodeName == "A" && node.getAttribute("href")?.includes("problem.php")) {
+                group = document.createElement("span");
+                group.style.cssText = "display:inline-block;white-space:nowrap;margin-right:8px";
+                solved.appendChild(group);
+            }
+            (group || solved).appendChild(node);
+        }
+    }
+    // Submission history is functional and must survive the default cleanup setting.
+    if (activity) {
+        right.appendChild(activity);
+        InitializeProfileActivityChart(activity);
+    }
+    solvedCell?.remove();
+    let firstRow = table.rows[0];
+    if (firstRow?.cells.length >= 2 && !firstRow.cells[0].textContent.trim() && !firstRow.cells[1].textContent.trim()) firstRow.remove();
+    for (let row of table.rows) {
+        if (row.cells[0]?.textContent.trim() == "Statistics") row.cells[0].textContent = "统计";
+        if (row.cells[0]?.textContent.trim() == "Email:") row.cells[0].textContent = "电子邮箱";
+        for (let cell of row.cells) cell.removeAttribute("align");
+    }
+    table.removeAttribute("width");
+    left.appendChild(table);
+    InitializeProfileChart(table);
+    document.title = "用户 " + userID + " 的个人中心";
+    InitializeProfileBadge(badges, userID, isAdmin);
+    RequestAPI("LastOnline", {Username: userID}, response => {
+        lastOnline.innerHTML = "最后在线：" + (response?.Success && response.Data?.logintime != null ? GetRelativeTime(response.Data.logintime) : "暂无记录");
+    }, () => { lastOnline.textContent = "最后在线：暂不可用"; });
+}
+
+function IsAccountSettingsPage(pathname) {
+    return pathname == "/modify_user_info.php";
+}
+
+function GetAccountSettingsRedirect() {
+    return location.pathname == "/modifypage.php" ? "/modify_user_info.php" + location.search + location.hash : null;
+}
+
+function InitializeAccountFeatures(authenticated) {
+    if (!authenticated || !CurrentUsername || !IsAccountSettingsPage(location.pathname) || new URLSearchParams(location.search).has("ByUserScript")) return;
+    InitializeAccountBadgeEditor();
+}
+
+function LoadAccountBadge(content, background, color, onLoad, onError) {
+    RequestAPI("GetBadge", {"UserID": String(CurrentUsername)}, (response) => {
+        let missing = IsMissingUserBadge(response);
+        if (!response?.Success && !missing) {
+            onError(response?.Message || "服务器响应异常，请重试");
+            return;
+        }
+        let badge = missing ? {} : response.Data ?? {};
+        content.value = String(badge.Content ?? "");
+        // Color inputs cannot represent an empty value. Use explicit defaults
+        // for missing/invalid colors rather than the browser's silent fallback.
+        background.value = /^#[0-9a-f]{6}$/i.test(badge.BackgroundColor) ? badge.BackgroundColor : "#000000";
+        color.value = /^#[0-9a-f]{6}$/i.test(badge.Color) ? badge.Color : "#ffffff";
+        onLoad(!missing);
+    }, onError);
+}
+
+// Unloaded fields must never be saved as a blank replacement for an existing badge.
+function InitializeAccountBadgeLoading(content, background, color, status, onReady = () => {}) {
+    let state = {loaded: false, exists: false};
+    let retry = document.createElement("button");
+    retry.type = "button";
+    retry.className = "btn btn-outline-secondary mt-2";
+    retry.innerText = "重试加载标签";
+    status.insertAdjacentElement("afterend", retry);
+    let Load = () => {
+        state.loaded = false;
+        state.exists = false;
+        [content, background, color].forEach(input => { input.disabled = true; });
+        onReady(false);
+        status.innerText = "正在加载标签...";
+        retry.hidden = true;
+        retry.disabled = true;
+        LoadAccountBadge(content, background, color, exists => {
+            state.loaded = true;
+            state.exists = exists;
+            [content, background, color].forEach(input => { input.disabled = !exists; });
+            status.innerText = "";
+            retry.disabled = false;
+            onReady(true, exists);
+        }, message => {
+            status.innerText = "标签加载失败：" + message;
+            retry.hidden = false;
+            retry.disabled = false;
+        });
+    };
+    retry.addEventListener("click", Load);
+    Load();
+    return state;
+}
+
+function SaveAccountBadge(content, background, color) {
+    let userID = String(CurrentUsername);
+    return new Promise(resolve => {
+        RequestAPI("EditBadge", {
+            "UserID": userID,
+            "Content": String(content),
+            "BackgroundColor": String(background),
+            "Color": String(color)
+        }, (response) => {
+            if (!response?.Success) {
+                resolve({Success: false, Message: response?.Message || "服务器响应异常，请重试"});
+                return;
+            }
+            let keys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                let key = localStorage.key(i);
+                if (key.startsWith("UserScript-User-" + userID + "-Badge-")) keys.push(key);
+            }
+            keys.forEach(key => localStorage.removeItem(key));
+            resolve(response);
+        }, message => resolve({Success: false, Message: message}));
+    });
+}
+
+// Keep the migrated site's form, including its submit handler and CSRF fields.
+// Script badges are saved separately so they cannot interfere with account edits.
+function InitializeAccountBadgeEditor() {
+    if (document.getElementById("UserScriptBadgeEditor")) return;
+    let container = document.querySelector("main") || document.querySelector("body > .container") || document.body;
+    let editor = document.createElement("div");
+    editor.id = "UserScriptBadgeEditor";
+    editor.className = "border p-2 my-3";
+    editor.innerHTML = `<h5>标签编辑</h5>
+        <div class="mb-2"><label class="form-label" for="UserScriptBadgeContent">内容</label>
+            <input class="form-control" id="UserScriptBadgeContent"></div>
+        <div class="mb-2"><label class="form-label" for="UserScriptBadgeBackground">背景颜色</label>
+            <input class="form-control form-control-color" type="color" id="UserScriptBadgeBackground"></div>
+        <div class="mb-2"><label class="form-label" for="UserScriptBadgeColor">文字颜色</label>
+            <input class="form-control form-control-color" type="color" id="UserScriptBadgeColor"></div>
+        <button type="button" class="btn btn-primary">修改标签</button>
+        <div class="mt-2" role="status"></div>`;
+    let content = editor.querySelector("#UserScriptBadgeContent");
+    let background = editor.querySelector("#UserScriptBadgeBackground");
+    let color = editor.querySelector("#UserScriptBadgeColor");
+    let button = editor.querySelector("button");
+    let status = editor.querySelector("[role='status']");
+    container.appendChild(editor);
+    let badgeState = InitializeAccountBadgeLoading(content, background, color, status, (loaded, exists) => {
+        editor.hidden = loaded && !exists;
+        button.disabled = !loaded || !exists;
+    });
+    button.addEventListener("click", async () => {
+        if (!badgeState.loaded || !badgeState.exists) return;
+        button.disabled = true;
+        status.innerText = "";
+        try {
+            let result = await SaveAccountBadge(content.value, background.value, color.value);
+            status.innerText = result.Success ? "修改成功" : result.Message;
+        } finally {
+            button.disabled = false;
+        }
+    });
+}
+
 // The ResetType user menu. Shared by the legacy navbar and the /web app so both
 // menus offer the same entries and animate the same way.
 function CreateUserMenuItems() {
     let Entries = [
-        ["修改帐号", () => { location.href = "https://www.xmoj.tech/modifypage.php"; }],
+        ["修改帐号", () => { location.href = "https://www.xmoj.tech/modify_user_info.php"; }],
         ["个人中心", () => { location.href = "https://www.xmoj.tech/userinfo.php?user=" + CurrentUsername; }],
         ["短消息", () => { location.href = "https://www.xmoj.tech/mail.php"; }],
         ["插件设置", () => { location.href = "https://www.xmoj.tech/index.php?ByUserScript=1"; }],
-        ["插件更新日志", () => { location.href = "https://www.xmoj.tech/modifypage.php?ByUserScript=1"; }],
+        ["插件更新日志", () => { location.href = "https://www.xmoj.tech/modify_user_info.php?ByUserScript=1"; }],
         ["注销", () => {
             clearCredential();
             GM.cookie.set({
@@ -2231,7 +2935,7 @@ function ApplyContestWebTheme() {
     document.documentElement.setAttribute("data-bs-theme", dark ? "dark" : "light");
     localStorage.setItem("UserScript-Setting-DarkMode", String(dark));
     const modern = get("NewBootstrap");
-    style.textContent = ThemeCanvasCSS + `
+    style.textContent = ThemeCanvasCSS + RatingColorCSS + `
         #app .xmoj-script-tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
         #app .copy-btn { margin-left: 10px; }
         #app .xmoj-script-countdown { margin-left: 8px; white-space: nowrap; }
@@ -2240,7 +2944,11 @@ function ApplyContestWebTheme() {
         #app .xmoj-script-has-editors .xmoj-std-code { display: none !important; }
         #app .xmoj-std-overlay { pointer-events: none; }
         #app .xmoj-script-code-ready { display: none !important; }
-        #app #rank td.well { color: #222 !important; }
+        #app .xmoj-scroll-x:has(> #rank) { overflow: visible; }
+        #app #rank td, #app #rank th { vertical-align: middle; }
+        #app #rank td.well { color: ${dark ? "white" : "black"} !important; padding: 0.5rem; margin: 0; border: 0; border-radius: 0; }
+        #app #rank tbody td:not(:nth-child(2)) a { color: inherit; text-decoration: none; border-bottom: 0 !important; }` + (get("MonochromeUI") ? `
+        #app #rank thead th, #app #rank thead th a { background-color: black !important; color: white !important; }` : "") + `
         #app .xmoj-problem-head h3 { font-size: 1rem; font-weight: inherit !important; font-family: inherit !important; margin: 0; }
         #app .xmoj-problem-actions .btn { margin: 0 5px; }
         #app .xmoj-problem-body pre { font-size: 1rem; padding: 0.3em 0.5em; margin: 0.5em 0; }
@@ -2325,6 +3033,7 @@ async function InitializeContestWebApp() {
         bootstrap.href = "https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css";
         document.head.appendChild(bootstrap);
         const mono = UtilityEnabled("MonochromeUI");
+        if (mono) LoadMonochromeFonts();
         const skin = document.createElement("style");
         skin.textContent = mono ? MonochromeSkinCSS : NewBootstrapSkinCSS;
         if (UtilityEnabled("AddAnimation")) skin.textContent += `.status, .test-case { transition: ${mono ? "100ms ease" : "0.5s"} !important; }`;
@@ -2549,6 +3258,79 @@ async function InitializeContestWebApp() {
         }
     }
 
+    function EnhanceRank() {
+        // Give rank usernames the same avatar, rating color and badge as the legacy
+        // rank pages. Vue owns its link and may reuse the row for another user when
+        // it re-sorts, so hide its link and keep an owned copy keyed by username.
+        for (const row of root.querySelectorAll("#rank tbody tr")) {
+            EnhanceRankBadge(row.cells[0]);
+            for (const cell of row.querySelectorAll("td.well")) EnhanceRankCell(cell);
+            const cell = row.cells[1];
+            const link = cell?.querySelector(`a:not([${owned}] a)`);
+            if (!link) continue;
+            const username = link.textContent.trim();
+            let span = cell.querySelector(`[${owned}="rank-user"]`);
+            if (span?.dataset.username === username) continue;
+            span?.remove();
+            if (!username) continue;
+            link.hidden = true;
+            span = MakeControl("span", "rank-user", "");
+            span.dataset.username = username;
+            cell.appendChild(span);
+            GetUsernameHTML(span, username);
+        }
+    }
+
+    function EnhanceRankBadge(cell) {
+        // The server styles the whole cell as an orange badge. Show the rank in a
+        // badge like the legacy page instead. Vue rewrites the text if it changes,
+        // which also drops the owned badge, so it is rebuilt on the next pass.
+        if (!cell || cell.querySelector(`[${owned}="rank-badge"]`)) return;
+        const text = cell.textContent.trim();
+        if (!text) return;
+        for (const node of cell.childNodes) {
+            if (node.nodeType === Node.TEXT_NODE) node.nodeValue = "";
+        }
+        cell.className = "";
+        // The server labels first place "Winner"; the OI rank page shows its number.
+        const badge = MakeControl("span", "rank-badge", text === "Winner" ? "1" : text);
+        badge.className = "badge text-bg-primary";
+        cell.appendChild(badge);
+    }
+
+    function EnhanceRankCell(cell) {
+        // Decode the server's cell color like the legacy OI rank page: green 255
+        // means solved, and the blue channel encodes the number of failed tries.
+        // Vue resets the inline color whenever it patches the row, so remember the
+        // color it set and the one applied here to tell the two apart.
+        const current = cell.style.backgroundColor;
+        let tries = cell.querySelector(`[${owned}="rank-tries"]`);
+        if (tries && current === cell.dataset.xmojColor) return;
+        const source = current === cell.dataset.xmojColor ? cell.dataset.xmojSource : current;
+        const match = (source || "").match(/^rgb\((\d+), (\d+), (\d+)\)$/);
+        if (!match) return;
+        tries?.remove();
+        const [Red, Green, Blue] = match.slice(1).map(Number);
+        let BackgroundColor, Suffix = "";
+        if (Red == 238 && Green == 238 && Blue == 238) {
+            BackgroundColor = "";
+        } else if (Red == 170 && Green == 170 && Blue == 255) {
+            BackgroundColor = "rgb(127, 127, 255)";
+        } else if (Green == 255) {
+            let ErrorCount = (Blue == 170 ? 5 : (Blue - 51) / 32);
+            BackgroundColor = "rgba(0, 255, 0, " + Math.max(1 / 10 * (10 - ErrorCount), 0.2) + ")";
+            if (ErrorCount != 0) Suffix = " (" + (ErrorCount == 5 ? "4+" : ErrorCount) + ")";
+        } else {
+            let ErrorCount = (Blue == 22 ? 15 : (170 - Blue) / 10);
+            BackgroundColor = "rgba(255, 0, 0, " + Math.min(ErrorCount / 10 + 0.2, 1) + ")";
+            if (ErrorCount != 0) Suffix = " (" + (ErrorCount == 15 ? "14+" : ErrorCount) + ")";
+        }
+        cell.style.backgroundColor = BackgroundColor;
+        cell.dataset.xmojSource = source;
+        cell.dataset.xmojColor = cell.style.backgroundColor;
+        cell.appendChild(MakeControl("span", "rank-tries", Suffix));
+    }
+
     function EnhanceContest() {
         const table = root.querySelector(".xmoj-problems-table");
         if (!table || !routeData?.problems) return;
@@ -2732,11 +3514,12 @@ async function InitializeContestWebApp() {
                 return false;
             });
             if (UtilityEnabled("NewBootstrap")) ApplyBootstrap5Markup();
+            EnforceChineseView(root);
             EnhanceNav();
             if (!revealed && root.querySelector(".navbar")) {
                 // As on the legacy pages: top bar first, then show the page.
                 revealed = true;
-                if (UtilityEnabled("NewTopBar")) new NavbarStyler();
+                UpdateNavbarStyler();
                 RevealPage();
             }
             if (!route) return;
@@ -2744,6 +3527,7 @@ async function InitializeContestWebApp() {
             if (route.page === "contest") EnhanceContest();
             if (route.page === "problem") EnhanceProblem();
             if (route.page === "std" || route.page === "solution") EnhanceCode();
+            if (route.page === "rank") EnhanceRank();
             if (UtilityEnabled("NewBootstrap")) root.querySelector("#rank")?.classList.add("table", "table-hover");
             if (UtilityEnabled("Translate")) {
                 const labels = {Rank: "排名", User: "用户", Nick: "昵称", Name: "姓名", Solved: "AC数", Mark: "得分"};
@@ -2752,7 +3536,7 @@ async function InitializeContestWebApp() {
                 }
             }
             UpdateCountdowns();
-        } finally { observer.observe(root, {childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["class"]}); }
+        } finally { observer.observe(root, {childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["class", "style"]}); }
     }
 
     function ScheduleEnhance() {
@@ -2763,7 +3547,7 @@ async function InitializeContestWebApp() {
     window.addEventListener("popstate", ScheduleEnhance);
     setInterval(() => {
         UpdateCountdowns();
-        if (UtilityEnabled("NewTopBar")) new NavbarStyler();
+        UpdateNavbarStyler();
     }, 1000);
     window.addEventListener("focus", () => {
         if (!UtilityEnabled("AutoRefresh") || !["list", "contest", "rank"].includes(route?.page)) return;
@@ -2789,13 +3573,37 @@ async function InitializeContestWebApp() {
     } catch (error) { console.error("[XMOJ-Script] Navigation API:", error); }
 }
 
+let navbarStyler = null;
+
+function UpdateNavbarStyler() {
+    const navbar = document.querySelector('.navbar.navbar-expand-lg.bg-body-tertiary');
+    // Both UI refresh timers share one listener. Release the old navbar when Vue
+    // replaces it, or when the top bar is disabled or removed.
+    if (navbarStyler && (navbarStyler.navbar !== navbar || !UtilityEnabled("NewTopBar"))) {
+        navbarStyler.destroy();
+        navbarStyler = null;
+    }
+    if (!navbar || !UtilityEnabled("NewTopBar")) return;
+    if (!navbarStyler) navbarStyler = new NavbarStyler(navbar);
+    else navbarStyler.init();
+}
+
 class NavbarStyler {
-    constructor() {
+    constructor(navbar) {
         try {
-            this.navbar = document.querySelector('.navbar.navbar-expand-lg.bg-body-tertiary');
-            if (this.navbar && UtilityEnabled("NewTopBar")) {
-                this.init();
-            }
+            this.navbar = navbar;
+            this.addedClasses = ['fixed-top', 'container', 'ml-auto'].filter(name => !navbar.classList.contains(name));
+            this.restoreNavbarStyles = this.preserveStyles(navbar, [
+                'position', 'top', 'border-top-left-radius', 'border-top-right-radius',
+                'border-bottom-left-radius', 'border-bottom-right-radius', 'box-shadow',
+                'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
+                'max-width', 'background-color', 'opacity', 'z-index'
+            ]);
+            this.resizeHandler = () => {
+                if (this.navbar?.isConnected) this.updateBlurOverlay();
+            };
+            window.addEventListener('resize', this.resizeHandler);
+            this.init();
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
@@ -2804,12 +3612,46 @@ class NavbarStyler {
         }
     }
 
+    preserveStyles(element, properties, preserveOrder = false) {
+        const order = preserveOrder ? Array.from(element.style) : null;
+        const original = properties.map(property => [property, element.style.getPropertyValue(property), element.style.getPropertyPriority(property)]);
+        return () => {
+            for (const [property, value, priority] of original) {
+                if (value) element.style.setProperty(property, value, priority);
+                else element.style.removeProperty(property);
+            }
+            if (order) {
+                // Attribute selectors can depend on declaration order. Restore that
+                // order while retaining unrelated styles changed by the page.
+                const current = Array.from(element.style);
+                const names = [...order.filter(name => current.includes(name)), ...current.filter(name => !order.includes(name))];
+                const values = names.map(name => [name, element.style.getPropertyValue(name), element.style.getPropertyPriority(name)]);
+                element.style.cssText = '';
+                for (const [name, value, priority] of values) element.style.setProperty(name, value, priority);
+            }
+        };
+    }
+
+    destroy() {
+        window.removeEventListener('resize', this.resizeHandler);
+        // Restore only properties/classes we changed, and remove only our own DOM.
+        this.navbar.classList.remove(...this.addedClasses);
+        this.restoreNavbarStyles();
+        this.restoreOverlayStyles?.();
+        this.restoreSpacerStyles?.();
+        this.restoreSpacerLayoutStyles?.();
+        this.overlay?.remove();
+        this.overlayStyle?.remove();
+        this.spacer?.remove();
+        this.spacerStyle?.remove();
+        this.navbar = null;
+    }
+
     init() {
         try {
             this.applyStyles();
             this.createOverlay();
             this.createSpacer();
-            window.addEventListener('resize', () => this.updateBlurOverlay());
             this.updateBlurOverlay();
         } catch (e) {
             console.error(e);
@@ -2823,6 +3665,9 @@ class NavbarStyler {
         try {
             let n = this.navbar;
             n.classList.add('fixed-top', 'container', 'ml-auto');
+            // The CDN fallback may still be loading when the top bar starts. Without
+            // Bootstrap's .fixed-top rule, top:auto moves it down with the spacer.
+            n.style.top = '0';
             if (UtilityEnabled("MonochromeUI")) {
                 Object.assign(n.style, {
                     position: 'fixed',
@@ -2859,8 +3704,11 @@ class NavbarStyler {
                 let overlay = document.createElement('div');
                 overlay.id = 'blur-overlay';
                 document.body.appendChild(overlay);
+                this.overlay = overlay;
 
                 let style = document.createElement('style');
+                this.overlayStyle?.remove();
+                this.overlayStyle = style;
                 style.textContent = UtilityEnabled("MonochromeUI") ? `
                 #blur-overlay {
                     display: none !important;
@@ -2875,6 +3723,11 @@ class NavbarStyler {
                 }
             `;
                 document.head.appendChild(style);
+            }
+            const overlay = document.getElementById('blur-overlay');
+            if (overlay !== this.overlay && overlay !== this.borrowedOverlay) {
+                this.borrowedOverlay = overlay;
+                this.restoreOverlayStyles = this.preserveStyles(overlay, ['top', 'left', 'width', 'height']);
             }
         } catch (e) {
             console.error(e);
@@ -2906,23 +3759,38 @@ class NavbarStyler {
         try {
             let spacer = document.getElementById('navbar-spacer');
             let newHeight = this.navbar.offsetHeight + 24;
-            if (!spacer) {
-                spacer = document.createElement('div');
-                spacer.id = 'navbar-spacer';
-                spacer.style.height = `${newHeight}px`;
-                spacer.style.width = '100%';
-                document.body.insertBefore(spacer, document.body.firstChild);
-            } else {
-                let currentHeight = parseInt(spacer.style.height, 10);
-                if (currentHeight !== newHeight) {
-                    document.body.removeChild(spacer);
-                    spacer = document.createElement('div');
-                    spacer.id = 'navbar-spacer';
-                    spacer.style.height = `${newHeight}px`;
-                    spacer.style.width = '100%';
-                    document.body.insertBefore(spacer, document.body.firstChild);
-                }
+            // Browser cosmetic filters can hide empty body children whose inline
+            // style starts with display:block; width:100%; height:. Keep static
+            // layout rules outside that attribute, including when Bootstrap is late.
+            if (!this.spacerStyle?.isConnected) {
+                this.spacerStyle = document.createElement('style');
+                this.spacerStyle.textContent = '#navbar-spacer { display: block; width: 100%; }';
+                (document.head || document.documentElement).appendChild(this.spacerStyle);
             }
+            if (!spacer) {
+                // Legacy page handlers use body > div for the content container.
+                // A block span reserves space without becoming their first match.
+                spacer = document.createElement('span');
+                spacer.id = 'navbar-spacer';
+                spacer.setAttribute('aria-hidden', 'true');
+                document.body.insertBefore(spacer, document.body.firstChild);
+                this.spacer = spacer;
+            } else if (spacer !== this.spacer && spacer !== this.borrowedSpacer) {
+                this.restoreSpacerStyles?.();
+                this.restoreSpacerLayoutStyles?.();
+                this.restoreSpacerLayoutStyles = null;
+                this.borrowedSpacer = spacer;
+                this.restoreSpacerStyles = this.preserveStyles(spacer, ['height']);
+            }
+            // Older initializers may leave the same fingerprint on a borrowed spacer.
+            // Normalize only matching nodes, then restore their layout on teardown.
+            if (spacer !== this.spacer && spacer.matches('body > [style^="display: block; width: 100%; height:"]:empty')) {
+                if (!this.restoreSpacerLayoutStyles) this.restoreSpacerLayoutStyles = this.preserveStyles(spacer, ['display', 'width'], true);
+                spacer.style.removeProperty('display');
+                spacer.style.removeProperty('width');
+            }
+            // Update in place so an existing page-owned spacer is never replaced.
+            if (spacer.style.height !== `${newHeight}px`) spacer.style.height = `${newHeight}px`;
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
@@ -2936,6 +3804,7 @@ class NavbarStyler {
 // which executes userscripts as classic scripts (not ES modules).
 (async () => {
 if (GetContestWebRedirect()) return;
+if (GetAccountSettingsRedirect()) return;
 if (document.readyState === "loading") {
     await new Promise(r => document.addEventListener("DOMContentLoaded", r, { once: true }));
 }
@@ -2953,6 +3822,7 @@ if (_foucStyle) {
     }
     setTimeout(RevealPage, 4000);
 }
+if (await EnsureChinesePage()) return;
 if (IsContestWebApp()) {
     await InitializeContestWebApp();
     return;
@@ -2981,7 +3851,10 @@ if (profileElement === null) {
 }
 CurrentUsername = profileElement.innerText;
 CurrentUsername = CurrentUsername.replaceAll(/[^a-zA-Z0-9]/g, "");
+// Initialize migrated account tools independently of the legacy navbar/layout handler.
+InitializeAccountFeatures(logined || (CurrentUsername && !/^(Login|Guest)$/i.test(CurrentUsername)));
 let IsAdmin = AdminUserList.indexOf(CurrentUsername) !== -1;
+InitializeUserProfile(IsAdmin);
 
 const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
 const applyTheme = (theme) => {
@@ -3040,12 +3913,15 @@ async function main() {
                 if (UtilityEnabled("Translate")) {
                     if (document.querySelector("#navbar > ul:nth-child(1) > li:nth-child(2) > a") != null) document.querySelector("#navbar > ul:nth-child(1) > li:nth-child(2) > a").innerText = "题库";
                 }
-                //send analytics
+                // Preserve native account listeners during page-wide customization.
                 RequestAPI("SendData", {});
-                if (UtilityEnabled("ReplaceLinks")) {
+                // Whole-body replacements discard native forms, profile charts,
+                // and listeners already installed on the enhanced profile.
+                let preserveNativePage = ["/modify_user_info.php", "/modify_password.php", "/userinfo.php"].includes(location.pathname);
+                if (UtilityEnabled("ReplaceLinks") && !preserveNativePage) {
                     document.body.innerHTML = String(document.body.innerHTML).replaceAll(/\[<a href="([^"]*)">([^<]*)<\/a>\]/g, "<button onclick=\"location.href='$1'\" class=\"btn btn-outline-secondary\">$2</button>");
                 }
-                if (UtilityEnabled("ReplaceXM")) {
+                if (UtilityEnabled("ReplaceXM") && !preserveNativePage) {
                     document.body.innerHTML = String(document.body.innerHTML).replaceAll("我", "高老师");
                     document.body.innerHTML = String(document.body.innerHTML).replaceAll("小明", "高老师");
                     document.body.innerHTML = String(document.body.innerHTML).replaceAll("下海", "上海");
@@ -3058,6 +3934,7 @@ async function main() {
                     document.title = String(document.title).replaceAll("小明", "高老师");
                 }
 
+                // Bootstrap stylesheet and markup migration.
                 if (UtilityEnabled("NewBootstrap")) {
                     // Remove any old Bootstrap/theme stylesheets that the browser's preload
                     // scanner may have fetched and applied before the document-start
@@ -3077,12 +3954,7 @@ async function main() {
                             Temp[i].remove();
                         }
                     }
-                    if (UtilityEnabled("MonochromeUI")) {
-                        let fontLink = document.createElement("link");
-                        fontLink.rel = "stylesheet";
-                        fontLink.href = "https://fonts.loli.net/css2?family=Playfair+Display:wght@400;700&family=Source+Serif+4:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap";
-                        document.head.appendChild(fontLink);
-                    }
+                    if (UtilityEnabled("MonochromeUI")) LoadMonochromeFonts();
                     var resources = [{
                         type: 'link',
                         href: 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css',
@@ -3153,7 +4025,7 @@ async function main() {
                     if (document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > a") != null) document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > a").removeAttribute("data-toggle");
                     // The navbar is in its final state: apply the top bar now rather than on
                     // the first interval tick, then show the page.
-                    if (UtilityEnabled("NewTopBar")) new NavbarStyler();
+                    UpdateNavbarStyler();
                     RevealPage();
                 }
                 if (UtilityEnabled("RemoveUseless") && document.getElementsByTagName("marquee")[0] != undefined) {
@@ -3167,6 +4039,7 @@ async function main() {
                     if (UtilityEnabled("AddAnimation")) Style.innerHTML += `.status, .test-case { transition: ${_isMono ? "100ms ease" : "0.5s"} !important; }`;
                     if (UtilityEnabled("AddColorText")) Style.innerHTML += `.red { color: red !important; } .green { color: green !important; } .blue { color: blue !important; }`;
                 }
+                Style.innerHTML += RatingColorCSS;
 
                 if (UtilityEnabled("RemoveUseless")) {
                     if (document.getElementsByClassName("footer")[0] != null) {
@@ -3219,9 +4092,7 @@ async function main() {
                         document.getElementById("nowdate").innerHTML = Year + "-" + (Month < 10 ? "0" : "") + Month + "-" + (_Date < 10 ? "0" : "") + _Date + " " + (Hours < 10 ? "0" : "") + Hours + ":" + (Minutes < 10 ? "0" : "") + Minutes + ":" + (Seconds < 10 ? "0" : "") + Seconds;
                     } catch (Error) {
                     }
-                    if (UtilityEnabled("NewTopBar")) {
-                        new NavbarStyler();
-                    }
+                    UpdateNavbarStyler();
                     if (UtilityEnabled("ResetType")) {
                         if (document.querySelector("#profile") != undefined && document.querySelector("#profile").innerHTML == "登录") {
                             let PopupUL = document.querySelector("#navbar > ul.nav.navbar-nav.navbar-right > li > ul");
@@ -3437,7 +4308,7 @@ async function main() {
                         Alert.classList.add("alert-primary");
                         Alert.role = "alert";
                         Alert.innerHTML = `欢迎您使用XMOJ增强脚本！点击
-                <a class="alert-link" href="https://www.xmoj.tech/modifypage.php?ByUserScript=1" target="_blank">此处</a>
+                <a class="alert-link" href="https://www.xmoj.tech/modify_user_info.php?ByUserScript=1" target="_blank">此处</a>
                 查看更新日志。`;
                         Container.appendChild(Alert);
                         let UtilitiesCard = document.createElement("div");
@@ -3556,7 +4427,7 @@ async function main() {
                             }, {"ID": "AddAnimation", "Type": "A", "Name": "增加动画"}, {
                                 "ID": "ReplaceYN", "Type": "F", "Name": "题目前状态提示替换为好看的图标"
                             }, {"ID": "RemoveAlerts", "Type": "D", "Name": "去除多余反复的提示"}, {
-                                "ID": "Translate", "Type": "F", "Name": "统一使用中文，翻译了部分英文*"
+                                "ID": "Translate", "Type": "F", "Name": "翻译部分英文和统一用语*"
                             }, {
                                 "ID": "ReplaceLinks", "Type": "F", "Name": "将网站中所有以方括号包装的链接替换为按钮"
                             }, {"ID": "RemoveUseless", "Type": "D", "Name": "删去无法使用的功能*"}, {
@@ -5023,9 +5894,9 @@ async function main() {
                             PassCheck.click();
                         }
                     });
-                } else if (location.pathname == "/modifypage.php" && document.querySelector("body > div > div") == null) {
-                    //页面结构异常（如403/404页面），跳过处理
-                } else if (location.pathname == "/modifypage.php") {
+                } else if (IsAccountSettingsPage(location.pathname) && (document.querySelector("body > div > div") == null || (SearchParams.get("ByUserScript") == null && document.querySelector("body > div > div form") == null))) {
+                    //页面结构异常或未登录，保留站点提示
+                } else if (IsAccountSettingsPage(location.pathname)) {
                     if (SearchParams.get("ByUserScript") != null) {
                         document.title = "XMOJ-Script 更新日志";
                         if (document.querySelector("body > div > div.mt-3") != null) document.querySelector("body > div > div.mt-3").innerHTML = "";
@@ -5079,388 +5950,72 @@ async function main() {
                                     UpdateDataCardLink.innerText = "查看该版本";
                                 }
                             });
-                    } else {
-                        document.title = "修改账号";
-                        let Nickname = document.getElementsByName("nick")[0].value;
-                        let School = document.getElementsByName("school")[0].value;
-                        let EmailAddress = document.getElementsByName("email")[0].value;
-                        let CodeforcesAccount = document.getElementsByName("acc_cf")[0].value;
-                        let AtcoderAccount = document.getElementsByName("acc_atc")[0].value;
-                        let USACOAccount = document.getElementsByName("acc_usaco")[0].value;
-                        let LuoguAccount = document.getElementsByName("acc_luogu")[0].value;
-                        if (document.querySelector("body > div > div") != null) document.querySelector("body > div > div").innerHTML = `<div class="row g-2 align-items-center col-6 mb-1">
-                    <div class="col-3"><label for="UserID" class="col-form-label">用户ID</label></div>
-                    <div class="col-9"><input id="UserID" class="form-control" disabled readonly value="${CurrentUsername}"></div>
-                </div>
-                <div class="row g-2 align-items-center col-6 mb-1">
-                    <div class="col-3"><label for="Avatar" class="col-form-label">头像</label></div>
-                    <div class="col-9">
-                        <img width="64" height="64" src="https://cravatar.cn/avatar/` + (await GetUserInfo(CurrentUsername)).EmailHash + `?d=retro">
-                        <a href="https://cravatar.cn/avatars" target="_blank">修改头像</a>
-                    </div>
-                </div>
-                <div class="row g-2 align-items-center col-6 pb-1 ps-2 pe-2 mt-3 mb-3 border" id="BadgeRow" style="display: none">
-                    <div class="col-3">标签</div>
-                    <div class="col-9">
-                        <div class="row g-2 align-items-center mb-1">
-                            <div class="col-3"><label for="BadgeContent" class="col-form-label">内容</label></div>
-                            <div class="col-9"><input class="form-control" id="BadgeContent"></div>
-                        </div>
-                        <div class="row g-2 align-items-center mb-1">
-                            <div class="col-3"><label for="BadgeBackgroundColor" class="col-form-label">背景颜色</label></div>
-                            <div class="col-9"><input class="form-control form-control-color" type="color" id="BadgeBackgroundColor"></div>
-                        </div>
-                        <div class="row g-2 align-items-center mb-1">
-                            <div class="col-3"><label for="BadgeColor" class="col-form-label">文字颜色</label></div>
-                            <div class="col-9"><input class="form-control form-control-color" type="color" id="BadgeColor"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="row g-2 align-items-center col-6 mb-1">
-                    <div class="col-3"><label for="Nickname" class="col-form-label">昵称</label></div>
-                    <div class="col-9"><input id="Nickname" class="form-control"></div>
-                </div>
-                <div class="row g-2 align-items-center col-6 mb-1">
-                    <div class="col-3"><label for="OldPassword" class="col-form-label">旧密码</label></div>
-                    <div class="col-9"><input type="password" id="OldPassword" class="form-control"></div>
-                </div>
-                <div class="row g-2 align-items-center col-6 mb-1">
-                    <div class="col-3"><label for="NewPassword" class="col-form-label">新密码</label></div>
-                    <div class="col-9"><input type="password" id="NewPassword" class="form-control"></div>
-                </div>
-                <div class="row g-2 align-items-center col-6 mb-1">
-                    <div class="col-3"><label for="NewPasswordAgain" class="col-form-label">请重复密码</label></div>
-                    <div class="col-9"><input type="password" id="NewPasswordAgain" class="form-control"></div>
-                </div>
-                <div class="row g-2 align-items-center col-6 mb-1">
-                    <div class="col-3"><label for="School" class="col-form-label">学校</label></div>
-                    <div class="col-9"><input id="School" class="form-control"></div>
-                </div>
-                <div class="row g-2 align-items-center col-6 mb-1">
-                    <div class="col-3"><label for="EmailAddress" class="col-form-label">电子邮箱</label></div>
-                    <div class="col-9"><input id="EmailAddress" class="form-control"></div>
-                </div>
-                <div class="row g-2 align-items-center col-6 mb-1">
-                    <div class="col-3"><label for="CodeforcesAccount" class="col-form-label">Codeforces账号</label></div>
-                    <div class="col-9"><input id="CodeforcesAccount" class="form-control"></div>
-                </div>
-                <div class="row g-2 align-items-center col-6 mb-1">
-                    <div class="col-3"><label for="AtcoderAccount" class="col-form-label">Atcoder账号</label></div>
-                    <div class="col-9"><input id="AtcoderAccount" class="form-control"></div>
-                </div>
-                <div class="row g-2 align-items-center col-6 mb-1">
-                    <div class="col-3"><label for="USACOAccount" class="col-form-label">USACO账号</label></div>
-                    <div class="col-9"><input id="USACOAccount" class="form-control"></div>
-                </div>
-                <div class="row g-2 align-items-center col-6 mb-1">
-                    <div class="col-3"><label for="LuoguAccount" class="col-form-label">洛谷账号</label></div>
-                    <div class="col-9"><input id="LuoguAccount" class="form-control"></div>
-                </div>
-                <button type="submit" class="btn btn-primary mb-2" id="ModifyInfo">
-                    修改
-                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none"></span>
-                </button>
-                <div class="alert alert-danger mb-3" role="alert" id="ErrorElement" style="display: none;"></div>
-                <div class="alert alert-success mb-3" role="alert" id="SuccessElement" style="display: none;">修改成功</div>
-                <br>`;
-                        document.getElementById("Nickname").value = Nickname;
-                        document.getElementById("School").value = School;
-                        document.getElementById("EmailAddress").value = EmailAddress;
-                        document.getElementById("CodeforcesAccount").value = CodeforcesAccount;
-                        document.getElementById("AtcoderAccount").value = AtcoderAccount;
-                        document.getElementById("USACOAccount").value = USACOAccount;
-                        document.getElementById("LuoguAccount").value = LuoguAccount;
-                        RequestAPI("GetBadge", {
-                            "UserID": String(CurrentUsername)
-                        }, (Response) => {
-                            if (Response.Success) {
-                                BadgeRow.style.display = "";
-                                BadgeContent.value = Response.Data.Content;
-                                BadgeBackgroundColor.value = Response.Data.BackgroundColor;
-                                BadgeColor.value = Response.Data.Color;
-                                let Temp = [];
-                                for (let i = 0; i < localStorage.length; i++) {
-                                    if (localStorage.key(i).startsWith("UserScript-User-" + CurrentUsername + "-Badge-")) {
-                                        Temp.push(localStorage.key(i));
-                                    }
-                                }
-                                for (let i = 0; i < Temp.length; i++) {
-                                    localStorage.removeItem(Temp[i]);
-                                }
-                            }
-                        });
-                        ModifyInfo.addEventListener("click", async () => {
-                            ModifyInfo.disabled = true;
-                            if (ModifyInfo.querySelector("span") != null) ModifyInfo.querySelector("span").style.display = "";
-                            ErrorElement.style.display = "none";
-                            SuccessElement.style.display = "none";
-                            //表单元素缺失时不提交，避免用空值覆盖用户信息
-                            if (document.querySelector("#BadgeContent") == null || document.querySelector("#BadgeBackgroundColor") == null || document.querySelector("#BadgeColor") == null || document.querySelector("#Nickname") == null || document.querySelector("#OldPassword") == null || document.querySelector("#NewPassword") == null || document.querySelector("#NewPasswordAgain") == null || document.querySelector("#School") == null || document.querySelector("#EmailAddress") == null || document.querySelector("#CodeforcesAccount") == null || document.querySelector("#AtcoderAccount") == null || document.querySelector("#USACOAccount") == null || document.querySelector("#LuoguAccount") == null) {
-                                ModifyInfo.disabled = false;
-                                if (ModifyInfo.querySelector("span") != null) ModifyInfo.querySelector("span").style.display = "none";
-                                ErrorElement.style.display = "block";
-                                ErrorElement.innerText = "页面加载异常，请刷新后重试";
-                                return;
-                            }
-                            let BadgeContent = document.querySelector("#BadgeContent").value;
-                            let BadgeBackgroundColor = document.querySelector("#BadgeBackgroundColor").value;
-                            let BadgeColor = document.querySelector("#BadgeColor").value;
-                            await new Promise((Resolve) => {
-                                RequestAPI("EditBadge", {
-                                    "UserID": String(CurrentUsername),
-                                    "Content": String(BadgeContent),
-                                    "BackgroundColor": String(BadgeBackgroundColor),
-                                    "Color": String(BadgeColor)
-                                }, (Response) => {
-                                    if (Response.Success) {
-                                        Resolve();
-                                    } else {
-                                        ModifyInfo.disabled = false;
-                                        if (ModifyInfo.querySelector("span") != null) ModifyInfo.querySelector("span").style.display = "none";
-                                        ErrorElement.style.display = "block";
-                                        ErrorElement.innerText = Response.Message;
-                                    }
-                                });
-                            });
-                            let Nickname = document.querySelector("#Nickname").value;
-                            let OldPassword = document.querySelector("#OldPassword").value;
-                            let NewPassword = document.querySelector("#NewPassword").value;
-                            let NewPasswordAgain = document.querySelector("#NewPasswordAgain").value;
-                            let School = document.querySelector("#School").value;
-                            let EmailAddress = document.querySelector("#EmailAddress").value;
-                            let CodeforcesAccount = document.querySelector("#CodeforcesAccount").value;
-                            let AtcoderAccount = document.querySelector("#AtcoderAccount").value;
-                            let USACOAccount = document.querySelector("#USACOAccount").value;
-                            let LuoguAccount = document.querySelector("#LuoguAccount").value;
-                            await fetch("https://www.xmoj.tech/modify.php", {
-                                "headers": {
-                                    "content-type": "application/x-www-form-urlencoded"
-                                },
-                                "referrer": location.href,
-                                "method": "POST",
-                                "body": "nick=" + encodeURIComponent(Nickname) + "&" + "opassword=" + encodeURIComponent(OldPassword) + "&" + "npassword=" + encodeURIComponent(NewPassword) + "&" + "rptpassword=" + encodeURIComponent(NewPasswordAgain) + "&" + "school=" + encodeURIComponent(School) + "&" + "email=" + encodeURIComponent(EmailAddress) + "&" + "acc_cf=" + encodeURIComponent(CodeforcesAccount) + "&" + "acc_atc=" + encodeURIComponent(AtcoderAccount) + "&" + "acc_usaco=" + encodeURIComponent(USACOAccount) + "&" + "acc_luogu=" + encodeURIComponent(LuoguAccount)
-                            });
-                            ModifyInfo.disabled = false;
-                            if (ModifyInfo.querySelector("span") != null) ModifyInfo.querySelector("span").style.display = "none";
-                            SuccessElement.style.display = "block";
-                        });
-                        if (UtilityEnabled("ExportACCode")) {
-                            let ExportACCode = document.createElement("button");
-                            if (document.querySelector("body > div.container > div") != null) document.querySelector("body > div.container > div").appendChild(ExportACCode);
-                            ExportACCode.innerText = "导出AC代码";
-                            ExportACCode.className = "btn btn-outline-secondary";
-                            ExportACCode.addEventListener("click", () => {
-                                ExportACCode.disabled = true;
-                                ExportACCode.innerText = "正在导出...";
-                                let Request = new XMLHttpRequest();
-                                Request.addEventListener("readystatechange", () => {
-                                    if (Request.readyState == 4) {
-                                        if (Request.status == 200) {
-                                            let Response = Request.responseText;
-                                            let ACCode = Response.split("------------------------------------------------------\r\n");
-                                            let ScriptElement = document.createElement("script");
-                                            ScriptElement.src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
-                                            document.head.appendChild(ScriptElement);
-                                            ScriptElement.onload = () => {
-                                                var Zip = new JSZip();
-                                                for (let i = 0; i < ACCode.length; i++) {
-                                                    let CurrentCode = ACCode[i];
-                                                    if (CurrentCode != "") {
-                                                        let lineBreakPos = CurrentCode.search(/[\r\n]/);
-                                                        if (lineBreakPos === -1) continue;
-                                                        let headerLine = CurrentCode.slice(0, lineBreakPos);
-                                                        let digitMatch = headerLine.match(/\d+/);
-                                                        if (!digitMatch) continue;
-                                                        let CurrentQuestionID = digitMatch[0];
-                                                        let bodyStart = lineBreakPos + 1;
-                                                        if (CurrentCode[lineBreakPos] === '\r' && CurrentCode[lineBreakPos + 1] === '\n') {
-                                                            bodyStart = lineBreakPos + 2;
-                                                        }
-                                                        CurrentCode = CurrentCode.slice(bodyStart);
-                                                        CurrentCode = CurrentCode.replaceAll("\r", "");
-                                                        Zip.file(CurrentQuestionID + ".cpp", CurrentCode);
+                    }
+                    if (SearchParams.get("ByUserScript") == null && UtilityEnabled("ExportACCode")) {
+                        let ExportACCode = document.createElement("button");
+                        if (document.querySelector("body > div.container > div") != null) document.querySelector("body > div.container > div").appendChild(ExportACCode);
+                        ExportACCode.innerText = "导出AC代码";
+                        ExportACCode.className = "btn btn-outline-secondary";
+                        ExportACCode.addEventListener("click", () => {
+                            ExportACCode.disabled = true;
+                            ExportACCode.innerText = "正在导出...";
+                            let Request = new XMLHttpRequest();
+                            Request.addEventListener("readystatechange", () => {
+                                if (Request.readyState == 4) {
+                                    if (Request.status == 200) {
+                                        let Response = Request.responseText;
+                                        let ACCode = Response.split("------------------------------------------------------\r\n");
+                                        let ScriptElement = document.createElement("script");
+                                        ScriptElement.src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
+                                        document.head.appendChild(ScriptElement);
+                                        ScriptElement.onload = () => {
+                                            var Zip = new JSZip();
+                                            for (let i = 0; i < ACCode.length; i++) {
+                                                let CurrentCode = ACCode[i];
+                                                if (CurrentCode != "") {
+                                                    let lineBreakPos = CurrentCode.search(/[\r\n]/);
+                                                    if (lineBreakPos === -1) continue;
+                                                    let headerLine = CurrentCode.slice(0, lineBreakPos);
+                                                    let digitMatch = headerLine.match(/\d+/);
+                                                    if (!digitMatch) continue;
+                                                    let CurrentQuestionID = digitMatch[0];
+                                                    let bodyStart = lineBreakPos + 1;
+                                                    if (CurrentCode[lineBreakPos] === '\r' && CurrentCode[lineBreakPos + 1] === '\n') {
+                                                        bodyStart = lineBreakPos + 2;
                                                     }
+                                                    CurrentCode = CurrentCode.slice(bodyStart);
+                                                    CurrentCode = CurrentCode.replaceAll("\r", "");
+                                                    Zip.file(CurrentQuestionID + ".cpp", CurrentCode);
                                                 }
-                                                ExportACCode.innerText = "正在生成压缩包……";
-                                                Zip.generateAsync({type: "blob"})
-                                                    .then(function (Content) {
-                                                        saveAs(Content, "ACCodes.zip");
-                                                        ExportACCode.innerText = "AC代码导出成功";
-                                                        ExportACCode.disabled = false;
-                                                        setTimeout(() => {
-                                                            ExportACCode.innerText = "导出AC代码";
-                                                        }, 1000);
-                                                    });
-                                            };
-                                        } else {
-                                            ExportACCode.disabled = false;
-                                            ExportACCode.innerText = "AC代码导出失败";
-                                            setTimeout(() => {
-                                                ExportACCode.innerText = "导出AC代码";
-                                            }, 1000);
-                                        }
+                                            }
+                                            ExportACCode.innerText = "正在生成压缩包……";
+                                            Zip.generateAsync({type: "blob"})
+                                                .then(function (Content) {
+                                                    saveAs(Content, "ACCodes.zip");
+                                                    ExportACCode.innerText = "AC代码导出成功";
+                                                    ExportACCode.disabled = false;
+                                                    setTimeout(() => {
+                                                        ExportACCode.innerText = "导出AC代码";
+                                                    }, 1000);
+                                                });
+                                        };
+                                    } else {
+                                        ExportACCode.disabled = false;
+                                        ExportACCode.innerText = "AC代码导出失败";
+                                        setTimeout(() => {
+                                            ExportACCode.innerText = "导出AC代码";
+                                        }, 1000);
                                     }
-                                });
-                                Request.open("GET", "https://www.xmoj.tech/export_ac_code.php", true);
-                                Request.send();
+                                }
                             });
-                        }
+                            Request.open("GET", "https://www.xmoj.tech/export_ac_code.php", true);
+                            Request.send();
+                        });
                     }
                 } else if (location.pathname == "/userinfo.php" && document.querySelector("body > div > div") == null) {
                     //页面结构异常（如403/404页面），跳过处理
                 } else if (location.pathname == "/userinfo.php") {
-                    if (SearchParams.get("ByUserScript") === null) {
-                        if (UtilityEnabled("RemoveUseless")) {
-                            let Temp = document.getElementById("submission").childNodes;
-                            for (let i = 0; i < Temp.length; i++) {
-                                Temp[i].remove();
-                            }
-                        }
-                        if (document.querySelector("body > script:nth-child(5)") != null) eval(document.querySelector("body > script:nth-child(5)").innerHTML);
-                        if (document.querySelector("#statics > tbody > tr:nth-child(1)") != null) document.querySelector("#statics > tbody > tr:nth-child(1)").remove();
-
-                        let Temp = (document.querySelector("#statics > tbody") != null) ? document.querySelector("#statics > tbody").children : [];
-                        for (let i = 0; i < Temp.length; i++) {
-                            if (Temp[i].children[0] != undefined) {
-                                if (Temp[i].children[0].innerText == "Statistics") {
-                                    Temp[i].children[0].innerText = "统计";
-                                } else if (Temp[i].children[0].innerText == "Email:") {
-                                    Temp[i].children[0].innerText = "电子邮箱";
-                                }
-                                Temp[i].children[1].removeAttribute("align");
-                            }
-                        }
-
-                        Temp = (document.querySelector("#statics > tbody > tr:nth-child(1) > td:nth-child(3)") != null) ? document.querySelector("#statics > tbody > tr:nth-child(1) > td:nth-child(3)").childNodes : [];
-                        let ACProblems = [];
-                        for (let i = 0; i < Temp.length; i++) {
-                            if (Temp[i].tagName == "A" && Temp[i].href.indexOf("problem.php?id=") != -1) {
-                                ACProblems.push(Number(Temp[i].innerText.trim()));
-                            }
-                        }
-                        if (document.querySelector("#statics > tbody > tr:nth-child(1) > td:nth-child(3)") != null) document.querySelector("#statics > tbody > tr:nth-child(1) > td:nth-child(3)").remove();
-
-                        let UserID, UserNick;
-                        if (document.querySelector("#statics > caption") != null) [UserID, UserNick] = document.querySelector("#statics > caption").childNodes[0].data.trim().split("--");
-                        if (document.querySelector("#statics > caption") != null) document.querySelector("#statics > caption").remove();
-                        document.title = "用户 " + UserID + " 的个人中心";
-                        let Row = document.createElement("div");
-                        Row.className = "row";
-                        let LeftDiv = document.createElement("div");
-                        LeftDiv.className = "col-md-5";
-                        Row.appendChild(LeftDiv);
-
-                        let LeftTopDiv = document.createElement("div");
-                        LeftTopDiv.className = "row mb-2";
-                        LeftDiv.appendChild(LeftTopDiv);
-                        let AvatarContainer = document.createElement("div");
-                        AvatarContainer.classList.add("col-auto");
-                        let AvatarElement = document.createElement("img");
-                        let UserEmailHash = (await GetUserInfo(UserID)).EmailHash;
-                        if (UserEmailHash == undefined) {
-                            AvatarElement.src = `https://cravatar.cn/avatar/00000000000000000000000000000000?d=mp&f=y`;
-                        } else {
-                            AvatarElement.src = `https://cravatar.cn/avatar/${UserEmailHash}?d=retro`;
-                        }
-                        AvatarElement.classList.add("rounded", "me-2");
-                        AvatarElement.style.height = "120px";
-                        AvatarContainer.appendChild(AvatarElement);
-                        LeftTopDiv.appendChild(AvatarContainer);
-
-                        let UserInfoElement = document.createElement("div");
-                        UserInfoElement.classList.add("col-auto");
-                        UserInfoElement.style.lineHeight = "40px";
-                        UserInfoElement.innerHTML += "用户名：" + escapeHTML(UserID) + "<br>";
-                        UserInfoElement.innerHTML += "昵称：" + escapeHTML(UserNick) + "<br>";
-                        if (UtilityEnabled("Rating")) {
-                            UserInfoElement.innerHTML += "评分：" + ((await GetUserInfo(UserID)).Rating) + "<br>";
-                        }
-                        // Create a placeholder for the last online time
-                        let lastOnlineElement = document.createElement('div');
-                        lastOnlineElement.innerHTML = "最后在线：加载中...<br>";
-                        UserInfoElement.appendChild(lastOnlineElement);
-                        let BadgeInfo = await GetUserBadge(UserID);
-                        if (IsAdmin) {
-                            if (BadgeInfo.Content !== "") {
-                                let DeleteBadgeButton = document.createElement("button");
-                                DeleteBadgeButton.className = "btn btn-outline-danger btn-sm";
-                                DeleteBadgeButton.innerText = "删除标签";
-                                DeleteBadgeButton.addEventListener("click", async () => {
-                                    if (confirm("您确定要删除此标签吗？")) {
-                                        RequestAPI("DeleteBadge", {
-                                            "UserID": UserID
-                                        }, (Response) => {
-                                            if (UtilityEnabled("DebugMode")) console.log(Response);
-                                            if (Response.Success) {
-                                                let Temp = [];
-                                                for (let i = 0; i < localStorage.length; i++) {
-                                                    if (localStorage.key(i).startsWith("UserScript-User-" + UserID + "-Badge-")) {
-                                                        Temp.push(localStorage.key(i));
-                                                    }
-                                                }
-                                                for (let i = 0; i < Temp.length; i++) {
-                                                    localStorage.removeItem(Temp[i]);
-                                                }
-                                                window.location.reload();
-                                            } else {
-                                                SmartAlert(Response.Message);
-                                            }
-                                        });
-                                    }
-                                });
-                                UserInfoElement.appendChild(DeleteBadgeButton);
-                            } else {
-                                let AddBadgeButton = document.createElement("button");
-                                AddBadgeButton.className = "btn btn-outline-primary btn-sm";
-                                AddBadgeButton.innerText = "添加标签";
-                                AddBadgeButton.addEventListener("click", async () => {
-                                    RequestAPI("NewBadge", {
-                                        "UserID": UserID
-                                    }, (Response) => {
-                                        if (Response.Success) {
-                                            let Temp = [];
-                                            for (let i = 0; i < localStorage.length; i++) {
-                                                if (localStorage.key(i).startsWith("UserScript-User-" + UserID + "-Badge-")) {
-                                                    Temp.push(localStorage.key(i));
-                                                }
-                                            }
-                                            for (let i = 0; i < Temp.length; i++) {
-                                                localStorage.removeItem(Temp[i]);
-                                            }
-                                            window.location.reload();
-                                        } else {
-                                            SmartAlert(Response.Message);
-                                        }
-                                    });
-                                });
-                                UserInfoElement.appendChild(AddBadgeButton);
-                            }
-                        }
-                        RequestAPI("LastOnline", {"Username": UserID}, (result) => {
-                            if (result.Success) {
-                                if (UtilityEnabled("DebugMode")) {
-                                    console.log('lastOnline:' + result.Data.logintime);
-                                }
-                                lastOnlineElement.innerHTML = "最后在线：" + GetRelativeTime(result.Data.logintime) + "<br>";
-                            } else {
-                                lastOnlineElement.innerHTML = "最后在线：近三个月内从未<br>";
-                            }
-                        });
-                        LeftTopDiv.appendChild(UserInfoElement);
-                        LeftDiv.appendChild(LeftTopDiv);
-
-                        let LeftTable = document.querySelector("body > div > div > center > table");
-                        LeftDiv.appendChild(LeftTable);
-                        let RightDiv = document.createElement("div");
-                        RightDiv.className = "col-md-7";
-                        Row.appendChild(RightDiv);
-                        RightDiv.innerHTML = "<h5>已解决题目</h5>";
-                        for (let i = 0; i < ACProblems.length; i++) {
-                            RightDiv.innerHTML += "<a href=\"https://www.xmoj.tech/problem.php?id=" + ACProblems[i] + "\" target=\"_blank\">" + ACProblems[i] + "</a> ";
-                        }
-                        if (document.querySelector("body > div > div") != null) document.querySelector("body > div > div").innerHTML = "";
-                        if (document.querySelector("body > div > div") != null) document.querySelector("body > div > div").appendChild(Row);
-                    } else {
+                    if (SearchParams.get("ByUserScript") !== null) {
                         document.title = "上传标程";
                         if (document.querySelector("body > div > div.mt-3") != null) document.querySelector("body > div > div.mt-3").innerHTML = `<button id="UploadStd" class="btn btn-primary mb-2">上传标程</button>
                 <div class="alert alert-danger mb-3" role="alert" id="ErrorElement" style="display: none;"></div>
@@ -5488,12 +6043,7 @@ async function main() {
                                     return Response.text();
                                 }).then((Response) => {
                                     let ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
-                                    let ScriptData = (ParsedDocument.querySelector("#statics > tbody > tr:nth-child(2) > td:nth-child(3) > script") != null) ? ParsedDocument.querySelector("#statics > tbody > tr:nth-child(2) > td:nth-child(3) > script").innerText : "";
-                                    ScriptData = ScriptData.substr(ScriptData.indexOf("}") + 1).trim();
-                                    ScriptData = ScriptData.split(";");
-                                    for (let i = 0; i < ScriptData.length; i++) {
-                                        ACList.push(Number(ScriptData[i].substring(2, ScriptData[i].indexOf(","))));
-                                    }
+                                    ACList = GetProfileSolvedProblems(ParsedDocument);
                                 });
                             RequestAPI("GetStdList", {}, async (Result) => {
                                 if (Result.Success) {
@@ -5697,6 +6247,14 @@ async function main() {
                     }
                 } else if (location.pathname == "/contest_video.php" || location.pathname == "/problem_video.php") {
                     let ScriptData = (document.querySelector("body > div > div.mt-3 > center > script") != null) ? document.querySelector("body > div > div.mt-3 > center > script").innerHTML : "";
+                    let VideoHeading = document.querySelector("center h1, center h2, center h3");
+                    if (VideoHeading != null && VideoHeading.innerText.trim() != "") {
+                        document.title = "回放: " + VideoHeading.innerText.trim();
+                    } else if (SearchParams.get("cid") != null) {
+                        document.title = "比赛 " + Number(SearchParams.get("cid")) + " 回放";
+                    } else {
+                        document.title = "回放";
+                    }
                     if (document.getElementById("J_prismPlayer0").innerHTML != "") {
                         document.getElementById("J_prismPlayer0").innerHTML = "";
                         if (player) {
@@ -8434,6 +8992,7 @@ function InitializeImageEnlarger() {
                     const effectiveSrc = img.currentSrc || img.src;
                     if (!img.classList.contains("xmoj-image-preview") &&
                         !img.closest(".xmoj-image-modal") &&
+                        !img.closest(".prism-player, [id^=\"J_prismPlayer\"]") && // video player controls (e.g. progress bar thumb)
                         effectiveSrc &&
                         !effectiveSrc.includes("gravatar") &&
                         !effectiveSrc.includes("cravatar")) {
