@@ -3894,6 +3894,17 @@
                 }
             ],
             "Notes": "脚本管理员的用户名改为紫色显示（悬停提示「脚本管理员」），不再单独显示「脚本管理员」徽章，为自定义徽章腾出空间。"
+        },
+        "3.8.8": {
+            "UpdateDate": 1791248055026,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 1051,
+                    "Description": "Don't open the image enlarger on video player controls"
+                }
+            ],
+            "Notes": "修复回放视频进度条拖动球被当作图片放大的问题"
         }
     }
 }
