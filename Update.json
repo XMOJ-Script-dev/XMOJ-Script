@@ -3955,6 +3955,17 @@
                 }
             ],
             "Notes": "Add [liushangchen](https://www.xmoj.tech/userinfo.php?user=liushangchen) to AdminUserList"
+        },
+        "4.0.2": {
+            "UpdateDate": 1791284709068,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 1061,
+                    "Description": "Hide the message button on your own profile"
+                }
+            ],
+            "Notes": "查看自己的个人中心时不再显示“短消息”按钮。"
         }
     }
 }
