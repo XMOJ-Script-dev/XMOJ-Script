@@ -3904,7 +3904,7 @@
                     "Description": "Fix image enlarger and minimalist skin on video replay pages; add page title"
                 }
             ],
-            "Notes": "- 修复回放视频进度条拖动球被当作图片放大的问题\n- 修复极简黑白界面下视频播放器按钮出现灰色方框的问题\n- 回放页面增加页面标题"
+            "Notes": "<ul><li>修复回放视频进度条拖动球被当作图片放大的问题</li><li>修复极简黑白界面下视频播放器按钮出现灰色方框的问题</li><li>回放页面增加页面标题</li></ul>"
         },
         "3.9.0": {
             "UpdateDate": 1791249917714,

@@ -20,8 +20,8 @@ p(1000,7);p(1010,1);
 </table></center></div></div>
 <script>
 // Match the history data supplied by the native profile. Its renderer is absent.
+window.nativeHistoryRuns = (window.nativeHistoryRuns || 0) + 1;
 if (window.jQuery) $(function () {
-    window.nativeHistoryRuns = (window.nativeHistoryRuns || 0) + 1;
     var d1 = [], d2 = [];
     d1.push([1704240000000, 12]);
     d1.push([1704067200000, 20]);

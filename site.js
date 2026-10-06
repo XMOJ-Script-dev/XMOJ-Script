@@ -75,6 +75,23 @@
             SelectBrowser(browser);
         }
 
+        // 手机上展开的菜单占据页面高度：先收起菜单，再跳到对应章节，标题才不会被导航栏挡住
+        const siteNav = document.getElementById("SiteNav");
+        if (siteNav && window.bootstrap) {
+            siteNav.addEventListener("click", (event) => {
+                const link = event.target.closest("a[href]");
+                if (!link || !link.hash || link.pathname !== location.pathname || !siteNav.classList.contains("show")) return;
+                const target = document.getElementById(link.hash.slice(1));
+                if (!target) return;
+                event.preventDefault();
+                siteNav.addEventListener("hidden.bs.collapse", () => {
+                    history.pushState(null, "", link.hash);
+                    target.scrollIntoView();
+                }, {once: true});
+                bootstrap.Collapse.getOrCreateInstance(siteNav).hide();
+            });
+        }
+
         const versionElements = document.querySelectorAll("[data-latest-version]");
         if (versionElements.length > 0) {
             fetch("Update.json", {cache: "no-cache"})
