@@ -8983,6 +8983,7 @@ function InitializeImageEnlarger() {
                     const effectiveSrc = img.currentSrc || img.src;
                     if (!img.classList.contains("xmoj-image-preview") &&
                         !img.closest(".xmoj-image-modal") &&
+                        !img.closest(".prism-player, [id^=\"J_prismPlayer\"]") && // video player controls (e.g. progress bar thumb)
                         effectiveSrc &&
                         !effectiveSrc.includes("gravatar") &&
                         !effectiveSrc.includes("cravatar")) {
