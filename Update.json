@@ -3872,6 +3872,17 @@
                 }
             ],
             "Notes": "<p>修复用户没有标签时个人中心误显示加载错误和重试按钮的问题，恢复管理员的添加标签入口。修改账号页面在没有标签时隐藏标签编辑，避免提交无效修改；实际请求失败时仍可重试。</p>"
+        },
+        "3.8.6": {
+            "UpdateDate": 1791246612810,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 1048,
+                    "Description": "Redesign user rating to reward skill instead of AC rate"
+                }
+            ],
+            "Notes": "用户评分重新设计：从「AC 率 × 1000」改为综合做题量、准确度和坚持度的 0–3000 分，更难刷分，用户名颜色改为六档。详见 https://docs.xmoj-script.uk/features/rating.html"
         }
     }
 }

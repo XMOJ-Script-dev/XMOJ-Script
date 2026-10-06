@@ -92,7 +92,7 @@ test('profile page browser regressions', {timeout: 60000}, async t => {
         assert.equal(await page.title(), '用户 ProfileTarget 的个人中心');
         assert.equal(await page.getByText('用户名：ProfileTarget', {exact: true}).isVisible(), true);
         assert.equal(await page.getByText('昵称：昵称--后缀', {exact: true}).isVisible(), true);
-        assert.equal(await page.getByText('评分：400', {exact: true}).isVisible(), true);
+        assert.equal(await page.getByText('评分：33', {exact: true}).isVisible(), true);
         assert.equal(await page.locator('#UserScriptProfile img').isVisible(), true);
         assert.match(await page.locator('#UserScriptProfile img').getAttribute('src'), /123456789012345678901234567890abcf/);
         assert.equal(await page.evaluate(() => avatarEmail), 'profile@example.test');

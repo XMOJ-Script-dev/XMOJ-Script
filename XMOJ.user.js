@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      3.8.5
+// @version      3.8.6
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -685,6 +685,25 @@ const ThemeCanvasCSS = `
         html[data-bs-theme='light'] { background: var(--mono-white, var(--bs-body-bg, #fff)); color-scheme: light; }
 `;
 
+// Username colors by rating tier. Each color keeps at least 3.3:1 contrast on both
+// the light and the dark background, so one palette is used on every page and
+// theme instead of Bootstrap's link-* colors, which change with theme. Like
+// Bootstrap, hover darkens the color by 20% and makes the underline opaque.
+const RatingColorCSS = `
+        a.xmoj-rating-red { color: #dc2f5a !important; text-decoration-color: rgba(220, 47, 90, 0.5) !important; }
+        a.xmoj-rating-red:hover, a.xmoj-rating-red:focus { color: #b02648 !important; text-decoration-color: #b02648 !important; }
+        a.xmoj-rating-orange { color: #e8590c !important; text-decoration-color: rgba(232, 89, 12, 0.5) !important; }
+        a.xmoj-rating-orange:hover, a.xmoj-rating-orange:focus { color: #ba470a !important; text-decoration-color: #ba470a !important; }
+        a.xmoj-rating-blue { color: #337cf2 !important; text-decoration-color: rgba(51, 124, 242, 0.5) !important; }
+        a.xmoj-rating-blue:hover, a.xmoj-rating-blue:focus { color: #2963c2 !important; text-decoration-color: #2963c2 !important; }
+        a.xmoj-rating-green { color: #2b9f4f !important; text-decoration-color: rgba(43, 159, 79, 0.5) !important; }
+        a.xmoj-rating-green:hover, a.xmoj-rating-green:focus { color: #227f3f !important; text-decoration-color: #227f3f !important; }
+        a.xmoj-rating-cyan { color: #1798b0 !important; text-decoration-color: rgba(23, 152, 176, 0.5) !important; }
+        a.xmoj-rating-cyan:hover, a.xmoj-rating-cyan:focus { color: #127a8d !important; text-decoration-color: #127a8d !important; }
+        a.xmoj-rating-gray { color: #78828c !important; text-decoration-color: rgba(120, 130, 140, 0.5) !important; }
+        a.xmoj-rating-gray:hover, a.xmoj-rating-gray:focus { color: #606870 !important; text-decoration-color: #606870 !important; }
+`;
+
 // Both UI initializers use this link; loading only in legacy main() leaves /web
 // on the fallback fonts even though it applies the same monochrome font stack.
 function LoadMonochromeFonts() {
@@ -945,9 +964,9 @@ let RenderMathJax = async () => {
 };
 let GetUserInfo = async (Username) => {
     try {
-        if (localStorage.getItem("UserScript-User-" + Username + "-UserRating") != null && new Date().getTime() - parseInt(localStorage.getItem("UserScript-User-" + Username + "-LastUpdateTime")) < 1000 * 60 * 60 * 24) {
+        if (localStorage.getItem("UserScript-User-" + Username + "-UserRatingV2") != null && new Date().getTime() - parseInt(localStorage.getItem("UserScript-User-" + Username + "-LastUpdateTime")) < 1000 * 60 * 60 * 24) {
             return {
-                "Rating": localStorage.getItem("UserScript-User-" + Username + "-UserRating"),
+                "Rating": localStorage.getItem("UserScript-User-" + Username + "-UserRatingV2"),
                 "EmailHash": localStorage.getItem("UserScript-User-" + Username + "-EmailHash")
             }
         }
@@ -958,7 +977,7 @@ let GetUserInfo = async (Username) => {
                 return null;
             }
             const ParsedDocument = new DOMParser().parseFromString(Response, "text/html");
-            let Rating = (ParsedDocument.querySelector("#statics > tbody > tr:nth-child(4) > td:nth-child(2)") != null && ParsedDocument.querySelector("#statics > tbody > tr:nth-child(3) > td:nth-child(2)") != null) ? (parseInt(ParsedDocument.querySelector("#statics > tbody > tr:nth-child(4) > td:nth-child(2)").innerText.trim()) / parseInt(ParsedDocument.querySelector("#statics > tbody > tr:nth-child(3) > td:nth-child(2)").innerText.trim())).toFixed(3) * 1000 : 0;
+            let Rating = CalculateUserRating(ParsedDocument);
             let Temp = (ParsedDocument.querySelector("#statics > tbody") != null) ? ParsedDocument.querySelector("#statics > tbody").children : [];
             //页面结构异常（如403/404页面）时返回默认值，不写入缓存
             if (Temp.length == 0) {
@@ -968,7 +987,7 @@ let GetUserInfo = async (Username) => {
             }
             let Email = Temp[Temp.length - 1].children[1].innerText.trim();
             let EmailHash = CryptoJS.MD5(Email).toString();
-            localStorage.setItem("UserScript-User-" + Username + "-UserRating", Rating);
+            localStorage.setItem("UserScript-User-" + Username + "-UserRatingV2", Rating);
             if (Email == "") {
                 EmailHash = undefined;
             } else {
@@ -986,6 +1005,23 @@ let GetUserInfo = async (Username) => {
         }
     }
 };
+// Ratings cached before the 0-3000 rating used the AC-rate formula under the
+// "-UserRating" key. Remove them once so they don't linger in localStorage.
+try {
+    if (localStorage.getItem("UserScript-RatingV2-Migrated") === null) {
+        let Temp = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            let key = localStorage.key(i);
+            if (key && key.startsWith("UserScript-User-") && key.endsWith("-UserRating")) Temp.push(key);
+        }
+        for (let i = 0; i < Temp.length; i++) {
+            localStorage.removeItem(Temp[i]);
+        }
+        localStorage.setItem("UserScript-RatingV2-Migrated", "true");
+    }
+} catch (e) {
+    console.error(e);
+}
 /**
  * Retrieves the badge information for a given user.
  *
@@ -1611,14 +1647,18 @@ let GetUsernameHTML = async (Element, Username, Simple = false, Href = "https://
             //     HTMLData += "link-fuchsia"
             // }
             // else
-            if (Rating > 500) {
-                HTMLData += "link-danger";
-            } else if (Rating >= 400) {
-                HTMLData += "link-warning";
-            } else if (Rating >= 300) {
-                HTMLData += "link-success";
+            if (Rating >= 2400) {
+                HTMLData += "xmoj-rating-red";
+            } else if (Rating >= 2000) {
+                HTMLData += "xmoj-rating-orange";
+            } else if (Rating >= 1600) {
+                HTMLData += "xmoj-rating-blue";
+            } else if (Rating >= 1200) {
+                HTMLData += "xmoj-rating-green";
+            } else if (Rating >= 800) {
+                HTMLData += "xmoj-rating-cyan";
             } else {
-                HTMLData += "link-info";
+                HTMLData += "xmoj-rating-gray";
             }
         } else {
             HTMLData += "link-info";
@@ -2393,6 +2433,47 @@ function GetProfileActivityData(root = document) {
     return series.map(points => [...points].sort((a, b) => a[0] - b[0]));
 }
 
+// Deterministic 0-3000 rating computed from a single userinfo.php page. It only
+// reads the solved list, the verdict totals and the daily history, and never
+// uses the current time, so every viewer gets the same number for the same
+// profile. The count after each solved problem includes submissions made after
+// AC, so it is not used: accuracy comes from the exact verdict totals instead.
+function CalculateUserRating(root = document) {
+    let table = root.querySelector("#statics");
+    // Solved problems appear as p(id, count) calls or as rendered problem links.
+    let solved = GetProfileSolvedProblems(root).length;
+    if (solved == 0) return 0;
+    // Judged failures: PE, WA, TLE, MLE, OLE and RE. Compile errors and ignored
+    // submissions are not counted. Resubmitting AC code adds nothing here and
+    // cannot raise the solved count either.
+    let failures = 0;
+    for (let link of table.querySelectorAll("a[href*='jresult=']")) {
+        let result = Number((link.getAttribute("href").match(/jresult=(\d+)/) || [])[1]);
+        if (result >= 5 && result <= 10) failures += Number(link.textContent.trim()) || 0;
+    }
+    let activity = GetProfileActivityData(root) || [[], []];
+    // Soft-cap ACs per day: normal training days count fully, while a day with
+    // dozens of ACs (pasted solutions, bulk resubmits) adds only logarithmically.
+    const DailyCap = 8;
+    let totalAC = 0, cappedAC = 0;
+    for (let [, count] of activity[1]) {
+        totalAC += count;
+        cappedAC += count <= DailyCap ? count : DailyCap + DailyCap * Math.log(1 + (count - DailyCap) / DailyCap);
+    }
+    let burst = totalAC > 0 ? cappedAC / totalAC : 1;
+    let volume = 1 - Math.exp(-solved * burst / 350);
+    // Share of judged submissions that solved a new problem, shrunk toward 25%
+    // with 40 virtual submissions so small samples cannot score high.
+    let precision = (solved + 40 * 0.25) / (solved + failures + 40);
+    // Strong users still fail on hard problems, so credit peaks at 40%-55%;
+    // near-perfect precision over hundreds of solves looks copied and earns less.
+    let accuracy = precision < 0.15 ? 0 : precision < 0.4 ? (precision - 0.15) / 0.25 : precision < 0.55 ? 1 : Math.max(0.3, 1 - (precision - 0.55) * 2);
+    let confidence = solved / (solved + 80);
+    let consistency = 1 - Math.exp(-activity[0].length / 250);
+    let score = 0.57 * volume + 0.33 * accuracy * confidence + 0.1 * consistency;
+    return Math.round(3000 * Math.pow(score, 0.9));
+}
+
 function InitializeProfileActivityChart(chart) {
     const data = GetProfileActivityData();
     chart.style.cssText = "width:100%;max-width:600px;text-align:left;border:1px solid var(--bs-border-color, #adb5bd);box-sizing:border-box;padding:12px;margin-top:12px";
@@ -2523,9 +2604,7 @@ function InitializeUserProfile(isAdmin = false) {
     let rows = [...table.rows];
     const Value = pattern => rows.find(row => pattern.test(row.cells[0]?.textContent.trim() || ""))?.cells[1]?.textContent.trim();
     let email = Value(/^(电子邮箱|Email:?)$/i) || "";
-    let submitted = Number(Value(/^(提交|Submit(?:ted)?|Submissions?:?)$/i));
-    let accepted = Number(Value(/^(正确|Accepted:?)$/i));
-    let rating = submitted > 0 && Number.isFinite(accepted) ? Math.round(accepted / submitted * 1000) : 0;
+    let rating = CalculateUserRating();
     let profile = document.createElement("div");
     profile.id = "UserScriptProfile";
     profile.className = "row text-start text-left";
@@ -2854,7 +2933,7 @@ function ApplyContestWebTheme() {
     document.documentElement.setAttribute("data-bs-theme", dark ? "dark" : "light");
     localStorage.setItem("UserScript-Setting-DarkMode", String(dark));
     const modern = get("NewBootstrap");
-    style.textContent = ThemeCanvasCSS + `
+    style.textContent = ThemeCanvasCSS + RatingColorCSS + `
         #app .xmoj-script-tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
         #app .copy-btn { margin-left: 10px; }
         #app .xmoj-script-countdown { margin-left: 8px; white-space: nowrap; }
@@ -2863,7 +2942,11 @@ function ApplyContestWebTheme() {
         #app .xmoj-script-has-editors .xmoj-std-code { display: none !important; }
         #app .xmoj-std-overlay { pointer-events: none; }
         #app .xmoj-script-code-ready { display: none !important; }
-        #app #rank td.well { color: #222 !important; }
+        #app .xmoj-scroll-x:has(> #rank) { overflow: visible; }
+        #app #rank td, #app #rank th { vertical-align: middle; }
+        #app #rank td.well { color: ${dark ? "white" : "black"} !important; padding: 0.5rem; margin: 0; border: 0; border-radius: 0; }
+        #app #rank tbody td:not(:nth-child(2)) a { color: inherit; text-decoration: none; border-bottom: 0 !important; }` + (get("MonochromeUI") ? `
+        #app #rank thead th, #app #rank thead th a { background-color: black !important; color: white !important; }` : "") + `
         #app .xmoj-problem-head h3 { font-size: 1rem; font-weight: inherit !important; font-family: inherit !important; margin: 0; }
         #app .xmoj-problem-actions .btn { margin: 0 5px; }
         #app .xmoj-problem-body pre { font-size: 1rem; padding: 0.3em 0.5em; margin: 0.5em 0; }
@@ -3173,6 +3256,79 @@ async function InitializeContestWebApp() {
         }
     }
 
+    function EnhanceRank() {
+        // Give rank usernames the same avatar, rating color and badge as the legacy
+        // rank pages. Vue owns its link and may reuse the row for another user when
+        // it re-sorts, so hide its link and keep an owned copy keyed by username.
+        for (const row of root.querySelectorAll("#rank tbody tr")) {
+            EnhanceRankBadge(row.cells[0]);
+            for (const cell of row.querySelectorAll("td.well")) EnhanceRankCell(cell);
+            const cell = row.cells[1];
+            const link = cell?.querySelector(`a:not([${owned}] a)`);
+            if (!link) continue;
+            const username = link.textContent.trim();
+            let span = cell.querySelector(`[${owned}="rank-user"]`);
+            if (span?.dataset.username === username) continue;
+            span?.remove();
+            if (!username) continue;
+            link.hidden = true;
+            span = MakeControl("span", "rank-user", "");
+            span.dataset.username = username;
+            cell.appendChild(span);
+            GetUsernameHTML(span, username);
+        }
+    }
+
+    function EnhanceRankBadge(cell) {
+        // The server styles the whole cell as an orange badge. Show the rank in a
+        // badge like the legacy page instead. Vue rewrites the text if it changes,
+        // which also drops the owned badge, so it is rebuilt on the next pass.
+        if (!cell || cell.querySelector(`[${owned}="rank-badge"]`)) return;
+        const text = cell.textContent.trim();
+        if (!text) return;
+        for (const node of cell.childNodes) {
+            if (node.nodeType === Node.TEXT_NODE) node.nodeValue = "";
+        }
+        cell.className = "";
+        // The server labels first place "Winner"; the OI rank page shows its number.
+        const badge = MakeControl("span", "rank-badge", text === "Winner" ? "1" : text);
+        badge.className = "badge text-bg-primary";
+        cell.appendChild(badge);
+    }
+
+    function EnhanceRankCell(cell) {
+        // Decode the server's cell color like the legacy OI rank page: green 255
+        // means solved, and the blue channel encodes the number of failed tries.
+        // Vue resets the inline color whenever it patches the row, so remember the
+        // color it set and the one applied here to tell the two apart.
+        const current = cell.style.backgroundColor;
+        let tries = cell.querySelector(`[${owned}="rank-tries"]`);
+        if (tries && current === cell.dataset.xmojColor) return;
+        const source = current === cell.dataset.xmojColor ? cell.dataset.xmojSource : current;
+        const match = (source || "").match(/^rgb\((\d+), (\d+), (\d+)\)$/);
+        if (!match) return;
+        tries?.remove();
+        const [Red, Green, Blue] = match.slice(1).map(Number);
+        let BackgroundColor, Suffix = "";
+        if (Red == 238 && Green == 238 && Blue == 238) {
+            BackgroundColor = "";
+        } else if (Red == 170 && Green == 170 && Blue == 255) {
+            BackgroundColor = "rgb(127, 127, 255)";
+        } else if (Green == 255) {
+            let ErrorCount = (Blue == 170 ? 5 : (Blue - 51) / 32);
+            BackgroundColor = "rgba(0, 255, 0, " + Math.max(1 / 10 * (10 - ErrorCount), 0.2) + ")";
+            if (ErrorCount != 0) Suffix = " (" + (ErrorCount == 5 ? "4+" : ErrorCount) + ")";
+        } else {
+            let ErrorCount = (Blue == 22 ? 15 : (170 - Blue) / 10);
+            BackgroundColor = "rgba(255, 0, 0, " + Math.min(ErrorCount / 10 + 0.2, 1) + ")";
+            if (ErrorCount != 0) Suffix = " (" + (ErrorCount == 15 ? "14+" : ErrorCount) + ")";
+        }
+        cell.style.backgroundColor = BackgroundColor;
+        cell.dataset.xmojSource = source;
+        cell.dataset.xmojColor = cell.style.backgroundColor;
+        cell.appendChild(MakeControl("span", "rank-tries", Suffix));
+    }
+
     function EnhanceContest() {
         const table = root.querySelector(".xmoj-problems-table");
         if (!table || !routeData?.problems) return;
@@ -3369,6 +3525,7 @@ async function InitializeContestWebApp() {
             if (route.page === "contest") EnhanceContest();
             if (route.page === "problem") EnhanceProblem();
             if (route.page === "std" || route.page === "solution") EnhanceCode();
+            if (route.page === "rank") EnhanceRank();
             if (UtilityEnabled("NewBootstrap")) root.querySelector("#rank")?.classList.add("table", "table-hover");
             if (UtilityEnabled("Translate")) {
                 const labels = {Rank: "排名", User: "用户", Nick: "昵称", Name: "姓名", Solved: "AC数", Mark: "得分"};
@@ -3377,7 +3534,7 @@ async function InitializeContestWebApp() {
                 }
             }
             UpdateCountdowns();
-        } finally { observer.observe(root, {childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["class"]}); }
+        } finally { observer.observe(root, {childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["class", "style"]}); }
     }
 
     function ScheduleEnhance() {
@@ -3880,6 +4037,7 @@ async function main() {
                     if (UtilityEnabled("AddAnimation")) Style.innerHTML += `.status, .test-case { transition: ${_isMono ? "100ms ease" : "0.5s"} !important; }`;
                     if (UtilityEnabled("AddColorText")) Style.innerHTML += `.red { color: red !important; } .green { color: green !important; } .blue { color: blue !important; }`;
                 }
+                Style.innerHTML += RatingColorCSS;
 
                 if (UtilityEnabled("RemoveUseless")) {
                     if (document.getElementsByClassName("footer")[0] != null) {
