@@ -685,15 +685,15 @@ const ThemeCanvasCSS = `
         html[data-bs-theme='light'] { background: var(--mono-white, var(--bs-body-bg, #fff)); color-scheme: light; }
 `;
 
-// Username colors by rating tier. Each color keeps at least 3.4:1 contrast on both
+// Username colors by rating tier. Each color keeps at least 3.2:1 contrast on both
 // the light and the dark background, so one palette is used on every page and
 // theme instead of Bootstrap's link-* colors, which change with theme. Like
 // Bootstrap, hover darkens the color by 20% and makes the underline opaque.
 const RatingColorCSS = `
-        a.xmoj-rating-red { color: #e8434b !important; text-decoration-color: rgba(232, 67, 75, 0.5) !important; }
-        a.xmoj-rating-red:hover, a.xmoj-rating-red:focus { color: #ba363c !important; text-decoration-color: #ba363c !important; }
-        a.xmoj-rating-orange { color: #e8590c !important; text-decoration-color: rgba(232, 89, 12, 0.5) !important; }
-        a.xmoj-rating-orange:hover, a.xmoj-rating-orange:focus { color: #ba470a !important; text-decoration-color: #ba470a !important; }
+        a.xmoj-rating-red { color: #dc2f5a !important; text-decoration-color: rgba(220, 47, 90, 0.5) !important; }
+        a.xmoj-rating-red:hover, a.xmoj-rating-red:focus { color: #b02648 !important; text-decoration-color: #b02648 !important; }
+        a.xmoj-rating-orange { color: #d9730d !important; text-decoration-color: rgba(217, 115, 13, 0.5) !important; }
+        a.xmoj-rating-orange:hover, a.xmoj-rating-orange:focus { color: #ae5c0a !important; text-decoration-color: #ae5c0a !important; }
         a.xmoj-rating-blue { color: #337cf2 !important; text-decoration-color: rgba(51, 124, 242, 0.5) !important; }
         a.xmoj-rating-blue:hover, a.xmoj-rating-blue:focus { color: #2963c2 !important; text-decoration-color: #2963c2 !important; }
         a.xmoj-rating-green { color: #2b9f4f !important; text-decoration-color: rgba(43, 159, 79, 0.5) !important; }
