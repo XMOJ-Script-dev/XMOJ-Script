@@ -1,0 +1,57 @@
+name: UpdateVersionFork
+# fork 的 PR 拿不到 secrets，也不能推送到 fork，所以合并前没法更新版本号。
+# 维护者合并后会推送到 dev：在这次（可信的）推送上找到对应的 PR，如果来自 fork，
+# 就基于 dev 更新版本号，并以 GitHub App 身份开一个自动合并的 PR。
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - XMOJ.user.js
+concurrency:
+  group: update-version-fork
+  cancel-in-progress: false
+jobs:
+  UpdateVersionFork:
+    runs-on: ubuntu-latest
+    if: ${{ !endsWith(github.actor, '[bot]') }}
+    permissions:
+      contents: read
+    steps:
+      - name: Generate a token
+        id: generate_token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      - name: Find the merged fork PR
+        id: fork_pr
+        env:
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+          SHA: ${{ github.sha }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          PR=$(gh api "repos/$REPOSITORY/commits/$SHA/pulls" --jq "map(select(.merge_commit_sha == \"$SHA\" and .base.ref == \"dev\" and .head.repo.full_name != \"$REPOSITORY\")) | .[0].number // empty")
+          if [ -z "$PR" ]; then
+            echo "This push is not a merged fork PR."
+          else
+            echo "Merged fork PR: #$PR"
+            echo number=$PR >> $GITHUB_OUTPUT
+          fi
+      - uses: actions/checkout@v6
+        if: steps.fork_pr.outputs.number
+        with:
+          ref: dev
+          token: ${{ steps.generate_token.outputs.token }}
+      - name: Update version
+        if: steps.fork_pr.outputs.number
+        env:
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+          PR_NUMBER: ${{ steps.fork_pr.outputs.number }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          PR_TITLE=$(gh api "repos/$REPOSITORY/pulls/$PR_NUMBER" --jq .title)
+          PR_BODY=$(gh api "repos/$REPOSITORY/pulls/$PR_NUMBER" --jq '.body // ""')
+          node ./Update/UpdateVersion.js "$GITHUB_TOKEN" "$PR_NUMBER" "$PR_TITLE" "$PR_BODY" fork-merged
