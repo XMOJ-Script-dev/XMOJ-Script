@@ -52,8 +52,7 @@ Use: Task tool with xmoj-code-navigator agent to find specific sections
 ### Branch Structure and PR Requirements
 
 - `master`: Production branch - **DO NOT make PRs directly to master**
-- `dev`: Development branch - **ALL PRs must be based on and target this branch**
-- `extern-contrib`: External contributors must submit PRs to this branch
+- `dev`: Development branch - **ALL PRs must be based on and target this branch**, including PRs from forks
 
 **CRITICAL: All pull requests must:**
 1. Be based on the `dev` branch (branch off from `dev`)
@@ -191,10 +190,10 @@ If you see "XMOJ.user.js and Update.json have different patch versions":
 ### PR Requirements
 
 - **All PRs must be based on and target `dev` branch, not `master`**
-- Only PRs from the same repository (not forks) trigger auto-versioning
+- Only PRs from the same repository (not forks) trigger auto-versioning; fork PRs get no secrets, so a maintainer handles their version bump
 - PRs must modify `XMOJ.user.js` to trigger version bumps
 - Must merge `dev` into your branch before submitting
-- External contributors must target `extern-contrib` branch
+- External contributors fork the repo and target `dev` too
 
 ### Single-File Architecture
 
