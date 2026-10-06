@@ -190,7 +190,7 @@ If you see "XMOJ.user.js and Update.json have different patch versions":
 ### PR Requirements
 
 - **All PRs must be based on and target `dev` branch, not `master`**
-- Only PRs from the same repository (not forks) trigger auto-versioning; fork PRs get no secrets, so a maintainer handles their version bump
+- Only PRs from the same repository trigger UpdateVersion before merge. Fork PRs get no secrets, so after a fork PR merges, `UpdateVersionFork` (on the push to `dev`) bumps the version on `actions/version-<PR>` and opens an auto-merging PR
 - PRs must modify `XMOJ.user.js` to trigger version bumps
 - Must merge `dev` into your branch before submitting
 - External contributors fork the repo and target `dev` too
