@@ -1,0 +1,54 @@
+name: UpdateVersionFork
+# fork 的 PR 拿不到 secrets，也不能推送到 fork，所以合并前没法更新版本号。
+# 维护者合并后会推送到 dev：在这次（可信的）推送上找出所有已合并、但 Update.json 里还没有记录的 fork PR，
+# 逐个基于最新的 dev 更新版本号，并以 GitHub App 身份开自动合并的 PR，等它合并后再处理下一个。
+# 并发组最多保留一个排队的运行，被替换掉的运行要处理的 PR 也会被后面的运行补上。
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - XMOJ.user.js
+  workflow_dispatch:
+concurrency:
+  group: update-version-fork
+  cancel-in-progress: false
+jobs:
+  UpdateVersionFork:
+    runs-on: ubuntu-latest
+    if: ${{ !endsWith(github.actor, '[bot]') }}
+    permissions:
+      contents: read
+    steps:
+      - name: Generate a token
+        id: generate_token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      - uses: actions/checkout@v6
+        with:
+          ref: dev
+          token: ${{ steps.generate_token.outputs.token }}
+      - name: Update versions of merged fork PRs
+        env:
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+          REPOSITORY: ${{ github.repository }}
+          # 在此之前合并的 fork PR 不再补记版本号
+          SINCE: "2026-10-06T00:00:00Z"
+        run: |
+          PRS=$(gh pr list --repo "$REPOSITORY" --base dev --state merged --limit 50 --json number,isCrossRepository,mergedAt \
+            --jq "map(select(.isCrossRepository and .mergedAt >= \"$SINCE\")) | sort_by(.mergedAt) | .[].number")
+          for PR_NUMBER in $PRS; do
+            git fetch -q origin dev
+            git checkout -q -B dev origin/dev
+            if jq -e --argjson pr "$PR_NUMBER" '[.UpdateHistory[].UpdateContents[].PR] | index($pr)' Update.json > /dev/null; then
+              echo "#$PR_NUMBER already has a version."
+              continue
+            fi
+            PR_TITLE=$(gh api "repos/$REPOSITORY/pulls/$PR_NUMBER" --jq .title)
+            PR_BODY=$(gh api "repos/$REPOSITORY/pulls/$PR_NUMBER" --jq '.body // ""')
+            node ./Update/UpdateVersion.js "$GITHUB_TOKEN" "$PR_NUMBER" "$PR_TITLE" "$PR_BODY" fork-merged
+          done

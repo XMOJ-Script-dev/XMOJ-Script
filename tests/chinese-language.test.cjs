@@ -14,7 +14,7 @@ const language = Between('function InitializeChineseLanguage(', '// The /web app
 const route = Between('function IsContestWebApp(', 'function GetContestRoute(');
 
 // Check reload behavior without navigating a real page away from its assertions.
-function Context({cookie = '', pathname = '/problem.php', english = false, fail = false} = {}) {
+function Context({cookie = '', pathname = '/problem.php', fail = false} = {}) {
     const storage = new Map();
     const requests = [];
     const nodes = [];
@@ -32,7 +32,7 @@ function Context({cookie = '', pathname = '/problem.php', english = false, fail 
         document: {
             cookie, documentElement: {}, head: {appendChild: node => nodes.push(node)}, body: {prepend: node => nodes.push(node)},
             getElementById: id => nodes.find(node => node.id === id),
-            querySelectorAll: () => [], querySelector: () => english ? {} : null,
+            querySelectorAll: () => [], querySelector: () => null,
             createElement: () => ({appendChild() {}, addEventListener() {}})
         }
     });
@@ -52,7 +52,7 @@ test('forces the web cookie before requests and reloads an existing English app 
 });
 
 test('classic English pages do not call the broken language endpoint or reload', async () => {
-    const {scope, requests, reloads} = Context({english: true});
+    const {scope, requests, reloads} = Context({cookie: 'XMOJ_LANG=en'});
     assert.equal(await scope.EnsureChinesePage(), false);
     assert.equal(scope.document.documentElement.lang, 'zh-CN');
     assert.equal(requests.length, 0);

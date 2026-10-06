@@ -86,7 +86,7 @@
 链接戳[这里](https://opencollective.com/xmoj-script-dev)。
 
 > [!IMPORTANT]
-> 请注意, 外部开发者应向`extern-contrib`提交 pull requests。
+> 请向 `dev` 分支提交 pull requests。外部开发者请先 fork 本仓库，从 `dev` 拉分支，再向本仓库的 `dev` 提 PR。版本号由维护者和 CI 更新，不要手动修改。
 
 ## Contributors
 

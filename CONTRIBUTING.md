@@ -5,7 +5,7 @@ We are happy to have you here with us!
 We believe that you must be excited to contribute to our repo, but first, please read the contribution guidelines!
 
 > [!IMPORTANT]
-> 请注意, 外部开发者应向`extern-contrib`提交 pull requests。
+> 请向 `dev` 分支提交 pull requests。外部开发者请先 fork 本仓库，从 `dev` 拉分支，再向本仓库的 `dev` 提 PR。版本号由维护者和 CI 更新，不要手动修改。
 
 - Our goal for `xmoj-script` is **stability before features**. This means we focus on squashing critical bugs before adding new features. Often, we can do both in tandem, but bugs will take priority over a new feature.
 - We use Bootstrap in our project. Please use Bootstrap classes instead of writing your own CSS whenever possible.

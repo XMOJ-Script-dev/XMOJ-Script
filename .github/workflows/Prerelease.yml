@@ -33,7 +33,19 @@ jobs:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
         id: get_version
         run: node ./Update/GetVersion.js
+      # 版本号没变（例如合并了没有更新版本号的 PR）时，不能把已发布的正式版覆盖成预发布版；同版本的预发布版照常更新
+      - name: Check for an existing release
+        id: existing_release
+        env:
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+          VERSION: ${{ steps.get_version.outputs.version }}
+        run: |
+          if [ "$(gh release view "$VERSION" --json isPrerelease --jq .isPrerelease 2>/dev/null)" = "false" ]; then
+            echo "Release $VERSION is already published as a stable release, skipping the prerelease."
+            echo exists=true >> $GITHUB_OUTPUT
+          fi
       - id: create_release
+        if: steps.existing_release.outputs.exists != 'true'
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}

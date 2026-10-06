@@ -75,6 +75,36 @@
             SelectBrowser(browser);
         }
 
+        // 手机上展开的菜单占据页面高度：先收起菜单，再跳到对应章节，标题才不会被导航栏挡住
+        const siteNav = document.getElementById("SiteNav");
+        if (siteNav && window.bootstrap) {
+            const PagePath = (path) => path.replace(/\/index\.html$/, "/");
+            // 收起动画期间 show 类已被移除，用 closing 记录状态；动画中再点别的链接，以最后一次为准
+            let closing = false;
+            let pendingLink = null;
+            siteNav.addEventListener("hide.bs.collapse", () => {
+                closing = true;
+            });
+            siteNav.addEventListener("hidden.bs.collapse", () => {
+                closing = false;
+                if (!pendingLink) return;
+                const target = document.getElementById(pendingLink.hash.slice(1));
+                history.pushState(null, "", pendingLink.hash);
+                pendingLink = null;
+                if (target) target.scrollIntoView();
+            });
+            siteNav.addEventListener("click", (event) => {
+                if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                const link = event.target.closest("a[href]");
+                if (!link || !link.hash || PagePath(link.pathname) !== PagePath(location.pathname)) return;
+                if (!document.getElementById(link.hash.slice(1))) return;
+                if (!siteNav.classList.contains("show") && !closing) return;
+                event.preventDefault();
+                pendingLink = link;
+                if (!closing) bootstrap.Collapse.getOrCreateInstance(siteNav).hide();
+            });
+        }
+
         const versionElements = document.querySelectorAll("[data-latest-version]");
         if (versionElements.length > 0) {
             fetch("Update.json", {cache: "no-cache"})

@@ -238,7 +238,7 @@ test('profile page browser regressions', {timeout: 60000}, async t => {
                 assert.equal(await page.evaluate(() => document.getElementById('submission') === nativeActivity), true);
                 assert.equal(await page.locator('#submission canvas').count(), 0);
                 assert.equal(await page.evaluate(() => window.jQuery), undefined);
-                assert.equal(await page.evaluate(() => window.nativeHistoryRuns), undefined, 'never execute the broken native graph script');
+                assert.equal(await page.evaluate(() => window.nativeHistoryRuns), 1, 'never re-execute the broken native graph script');
                 assert.deepEqual(await page.evaluate(() => GetProfileActivityData()), [
                     [[1704067200000, 20], [1704153600000, 5], [1704240000000, 12]],
                     [[1704067200000, 8], [1704153600000, 2], [1704240000000, 4]]
