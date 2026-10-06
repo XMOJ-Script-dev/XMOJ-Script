@@ -2440,11 +2440,8 @@ function GetProfileActivityData(root = document) {
 // AC, so it is not used: accuracy comes from the exact verdict totals instead.
 function CalculateUserRating(root = document) {
     let table = root.querySelector("#statics");
-    let solvedProblems = new Set();
-    for (let script of table?.querySelectorAll("script") || []) {
-        for (let match of script.textContent.matchAll(/\bp\(\s*(\d+)\s*,\s*\d+\s*\)/g)) solvedProblems.add(match[1]);
-    }
-    let solved = solvedProblems.size;
+    // Solved problems appear as p(id, count) calls or as rendered problem links.
+    let solved = GetProfileSolvedProblems(root).length;
     if (solved == 0) return 0;
     // Judged failures: PE, WA, TLE, MLE, OLE and RE. Compile errors and ignored
     // submissions are not counted. Resubmitting AC code adds nothing here and
