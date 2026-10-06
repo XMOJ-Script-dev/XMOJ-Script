@@ -3966,6 +3966,17 @@
                 }
             ],
             "Notes": "查看自己的个人中心时不再显示“短消息”按钮。"
+        },
+        "4.0.3": {
+            "UpdateDate": 1791285411514,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 1062,
+                    "Description": "Change dev domain to https://dev.xmoj-script.uk/"
+                }
+            ],
+            "Notes": "Change dev domain to https://dev.xmoj-script.uk/"
         }
     }
 }
