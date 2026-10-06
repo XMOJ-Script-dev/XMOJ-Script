@@ -4,20 +4,29 @@ import {execSync} from "child_process";
 var GithubToken = process.argv[2];
 var PRNumber = process.argv[3];
 process.env.GITHUB_TOKEN = GithubToken;
-execSync("gh pr checkout " + PRNumber);
-console.info("PR #" + PRNumber + " has been checked out.");
-
-// Check if the last commit was made by github-actions[bot]
-// Only skip for synchronize events (push-triggered) to prevent infinite loops.
-// For edited events (PR title/body changes), allow metadata updates even when
-// the branch tip is a bot commit.
 const eventAction = String(process.argv[6] || "");
-const lastCommitAuthor = execSync("git log -1 --pretty=format:'%an'").toString().trim();
-console.log("Last commit author: " + lastCommitAuthor);
+// A merged PR from a fork: we cannot push to the fork, so bump the version on
+// a branch of this repository (checked out at dev) and open an auto-merging PR.
+const ForkMerged = eventAction === "fork-merged";
+const ForkBranch = "actions/version-" + Number(PRNumber);
 console.log("Event action       : " + eventAction);
-if (lastCommitAuthor === "github-actions[bot]" && eventAction !== "edited") {
-    console.log("Last commit was made by github-actions[bot]. Skipping to prevent infinite loop.");
-    process.exit(0);
+if (ForkMerged) {
+    execSync("git checkout -B " + ForkBranch);
+    console.info("Bumping the version for merged fork PR #" + PRNumber + " on " + ForkBranch + ".");
+} else {
+    execSync("gh pr checkout " + PRNumber);
+    console.info("PR #" + PRNumber + " has been checked out.");
+
+    // Check if the last commit was made by github-actions[bot]
+    // Only skip for synchronize events (push-triggered) to prevent infinite loops.
+    // For edited events (PR title/body changes), allow metadata updates even when
+    // the branch tip is a bot commit.
+    const lastCommitAuthor = execSync("git log -1 --pretty=format:'%an'").toString().trim();
+    console.log("Last commit author: " + lastCommitAuthor);
+    if (lastCommitAuthor === "github-actions[bot]" && eventAction !== "edited") {
+        console.log("Last commit was made by github-actions[bot]. Skipping to prevent infinite loop.");
+        process.exit(0);
+    }
 }
 
 const JSONFileName = "./Update.json";
@@ -26,7 +35,10 @@ var JSONFileContent = readFileSync(JSONFileName, "utf8");
 var JSFileContent = readFileSync(JSFileName, "utf8");
 execSync("git config --global user.email \"github-actions[bot]@users.noreply.github.com\"");
 execSync("git config --global user.name \"github-actions[bot]\"");
-if (JSONFileContent.includes('//!ci-no-touch')) {
+if (ForkMerged && JSONFileContent.includes('//!ci-no-touch')) {
+    // The marker only means something on an open PR branch.
+    JSONFileContent = JSONFileContent.replace('//!ci-no-touch', '');
+} else if (JSONFileContent.includes('//!ci-no-touch')) {
     var updatedContent = JSONFileContent.replace('//!ci-no-touch', '');
     writeFileSync(JSONFileName, updatedContent, "utf8");
     execSync("git config pull.rebase false");
@@ -115,6 +127,16 @@ writeFileSync(JSONFileName, JSON.stringify(JSONObject, null, 4), "utf8");
 
 console.warn("Update.json has been updated.");
 
+if (ForkMerged) {
+    execSync("git commit -a -m \"" + CommitMessage + "\"");
+    execSync("git push -u origin " + ForkBranch + " -f");
+    console.log("Pushed to " + ForkBranch + ".");
+    var VersionPR = execSync("gh pr create --base dev --head " + ForkBranch + " --title \"" + CommitMessage + " (#" + CurrentPR + ")\" --body \"Version bump for fork PR #" + CurrentPR + ".\"").toString().trim();
+    console.log("Created " + VersionPR + ".");
+    execSync("gh pr merge " + VersionPR + " --merge --auto");
+    console.log("Enabled auto merge.");
+    process.exit(0);
+}
 execSync("git config pull.rebase false");
 execSync("git pull");
 execSync("git commit -a -m \"" + CommitMessage + "\"");
