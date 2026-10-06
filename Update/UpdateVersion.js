@@ -79,6 +79,12 @@ function extractReleaseNotes(body) {
     return match ? match[1].trim() : "";
 }
 var CurrentNotes = extractReleaseNotes(String(process.argv[5] || ""));
+// Editing a PR (including AI reviewers adding summaries on the author's behalf) must never bump the version;
+// it may only refresh this PR's own entry. Versions are bumped on opened/synchronize runs.
+if (eventAction === "edited" && !(LastPR == CurrentPR && NpmVersion == LastJSVersion)) {
+    console.log("PR edited, but the latest version entry is not this PR's. Not bumping the version.");
+    process.exit(0);
+}
 if (LastJSVersion != NpmVersion) {
     console.warn("Assuming you manually ran npm version.");
 } else if (!(LastPR == CurrentPR && NpmVersion == LastJSVersion)) {
