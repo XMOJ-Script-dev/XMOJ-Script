@@ -3905,6 +3905,45 @@
                 }
             ],
             "Notes": "- 修复回放视频进度条拖动球被当作图片放大的问题\n- 修复极简黑白界面下视频播放器按钮出现灰色方框的问题\n- 回放页面增加页面标题"
+        },
+        "3.9.0": {
+            "UpdateDate": 1791249917714,
+            "Prerelease": false,
+            "UpdateContents": [
+                {
+                    "PR": 1036,
+                    "Description": "fix: navbar listener leaks, download overlap, and web fonts"
+                },
+                {
+                    "PR": 1039,
+                    "Description": "fix: match Chinese navbar fonts between web and classic UI"
+                },
+                {
+                    "PR": 1040,
+                    "Description": "fix: restore account and profile pages and enforce Chinese UI"
+                },
+                {
+                    "PR": 1044,
+                    "Description": "fix: keep navbar spacer visible under browser cosmetic filters"
+                },
+                {
+                    "PR": 1045,
+                    "Description": "fix: restore admin add-tag button for users without tags"
+                },
+                {
+                    "PR": 1048,
+                    "Description": "Redesign user rating to reward skill instead of AC rate"
+                },
+                {
+                    "PR": 1049,
+                    "Description": "Show script admins with violet names instead of a badge"
+                },
+                {
+                    "PR": 1051,
+                    "Description": "Fix image enlarger and minimalist skin on video replay pages; add page title"
+                }
+            ],
+            "Notes": "<p>本次正式版修复了截至发布时 GitHub 上所有未关闭的问题。顶栏不再遮挡页面内容（包括启用广告拦截等浏览器过滤规则时），新旧页面的顶栏字体保持一致；账号修改与个人信息页面恢复正常，提交统计图重新显示。</p>\n<p>用户 Rating 改为依据解题能力而非 AC 率计算，各页面和深浅色主题使用同一套更易辨认的颜色；比赛排名页面也会显示 Rating 颜色。脚本管理员改为以紫色用户名标识。回放视频页面的进度条不再被当作图片放大。</p>"
         }
     }
 }
