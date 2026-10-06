@@ -33,15 +33,15 @@ jobs:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
         id: get_version
         run: node ./Update/GetVersion.js
-      # 版本号没变（例如合并了没有更新版本号的 PR）时，不能覆盖已发布的同版本 release
+      # 版本号没变（例如合并了没有更新版本号的 PR）时，不能把已发布的正式版覆盖成预发布版；同版本的预发布版照常更新
       - name: Check for an existing release
         id: existing_release
         env:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
           VERSION: ${{ steps.get_version.outputs.version }}
         run: |
-          if gh release view "$VERSION" > /dev/null 2>&1; then
-            echo "Release $VERSION already exists, skipping."
+          if [ "$(gh release view "$VERSION" --json isPrerelease --jq .isPrerelease 2>/dev/null)" = "false" ]; then
+            echo "Release $VERSION is already published as a stable release, skipping the prerelease."
             echo exists=true >> $GITHUB_OUTPUT
           fi
       - id: create_release
