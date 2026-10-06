@@ -3896,15 +3896,15 @@
             "Notes": "脚本管理员的用户名改为紫色显示（悬停提示「脚本管理员」），不再单独显示「脚本管理员」徽章，为自定义徽章腾出空间。"
         },
         "3.8.8": {
-            "UpdateDate": 1791248462381,
+            "UpdateDate": 1791248477470,
             "Prerelease": true,
             "UpdateContents": [
                 {
                     "PR": 1051,
-                    "Description": "Don't open the image enlarger on video player controls"
+                    "Description": "Fix image enlarger and minimalist skin on video replay pages; add page title"
                 }
             ],
-            "Notes": "修复回放视频进度条拖动球被当作图片放大的问题"
+            "Notes": "- 修复回放视频进度条拖动球被当作图片放大的问题\n- 修复极简黑白界面下视频播放器按钮出现灰色方框的问题\n- 回放页面增加页面标题"
         }
     }
 }
