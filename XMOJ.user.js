@@ -269,7 +269,8 @@ const MonochromeSkinCSS = `
                     --mono-gray-500: #a3a3a3;
                 }
 
-                * {
+                /* The video player draws its controls with rounded shapes and sized icons; leave it alone */
+                *:not(.prism-player *) {
                     border-radius: 0 !important;
                     box-shadow: none !important;
                 }
@@ -613,7 +614,7 @@ const MonochromeSkinCSS = `
                     }
                 }
                 /* Contain images */
-                img {
+                img:not(.prism-player img) {
                     max-width: 100% !important;
                     height: auto !important;
                 }
