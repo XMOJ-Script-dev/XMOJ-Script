@@ -3883,6 +3883,17 @@
                 }
             ],
             "Notes": "用户评分重新设计：从「AC 率 × 1000」改为综合做题量、准确度和坚持度的 0–3000 分，更难刷分，用户名颜色改为六档。详见 https://docs.xmoj-script.uk/features/rating.html"
+        },
+        "3.8.7": {
+            "UpdateDate": 1791246947028,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 1049,
+                    "Description": "Show script admins with violet names instead of a badge"
+                }
+            ],
+            "Notes": "脚本管理员的用户名改为紫色显示（悬停提示「脚本管理员」），不再单独显示「脚本管理员」徽章，为自定义徽章腾出空间。"
         }
     }
 }
