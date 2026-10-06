@@ -852,7 +852,7 @@ const DefaultOffSettings = ["DebugMode", "SuperDebug", "ReplaceXM"];
 // editor randomly fails to load (microsoft/monaco-editor#5015). 0.52.2 ships a single bundle
 // and is not affected. cdnjs has no fixed release newer than 0.53.0 yet.
 const MonacoCDN = "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs";
-const AdminUserList = ["zhuchenrui2", "shanwenxiao", "chenlangning", "admin"];
+const AdminUserList = ["zhuchenrui2", "shanwenxiao", "chenlangning", "liushangchen", "admin"];
 
 // Pre-declared so that closures defined before the async init block can reference them
 let CurrentUsername;
