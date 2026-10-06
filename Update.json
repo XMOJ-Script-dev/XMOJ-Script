@@ -3885,7 +3885,7 @@
             "Notes": "用户评分重新设计：从「AC 率 × 1000」改为综合做题量、准确度和坚持度的 0–3000 分，更难刷分，用户名颜色改为六档。详见 https://docs.xmoj-script.uk/features/rating.html"
         },
         "3.8.7": {
-            "UpdateDate": 1791246947028,
+            "UpdateDate": 1791247094090,
             "Prerelease": true,
             "UpdateContents": [
                 {
