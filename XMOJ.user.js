@@ -6247,6 +6247,14 @@ async function main() {
                     }
                 } else if (location.pathname == "/contest_video.php" || location.pathname == "/problem_video.php") {
                     let ScriptData = (document.querySelector("body > div > div.mt-3 > center > script") != null) ? document.querySelector("body > div > div.mt-3 > center > script").innerHTML : "";
+                    let VideoHeading = document.querySelector("center h1, center h2, center h3");
+                    if (VideoHeading != null && VideoHeading.innerText.trim() != "") {
+                        document.title = "回放: " + VideoHeading.innerText.trim();
+                    } else if (SearchParams.get("cid") != null) {
+                        document.title = "比赛 " + Number(SearchParams.get("cid")) + " 回放";
+                    } else {
+                        document.title = "回放";
+                    }
                     if (document.getElementById("J_prismPlayer0").innerHTML != "") {
                         document.getElementById("J_prismPlayer0").innerHTML = "";
                         if (player) {
