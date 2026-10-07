@@ -1881,7 +1881,9 @@ let RequestAPI = (Action, Data, CallBack, ErrorCallBack) => {
     };
     let OnResult = (result, Authentication, Retried) => {
         if (completed) return;
-        if (!result.Success && result.Data) {
+        // A body like `null` is the caller's to report, so only look inside
+        // real results.
+        if (result && !result.Success && result.Data) {
             // The backend forgot the token (expired, or logged out elsewhere).
             if (result.Data.TokenInvalid && !Retried.Token) {
                 StoreBackendToken("");
