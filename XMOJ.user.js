@@ -1851,6 +1851,136 @@ let clearCredential = async () => {
         }
     }
 };
+// Backend auth. We swap the xmoj PHPSESSID for a token of our own once, so
+// requests don't hand the backend the user's cookie or make it check that
+// cookie against xmoj, which is slow. The token stands for the user, not
+// for the PHPSESSID, so it survives xmoj's daily logouts and our auto-login.
+// It lives in GM storage, which the page itself can't read.
+let BackendTokenRequest = null;
+let GetPHPSESSID = () => {
+    let Session = "";
+    let Temp = document.cookie.split(";");
+    for (let i = 0; i < Temp.length; i++) {
+        if (Temp[i].includes("PHPSESSID")) {
+            Session = Temp[i].split("=")[1];
+            break;
+        }
+    }
+    return Session;
+};
+let GetPHPSESSIDOrReset = () => {
+    let Session = GetPHPSESSID();
+    if (Session === "") { //The cookie is httpOnly
+        GM.cookie.set({
+            name: 'PHPSESSID',
+            value: (Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)).substring(0, 28),
+            path: "/"
+        })
+            .then(() => {
+                console.log('Reset PHPSESSID successfully.');
+                location.reload(); //Refresh the page to auth with the new PHPSESSID
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+    }
+    return Session;
+};
+let GetStoredBackendToken = () => {
+    let Stored = GM_getValue("BackendToken", null);
+    if (Stored && Stored.Token && CurrentUsername && Stored.Username === CurrentUsername) {
+        return Stored.Token;
+    }
+    return "";
+};
+let StoreBackendToken = (Token) => {
+    GM_setValue("BackendToken", Token ? {"Token": Token, "Username": CurrentUsername} : null);
+};
+// The one place requests reach the backend. OnResult gets the parsed JSON,
+// OnFail a message for the user.
+let PostAPI = (Action, Authentication, Data, Timeout, StrictStatus, OnResult, OnFail) => {
+    let DataString = JSON.stringify({
+        "Authentication": Authentication, "Data": Data, "Version": GM_info.script.version, "DebugMode": UtilityEnabled("DebugMode")
+    });
+    if (UtilityEnabled("DebugMode")) {
+        console.log("Sent for", Action + ":", DataString);
+    }
+    GM_xmlhttpRequest({
+        method: "POST",
+        url: (UtilityEnabled("SuperDebug") ? "http://127.0.0.1:8787/" : "https://api.xmoj-script.uk/") + Action,
+        headers: {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache",
+            "XMOJ-UserID": CurrentUsername,
+            "XMOJ-Script-Version": GM_info.script.version,
+            "DebugMode": UtilityEnabled("DebugMode")
+        },
+        data: DataString,
+        timeout: Timeout,
+        onerror: () => OnFail("网络错误，请重试"),
+        ontimeout: () => OnFail("请求超时，请重试"),
+        onabort: () => OnFail("请求已取消，请重试"),
+        onload: (Response) => {
+            if (UtilityEnabled("DebugMode")) {
+                console.log("Received for", Action + ":", Response.responseText);
+            }
+            if (StrictStatus && (Response.status < 200 || Response.status >= 300)) {
+                OnFail("请求失败（HTTP " + Response.status + "），请重试");
+                return;
+            }
+            let result;
+            try {
+                result = JSON.parse(Response.responseText);
+            } catch (Error) {
+                console.log(Response.responseText);
+                OnFail("服务器响应异常，请重试");
+                return;
+            }
+            OnResult(result);
+        }
+    });
+};
+let ExchangeBackendToken = () => {
+    return new Promise((resolve, reject) => {
+        if (!CurrentUsername) {
+            reject("用户未登录");
+            return;
+        }
+        let Session = GetPHPSESSIDOrReset();
+        if (Session === "") {
+            reject("用户未登录");
+            return;
+        }
+        PostAPI("Login", {"SessionID": Session, "Username": CurrentUsername}, {}, 15000, true, (Response) => {
+            if (Response.Success) {
+                StoreBackendToken(Response.Data.Token);
+                resolve(Response.Data.Token);
+            } else {
+                reject(Response.Message);
+            }
+        }, reject);
+    });
+};
+// Resolves to our token, exchanging the PHPSESSID for one if we have none.
+// Everyone waiting at once shares one exchange, including one the
+// notification socket is doing; if that one comes back empty, we fall
+// back to Login.
+let GetBackendToken = () => {
+    let Token = GetStoredBackendToken();
+    if (Token !== "") {
+        return Promise.resolve(Token);
+    }
+    if (BackendTokenRequest) {
+        return BackendTokenRequest.then((Token) => Token !== "" ? Token : GetBackendToken());
+    }
+    BackendTokenRequest = ExchangeBackendToken().finally(() => {
+        BackendTokenRequest = null;
+    });
+    return BackendTokenRequest;
+};
+// These are answered before the backend looks at Authentication, and are
+// needed on pages where the user isn't logged in.
+const UnauthenticatedActions = ["GetNotice", "GetAddOnScript"];
 let RequestAPI = (Action, Data, CallBack, ErrorCallBack) => {
     let completed = false;
     let Fail = (message) => {
@@ -1859,78 +1989,43 @@ let RequestAPI = (Action, Data, CallBack, ErrorCallBack) => {
         if (ErrorCallBack) ErrorCallBack(message);
         else console.error("[XMOJ-Script] Request " + Action + ": " + message);
     };
+    let Timeout = ErrorCallBack ? 15000 : 30000;
+    let Send = (Authentication, Retried) => {
+        PostAPI(Action, Authentication, Data, Timeout, !!ErrorCallBack, (result) => {
+            if (completed) return;
+            if (!result.Success && result.Data) {
+                // The backend forgot the token (expired, or logged out elsewhere).
+                if (result.Data.TokenInvalid && !Retried.Token) {
+                    StoreBackendToken("");
+                    GetBackendToken().then((Token) => Send({"Token": Token}, {...Retried, Token: true}), Fail);
+                    return;
+                }
+                // This request has to read xmoj as us, so it needs the cookie
+                // after all. Only these requests ever get it.
+                if (result.Data.SessionRequired && !Retried.Session) {
+                    let Session = GetPHPSESSIDOrReset();
+                    if (Session === "") {
+                        Fail("用户未登录");
+                        return;
+                    }
+                    Send({"Token": Authentication.Token, "SessionID": Session}, {...Retried, Session: true});
+                    return;
+                }
+            }
+            completed = true;
+            try {
+                if (CallBack) CallBack(result);
+            } catch (Error) {
+                console.error(Error);
+            }
+        }, Fail);
+    };
     try {
-        let Session = "";
-        let Temp = document.cookie.split(";");
-        for (let i = 0; i < Temp.length; i++) {
-            if (Temp[i].includes("PHPSESSID")) {
-                Session = Temp[i].split("=")[1];
-            }
+        if (UnauthenticatedActions.includes(Action)) {
+            Send({}, {Token: true, Session: true});
+            return;
         }
-        if (Session === "") { //The cookie is httpOnly
-            GM.cookie.set({
-                name: 'PHPSESSID',
-                value: (Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)).substring(0, 28),
-                path: "/"
-            })
-                .then(() => {
-                    console.log('Reset PHPSESSID successfully.');
-                    location.reload(); //Refresh the page to auth with the new PHPSESSID
-                })
-                .catch((error) => {
-                    console.error(error);
-                });
-        }
-        let PostData = {
-            "Authentication": {
-                "SessionID": Session, "Username": CurrentUsername,
-            }, "Data": Data, "Version": GM_info.script.version, "DebugMode": UtilityEnabled("DebugMode")
-        };
-        let DataString = JSON.stringify(PostData);
-        if (UtilityEnabled("DebugMode")) {
-            console.log("Sent for", Action + ":", DataString);
-        }
-        GM_xmlhttpRequest({
-            method: "POST",
-            url: (UtilityEnabled("SuperDebug") ? "http://127.0.0.1:8787/" : "https://api.xmoj-script.uk/") + Action,
-            headers: {
-                "Content-Type": "application/json",
-                "Cache-Control": "no-cache",
-                "XMOJ-UserID": CurrentUsername,
-                "XMOJ-Script-Version": GM_info.script.version,
-                "DebugMode": UtilityEnabled("DebugMode")
-            },
-            data: DataString,
-            // Preserve the stashed general request limit and faster badge retries.
-            timeout: ErrorCallBack ? 15000 : 30000,
-            onerror: () => Fail("网络错误，请重试"),
-            ontimeout: () => Fail("请求超时，请重试"),
-            onabort: () => Fail("请求已取消，请重试"),
-            onload: (Response) => {
-                if (completed) return;
-                if (UtilityEnabled("DebugMode")) {
-                    console.log("Received for", Action + ":", Response.responseText);
-                }
-                if (ErrorCallBack && (Response.status < 200 || Response.status >= 300)) {
-                    Fail("请求失败（HTTP " + Response.status + "），请重试");
-                    return;
-                }
-                let result;
-                try {
-                    result = JSON.parse(Response.responseText);
-                } catch (Error) {
-                    console.log(Response.responseText);
-                    Fail("服务器响应异常，请重试");
-                    return;
-                }
-                completed = true;
-                try {
-                    if (CallBack) CallBack(result);
-                } catch (Error) {
-                    console.error(Error);
-                }
-            }
-        });
+        GetBackendToken().then((Token) => Send({"Token": Token}, {}), Fail);
     } catch (e) {
         Fail("请求失败，请重试");
         console.error(e);
@@ -1938,6 +2033,17 @@ let RequestAPI = (Action, Data, CallBack, ErrorCallBack) => {
             SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
         }
     }
+};
+// Forgets the token here and on the backend. Never trades the PHPSESSID for
+// a token just to throw it away.
+let RevokeBackendToken = (CallBack) => {
+    let Token = GetStoredBackendToken();
+    StoreBackendToken("");
+    if (Token === "") {
+        CallBack();
+        return;
+    }
+    PostAPI("Logout", {"Token": Token}, {}, 2000, false, () => CallBack(), () => CallBack());
 };
 let SyncSettingsToCloud = (CallBack) => {
     if (!CurrentUsername) {
@@ -1999,17 +2105,7 @@ let NotificationSocketReconnectDelay = 1000;
 let NotificationSocketPingInterval = null;
 let NotificationSocketReconnectTimer = null;
 
-function GetPHPSESSID() {
-    let Session = "";
-    let Temp = document.cookie.split(";");
-    for (let i = 0; i < Temp.length; i++) {
-        if (Temp[i].includes("PHPSESSID")) {
-            Session = Temp[i].split("=")[1];
-            break;
-        }
-    }
-    return Session;
-}
+let NotificationSocketTokenFailures = 0;
 
 function ConnectNotificationSocket() {
     try {
@@ -2019,23 +2115,46 @@ function ConnectNotificationSocket() {
             NotificationSocketReconnectTimer = null;
         }
 
-        let Session = GetPHPSESSID();
-        if (Session === "") {
-            if (UtilityEnabled("DebugMode")) {
-                console.log("WebSocket: PHPSESSID not available, skipping connection");
-            }
+        let Token = GetStoredBackendToken();
+        if (Token === "" && BackendTokenRequest) {
+            // Someone is already getting us a token; connect with it instead of
+            // minting a second one.
+            BackendTokenRequest.then(() => ConnectNotificationSocket(), () => ConnectNotificationSocket());
             return;
         }
-
-        let wsUrl = (UtilityEnabled("SuperDebug") ? "ws://127.0.0.1:8787" : "wss://api.xmoj-script.uk") + "/ws/notifications?SessionID=" + Session;
-
-        if (UtilityEnabled("DebugMode")) {
-            console.log("WebSocket: Connecting to", wsUrl);
+        let wsUrl = (UtilityEnabled("SuperDebug") ? "ws://127.0.0.1:8787" : "wss://api.xmoj-script.uk") + "/ws/notifications?";
+        let ResolveMintedToken = null;
+        if (Token !== "") {
+            wsUrl += "Token=" + Token;
+        } else {
+            let Session = GetPHPSESSID();
+            if (Session === "") {
+                if (UtilityEnabled("DebugMode")) {
+                    console.log("WebSocket: PHPSESSID not available, skipping connection");
+                }
+                return;
+            }
+            // No token yet: the socket gets one for everyone. Requests made
+            // meanwhile wait for it rather than running their own Login.
+            wsUrl += "SessionID=" + Session + "&IssueToken=1";
+            BackendTokenRequest = new Promise((resolve) => {
+                ResolveMintedToken = resolve;
+                setTimeout(() => resolve(""), 15000);
+            }).finally(() => {
+                BackendTokenRequest = null;
+            });
         }
 
+        if (UtilityEnabled("DebugMode")) {
+            console.log("WebSocket: Connecting", Token !== "" ? "with token" : "with PHPSESSID");
+        }
+
+        let Opened = false;
         NotificationSocket = new WebSocket(wsUrl);
 
         NotificationSocket.onopen = () => {
+            Opened = true;
+            NotificationSocketTokenFailures = 0;
             if (UtilityEnabled("DebugMode")) {
                 console.log("WebSocket: Connected successfully");
             }
@@ -2059,7 +2178,12 @@ function ConnectNotificationSocket() {
         };
 
         NotificationSocket.onmessage = (event) => {
-            HandleNotificationMessage(event);
+            let notification = HandleNotificationMessage(event);
+            // An older backend sends no token; resolve anyway so nobody waits
+            // out the timeout before falling back to Login.
+            if (ResolveMintedToken && notification && notification.type === 'connected') {
+                ResolveMintedToken(notification.token || "");
+            }
         };
 
         NotificationSocket.onerror = (error) => {
@@ -2074,6 +2198,19 @@ function ConnectNotificationSocket() {
             }
             if (NotificationSocketPingInterval) {
                 clearInterval(NotificationSocketPingInterval);
+            }
+            // Closed before handing over a token; whoever is waiting falls
+            // back to Login. A no-op if the token already arrived.
+            if (ResolveMintedToken) {
+                ResolveMintedToken("");
+            }
+            // A browser can't tell us the handshake was a 401, so a token that
+            // keeps failing before the socket opens is assumed revoked.
+            if (Token !== "" && !Opened && ++NotificationSocketTokenFailures >= 3) {
+                NotificationSocketTokenFailures = 0;
+                if (GetStoredBackendToken() === Token) {
+                    StoreBackendToken("");
+                }
             }
             ReconnectNotificationSocket();
         };
@@ -2108,6 +2245,9 @@ function HandleNotificationMessage(event) {
             if (UtilityEnabled("DebugMode")) {
                 console.log("WebSocket: Server confirmed connection at timestamp", notification.timestamp);
             }
+            if (notification.token) {
+                StoreBackendToken(notification.token);
+            }
         } else if (notification.type === 'bbs_mention') {
             if (UtilityEnabled("BBSPopup")) {
                 CreateAndShowBBSMentionToast(notification.data);
@@ -2121,8 +2261,10 @@ function HandleNotificationMessage(event) {
                 console.log("WebSocket: Received pong");
             }
         }
+        return notification;
     } catch (e) {
         console.error("WebSocket: Failed to handle message", e);
+        return null;
     }
 }
 
@@ -2851,6 +2993,9 @@ function CreateUserMenuItems() {
         ["插件更新日志", () => { location.href = "https://www.xmoj.tech/modify_user_info.php?ByUserScript=1"; }],
         ["注销", () => {
             clearCredential();
+            RevokeBackendToken(() => {
+                location.href = "https://www.xmoj.tech/logout.php";
+            });
             GM.cookie.set({
                 name: 'PHPSESSID',
                 value: (Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)).substring(0, 28),
@@ -2862,7 +3007,6 @@ function CreateUserMenuItems() {
                 .catch((error) => {
                     console.error(error);
                 }); //We can no longer rely of the server to set the cookie for us
-            location.href = "https://www.xmoj.tech/logout.php";
         }]
     ];
     return Entries.map(([Text, Action]) => {
