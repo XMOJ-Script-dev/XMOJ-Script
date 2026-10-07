@@ -3990,15 +3990,15 @@
             "Notes": "脚本现在使用后端签发的会话令牌与服务器通信，不再在每次请求中发送 XMOJ 的 PHPSESSID。论坛、短消息和通知的加载更快，也不再受 XMOJ 每天自动登出的影响。<br>\n在后端更新前仍可正常使用。<br>\n新增「注销所有设备」：使所有设备上的插件登录凭证失效。它不会让其他设备退出 XMOJ 本身，因此<b>如果怀疑账号被他人使用，请先修改 XMOJ 密码</b>，再使用此功能。"
         },
         "4.0.5": {
-            "UpdateDate": 1791381897385,
+            "UpdateDate": 1791382102742,
             "Prerelease": true,
             "UpdateContents": [
                 {
                     "PR": 1065,
-                    "Description": "Invite beta testers into debug mode instead of scaring them off"
+                    "Description": "Invite beta testers into debug mode; keep everyone else out of SuperDebug"
                 }
             ],
-            "Notes": "调试模式现在欢迎所有人开启：开启后可以抢先体验测试版，出错时会用中文提示并告诉你如何反馈。"
+            "Notes": "调试模式现在欢迎所有人开启：开启后可以抢先体验测试版，出错时会用中文提示并告诉你如何反馈。<br>\n本地调试模式仅供开发者使用：开启时每个页面底部都会显示提示和一键关闭按钮，且不再参与云同步。"
         }
     }
 }
