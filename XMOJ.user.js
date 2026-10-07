@@ -1887,7 +1887,7 @@ let RequestAPI = (Action, Data, CallBack, ErrorCallBack) => {
             // The backend forgot the token (expired, or logged out elsewhere).
             if (result.Data.TokenInvalid && !Retried.Token) {
                 StoreBackendToken("");
-                GetBackendToken().then((Token) => Send({"Token": Token}, {...Retried, Token: true}), Fail);
+                GetBackendToken().then((Token) => Send(Token !== "" ? {"Token": Token} : LegacyAuthentication(), {...Retried, Token: true}), Fail);
                 return;
             }
             // This request has to read xmoj as us, so it needs the cookie
@@ -1921,7 +1921,7 @@ let RequestAPI = (Action, Data, CallBack, ErrorCallBack) => {
             Send({"Token": Token}, {});
             return;
         }
-        GetBackendToken().then((Token) => Send({"Token": Token}, {}), Fail);
+        GetBackendToken().then((Token) => Send(Token !== "" ? {"Token": Token} : LegacyAuthentication(), {}), Fail);
     } catch (e) {
         InternalError(e);
     }
@@ -1930,6 +1930,13 @@ let RequestAPI = (Action, Data, CallBack, ErrorCallBack) => {
 // needed on pages where the user isn't logged in.
 const UnauthenticatedActions = ["GetNotice", "GetAddOnScript"];
 let BackendTokenRequest = null;
+// Set when the backend predates tokens (no Login endpoint): this page load
+// then authenticates the old way, as that backend expects.
+let BackendLegacyAuth = false;
+// A failed exchange is remembered briefly, so a page full of requests
+// doesn't send the PHPSESSID once per request while xmoj is struggling.
+let BackendTokenFailure = null;
+const BackendTokenRetryDelay = 30000;
 let GetPHPSESSID = () => {
     let Session = "";
     let Temp = document.cookie.split(";");
@@ -2027,23 +2034,42 @@ let ExchangeBackendToken = () => {
             return;
         }
         PostAPI("Login", {"SessionID": Session, "Username": CurrentUsername}, {}, 15000, true, (Response) => {
-            if (Response.Success) {
+            if (Response && Response.Success) {
                 StoreBackendToken(Response.Data.Token);
                 resolve(Response.Data.Token);
+            } else if (Response && Response.Message === "访问的页面不存在") {
+                BackendLegacyAuth = true;
+                resolve("");
             } else {
-                reject(Response.Message);
+                reject(Response && Response.Message ? Response.Message : "服务器响应异常，请重试");
             }
         }, reject);
+    }).catch((Message) => {
+        BackendTokenFailure = {"Time": new Date().getTime(), "Message": Message};
+        throw Message;
     });
+};
+// How to authenticate when we have no token: only against a backend that
+// has never heard of tokens.
+let LegacyAuthentication = () => {
+    return {"SessionID": GetPHPSESSIDOrReset(), "Username": CurrentUsername};
 };
 // Resolves to our token, exchanging the PHPSESSID for one if we have none.
 // Everyone waiting at once shares one exchange, including one the
 // notification socket is doing; if that one comes back empty, we fall
 // back to Login.
+// Resolves to "" when the backend predates tokens; callers then use
+// LegacyAuthentication.
 let GetBackendToken = () => {
     let Token = GetStoredBackendToken();
     if (Token !== "") {
         return Promise.resolve(Token);
+    }
+    if (BackendLegacyAuth) {
+        return Promise.resolve("");
+    }
+    if (BackendTokenFailure && new Date().getTime() - BackendTokenFailure.Time < BackendTokenRetryDelay) {
+        return Promise.reject(BackendTokenFailure.Message);
     }
     if (BackendTokenRequest) {
         return BackendTokenRequest.then((Token) => Token !== "" ? Token : GetBackendToken());
