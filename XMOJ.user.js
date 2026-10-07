@@ -2185,7 +2185,8 @@ let SyncSettingsToCloud = (CallBack) => {
     let Settings = {};
     for (let i = 0; i < localStorage.length; i++) {
         let key = localStorage.key(i);
-        if (key && key.startsWith("UserScript-Setting-")) {
+        // SuperDebug only makes sense on the device running the local backend.
+        if (key && key.startsWith("UserScript-Setting-") && key !== "UserScript-Setting-SuperDebug") {
             Settings[key.replace("UserScript-Setting-", "")] = localStorage.getItem(key);
         }
     }
@@ -2212,6 +2213,7 @@ let PeriodicCloudSync = () => {
             if (Object.keys(cloudSettings).length > 0) {
                 let themeChanged = false;
                 for (let key in cloudSettings) {
+                    if (key === "SuperDebug") continue;
                     const rawValue = String(cloudSettings[key]);
                     const localKey = "UserScript-Setting-" + key;
                     if (localStorage.getItem(localKey) !== rawValue) {
@@ -4102,6 +4104,31 @@ class NavbarStyler {
     }
 }
 
+// SuperDebug points the script at a local backend, so almost nothing works for anyone
+// who is not running one. Say so on every page, with a way out, so users who switched
+// it on by accident don't file bug reports about the breakage.
+let ShowSuperDebugBanner = () => {
+    if (!UtilityEnabled("SuperDebug")) return;
+    let Banner = document.createElement("div");
+    Banner.className = "alert alert-danger d-flex align-items-center justify-content-between gap-2 m-0 rounded-0";
+    Banner.role = "alert";
+    // Attached to <html> so legacy pages rewriting body.innerHTML can't remove it.
+    Banner.style.cssText = "position: fixed; left: 0; right: 0; bottom: 0; z-index: 2000;";
+    let Text = document.createElement("span");
+    Text.textContent = "本地调试模式已开启：脚本正在连接开发者本机的服务器（127.0.0.1:8787），大部分功能将无法使用。这不是 bug，如果你不是开发者，请关闭它。";
+    let Close = document.createElement("button");
+    Close.type = "button";
+    Close.className = "btn btn-danger btn-sm flex-shrink-0";
+    Close.textContent = "关闭本地调试模式";
+    Close.addEventListener("click", () => {
+        localStorage.setItem("UserScript-Setting-SuperDebug", "false");
+        location.reload();
+    });
+    Banner.appendChild(Text);
+    Banner.appendChild(Close);
+    document.documentElement.appendChild(Banner);
+};
+
 // Wrapped in an async IIFE so that `await` is valid in Violentmonkey,
 // which executes userscripts as classic scripts (not ES modules).
 (async () => {
@@ -4126,6 +4153,7 @@ if (_foucStyle) {
     setTimeout(RevealPage, 4000);
 }
 if (await EnsureChinesePage()) return;
+ShowSuperDebugBanner();
 if (IsContestWebApp()) {
     await InitializeContestWebApp();
     return;
@@ -4677,6 +4705,10 @@ async function main() {
                                         CheckBox.checked = true;
                                     }
                                     CheckBox.addEventListener("change", () => {
+                                        if (Data[i].ID === "SuperDebug" && CheckBox.checked && prompt("本地调试模式会让脚本连接开发者本机的服务器，开启后大部分功能将无法使用。\n这是给开发者用的，不是测试版（想体验测试版请开启“调试模式”）。\n\n确定要开启，请输入“我是开发者”：") !== "我是开发者") {
+                                            CheckBox.checked = false;
+                                            return;
+                                        }
                                         localStorage.setItem("UserScript-Setting-" + Data[i].ID, CheckBox.checked);
                                         // Don't sync when disabling CloudSync itself (it's already off)
                                         if (Data[i].ID !== "CloudSync" || CheckBox.checked) {
@@ -4796,6 +4828,7 @@ async function main() {
                         SyncButtonGroup.className = "d-flex gap-2";
                         let ApplyCloudSettings = (cloudSettings) => {
                             for (let key in cloudSettings) {
+                                if (key === "SuperDebug") continue;
                                 const rawValue = cloudSettings[key];
                                 localStorage.setItem("UserScript-Setting-" + key, String(rawValue));
                                 if (key === "Theme") {
