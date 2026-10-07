@@ -1883,6 +1883,14 @@ let RequestAPI = (Action, Data, CallBack, ErrorCallBack) => {
         if (completed) return;
         // A body like `null` is the caller's to report, so only look inside
         // real results.
+        // A backend rolled back to before tokens rejects the field outright.
+        // Use the old auth for the rest of this page load; the token is kept
+        // for when the new backend is back.
+        if (result && !result.Success && result.Message === "参数Token未知" && Authentication.Token && !Retried.Legacy) {
+            BackendLegacyAuth = true;
+            Send(LegacyAuthentication(), {Token: true, Session: true, Legacy: true});
+            return;
+        }
         if (result && !result.Success && result.Data) {
             // The backend forgot the token (expired, or logged out elsewhere).
             if (result.Data.TokenInvalid && !Retried.Token) {
@@ -1916,7 +1924,7 @@ let RequestAPI = (Action, Data, CallBack, ErrorCallBack) => {
         }
         // Usually we already have a token; send right away rather than
         // after a promise tick.
-        let Token = GetStoredBackendToken();
+        let Token = BackendLegacyAuth ? "" : GetStoredBackendToken();
         if (Token !== "") {
             Send({"Token": Token}, {});
             return;
@@ -1937,6 +1945,20 @@ let BackendLegacyAuth = false;
 // doesn't send the PHPSESSID once per request while xmoj is struggling.
 let BackendTokenFailure = null;
 const BackendTokenRetryDelay = 30000;
+// Set once logout begins. From then on no new exchange starts, and a token
+// that still arrives (from a Login or the socket already under way) is
+// revoked instead of stored.
+let BackendLoggingOut = false;
+// Debug logs get copied into chats and issues; keep credentials out of them.
+let RedactCredentials = (Text) => String(Text).replace(/("(?:Token|SessionID|token)":")[^"]*"/g, '$1<redacted>"');
+let AcceptIssuedToken = (Token) => {
+    if (BackendLoggingOut) {
+        PostAPI("Logout", {"Token": Token}, {}, 2000, false, () => {}, () => {});
+        return false;
+    }
+    StoreBackendToken(Token);
+    return true;
+};
 let GetPHPSESSID = () => {
     let Session = "";
     let Temp = document.cookie.split(";");
@@ -1983,7 +2005,7 @@ let PostAPI = (Action, Authentication, Data, Timeout, StrictStatus, OnResult, On
         "Authentication": Authentication, "Data": Data, "Version": GM_info.script.version, "DebugMode": UtilityEnabled("DebugMode")
     });
     if (UtilityEnabled("DebugMode")) {
-        console.log("Sent for", Action + ":", DataString);
+        console.log("Sent for", Action + ":", RedactCredentials(DataString));
     }
     GM_xmlhttpRequest({
         method: "POST",
@@ -2002,7 +2024,7 @@ let PostAPI = (Action, Authentication, Data, Timeout, StrictStatus, OnResult, On
         onabort: () => OnFail("请求已取消，请重试"),
         onload: (Response) => {
             if (UtilityEnabled("DebugMode")) {
-                console.log("Received for", Action + ":", Response.responseText);
+                console.log("Received for", Action + ":", RedactCredentials(Response.responseText));
             }
             if (StrictStatus && (Response.status < 200 || Response.status >= 300)) {
                 OnFail("请求失败（HTTP " + Response.status + "），请重试");
@@ -2034,8 +2056,11 @@ let ExchangeBackendToken = () => {
             return;
         }
         PostAPI("Login", {"SessionID": Session, "Username": CurrentUsername}, {}, 15000, true, (Response) => {
-            if (Response && Response.Success) {
-                StoreBackendToken(Response.Data.Token);
+            if (Response && Response.Success && Response.Data && typeof Response.Data.Token === "string" && Response.Data.Token !== "") {
+                if (!AcceptIssuedToken(Response.Data.Token)) {
+                    reject("正在退出登录");
+                    return;
+                }
                 resolve(Response.Data.Token);
             } else if (Response && Response.Message === "访问的页面不存在") {
                 BackendLegacyAuth = true;
@@ -2061,12 +2086,15 @@ let LegacyAuthentication = () => {
 // Resolves to "" when the backend predates tokens; callers then use
 // LegacyAuthentication.
 let GetBackendToken = () => {
+    if (BackendLegacyAuth) {
+        return Promise.resolve("");
+    }
     let Token = GetStoredBackendToken();
     if (Token !== "") {
         return Promise.resolve(Token);
     }
-    if (BackendLegacyAuth) {
-        return Promise.resolve("");
+    if (BackendLoggingOut) {
+        return Promise.reject("正在退出登录");
     }
     if (BackendTokenFailure && new Date().getTime() - BackendTokenFailure.Time < BackendTokenRetryDelay) {
         return Promise.reject(BackendTokenFailure.Message);
@@ -2092,13 +2120,57 @@ let RevokeAllBackendTokens = (CallBack) => {
 // Forgets the token here and on the backend. Never trades the PHPSESSID for
 // a token just to throw it away.
 let RevokeBackendToken = (CallBack) => {
-    let Token = GetStoredBackendToken();
-    StoreBackendToken("");
-    if (Token === "") {
+    BackendLoggingOut = true;
+    let Done = false;
+    let Finish = () => {
+        if (Done) return;
+        Done = true;
         CallBack();
-        return;
-    }
-    PostAPI("Logout", {"Token": Token}, {}, 2000, false, () => CallBack(), () => CallBack());
+    };
+    // An exchange under way would store its token after we cleared storage.
+    // Give it a moment to land so it is revoked with the rest; anything later
+    // is caught by AcceptIssuedToken.
+    let Pending = BackendTokenRequest ? BackendTokenRequest.catch(() => {}) : Promise.resolve();
+    Promise.race([Pending, new Promise((resolve) => setTimeout(resolve, 3000))]).then(() => {
+        let Token = GetStoredBackendToken();
+        StoreBackendToken("");
+        if (Token === "") {
+            Finish();
+            return;
+        }
+        PostAPI("Logout", {"Token": Token}, {}, 2000, false, Finish, Finish);
+    });
+};
+// The site's own logout, the classic logout.php link or the /web app's
+// POST /api/logout, knows nothing of our token, which outlives xmoj
+// sessions on purpose. Revoke it on the way out.
+let InterceptNativeLogout = () => {
+    document.addEventListener("click", (Event) => {
+        let Link = Event.target && Event.target.closest ? Event.target.closest('a[href*="logout.php"]') : null;
+        if (!Link || GetStoredBackendToken() === "") return;
+        Event.preventDefault();
+        Event.stopImmediatePropagation();
+        RevokeBackendToken(() => {
+            location.href = Link.href;
+        });
+    }, true);
+    let PageWindow = typeof unsafeWindow !== "undefined" ? unsafeWindow : window;
+    let NativeFetch = PageWindow.fetch;
+    if (typeof NativeFetch !== "function") return;
+    PageWindow.fetch = function (Resource, Options) {
+        let Target = typeof Resource === "string" || Resource instanceof URL ? String(Resource) : (Resource && Resource.url) || "";
+        let Method = String((Options && Options.method) || (Resource && Resource.method) || "GET").toUpperCase();
+        let Arguments = arguments;
+        let IsLogout = false;
+        try {
+            IsLogout = Method === "POST" && new URL(Target, location.href).pathname === "/api/logout";
+        } catch (e) {
+        }
+        if (IsLogout && GetStoredBackendToken() !== "") {
+            return new Promise((resolve) => RevokeBackendToken(resolve)).then(() => NativeFetch.apply(this, Arguments));
+        }
+        return NativeFetch.apply(this, Arguments);
+    };
 };
 let SyncSettingsToCloud = (CallBack) => {
     if (!CurrentUsername) {
@@ -2170,7 +2242,7 @@ function ConnectNotificationSocket() {
             NotificationSocketReconnectTimer = null;
         }
 
-        let Token = GetStoredBackendToken();
+        let Token = BackendLegacyAuth ? "" : GetStoredBackendToken();
         if (Token === "" && BackendTokenRequest) {
             // Someone is already getting us a token; connect with it instead of
             // minting a second one.
@@ -2264,13 +2336,13 @@ function ConnectNotificationSocket() {
             if (ResolveMintedToken) {
                 ResolveMintedToken("");
             }
-            // A browser can't tell us the handshake was a 401, so a token that
-            // keeps failing before the socket opens is assumed revoked.
+            // A browser can't tell a refused token from being offline, so after
+            // a few failed handshakes ask the backend over HTTP. Only a
+            // TokenInvalid answer drops the token (RequestAPI does that and
+            // gets a new one); a network error leaves it alone.
             if (Token !== "" && !Opened && ++NotificationSocketTokenFailures >= 3) {
                 NotificationSocketTokenFailures = 0;
-                if (GetStoredBackendToken() === Token) {
-                    StoreBackendToken("");
-                }
+                RequestAPI("SendData", {});
             }
             ReconnectNotificationSocket();
         };
@@ -2298,7 +2370,7 @@ function HandleNotificationMessage(event) {
         const notification = JSON.parse(event.data);
 
         if (UtilityEnabled("DebugMode")) {
-            console.log("WebSocket: Received message", notification);
+            console.log("WebSocket: Received message", RedactCredentials(event.data));
         }
 
         if (notification.type === 'connected') {
@@ -2306,7 +2378,7 @@ function HandleNotificationMessage(event) {
                 console.log("WebSocket: Server confirmed connection at timestamp", notification.timestamp);
             }
             if (notification.token) {
-                StoreBackendToken(notification.token);
+                AcceptIssuedToken(notification.token);
             }
         } else if (notification.type === 'bbs_mention') {
             if (UtilityEnabled("BBSPopup")) {
@@ -4024,6 +4096,7 @@ class NavbarStyler {
 // which executes userscripts as classic scripts (not ES modules).
 (async () => {
 if (GetContestWebRedirect()) return;
+InterceptNativeLogout();
 if (GetAccountSettingsRedirect()) return;
 if (document.readyState === "loading") {
     await new Promise(r => document.addEventListener("DOMContentLoaded", r, { once: true }));
