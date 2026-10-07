@@ -2079,6 +2079,16 @@ let GetBackendToken = () => {
     });
     return BackendTokenRequest;
 };
+// Revokes every token this user holds, on every device. Devices still logged
+// in to xmoj quietly exchange their PHPSESSID for a new one.
+let RevokeAllBackendTokens = (CallBack) => {
+    RequestAPI("LogoutAll", {}, (Response) => {
+        if (Response && Response.Success) {
+            StoreBackendToken("");
+        }
+        CallBack(Response || {"Success": false, "Message": "服务器响应异常，请重试"});
+    }, (Message) => CallBack({"Success": false, "Message": Message}));
+};
 // Forgets the token here and on the backend. Never trades the PHPSESSID for
 // a token just to throw it away.
 let RevokeBackendToken = (CallBack) => {
@@ -2243,6 +2253,11 @@ function ConnectNotificationSocket() {
             }
             if (NotificationSocketPingInterval) {
                 clearInterval(NotificationSocketPingInterval);
+            }
+            // 4001: the user logged out everywhere and this token is gone.
+            // Reconnecting proves the xmoj session again for a new one.
+            if (event.code === 4001 && Token !== "" && GetStoredBackendToken() === Token) {
+                StoreBackendToken("");
             }
             // Closed before handing over a token; whoever is waiting falls
             // back to Login. A no-op if the token already arrived.
@@ -3027,6 +3042,24 @@ function InitializeAccountBadgeEditor() {
     });
 }
 
+function LogOut() {
+    clearCredential();
+    RevokeBackendToken(() => {
+        location.href = "https://www.xmoj.tech/logout.php";
+    });
+    GM.cookie.set({
+        name: 'PHPSESSID',
+        value: (Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)).substring(0, 28),
+        path: "/"
+    })
+        .then(() => {
+            console.log('Reset PHPSESSID successfully.');
+        })
+        .catch((error) => {
+            console.error(error);
+        }); //We can no longer rely of the server to set the cookie for us
+}
+
 // The ResetType user menu. Shared by the legacy navbar and the /web app so both
 // menus offer the same entries and animate the same way.
 function CreateUserMenuItems() {
@@ -3036,22 +3069,16 @@ function CreateUserMenuItems() {
         ["短消息", () => { location.href = "https://www.xmoj.tech/mail.php"; }],
         ["插件设置", () => { location.href = "https://www.xmoj.tech/index.php?ByUserScript=1"; }],
         ["插件更新日志", () => { location.href = "https://www.xmoj.tech/modify_user_info.php?ByUserScript=1"; }],
-        ["注销", () => {
-            clearCredential();
-            RevokeBackendToken(() => {
-                location.href = "https://www.xmoj.tech/logout.php";
+        ["注销", LogOut],
+        ["注销所有设备", () => {
+            if (!confirm("这会使所有设备上的插件登录失效：仍登录着 XMOJ 的设备会自动重新验证，其余设备将无法再访问插件服务。当前设备也会退出登录。确定吗？")) return;
+            RevokeAllBackendTokens((Response) => {
+                if (!Response.Success) {
+                    SmartAlert("注销所有设备失败：" + Response.Message);
+                    return;
+                }
+                LogOut();
             });
-            GM.cookie.set({
-                name: 'PHPSESSID',
-                value: (Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)).substring(0, 28),
-                path: "/"
-            })
-                .then(() => {
-                    console.log('Reset PHPSESSID successfully.');
-                })
-                .catch((error) => {
-                    console.error(error);
-                }); //We can no longer rely of the server to set the cookie for us
         }]
     ];
     return Entries.map(([Text, Action]) => {
