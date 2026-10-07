@@ -3977,6 +3977,17 @@
                 }
             ],
             "Notes": "Change dev domain to https://dev.xmoj-script.uk/"
+        },
+        "4.0.4": {
+            "UpdateDate": 1791362971707,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 1064,
+                    "Description": "Authenticate to the backend with our own session token"
+                }
+            ],
+            "Notes": "脚本现在使用后端签发的会话令牌与服务器通信，不再在每次请求中发送 XMOJ 的 PHPSESSID。论坛、短消息和通知的加载速度更快，也不会再因为 XMOJ 每天自动登出而受影响。"
         }
     }
 }
