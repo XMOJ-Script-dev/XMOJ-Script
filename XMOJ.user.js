@@ -3143,7 +3143,16 @@ function CreateUserMenuItems() {
         ["插件更新日志", () => { location.href = "https://www.xmoj.tech/modify_user_info.php?ByUserScript=1"; }],
         ["注销", LogOut],
         ["注销所有设备", () => {
-            if (!confirm("这会使所有设备上的插件登录失效：仍登录着 XMOJ 的设备会自动重新验证，其余设备将无法再访问插件服务。当前设备也会退出登录。确定吗？")) return;
+            // Spell out the limits: this ends plugin sessions, not XMOJ ones,
+            // so anyone who still has the password can simply log back in.
+            if (!confirm("如果你怀疑账号被他人使用，请先修改 XMOJ 密码（菜单中的「修改帐号」），再使用此功能。否则对方仍可用你的密码重新登录，并重新获得插件的访问权限。\n\n" +
+                "注销所有设备会：\n" +
+                "· 使你在所有设备上的插件登录凭证失效\n" +
+                "· 断开所有设备的插件实时通知\n" +
+                "· 退出当前设备的登录\n\n" +
+                "注销所有设备不会：\n" +
+                "· 让其他设备退出 XMOJ 本身。仍登录着 XMOJ 的设备会自动重新获得插件凭证，可以继续使用\n\n" +
+                "确定要注销所有设备吗？")) return;
             RevokeAllBackendTokens((Response) => {
                 if (!Response.Success) {
                     SmartAlert("注销所有设备失败：" + Response.Message);
