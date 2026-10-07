@@ -1856,6 +1856,77 @@ let clearCredential = async () => {
 // cookie against xmoj, which is slow. The token stands for the user, not
 // for the PHPSESSID, so it survives xmoj's daily logouts and our auto-login.
 // It lives in GM storage, which the page itself can't read.
+let RequestAPI = (Action, Data, CallBack, ErrorCallBack) => {
+    let completed = false;
+    let Fail = (message) => {
+        if (completed) return;
+        completed = true;
+        if (ErrorCallBack) ErrorCallBack(message);
+        else console.error("[XMOJ-Script] Request " + Action + ": " + message);
+    };
+    let Timeout = ErrorCallBack ? 15000 : 30000;
+    let InternalError = (e) => {
+        Fail("请求失败，请重试");
+        console.error(e);
+        if (UtilityEnabled("DebugMode")) {
+            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+        }
+    };
+    let Send = (Authentication, Retried) => {
+        try {
+            PostAPI(Action, Authentication, Data, Timeout, !!ErrorCallBack, (result) => OnResult(result, Authentication, Retried), Fail);
+        } catch (e) {
+            InternalError(e);
+        }
+    };
+    let OnResult = (result, Authentication, Retried) => {
+        if (completed) return;
+        if (!result.Success && result.Data) {
+            // The backend forgot the token (expired, or logged out elsewhere).
+            if (result.Data.TokenInvalid && !Retried.Token) {
+                StoreBackendToken("");
+                GetBackendToken().then((Token) => Send({"Token": Token}, {...Retried, Token: true}), Fail);
+                return;
+            }
+            // This request has to read xmoj as us, so it needs the cookie
+            // after all. Only these requests ever get it.
+            if (result.Data.SessionRequired && !Retried.Session) {
+                let Session = GetPHPSESSIDOrReset();
+                if (Session === "") {
+                    Fail("用户未登录");
+                    return;
+                }
+                Send({"Token": Authentication.Token, "SessionID": Session}, {...Retried, Session: true});
+                return;
+            }
+        }
+        completed = true;
+        try {
+            if (CallBack) CallBack(result);
+        } catch (Error) {
+            console.error(Error);
+        }
+    };
+    try {
+        if (UnauthenticatedActions.includes(Action)) {
+            Send({}, {Token: true, Session: true});
+            return;
+        }
+        // Usually we already have a token; send right away rather than
+        // after a promise tick.
+        let Token = GetStoredBackendToken();
+        if (Token !== "") {
+            Send({"Token": Token}, {});
+            return;
+        }
+        GetBackendToken().then((Token) => Send({"Token": Token}, {}), Fail);
+    } catch (e) {
+        InternalError(e);
+    }
+};
+// These are answered before the backend looks at Authentication, and are
+// needed on pages where the user isn't logged in.
+const UnauthenticatedActions = ["GetNotice", "GetAddOnScript"];
 let BackendTokenRequest = null;
 let GetPHPSESSID = () => {
     let Session = "";
@@ -1977,62 +2048,6 @@ let GetBackendToken = () => {
         BackendTokenRequest = null;
     });
     return BackendTokenRequest;
-};
-// These are answered before the backend looks at Authentication, and are
-// needed on pages where the user isn't logged in.
-const UnauthenticatedActions = ["GetNotice", "GetAddOnScript"];
-let RequestAPI = (Action, Data, CallBack, ErrorCallBack) => {
-    let completed = false;
-    let Fail = (message) => {
-        if (completed) return;
-        completed = true;
-        if (ErrorCallBack) ErrorCallBack(message);
-        else console.error("[XMOJ-Script] Request " + Action + ": " + message);
-    };
-    let Timeout = ErrorCallBack ? 15000 : 30000;
-    let Send = (Authentication, Retried) => {
-        PostAPI(Action, Authentication, Data, Timeout, !!ErrorCallBack, (result) => {
-            if (completed) return;
-            if (!result.Success && result.Data) {
-                // The backend forgot the token (expired, or logged out elsewhere).
-                if (result.Data.TokenInvalid && !Retried.Token) {
-                    StoreBackendToken("");
-                    GetBackendToken().then((Token) => Send({"Token": Token}, {...Retried, Token: true}), Fail);
-                    return;
-                }
-                // This request has to read xmoj as us, so it needs the cookie
-                // after all. Only these requests ever get it.
-                if (result.Data.SessionRequired && !Retried.Session) {
-                    let Session = GetPHPSESSIDOrReset();
-                    if (Session === "") {
-                        Fail("用户未登录");
-                        return;
-                    }
-                    Send({"Token": Authentication.Token, "SessionID": Session}, {...Retried, Session: true});
-                    return;
-                }
-            }
-            completed = true;
-            try {
-                if (CallBack) CallBack(result);
-            } catch (Error) {
-                console.error(Error);
-            }
-        }, Fail);
-    };
-    try {
-        if (UnauthenticatedActions.includes(Action)) {
-            Send({}, {Token: true, Session: true});
-            return;
-        }
-        GetBackendToken().then((Token) => Send({"Token": Token}, {}), Fail);
-    } catch (e) {
-        Fail("请求失败，请重试");
-        console.error(e);
-        if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
-        }
-    }
 };
 // Forgets the token here and on the backend. Never trades the PHPSESSID for
 // a token just to throw it away.
