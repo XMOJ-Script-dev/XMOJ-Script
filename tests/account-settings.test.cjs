@@ -48,6 +48,8 @@ test('account-page migration browser regressions', {timeout: 60000}, async t => 
             window.GetUserInfo = async () => ({EmailHash: 'hash'});
             window.apiCalls = [];
             document.cookie = 'PHPSESSID=fixture; path=/';
+            // A logged-in user already holds a backend token.
+            window.GM_getValue = () => ({Token: 'f'.repeat(64), Username: window.CurrentUsername});
             window.GM_info = {script: {version: 'test'}};
             window.badgeFailureMode = options.badgeFailureMode;
             window.badgeLoadFailureMode = options.badgeLoadFailureMode;
@@ -371,6 +373,7 @@ test('ordinary API requests retain the stashed timeout and log failures once', (
         const context = vm.createContext({
             document: {cookie: 'PHPSESSID=fixture'}, CurrentUsername: 'Viewer',
             GM_info: {script: {version: 'test'}}, UtilityEnabled: () => false,
+            GM_getValue: () => ({Token: 'f'.repeat(64), Username: 'Viewer'}),
             GM_xmlhttpRequest: options => { request = options; },
             console: {error: message => errors.push(message)},
             saveResponse: response => responses.push(response)

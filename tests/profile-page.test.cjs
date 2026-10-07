@@ -27,6 +27,8 @@ test('profile page browser regressions', {timeout: 60000}, async t => {
             window.CurrentUsername = 'Viewer';
             window.GM_info = {script: {version: 'test'}};
             document.cookie = 'PHPSESSID=fixture; path=/';
+            // A logged-in user already holds a backend token.
+            window.GM_getValue = () => ({Token: 'f'.repeat(64), Username: 'Viewer'});
             window.UtilityEnabled = name => ['Rating', 'ReplaceLinks', 'ReplaceXM'].includes(name) || (name === 'RemoveUseless' && options.removeActivity !== false);
             window.CryptoJS = {MD5: email => { window.avatarEmail = email; return {toString: () => '123456789012345678901234567890abcf'}; }};
             window.GetUserInfo = window.GetUserBadge = () => { throw new Error('Profile must not wait for these APIs'); };
