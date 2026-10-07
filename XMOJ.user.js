@@ -881,7 +881,7 @@ let PurifyHTML = (Input) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
         }
     }
 }
@@ -921,7 +921,7 @@ let GetRelativeTime = (Input) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
         }
     }
 };
@@ -1005,7 +1005,7 @@ let GetUserInfo = async (Username) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
         }
     }
 };
@@ -1070,7 +1070,7 @@ let GetUserBadge = async (Username) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
         }
     }
 };
@@ -1096,7 +1096,7 @@ async function loadMonaco() {
                 try { require.config({ paths: { vs: MonacoCDN } }); } catch (e) {
                     console.error(e);
                     if (UtilityEnabled("DebugMode")) {
-                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                        SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                     }
                 }
                 resolve();
@@ -1108,7 +1108,7 @@ async function loadMonaco() {
         try { require.config({ paths: { vs: MonacoCDN } }); } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
             }
         }
     }
@@ -1122,7 +1122,7 @@ async function loadMonaco() {
             check = setInterval(() => { if (typeof monaco !== 'undefined') done(); }, 50);
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
             }
         }
     });
@@ -1149,7 +1149,7 @@ async function createMonacoEditor(containerOrId, options = {}) {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
             }
             return null;
         }
@@ -1168,13 +1168,13 @@ async function createMonacoEditor(containerOrId, options = {}) {
                 } catch (e) {
                     console.error(e);
                     if (UtilityEnabled("DebugMode")) {
-                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                        SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                     }
                 }
                 try { container.style.height = available + 'px'; } catch (e) {
                     console.error(e);
                     if (UtilityEnabled("DebugMode")) {
-                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                        SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                     }
                 }
                 if (innerHost) {
@@ -1188,21 +1188,21 @@ async function createMonacoEditor(containerOrId, options = {}) {
                     } catch (e) {
                         console.error(e);
                         if (UtilityEnabled("DebugMode")) {
-                            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                            SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                         }
                     }
                 }
                 if (callLayout) try { if (ed && ed.layout) ed.layout(); } catch (e) {
                     console.error(e);
                     if (UtilityEnabled("DebugMode")) {
-                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                        SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                     }
                 }
             }
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
             }
         }
     };
@@ -1237,7 +1237,7 @@ async function createMonacoEditor(containerOrId, options = {}) {
     try { applyAutoFit(false, editor); } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
         }
     }
     // after creation, ensure Monaco layout matches the computed size and listen for viewport changes
@@ -1251,14 +1251,14 @@ async function createMonacoEditor(containerOrId, options = {}) {
             try { editor.onDidDispose(() => { window.removeEventListener('resize', _autoFitHandler); window.removeEventListener('orientationchange', _autoFitHandler); window.removeEventListener('scroll', _autoFitHandler); }); } catch (e) {
                 console.error(e);
                 if (UtilityEnabled("DebugMode")) {
-                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                    SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                 }
             }
         }
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
         }
     }
     try {
@@ -1269,14 +1269,14 @@ async function createMonacoEditor(containerOrId, options = {}) {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
         }
     }
     let saveTimer = null;
     const doSave = () => { try { localStorage.setItem(key, editor.getValue()); } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
         }
     } };
     editor.onDidChangeModelContent(() => { if (saveTimer) clearTimeout(saveTimer); saveTimer = setTimeout(doSave, options.saveDebounce || 500); });
@@ -1286,38 +1286,38 @@ async function createMonacoEditor(containerOrId, options = {}) {
         setSize: (w, h) => { const el = innerHost || container; if (w) el.style.width = w; if (h) { try { if (h !== 'auto') autoFitEnabled = false; } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
             }
         } if (h === 'auto') { try { const lines = editor.getModel().getLineCount(); el.style.height = Math.max(80, Math.min(1200, lines * 18)) + 'px'; } catch (e) { el.style.height = '80px'; } } else el.style.height = h; } try { editor.layout(); } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
             }
         } },
         getWrapperElement: () => innerHost || container,
         focus: () => { try { editor.focus(); } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
             }
         } },
         _monacoEditor: editor,
         showFind: () => { try { editor.trigger('', 'editor.action.startFindReplaceAction'); } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
             }
         } },
         goToLine: (line) => { try { editor.setPosition({ lineNumber: parseInt(line) || 1, column: 1 }); editor.revealPositionInCenter({ lineNumber: parseInt(line) || 1, column: 1 }); editor.focus(); } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
             }
         } },
         selectRange: (sLine, sCol, eLine, eCol) => { try { editor.setSelection({ startLineNumber: sLine, startColumn: sCol, endLineNumber: eLine, endColumn: eCol }); editor.revealRangeInCenter({ startLineNumber: sLine, startColumn: sCol, endLineNumber: eLine, endColumn: eCol }); } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
             }
         } },
         saveToLocal: doSave,
@@ -1333,7 +1333,7 @@ async function createMonacoEditor(containerOrId, options = {}) {
             } catch (e) {
                 console.error(e);
                 if (UtilityEnabled("DebugMode")) {
-                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                    SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                 }
             }
             try {
@@ -1344,20 +1344,20 @@ async function createMonacoEditor(containerOrId, options = {}) {
                     } catch (e) {
                         console.error(e);
                         if (UtilityEnabled("DebugMode")) {
-                            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                            SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                         }
                     }
                     try { editor.dispose(); } catch (e) {
                         console.error(e);
                         if (UtilityEnabled("DebugMode")) {
-                            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                            SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                         }
                     }
                 }
             } catch (e) {
                 console.error(e);
                 if (UtilityEnabled("DebugMode")) {
-                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                    SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                 }
             }
         }
@@ -1381,14 +1381,14 @@ async function createMonacoEditor(containerOrId, options = {}) {
                     try { div.setAttribute(a.name, a.value); } catch (e) {
                         console.error(e);
                         if (UtilityEnabled("DebugMode")) {
-                            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                            SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                         }
                     }
                 }
             } catch (e) {
                 console.error(e);
                 if (UtilityEnabled("DebugMode")) {
-                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                    SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                 }
             }
             div.classList.add('codemirror-shim-host');
@@ -1396,7 +1396,7 @@ async function createMonacoEditor(containerOrId, options = {}) {
             try { if (container.style && container.style.cssText) div.style.cssText = container.style.cssText; } catch (e) {
                 console.error(e);
                 if (UtilityEnabled("DebugMode")) {
-                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                    SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                 }
             }
             container.parentNode.replaceChild(div, container);
@@ -1420,7 +1420,7 @@ async function createMonacoEditor(containerOrId, options = {}) {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
             }
         }
         let _lastSetSizeArgs = null;
@@ -1429,20 +1429,20 @@ async function createMonacoEditor(containerOrId, options = {}) {
             setValue: (v) => { container._cmValue = v; if (container._cmEditor) try { container._cmEditor.setValue(v); } catch (e) {
                 console.error(e);
                 if (UtilityEnabled("DebugMode")) {
-                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                    SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                 }
             } },
             setSize: (w, h) => { _lastSetSizeArgs = [w, h]; if (w) container.style.width = w; if (h) { if (h === 'auto') container.style.height = 'auto'; else container.style.height = h; } if (container._cmEditor) try { container._cmEditor.layout(); } catch (e) {
                 console.error(e);
                 if (UtilityEnabled("DebugMode")) {
-                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                    SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                 }
             } },
             getWrapperElement: () => container,
             focus: () => { if (container._cmEditor) try { container._cmEditor.focus(); } catch (e) {
                 console.error(e);
                 if (UtilityEnabled("DebugMode")) {
-                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                    SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                 }
             } },
             _monacoEditor: null
@@ -1463,7 +1463,7 @@ async function createMonacoEditor(containerOrId, options = {}) {
                 try { const _l = container.querySelector('.monaco-loading'); if (_l) _l.remove(); } catch (e) {
                     console.error(e);
                     if (UtilityEnabled("DebugMode")) {
-                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                        SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                     }
                 }
                 if (_lastSetSizeArgs) monacoAdapter.setSize(_lastSetSizeArgs[0], _lastSetSizeArgs[1]);
@@ -1491,7 +1491,7 @@ async function createMonacoEditor(containerOrId, options = {}) {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
             }
         }
         const wrapper = { ignoreWhitespace: !!options.ignoreWhitespace, _diffEditor: null, _originalModel: null, _modifiedModel: null };
@@ -1509,7 +1509,7 @@ async function createMonacoEditor(containerOrId, options = {}) {
                         try { el.style.display = 'flex'; el.style.alignItems = 'center'; el.style.justifyContent = 'center'; } catch (e) {
                             console.error(e);
                             if (UtilityEnabled("DebugMode")) {
-                                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                             }
                         }
                         const header = document.querySelector('nav') || document.querySelector('#navbar') || document.querySelector('.navbar') || document.querySelector('header');
@@ -1538,7 +1538,7 @@ async function createMonacoEditor(containerOrId, options = {}) {
                 try { const _l = el.querySelector('.monaco-loading'); if (_l) _l.remove(); } catch (e) {
                     console.error(e);
                     if (UtilityEnabled("DebugMode")) {
-                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                        SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                     }
                 }
             } catch (e) { console.error(e); try { const _l = el.querySelector('.monaco-loading'); if (_l) _l.remove(); } catch (_) {} }
@@ -1560,19 +1560,19 @@ function _xmoj_disposeErrorMessageEditors() {
                     if (m && m.dispose) try { m.dispose(); } catch (e) {
                         console.error(e);
                         if (UtilityEnabled("DebugMode")) {
-                            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                            SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                         }
                     }
                 } catch (e) {
                     console.error(e);
                     if (UtilityEnabled("DebugMode")) {
-                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                        SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                     }
                 }
                 try { if (ed && ed.dispose) ed.dispose(); } catch (e) {
                     console.error(e);
                     if (UtilityEnabled("DebugMode")) {
-                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                        SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                     }
                 }
             });
@@ -1581,7 +1581,7 @@ function _xmoj_disposeErrorMessageEditors() {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
         }
     }
     try {
@@ -1590,26 +1590,26 @@ function _xmoj_disposeErrorMessageEditors() {
             try { if (h._monacoEditor && h._monacoEditor.dispose) h._monacoEditor.dispose(); } catch (e) {
                 console.error(e);
                 if (UtilityEnabled("DebugMode")) {
-                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                    SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                 }
             }
             try { delete h._monacoEditor; } catch (e) {
                 console.error(e);
                 if (UtilityEnabled("DebugMode")) {
-                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                    SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                 }
             }
             try { h.removeAttribute('data-xmoj-error-editor'); } catch (e) {
                 console.error(e);
                 if (UtilityEnabled("DebugMode")) {
-                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                    SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                 }
             }
         });
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
         }
     }
 }
@@ -1682,7 +1682,7 @@ let GetUsernameHTML = async (Element, Username, Simple = false, Href = "https://
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
         }
     }
 };
@@ -1700,7 +1700,7 @@ let SecondsToString = (InputSeconds) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
         }
     }
 }
@@ -1716,7 +1716,7 @@ let StringToSeconds = (InputString) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
         }
     }
 }
@@ -1743,7 +1743,7 @@ let SizeToStringSize = (Memory) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
         }
     }
 };
@@ -1765,7 +1765,7 @@ let CodeSizeToStringSize = (Memory) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
         }
     }
 };
@@ -1788,7 +1788,7 @@ let TimeToStringTime = (Time) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
         }
     }
 };
@@ -1805,7 +1805,7 @@ let TidyTable = (Table) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
         }
     }
 };
@@ -1818,7 +1818,7 @@ let UtilityEnabled = (Name) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
         }
     }
 };
@@ -1869,7 +1869,7 @@ let RequestAPI = (Action, Data, CallBack, ErrorCallBack) => {
         Fail("请求失败，请重试");
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
         }
     };
     let Send = (Authentication, Retried) => {
@@ -3909,7 +3909,7 @@ class NavbarStyler {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
             }
         }
     }
@@ -3958,7 +3958,7 @@ class NavbarStyler {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
             }
         }
     }
@@ -3995,7 +3995,7 @@ class NavbarStyler {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
             }
         }
     }
@@ -4034,7 +4034,7 @@ class NavbarStyler {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
             }
         }
     }
@@ -4052,7 +4052,7 @@ class NavbarStyler {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
             }
         }
     }
@@ -4096,7 +4096,7 @@ class NavbarStyler {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
             }
         }
     }
@@ -4767,7 +4767,7 @@ async function main() {
                         }, {
                             "ID": "CloudSync", "Type": "A", "Name": "将设置同步至云端（跨设备同步）"
                         }, {
-                            "ID": "DebugMode", "Type": "A", "Name": "调试模式（仅供开发者使用）"
+                            "ID": "DebugMode", "Type": "A", "Name": "调试模式（抢先体验测试版，并在出错时弹窗提示，欢迎开启帮我们找 bug）"
                         }, {
                             "ID": "RedactLogs", "Type": "A", "Name": "调试日志中隐藏登录凭证（分享日志前请保持开启）"
                         }, {
@@ -5599,7 +5599,7 @@ async function main() {
                         } catch (e) {
                             console.error(e);
                             if (UtilityEnabled("DebugMode")) {
-                                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                             }
                         }
                         if (!editorOptions.fitToViewport) CodeMirrorElement.setSize("100%", "550px");
@@ -5891,7 +5891,7 @@ async function main() {
                         try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
                             console.error(e);
                             if (UtilityEnabled("DebugMode")) {
-                                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                             }
                         }
                         ErrorMessage.innerText = "当前评测队列繁忙，请先填写上方的验证码。";
@@ -5910,7 +5910,7 @@ async function main() {
                         try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
                             console.error(e);
                             if (UtilityEnabled("DebugMode")) {
-                                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                             }
                         }
                         ErrorMessage.innerText = Message;
@@ -6022,7 +6022,7 @@ async function main() {
                                     try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
                                         console.error(e);
                                         if (UtilityEnabled("DebugMode")) {
-                                            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                            SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                                         }
                                     }
                                     ErrorMessage.innerText = "验证码错误！请填写上方的验证码后重新提交。";
@@ -6072,7 +6072,7 @@ async function main() {
                                 try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
                                     console.error(e);
                                     if (UtilityEnabled("DebugMode")) {
-                                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                        SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                                     }
                                 }
                                 ErrorMessage.innerText = "此题输入输出文件名为" + IOFilename + "，请检查是否填错";
@@ -6118,7 +6118,7 @@ async function main() {
                                         try { codeHost._monacoEditor = _tmpErrEditor; codeHost.setAttribute('data-xmoj-error-editor', '1'); } catch (e) {
                                             console.error(e);
                                             if (UtilityEnabled("DebugMode")) {
-                                                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                                SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                                             }
                                         }
                                     } catch (e) {
@@ -6141,7 +6141,7 @@ async function main() {
                                 try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
                                     console.error(e);
                                     if (UtilityEnabled("DebugMode")) {
-                                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                        SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                                     }
                                 }
                                 ErrorMessage.innerText = "请不要注释freopen语句";
@@ -6157,7 +6157,7 @@ async function main() {
                             try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
                                 console.error(e);
                                 if (UtilityEnabled("DebugMode")) {
-                                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                    SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                                 }
                             }
                             ErrorMessage.innerText = "源代码为空";
@@ -6185,7 +6185,7 @@ async function main() {
                                 try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
                                     console.error(e);
                                     if (UtilityEnabled("DebugMode")) {
-                                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                        SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                                     }
                                 }
                                 ErrorMessage.innerText = "编译错误：\n" + Response.stderr.trim();
@@ -8501,7 +8501,7 @@ cerr<<b93(gz(rd()))<<endl;abort();}
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
         }
     }
 }
@@ -9342,7 +9342,7 @@ function InitializeImageEnlarger() {
             } catch (e) {
                 console.error(e);
                 if (UtilityEnabled("DebugMode")) {
-                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                    SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
                 }
             }
         }
