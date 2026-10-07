@@ -1950,7 +1950,8 @@ const BackendTokenRetryDelay = 30000;
 // revoked instead of stored.
 let BackendLoggingOut = false;
 // Debug logs get copied into chats and issues; keep credentials out of them.
-let RedactCredentials = (Text) => String(Text).replace(/("(?:Token|SessionID|token)":")[^"]*"/g, '$1<redacted>"');
+// On by default; developers who need the raw values can turn RedactLogs off.
+let RedactCredentials = (Text) => !UtilityEnabled("RedactLogs") ? String(Text) : String(Text).replace(/("(?:Token|SessionID|token)":")[^"]*"/g, '$1<redacted>"');
 let AcceptIssuedToken = (Token) => {
     if (BackendLoggingOut) {
         PostAPI("Logout", {"Token": Token}, {}, 2000, false, () => {}, () => {});
@@ -4767,6 +4768,8 @@ async function main() {
                             "ID": "CloudSync", "Type": "A", "Name": "将设置同步至云端（跨设备同步）"
                         }, {
                             "ID": "DebugMode", "Type": "A", "Name": "调试模式（仅供开发者使用）"
+                        }, {
+                            "ID": "RedactLogs", "Type": "A", "Name": "调试日志中隐藏登录凭证（分享日志前请保持开启）"
                         }, {
                             "ID": "SuperDebug", "Type": "A", "Name": "本地调试模式（仅供开发者使用) (未经授权的擅自开启将导致大部分功能不可用！)"
                         }]));
