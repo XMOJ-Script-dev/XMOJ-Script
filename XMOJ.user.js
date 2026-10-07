@@ -1895,7 +1895,7 @@ let RequestAPI = (Action, Data, CallBack, ErrorCallBack) => {
             if (result.Data.SessionRequired && !Retried.Session) {
                 let Session = GetPHPSESSIDOrReset();
                 if (Session === "") {
-                    Fail("用户未登录");
+                    Fail("无法读取登录状态，请刷新页面");
                     return;
                 }
                 Send({"Token": Authentication.Token, "SessionID": Session}, {...Retried, Session: true});
@@ -2021,7 +2021,9 @@ let ExchangeBackendToken = () => {
         }
         let Session = GetPHPSESSIDOrReset();
         if (Session === "") {
-            reject("用户未登录");
+            // The cookie is httpOnly; GetPHPSESSIDOrReset is already fixing
+            // that with a reload.
+            reject("无法读取登录状态，请刷新页面");
             return;
         }
         PostAPI("Login", {"SessionID": Session, "Username": CurrentUsername}, {}, 15000, true, (Response) => {
