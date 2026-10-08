@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      4.0.4
+// @version      4.0.5
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -881,7 +881,7 @@ let PurifyHTML = (Input) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            DebugAlert(e);
         }
     }
 }
@@ -891,6 +891,10 @@ let SmartAlert = (Message) => {
     }
     localStorage.setItem("UserScript-Alert", Message);
 }
+// Shown to DebugMode users (mostly beta testers, not developers) when something throws.
+let DebugAlert = (e) => {
+    SmartAlert("XMOJ-Script 的某个功能出了点小问题，感谢你帮忙测试！\n\n" + e + "\n\n" + "方便的话，请到 GitHub 提交 issue，附上控制台日志和复现步骤。\n（如果嫌提示烦，可以在设置中关闭调试模式）");
+};
 /**
  * Calculates the relative time based on the input date.
  * @param {string|Date} Input - The input date.
@@ -921,7 +925,7 @@ let GetRelativeTime = (Input) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            DebugAlert(e);
         }
     }
 };
@@ -1005,7 +1009,7 @@ let GetUserInfo = async (Username) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            DebugAlert(e);
         }
     }
 };
@@ -1070,7 +1074,7 @@ let GetUserBadge = async (Username) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            DebugAlert(e);
         }
     }
 };
@@ -1096,7 +1100,7 @@ async function loadMonaco() {
                 try { require.config({ paths: { vs: MonacoCDN } }); } catch (e) {
                     console.error(e);
                     if (UtilityEnabled("DebugMode")) {
-                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                        DebugAlert(e);
                     }
                 }
                 resolve();
@@ -1108,7 +1112,7 @@ async function loadMonaco() {
         try { require.config({ paths: { vs: MonacoCDN } }); } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                DebugAlert(e);
             }
         }
     }
@@ -1122,7 +1126,7 @@ async function loadMonaco() {
             check = setInterval(() => { if (typeof monaco !== 'undefined') done(); }, 50);
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                DebugAlert(e);
             }
         }
     });
@@ -1149,7 +1153,7 @@ async function createMonacoEditor(containerOrId, options = {}) {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                DebugAlert(e);
             }
             return null;
         }
@@ -1168,13 +1172,13 @@ async function createMonacoEditor(containerOrId, options = {}) {
                 } catch (e) {
                     console.error(e);
                     if (UtilityEnabled("DebugMode")) {
-                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                        DebugAlert(e);
                     }
                 }
                 try { container.style.height = available + 'px'; } catch (e) {
                     console.error(e);
                     if (UtilityEnabled("DebugMode")) {
-                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                        DebugAlert(e);
                     }
                 }
                 if (innerHost) {
@@ -1188,21 +1192,21 @@ async function createMonacoEditor(containerOrId, options = {}) {
                     } catch (e) {
                         console.error(e);
                         if (UtilityEnabled("DebugMode")) {
-                            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                            DebugAlert(e);
                         }
                     }
                 }
                 if (callLayout) try { if (ed && ed.layout) ed.layout(); } catch (e) {
                     console.error(e);
                     if (UtilityEnabled("DebugMode")) {
-                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                        DebugAlert(e);
                     }
                 }
             }
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                DebugAlert(e);
             }
         }
     };
@@ -1237,7 +1241,7 @@ async function createMonacoEditor(containerOrId, options = {}) {
     try { applyAutoFit(false, editor); } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            DebugAlert(e);
         }
     }
     // after creation, ensure Monaco layout matches the computed size and listen for viewport changes
@@ -1251,14 +1255,14 @@ async function createMonacoEditor(containerOrId, options = {}) {
             try { editor.onDidDispose(() => { window.removeEventListener('resize', _autoFitHandler); window.removeEventListener('orientationchange', _autoFitHandler); window.removeEventListener('scroll', _autoFitHandler); }); } catch (e) {
                 console.error(e);
                 if (UtilityEnabled("DebugMode")) {
-                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                    DebugAlert(e);
                 }
             }
         }
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            DebugAlert(e);
         }
     }
     try {
@@ -1269,14 +1273,14 @@ async function createMonacoEditor(containerOrId, options = {}) {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            DebugAlert(e);
         }
     }
     let saveTimer = null;
     const doSave = () => { try { localStorage.setItem(key, editor.getValue()); } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            DebugAlert(e);
         }
     } };
     editor.onDidChangeModelContent(() => { if (saveTimer) clearTimeout(saveTimer); saveTimer = setTimeout(doSave, options.saveDebounce || 500); });
@@ -1286,38 +1290,38 @@ async function createMonacoEditor(containerOrId, options = {}) {
         setSize: (w, h) => { const el = innerHost || container; if (w) el.style.width = w; if (h) { try { if (h !== 'auto') autoFitEnabled = false; } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                DebugAlert(e);
             }
         } if (h === 'auto') { try { const lines = editor.getModel().getLineCount(); el.style.height = Math.max(80, Math.min(1200, lines * 18)) + 'px'; } catch (e) { el.style.height = '80px'; } } else el.style.height = h; } try { editor.layout(); } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                DebugAlert(e);
             }
         } },
         getWrapperElement: () => innerHost || container,
         focus: () => { try { editor.focus(); } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                DebugAlert(e);
             }
         } },
         _monacoEditor: editor,
         showFind: () => { try { editor.trigger('', 'editor.action.startFindReplaceAction'); } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                DebugAlert(e);
             }
         } },
         goToLine: (line) => { try { editor.setPosition({ lineNumber: parseInt(line) || 1, column: 1 }); editor.revealPositionInCenter({ lineNumber: parseInt(line) || 1, column: 1 }); editor.focus(); } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                DebugAlert(e);
             }
         } },
         selectRange: (sLine, sCol, eLine, eCol) => { try { editor.setSelection({ startLineNumber: sLine, startColumn: sCol, endLineNumber: eLine, endColumn: eCol }); editor.revealRangeInCenter({ startLineNumber: sLine, startColumn: sCol, endLineNumber: eLine, endColumn: eCol }); } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                DebugAlert(e);
             }
         } },
         saveToLocal: doSave,
@@ -1333,7 +1337,7 @@ async function createMonacoEditor(containerOrId, options = {}) {
             } catch (e) {
                 console.error(e);
                 if (UtilityEnabled("DebugMode")) {
-                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                    DebugAlert(e);
                 }
             }
             try {
@@ -1344,20 +1348,20 @@ async function createMonacoEditor(containerOrId, options = {}) {
                     } catch (e) {
                         console.error(e);
                         if (UtilityEnabled("DebugMode")) {
-                            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                            DebugAlert(e);
                         }
                     }
                     try { editor.dispose(); } catch (e) {
                         console.error(e);
                         if (UtilityEnabled("DebugMode")) {
-                            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                            DebugAlert(e);
                         }
                     }
                 }
             } catch (e) {
                 console.error(e);
                 if (UtilityEnabled("DebugMode")) {
-                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                    DebugAlert(e);
                 }
             }
         }
@@ -1381,14 +1385,14 @@ async function createMonacoEditor(containerOrId, options = {}) {
                     try { div.setAttribute(a.name, a.value); } catch (e) {
                         console.error(e);
                         if (UtilityEnabled("DebugMode")) {
-                            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                            DebugAlert(e);
                         }
                     }
                 }
             } catch (e) {
                 console.error(e);
                 if (UtilityEnabled("DebugMode")) {
-                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                    DebugAlert(e);
                 }
             }
             div.classList.add('codemirror-shim-host');
@@ -1396,7 +1400,7 @@ async function createMonacoEditor(containerOrId, options = {}) {
             try { if (container.style && container.style.cssText) div.style.cssText = container.style.cssText; } catch (e) {
                 console.error(e);
                 if (UtilityEnabled("DebugMode")) {
-                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                    DebugAlert(e);
                 }
             }
             container.parentNode.replaceChild(div, container);
@@ -1420,7 +1424,7 @@ async function createMonacoEditor(containerOrId, options = {}) {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                DebugAlert(e);
             }
         }
         let _lastSetSizeArgs = null;
@@ -1429,20 +1433,20 @@ async function createMonacoEditor(containerOrId, options = {}) {
             setValue: (v) => { container._cmValue = v; if (container._cmEditor) try { container._cmEditor.setValue(v); } catch (e) {
                 console.error(e);
                 if (UtilityEnabled("DebugMode")) {
-                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                    DebugAlert(e);
                 }
             } },
             setSize: (w, h) => { _lastSetSizeArgs = [w, h]; if (w) container.style.width = w; if (h) { if (h === 'auto') container.style.height = 'auto'; else container.style.height = h; } if (container._cmEditor) try { container._cmEditor.layout(); } catch (e) {
                 console.error(e);
                 if (UtilityEnabled("DebugMode")) {
-                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                    DebugAlert(e);
                 }
             } },
             getWrapperElement: () => container,
             focus: () => { if (container._cmEditor) try { container._cmEditor.focus(); } catch (e) {
                 console.error(e);
                 if (UtilityEnabled("DebugMode")) {
-                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                    DebugAlert(e);
                 }
             } },
             _monacoEditor: null
@@ -1463,7 +1467,7 @@ async function createMonacoEditor(containerOrId, options = {}) {
                 try { const _l = container.querySelector('.monaco-loading'); if (_l) _l.remove(); } catch (e) {
                     console.error(e);
                     if (UtilityEnabled("DebugMode")) {
-                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                        DebugAlert(e);
                     }
                 }
                 if (_lastSetSizeArgs) monacoAdapter.setSize(_lastSetSizeArgs[0], _lastSetSizeArgs[1]);
@@ -1491,7 +1495,7 @@ async function createMonacoEditor(containerOrId, options = {}) {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                DebugAlert(e);
             }
         }
         const wrapper = { ignoreWhitespace: !!options.ignoreWhitespace, _diffEditor: null, _originalModel: null, _modifiedModel: null };
@@ -1509,7 +1513,7 @@ async function createMonacoEditor(containerOrId, options = {}) {
                         try { el.style.display = 'flex'; el.style.alignItems = 'center'; el.style.justifyContent = 'center'; } catch (e) {
                             console.error(e);
                             if (UtilityEnabled("DebugMode")) {
-                                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                DebugAlert(e);
                             }
                         }
                         const header = document.querySelector('nav') || document.querySelector('#navbar') || document.querySelector('.navbar') || document.querySelector('header');
@@ -1538,7 +1542,7 @@ async function createMonacoEditor(containerOrId, options = {}) {
                 try { const _l = el.querySelector('.monaco-loading'); if (_l) _l.remove(); } catch (e) {
                     console.error(e);
                     if (UtilityEnabled("DebugMode")) {
-                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                        DebugAlert(e);
                     }
                 }
             } catch (e) { console.error(e); try { const _l = el.querySelector('.monaco-loading'); if (_l) _l.remove(); } catch (_) {} }
@@ -1560,19 +1564,19 @@ function _xmoj_disposeErrorMessageEditors() {
                     if (m && m.dispose) try { m.dispose(); } catch (e) {
                         console.error(e);
                         if (UtilityEnabled("DebugMode")) {
-                            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                            DebugAlert(e);
                         }
                     }
                 } catch (e) {
                     console.error(e);
                     if (UtilityEnabled("DebugMode")) {
-                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                        DebugAlert(e);
                     }
                 }
                 try { if (ed && ed.dispose) ed.dispose(); } catch (e) {
                     console.error(e);
                     if (UtilityEnabled("DebugMode")) {
-                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                        DebugAlert(e);
                     }
                 }
             });
@@ -1581,7 +1585,7 @@ function _xmoj_disposeErrorMessageEditors() {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            DebugAlert(e);
         }
     }
     try {
@@ -1590,26 +1594,26 @@ function _xmoj_disposeErrorMessageEditors() {
             try { if (h._monacoEditor && h._monacoEditor.dispose) h._monacoEditor.dispose(); } catch (e) {
                 console.error(e);
                 if (UtilityEnabled("DebugMode")) {
-                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                    DebugAlert(e);
                 }
             }
             try { delete h._monacoEditor; } catch (e) {
                 console.error(e);
                 if (UtilityEnabled("DebugMode")) {
-                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                    DebugAlert(e);
                 }
             }
             try { h.removeAttribute('data-xmoj-error-editor'); } catch (e) {
                 console.error(e);
                 if (UtilityEnabled("DebugMode")) {
-                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                    DebugAlert(e);
                 }
             }
         });
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            DebugAlert(e);
         }
     }
 }
@@ -1682,7 +1686,7 @@ let GetUsernameHTML = async (Element, Username, Simple = false, Href = "https://
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            DebugAlert(e);
         }
     }
 };
@@ -1700,7 +1704,7 @@ let SecondsToString = (InputSeconds) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            DebugAlert(e);
         }
     }
 }
@@ -1716,7 +1720,7 @@ let StringToSeconds = (InputString) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            DebugAlert(e);
         }
     }
 }
@@ -1743,7 +1747,7 @@ let SizeToStringSize = (Memory) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            DebugAlert(e);
         }
     }
 };
@@ -1765,7 +1769,7 @@ let CodeSizeToStringSize = (Memory) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            DebugAlert(e);
         }
     }
 };
@@ -1788,7 +1792,7 @@ let TimeToStringTime = (Time) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            DebugAlert(e);
         }
     }
 };
@@ -1805,7 +1809,7 @@ let TidyTable = (Table) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            DebugAlert(e);
         }
     }
 };
@@ -1818,7 +1822,7 @@ let UtilityEnabled = (Name) => {
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            DebugAlert(e);
         }
     }
 };
@@ -1869,7 +1873,7 @@ let RequestAPI = (Action, Data, CallBack, ErrorCallBack) => {
         Fail("请求失败，请重试");
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            DebugAlert(e);
         }
     };
     let Send = (Authentication, Retried) => {
@@ -2185,7 +2189,8 @@ let SyncSettingsToCloud = (CallBack) => {
     let Settings = {};
     for (let i = 0; i < localStorage.length; i++) {
         let key = localStorage.key(i);
-        if (key && key.startsWith("UserScript-Setting-")) {
+        // SuperDebug only makes sense on the device running the local backend.
+        if (key && key.startsWith("UserScript-Setting-") && key !== "UserScript-Setting-SuperDebug") {
             Settings[key.replace("UserScript-Setting-", "")] = localStorage.getItem(key);
         }
     }
@@ -2212,6 +2217,7 @@ let PeriodicCloudSync = () => {
             if (Object.keys(cloudSettings).length > 0) {
                 let themeChanged = false;
                 for (let key in cloudSettings) {
+                    if (key === "SuperDebug") continue;
                     const rawValue = String(cloudSettings[key]);
                     const localKey = "UserScript-Setting-" + key;
                     if (localStorage.getItem(localKey) !== rawValue) {
@@ -3909,7 +3915,7 @@ class NavbarStyler {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                DebugAlert(e);
             }
         }
     }
@@ -3958,7 +3964,7 @@ class NavbarStyler {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                DebugAlert(e);
             }
         }
     }
@@ -3995,7 +4001,7 @@ class NavbarStyler {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                DebugAlert(e);
             }
         }
     }
@@ -4034,7 +4040,7 @@ class NavbarStyler {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                DebugAlert(e);
             }
         }
     }
@@ -4052,7 +4058,7 @@ class NavbarStyler {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                DebugAlert(e);
             }
         }
     }
@@ -4096,11 +4102,36 @@ class NavbarStyler {
         } catch (e) {
             console.error(e);
             if (UtilityEnabled("DebugMode")) {
-                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                DebugAlert(e);
             }
         }
     }
 }
+
+// SuperDebug points the script at a local backend, so almost nothing works for anyone
+// who is not running one. Say so on every page, with a way out, so users who switched
+// it on by accident don't file bug reports about the breakage.
+let ShowSuperDebugBanner = () => {
+    if (!UtilityEnabled("SuperDebug")) return;
+    let Banner = document.createElement("div");
+    Banner.className = "alert alert-danger d-flex align-items-center justify-content-between gap-2 m-0 rounded-0";
+    Banner.role = "alert";
+    // Attached to <html> so legacy pages rewriting body.innerHTML can't remove it.
+    Banner.style.cssText = "position: fixed; left: 0; right: 0; bottom: 0; z-index: 2000;";
+    let Text = document.createElement("span");
+    Text.textContent = "本地调试模式已开启：脚本正在连接你这台电脑上的开发用服务器（127.0.0.1:8787），没有运行它时大部分功能将无法使用。这不是 bug，如果你不是开发者，请关闭它。";
+    let Close = document.createElement("button");
+    Close.type = "button";
+    Close.className = "btn btn-danger btn-sm flex-shrink-0";
+    Close.textContent = "关闭本地调试模式";
+    Close.addEventListener("click", () => {
+        localStorage.setItem("UserScript-Setting-SuperDebug", "false");
+        location.reload();
+    });
+    Banner.appendChild(Text);
+    Banner.appendChild(Close);
+    document.documentElement.appendChild(Banner);
+};
 
 // Wrapped in an async IIFE so that `await` is valid in Violentmonkey,
 // which executes userscripts as classic scripts (not ES modules).
@@ -4126,6 +4157,7 @@ if (_foucStyle) {
     setTimeout(RevealPage, 4000);
 }
 if (await EnsureChinesePage()) return;
+ShowSuperDebugBanner();
 if (IsContestWebApp()) {
     await InitializeContestWebApp();
     return;
@@ -4677,6 +4709,10 @@ async function main() {
                                         CheckBox.checked = true;
                                     }
                                     CheckBox.addEventListener("change", () => {
+                                        if (Data[i].ID === "SuperDebug" && CheckBox.checked && prompt("本地调试模式会让脚本连接你这台电脑上的开发用服务器（127.0.0.1:8787），没有运行它时大部分功能将无法使用。\n这是给开发者用的，不是测试版（想体验测试版请开启“调试模式”）。\n\n确定要开启，请输入“我是开发者”：") !== "我是开发者") {
+                                            CheckBox.checked = false;
+                                            return;
+                                        }
                                         localStorage.setItem("UserScript-Setting-" + Data[i].ID, CheckBox.checked);
                                         // Don't sync when disabling CloudSync itself (it's already off)
                                         if (Data[i].ID !== "CloudSync" || CheckBox.checked) {
@@ -4767,7 +4803,7 @@ async function main() {
                         }, {
                             "ID": "CloudSync", "Type": "A", "Name": "将设置同步至云端（跨设备同步）"
                         }, {
-                            "ID": "DebugMode", "Type": "A", "Name": "调试模式（仅供开发者使用）"
+                            "ID": "DebugMode", "Type": "A", "Name": "调试模式（抢先体验测试版，并在出错时弹窗提示，欢迎开启帮我们找 bug）"
                         }, {
                             "ID": "RedactLogs", "Type": "A", "Name": "调试日志中隐藏登录凭证（分享日志前请保持开启）"
                         }, {
@@ -4796,6 +4832,7 @@ async function main() {
                         SyncButtonGroup.className = "d-flex gap-2";
                         let ApplyCloudSettings = (cloudSettings) => {
                             for (let key in cloudSettings) {
+                                if (key === "SuperDebug") continue;
                                 const rawValue = cloudSettings[key];
                                 localStorage.setItem("UserScript-Setting-" + key, String(rawValue));
                                 if (key === "Theme") {
@@ -5599,7 +5636,7 @@ async function main() {
                         } catch (e) {
                             console.error(e);
                             if (UtilityEnabled("DebugMode")) {
-                                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                DebugAlert(e);
                             }
                         }
                         if (!editorOptions.fitToViewport) CodeMirrorElement.setSize("100%", "550px");
@@ -5891,7 +5928,7 @@ async function main() {
                         try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
                             console.error(e);
                             if (UtilityEnabled("DebugMode")) {
-                                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                DebugAlert(e);
                             }
                         }
                         ErrorMessage.innerText = "当前评测队列繁忙，请先填写上方的验证码。";
@@ -5910,7 +5947,7 @@ async function main() {
                         try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
                             console.error(e);
                             if (UtilityEnabled("DebugMode")) {
-                                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                DebugAlert(e);
                             }
                         }
                         ErrorMessage.innerText = Message;
@@ -6022,7 +6059,7 @@ async function main() {
                                     try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
                                         console.error(e);
                                         if (UtilityEnabled("DebugMode")) {
-                                            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                            DebugAlert(e);
                                         }
                                     }
                                     ErrorMessage.innerText = "验证码错误！请填写上方的验证码后重新提交。";
@@ -6072,7 +6109,7 @@ async function main() {
                                 try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
                                     console.error(e);
                                     if (UtilityEnabled("DebugMode")) {
-                                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                        DebugAlert(e);
                                     }
                                 }
                                 ErrorMessage.innerText = "此题输入输出文件名为" + IOFilename + "，请检查是否填错";
@@ -6118,7 +6155,7 @@ async function main() {
                                         try { codeHost._monacoEditor = _tmpErrEditor; codeHost.setAttribute('data-xmoj-error-editor', '1'); } catch (e) {
                                             console.error(e);
                                             if (UtilityEnabled("DebugMode")) {
-                                                SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                                DebugAlert(e);
                                             }
                                         }
                                     } catch (e) {
@@ -6141,7 +6178,7 @@ async function main() {
                                 try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
                                     console.error(e);
                                     if (UtilityEnabled("DebugMode")) {
-                                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                        DebugAlert(e);
                                     }
                                 }
                                 ErrorMessage.innerText = "请不要注释freopen语句";
@@ -6157,7 +6194,7 @@ async function main() {
                             try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
                                 console.error(e);
                                 if (UtilityEnabled("DebugMode")) {
-                                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                    DebugAlert(e);
                                 }
                             }
                             ErrorMessage.innerText = "源代码为空";
@@ -6185,7 +6222,7 @@ async function main() {
                                 try { _xmoj_disposeErrorMessageEditors(); } catch (e) {
                                     console.error(e);
                                     if (UtilityEnabled("DebugMode")) {
-                                        SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                                        DebugAlert(e);
                                     }
                                 }
                                 ErrorMessage.innerText = "编译错误：\n" + Response.stderr.trim();
@@ -8501,7 +8538,7 @@ cerr<<b93(gz(rd()))<<endl;abort();}
     } catch (e) {
         console.error(e);
         if (UtilityEnabled("DebugMode")) {
-            SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+            DebugAlert(e);
         }
     }
 }
@@ -9342,7 +9379,7 @@ function InitializeImageEnlarger() {
             } catch (e) {
                 console.error(e);
                 if (UtilityEnabled("DebugMode")) {
-                    SmartAlert("XMOJ-Script internal error!\n\n" + e + "\n\n" + "If you see this message, please report it to the developer.\nDon't forget to include console logs and a way to reproduce the error!\n\nDon't want to see this message? Disable DebugMode.");
+                    DebugAlert(e);
                 }
             }
         }
