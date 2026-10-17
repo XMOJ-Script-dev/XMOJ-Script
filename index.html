@@ -7,6 +7,7 @@
     <title>小明的OJ增强脚本 · XMOJ-Script</title>
     <meta name="description" content="给 xmoj.tech 加上黑白主题、暗色模式、自动刷新、提交前检查和讨论区的浏览器用户脚本。免费开源。">
     <link rel="icon" href="favicon.ico">
+
     <!-- 主题初始化需在渲染前执行，避免闪烁；各页面保持一致 -->
     <script>
         (function () {
@@ -18,10 +19,12 @@
             document.documentElement.setAttribute("data-bs-theme", theme);
         })();
     </script>
+
     <link rel="preconnect" href="https://fonts.loli.net">
     <link href="https://fonts.loli.net/css2?family=Playfair+Display:wght@400;700&family=Source+Serif+4:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet" integrity="sha512-jnSuA4Ss2PkkikSOLtYs8BlYIeeIK1h99ty4YfvRPAlzr377vr3CXDb7sb7eEEBYjDtcYj+AjBH3FLv5uSJuXg==" crossorigin="anonymous" referrerpolicy="no-referrer">
     <link href="site.css" rel="stylesheet">
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js" integrity="sha512-7Pi/otdlbbCR+LnW+F7PwFcSDJOuUJB3OxtEHbg4vSMvzvJjde4Po1v4BR9Gdc9aXNUNFVUY+SK51wWT8WF0Gg==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
     <script src="site.js" defer></script>
 </head>
@@ -34,17 +37,33 @@
                 <img src="XMOJ.png" alt="">
                 XMOJ-Script
             </a>
+
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#SiteNav"
-                aria-controls="SiteNav" aria-expanded="false" aria-label="展开导航">菜单</button>
+                aria-controls="SiteNav" aria-expanded="false" aria-label="展开导航">
+                菜单
+            </button>
+
             <div class="collapse navbar-collapse" id="SiteNav">
                 <ul class="navbar-nav ms-auto align-items-lg-center">
                     <li class="nav-item"><a class="nav-link" href="./#Features">功能</a></li>
                     <li class="nav-item"><a class="nav-link" href="./#Install">安装</a></li>
                     <li class="nav-item"><a class="nav-link" href="./#FAQ">常见问题</a></li>
                     <li class="nav-item"><a class="nav-link" href="messages.html">短消息</a></li>
-                    <li class="nav-item"><a class="nav-link ext" href="https://docs.xmoj-script.uk" target="_blank" rel="noopener noreferrer">文档</a></li>
-                    <li class="nav-item"><a class="nav-link ext" href="https://github.com/XMOJ-Script-dev/XMOJ-Script" target="_blank" rel="noopener noreferrer">GitHub</a></li>
-                    <li class="nav-item"><button class="btn btn-sm ms-lg-2 my-2 my-lg-0" type="button" id="ThemeToggle">暗色</button></li>
+                    <li class="nav-item">
+                        <a class="nav-link ext" href="https://docs.xmoj-script.uk" target="_blank" rel="noopener noreferrer">
+                            文档
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link ext" href="https://github.com/XMOJ-Script-dev/XMOJ-Script" target="_blank" rel="noopener noreferrer">
+                            GitHub
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <button class="btn btn-sm ms-lg-2 my-2 my-lg-0" type="button" id="ThemeToggle">
+                            暗色
+                        </button>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -57,13 +76,22 @@
                     <div class="col-lg-6">
                         <span class="section-label">XMOJ-Script · 小明的OJ增强脚本</span>
                         <h1>小明的OJ，<br>换个样子。</h1>
-                        <p class="lead mb-4">一个浏览器用户脚本：给 xmoj.tech 加上黑白主题和暗色模式、自动刷新、提交前检查、测试点数据和讨论区。免费，开源。</p>
+                        <p class="lead mb-4">
+                            一个浏览器用户脚本：给 xmoj.tech 加上黑白主题和暗色模式、自动刷新、提交前检查、测试点数据和讨论区。免费，开源。
+                        </p>
+
                         <div class="d-flex flex-wrap gap-3 mb-3">
                             <a class="btn btn-primary btn-lg" href="#Install">安装脚本</a>
-                            <a class="btn btn-lg" href="https://github.com/XMOJ-Script-dev/XMOJ-Script" target="_blank" rel="noopener noreferrer">GitHub</a>
+                            <a class="btn btn-lg" href="https://github.com/XMOJ-Script-dev/XMOJ-Script" target="_blank" rel="noopener noreferrer">
+                                GitHub
+                            </a>
                         </div>
-                        <p class="hero-meta mb-0"><span data-latest-version>最新版</span> · GPL-3.0 · 支持 Chrome / Edge / Firefox</p>
+
+                        <p class="hero-meta mb-0">
+                            <span data-latest-version>最新版</span> · GPL-3.0 · 支持 Chrome / Edge / Firefox
+                        </p>
                     </div>
+
                     <div class="col-lg-6">
                         <figure class="hero-shot mb-0">
                             <img class="theme-light-only" src="Images/hero-light.png" width="1280" height="700" loading="lazy" alt="装上脚本后的小明的OJ比赛题目页：黑白主题、左侧题目切换栏、每个小节旁的复制按钮">
@@ -79,6 +107,7 @@
             <div class="container">
                 <span class="section-label">功能</span>
                 <h2 class="section-title">装上之后，多了这些。</h2>
+
                 <div class="row g-4">
                     <div class="col-md-6 col-lg-4">
                         <div class="mono-card">
@@ -88,6 +117,7 @@
                             </div>
                         </div>
                     </div>
+
                     <div class="col-md-6 col-lg-4">
                         <div class="mono-card">
                             <div class="mono-card-head">提交</div>
@@ -96,6 +126,7 @@
                             </div>
                         </div>
                     </div>
+
                     <div class="col-md-6 col-lg-4">
                         <div class="mono-card">
                             <div class="mono-card-head">调试</div>
@@ -104,6 +135,7 @@
                             </div>
                         </div>
                     </div>
+
                     <div class="col-md-6 col-lg-4">
                         <div class="mono-card">
                             <div class="mono-card-head">复制</div>
@@ -112,6 +144,7 @@
                             </div>
                         </div>
                     </div>
+
                     <div class="col-md-6 col-lg-4">
                         <div class="mono-card">
                             <div class="mono-card-head">社区</div>
@@ -120,6 +153,7 @@
                             </div>
                         </div>
                     </div>
+
                     <div class="col-md-6 col-lg-4">
                         <div class="mono-card">
                             <div class="mono-card-head">界面</div>
@@ -129,7 +163,11 @@
                         </div>
                     </div>
                 </div>
-                <p class="mt-4 mb-0">每个功能都能在脚本设置里单独开关。完整列表见<a href="https://docs.xmoj-script.uk" target="_blank" rel="noopener noreferrer">文档</a>。</p>
+
+                <p class="mt-4 mb-0">
+                    每个功能都能在脚本设置里单独开关。完整列表见
+                    <a href="https://docs.xmoj-script.uk" target="_blank" rel="noopener noreferrer">文档</a>。
+                </p>
             </div>
         </section>
 
@@ -139,8 +177,11 @@
                     <div class="col-lg-8">
                         <span class="section-label">短消息在线看</span>
                         <h2 class="section-title mb-3">手机上也能收发短消息。</h2>
-                        <p class="mb-0">不用装脚本，任何浏览器都能打开，包括 iPhone 上的 Safari。用 xmoj 账号登录后，就能查看和回复脚本里的短消息。</p>
+                        <p class="mb-0">
+                            不用装脚本，任何浏览器都能打开，包括 iPhone 上的 Safari。用 xmoj 账号登录后，就能查看和回复脚本里的短消息。
+                        </p>
                     </div>
+
                     <div class="col-lg-4 text-lg-end">
                         <a class="btn btn-primary btn-lg" href="messages.html">打开短消息</a>
                     </div>
@@ -152,7 +193,9 @@
             <div class="container">
                 <span class="section-label">安装</span>
                 <h2 class="section-title">三步装好。</h2>
+
                 <p class="browser-hint" id="BrowserHint">选择你的浏览器：</p>
+
                 <div class="browser-tabs" role="group" aria-label="选择浏览器">
                     <button type="button" data-browser="chrome" aria-pressed="true">Chrome</button>
                     <button type="button" data-browser="edge" aria-pressed="false">Edge</button>
@@ -162,7 +205,10 @@
 
                 <div data-for="safari" hidden>
                     <div class="alert-mono">
-                        <p><strong>Safari 暂不支持。</strong>Safari 上的用户脚本管理器兼容性很差，脚本的很多功能无法正常工作。请换用 Chrome、Edge 或 Firefox。</p>
+                        <p>
+                            <strong>Safari 暂不支持。</strong>
+                            Safari 上的用户脚本管理器兼容性很差，脚本的很多功能无法正常工作。请换用 Chrome、Edge 或 Firefox。
+                        </p>
                     </div>
                 </div>
 
@@ -172,25 +218,41 @@
                         <div>
                             <h3>装一个脚本管理器</h3>
                             <p>脚本需要装在用户脚本管理器里运行。推荐 Tampermonkey，ScriptCat（脚本猫）也可以。</p>
+
                             <div data-for="chrome">
                                 <p class="mb-2">在 Chrome 应用商店安装：</p>
-                                <a class="btn" href="https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo" target="_blank" rel="noopener noreferrer">Tampermonkey · Chrome 应用商店</a>
+                                <a class="btn" href="https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo" target="_blank" rel="noopener noreferrer">
+                                    Tampermonkey · Chrome 应用商店
+                                </a>
+
                                 <details class="mt-3">
                                     <summary>打不开 Chrome 应用商店？</summary>
                                     <ol class="mt-2">
-                                        <li>从<a href="https://chrome.zzzmh.cn/info/dhdgffkkebhmkfjojejmpbldmpobfkfo" target="_blank" rel="noopener noreferrer">极简插件</a>下载 Tampermonkey 的离线安装包，解压出 <code>.crx</code> 文件。</li>
+                                        <li>
+                                            从
+                                            <a href="https://chrome.zzzmh.cn/info/dhdgffkkebhmkfjojejmpbldmpobfkfo" target="_blank" rel="noopener noreferrer">
+                                                极简插件
+                                            </a>
+                                            下载 Tampermonkey 的离线安装包，解压出 <code>.crx</code> 文件。
+                                        </li>
                                         <li>地址栏打开 <code>chrome://extensions</code>，打开右上角的「开发者模式」。</li>
                                         <li>把 <code>.crx</code> 文件拖进这个页面，点「添加扩展程序」。</li>
                                     </ol>
                                 </details>
                             </div>
+
                             <div data-for="edge" hidden>
                                 <p class="mb-2">在 Edge 外接程序商店安装：</p>
-                                <a class="btn" href="https://microsoftedge.microsoft.com/addons/detail/tampermonkey/iikmkjmpaadaobahmlepeloendndfphd" target="_blank" rel="noopener noreferrer">Tampermonkey · Edge 外接程序</a>
+                                <a class="btn" href="https://microsoftedge.microsoft.com/addons/detail/tampermonkey/iikmkjmpaadaobahmlepeloendndfphd" target="_blank" rel="noopener noreferrer">
+                                    Tampermonkey · Edge 外接程序
+                                </a>
                             </div>
+
                             <div data-for="firefox" hidden>
                                 <p class="mb-2">在 Firefox 附加组件站安装：</p>
-                                <a class="btn" href="https://addons.mozilla.org/zh-CN/firefox/addon/tampermonkey/" target="_blank" rel="noopener noreferrer">Tampermonkey · Firefox 附加组件</a>
+                                <a class="btn" href="https://addons.mozilla.org/zh-CN/firefox/addon/tampermonkey/" target="_blank" rel="noopener noreferrer">
+                                    Tampermonkey · Firefox 附加组件
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -199,36 +261,55 @@
                         <div class="step-num">2</div>
                         <div>
                             <h3>允许运行用户脚本</h3>
+
                             <div data-for="chrome">
-                                <p>新版 Chrome 默认不让扩展运行用户脚本，<strong>不做这一步脚本不会生效</strong>。<span id="ChromeVersionNote">在地址栏打开 <code>chrome://version</code> 可以查看版本号。</span></p>
+                                <p>
+                                    新版 Chrome 默认不让扩展运行用户脚本，<strong>不做这一步脚本不会生效</strong>。
+                                    <span id="ChromeVersionNote">在地址栏打开 <code>chrome://version</code> 可以查看版本号。</span>
+                                </p>
+
                                 <p class="mb-1"><strong>Chrome 138 及以上：</strong></p>
                                 <ol>
                                     <li>右键点工具栏上的脚本管理器图标（Tampermonkey 或 ScriptCat），选「管理扩展程序」。</li>
                                     <li>打开「允许用户脚本」开关。</li>
                                 </ol>
+
                                 <p class="mb-1"><strong>Chrome 137 及以下：</strong></p>
                                 <ol>
                                     <li>地址栏打开 <code>chrome://extensions</code>。</li>
                                     <li>打开右上角的「开发者模式」。</li>
                                 </ol>
                             </div>
+
                             <div data-for="edge" hidden>
-                                <p>Edge 默认不让扩展运行用户脚本，<strong>不做这一步脚本不会生效</strong>。<span id="EdgeVersionNote">在地址栏打开 <code>edge://version</code> 可以查看版本号。</span></p>
+                                <p>
+                                    Edge 默认不让扩展运行用户脚本，<strong>不做这一步脚本不会生效</strong>。
+                                    <span id="EdgeVersionNote">在地址栏打开 <code>edge://version</code> 可以查看版本号。</span>
+                                </p>
+
                                 <p class="mb-1"><strong>Edge 138 及以上：</strong></p>
                                 <ol>
                                     <li>地址栏打开 <code>edge://extensions</code>，在脚本管理器（Tampermonkey 或 ScriptCat）下面点「详细信息」。</li>
                                     <li>打开「允许用户脚本」开关。</li>
                                 </ol>
+
                                 <p class="mb-1"><strong>Edge 137 及以下：</strong></p>
                                 <ol>
                                     <li>地址栏打开 <code>edge://extensions</code>。</li>
                                     <li>打开左侧的「开发人员模式」。</li>
                                 </ol>
                             </div>
+
                             <div data-for="firefox" hidden>
                                 <p>Firefox 不需要额外设置，直接下一步。</p>
                             </div>
-                            <p class="mb-0" data-for="chrome edge">找不到开关？看<a class="ext" href="https://docs.xmoj-script.uk/guide/installation.html" target="_blank" rel="noopener noreferrer">带截图的安装教程</a>。</p>
+
+                            <p class="mb-0" data-for="chrome edge">
+                                找不到开关？看
+                                <a class="ext" href="https://docs.xmoj-script.uk/guide/installation.html" target="_blank" rel="noopener noreferrer">
+                                    带截图的安装教程
+                                </a>。
+                            </p>
                         </div>
                     </div>
 
@@ -236,10 +317,17 @@
                         <div class="step-num">3</div>
                         <div>
                             <h3>安装脚本</h3>
-                            <p>点下面的按钮，管理器会弹出安装页面，点「安装」。然后打开 <a href="https://www.xmoj.tech" target="_blank" rel="noopener noreferrer">xmoj.tech</a> 刷新一下就能看到效果。</p>
+                            <p>
+                                点下面的按钮，管理器会弹出安装页面，点「安装」。然后打开
+                                <a href="https://www.xmoj.tech" target="_blank" rel="noopener noreferrer">xmoj.tech</a>
+                                刷新一下就能看到效果。
+                            </p>
+
                             <div class="d-flex flex-wrap gap-3 align-items-center">
                                 <a class="btn btn-primary btn-lg" href="XMOJ.user.js">安装 XMOJ.user.js</a>
-                                <a href="https://scriptcat.org/zh-CN/script-show-page/1500" target="_blank" rel="noopener noreferrer">备用：从脚本猫安装</a>
+                                <a href="https://scriptcat.org/zh-CN/script-show-page/1500" target="_blank" rel="noopener noreferrer">
+                                    备用：从脚本猫安装
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -251,42 +339,70 @@
             <div class="container">
                 <span class="section-label">常见问题</span>
                 <h2 class="section-title">装了，然后呢？</h2>
+
                 <div class="faq">
                     <details>
                         <summary>装好了，但 xmoj.tech 没有任何变化</summary>
                         <div>
                             <p>按顺序检查：</p>
                             <ol>
-                                <li>Chrome / Edge 用户：确认做了<a href="#Install">第 2 步</a>，这是最常见的原因。每一步都有截图的版本见<a class="ext" href="https://docs.xmoj-script.uk/guide/installation.html" target="_blank" rel="noopener noreferrer">安装教程</a>。</li>
+                                <li>
+                                    Chrome / Edge 用户：确认做了<a href="#Install">第 2 步</a>，这是最常见的原因。
+                                    每一步都有截图的版本见
+                                    <a class="ext" href="https://docs.xmoj-script.uk/guide/installation.html" target="_blank" rel="noopener noreferrer">
+                                        安装教程
+                                    </a>。
+                                </li>
                                 <li>点 Tampermonkey 图标，确认它本身和 XMOJ-Script 都处于启用状态。</li>
                                 <li>刷新 xmoj.tech 页面。</li>
                             </ol>
-                            <p class="mb-0">还是不行，就<a href="https://github.com/XMOJ-Script-dev/XMOJ-Script/issues" target="_blank" rel="noopener noreferrer">提个 Issue</a>，写上浏览器和版本。</p>
+
+                            <p class="mb-0">
+                                还是不行，就
+                                <a href="https://github.com/XMOJ-Script-dev/XMOJ-Script/issues" target="_blank" rel="noopener noreferrer">
+                                    提个 Issue
+                                </a>，写上浏览器和版本。
+                            </p>
                         </div>
                     </details>
+
                     <details>
                         <summary>怎么更新？</summary>
                         <div>
-                            <p class="mb-0">不用管。脚本管理器会定期自动检查更新。想立刻更新，就在 Tampermonkey 管理面板里点「检查更新」，或者再点一次上面的安装按钮。</p>
+                            <p class="mb-0">
+                                不用管。脚本管理器会定期自动检查更新。想立刻更新，就在 Tampermonkey 管理面板里点「检查更新」，或者再点一次上面的安装按钮。
+                            </p>
                         </div>
                     </details>
+
                     <details>
                         <summary>怎么关掉某个功能？</summary>
                         <div>
-                            <p class="mb-0">在 xmoj.tech 右上角的用户菜单里打开「XMOJ-Script 设置」，每个功能都有单独的开关。</p>
+                            <p class="mb-0">
+                                在 xmoj.tech 右上角的用户菜单里打开「XMOJ-Script 设置」，每个功能都有单独的开关。
+                            </p>
                         </div>
                     </details>
+
                     <details>
                         <summary>会盗号吗？收集了哪些数据？</summary>
                         <div>
-                            <p>不会。保存的密码只存在你浏览器自带的密码管理器里，不会发给我们。讨论区和短消息需要我们的服务器确认你是谁，为此会用到你的 xmoj 登录会话。</p>
-                            <p class="mb-0">具体收集什么、存多久、怎么删，见<a href="privacy.html">隐私说明</a>。代码全部开源，可以自己看。</p>
+                            <p>
+                                不会。保存的密码只存在你浏览器自带的密码管理器里，不会发给我们。
+                                讨论区和短消息需要我们的服务器确认你是谁，为此会用到你的 xmoj 登录会话。
+                            </p>
+                            <p class="mb-0">
+                                具体收集什么、存多久、怎么删，见<a href="privacy.html">隐私说明</a>。代码全部开源，可以自己看。
+                            </p>
                         </div>
                     </details>
+
                     <details>
                         <summary>这是小明的OJ官方做的吗？</summary>
                         <div>
-                            <p class="mb-0">不是。这是学生自发维护的开源项目，和小明的OJ没有关系。用脚本的同时也请遵守 OJ 本身的规则。</p>
+                            <p class="mb-0">
+                                不是。这是学生自发维护的开源项目，和小明的OJ没有关系。用脚本的同时也请遵守 OJ 本身的规则。
+                            </p>
                         </div>
                     </details>
                 </div>
@@ -297,18 +413,39 @@
             <div class="container">
                 <span class="section-label">反馈与参与</span>
                 <h2 class="section-title">发现问题，或者想帮忙？</h2>
+
                 <div class="row g-4">
                     <div class="col-md-4">
                         <h3 class="h5">报告问题</h3>
-                        <p class="mb-0">在 <a href="https://github.com/XMOJ-Script-dev/XMOJ-Script/issues" target="_blank" rel="noopener noreferrer">GitHub Issues</a> 提交，或发邮件到 <span class="font-mono">seanoj_noreply@yeah.net</span>。</p>
+                        <p class="mb-0">
+                            在
+                            <a href="https://github.com/XMOJ-Script-dev/XMOJ-Script/issues" target="_blank" rel="noopener noreferrer">
+                                GitHub Issues
+                            </a>
+                            提交，或发邮件到
+                            <span class="font-mono">seanoj_noreply@yeah.net</span>。
+                        </p>
                     </div>
+
                     <div class="col-md-4">
                         <h3 class="h5">贡献代码</h3>
-                        <p class="mb-0">欢迎 PR。fork 本仓库后向 <code>dev</code> 分支提交，详见<a href="https://github.com/XMOJ-Script-dev/XMOJ-Script/blob/master/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer">贡献指南</a>。</p>
+                        <p class="mb-0">
+                            欢迎 PR。fork 本仓库后向 <code>dev</code> 分支提交，详见
+                            <a href="https://github.com/XMOJ-Script-dev/XMOJ-Script/blob/master/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer">
+                                贡献指南
+                            </a>。
+                        </p>
                     </div>
+
                     <div class="col-md-4">
                         <h3 class="h5">赞助</h3>
-                        <p class="mb-0">服务器和域名要花钱。愿意的话可以在 <a href="https://opencollective.com/xmoj-script-dev" target="_blank" rel="noopener noreferrer">Open Collective</a> 支持我们。</p>
+                        <p class="mb-0">
+                            服务器和域名要花钱。愿意的话可以在
+                            <a href="https://opencollective.com/xmoj-script-dev" target="_blank" rel="noopener noreferrer">
+                                Open Collective
+                            </a>
+                            支持我们。
+                        </p>
                     </div>
                 </div>
             </div>
@@ -319,19 +456,62 @@
     <footer class="site-footer">
         <div class="container">
             <ul class="footer-links">
-                <li><a href="https://docs.xmoj-script.uk" target="_blank" rel="noopener noreferrer">文档</a></li>
+                <li>
+                    <a href="https://docs.xmoj-script.uk" target="_blank" rel="noopener noreferrer">
+                        文档
+                    </a>
+                </li>
+                <li>
+                    <a href="https://status.xmoj-script.uk/" target="_blank" rel="noopener noreferrer">
+                        服务状态
+                    </a>
+                </li>
+                <li>
+                    <a href="https://elxmoj.xmoj-script.uk" target="_blank" rel="noopener noreferrer">
+                        ELXMOJ 客户端
+                    </a>
+                </li>
                 <li><a href="messages.html">短消息在线看</a></li>
                 <li><a href="privacy.html">隐私说明</a></li>
                 <li><a href="terms.html">使用条款</a></li>
                 <li><a href="child-protection.html">未成年人保护</a></li>
             </ul>
+
             <div class="footer-meta">
-                <div>以 <a href="https://github.com/XMOJ-Script-dev/XMOJ-Script/blob/master/LICENSE" target="_blank" rel="noopener noreferrer">GPL-3.0</a> 开源 · 原项目作者 <a href="https://github.com/langningchen" target="_blank" rel="noopener noreferrer">langningchen</a> · 由 <a href="https://github.com/XMOJ-Script-dev" target="_blank" rel="noopener noreferrer">XMOJ-Script-dev</a> 维护</div>
-                <div>我们的网站在萌国备案啦！备案号：<a href="https://icp.gov.moe/?keyword=20240425" target="_blank" rel="noopener noreferrer">萌ICP备20240425号</a></div>
+                <div>
+                    以
+                    <a href="https://github.com/XMOJ-Script-dev/XMOJ-Script/blob/master/LICENSE" target="_blank" rel="noopener noreferrer">
+                        GPL-3.0
+                    </a>
+                    开源 · 原项目作者
+                    <a href="https://github.com/langningchen" target="_blank" rel="noopener noreferrer">
+                        langningchen
+                    </a>
+                    · 由
+                    <a href="https://github.com/XMOJ-Script-dev" target="_blank" rel="noopener noreferrer">
+                        XMOJ-Script-dev
+                    </a>
+                    维护
+                </div>
+
+                <div>
+                    我们的网站在萌国备案啦！备案号：
+                    <a href="https://icp.gov.moe/?keyword=20240425" target="_blank" rel="noopener noreferrer">
+                        萌ICP备20240425号
+                    </a>
+                </div>
             </div>
         </div>
     </footer>
-    <script src="https://xmojscript1.statuspage.io/embed/script.js" defer></script>
+
+    <script
+        defer
+        src="https://status.xmoj-script.uk/embed.js"
+        data-service="all"
+        data-position="top-right"
+        data-hide-operational="true"
+        data-poll-interval="300000">
+    </script>
 </body>
 
 </html>
