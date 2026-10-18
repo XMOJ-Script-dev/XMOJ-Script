@@ -3999,6 +3999,17 @@
                 }
             ],
             "Notes": "调试模式现在欢迎所有人开启：开启后可以抢先体验测试版，出错时会用中文提示并告诉你如何反馈。<br>\n本地调试模式仅供开发者使用：开启时每个页面底部都会显示提示和一键关闭按钮，且不再参与云同步。"
+        },
+        "4.0.6": {
+            "UpdateDate": 1792331739148,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 1071,
+                    "Description": "Fix ReplaceXM (小明 → 高老师) on the /web contest pages"
+                }
+            ],
+            "Notes": "No release notes were provided for this release."
         }
     }
 }

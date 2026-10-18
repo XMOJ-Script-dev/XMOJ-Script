@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         XMOJ
-// @version      4.0.5
+// @version      4.0.6
 // @description  XMOJ增强脚本
 // @author       @XMOJ-Script-dev, @langningchen and the community
 // @namespace    https://github/langningchen
@@ -157,6 +157,14 @@ const initiallyEnglishLanguage = InitializeChineseLanguage();
 // inside it; InitializeContestWebApp maps its Bootstrap 3 markup to Bootstrap 5.
 function IsContestWebApp(pathname = location.pathname) {
     return pathname === "/web" || pathname.startsWith("/web/");
+}
+
+// The ReplaceXM substitutions of main(), in the same order, for the /web app's
+// text nodes. The last two undo what "我" → "高老师" does to "我们" and "自我".
+function ReplaceXMText(text) {
+    return String(text).replaceAll("我", "高老师").replaceAll("小明", "高老师").replaceAll("下海", "上海").replaceAll("海上", "上海")
+        .replaceAll("小红", "徐师娘").replaceAll("小粉", "彩虹").replaceAll("提交上节课的代码", "自动提交当年代码")
+        .replaceAll("高老师们", "我们").replaceAll("自高老师", "自我");
 }
 
 function GetContestRoute(url = location.href) {
@@ -3470,6 +3478,20 @@ async function InitializeContestWebApp() {
         }
     }
 
+    // The legacy pages rewrite body.innerHTML, which would break Vue. Edit the text
+    // nodes instead; when Vue re-renders one, the observer brings us back here.
+    function ReplaceXM() {
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+            acceptNode: node => node.parentElement.closest("script, style, textarea, pre, code, .monaco-editor") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT
+        });
+        for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+            const text = ReplaceXMText(node.nodeValue);
+            if (text !== node.nodeValue) node.nodeValue = text;
+        }
+        const title = ReplaceXMText(document.title);
+        if (title !== document.title) document.title = title;
+    }
+
     function ClearRoute() {
         controller?.abort();
         countdowns.clear();
@@ -3844,7 +3866,10 @@ async function InitializeContestWebApp() {
                 }
             }
             UpdateCountdowns();
-        } finally { observer.observe(root, {childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["class", "style"]}); }
+        } finally {
+            if (UtilityEnabled("ReplaceXM")) ReplaceXM();
+            observer.observe(root, {childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["class", "style"]});
+        }
     }
 
     function ScheduleEnhance() {

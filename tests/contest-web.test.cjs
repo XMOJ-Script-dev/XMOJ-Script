@@ -220,3 +220,10 @@ test('web and classic pages load the same monochrome fonts before either Bootstr
         assert.equal(styles.filter(node => node.id === 'xmoj-monochrome-fonts').length, 0, 'do not load fonts for a disabled skin');
     }
 });
+
+test('ReplaceXM substitutions keep 我们 and 自我, and are stable when re-applied', () => {
+    const {scope} = context();
+    const once = scope.ReplaceXMText('小明和我们自我介绍：我在下海，小红和小粉也在海上');
+    assert.equal(once, '高老师和我们自我介绍：高老师在上海，徐师娘和彩虹也在上海');
+    assert.equal(scope.ReplaceXMText(once), once);
+});
