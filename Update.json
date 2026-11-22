@@ -4010,6 +4010,17 @@
                 }
             ],
             "Notes": "No release notes were provided for this release."
+        },
+        "4.0.7": {
+            "UpdateDate": 1795357355498,
+            "Prerelease": true,
+            "UpdateContents": [
+                {
+                    "PR": 1073,
+                    "Description": "fix: keep /web problem statements clear of the problem switcher"
+                }
+            ],
+            "Notes": "修复了新版 /web 比赛题目页面上，题目切换器遮挡题面左侧内容的问题。"
         }
     }
 }
