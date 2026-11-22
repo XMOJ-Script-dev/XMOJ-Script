@@ -3265,6 +3265,11 @@ function ApplyContestWebTheme() {
         #app #rank td.well { color: ${dark ? "white" : "black"} !important; padding: 0.5rem; margin: 0; border: 0; border-radius: 0; }
         #app #rank tbody td:not(:nth-child(2)) a { color: inherit; text-decoration: none; border-bottom: 0 !important; }` + (get("MonochromeUI") ? `
         #app #rank thead th, #app #rank thead th a { background-color: black !important; color: white !important; }` : "") + `
+        /* The app's problem view spans the whole width, unlike the legacy page's centred
+           container, so the statement starts under the fixed problem switcher (#1072).
+           The jumbotron sits inside the view's unclassed root div, not directly in #app.
+           The width is set only on problem pages and is 0 while the switcher is hidden. */
+        #app .jumbotron { margin-left: var(--xmoj-problem-switcher-width, 0px); }
         #app .xmoj-problem-head h3 { font-size: 1rem; font-weight: inherit !important; font-family: inherit !important; margin: 0; }
         #app .xmoj-problem-actions .btn { margin: 0 5px; }
         #app .xmoj-problem-body pre { font-size: 1rem; padding: 0.3em 0.5em; margin: 0.5em 0; }
@@ -3502,6 +3507,7 @@ async function InitializeContestWebApp() {
         editors = [];
         root.querySelectorAll(`[${owned}]:not([${owned}="settings"]):not([${owned}="discussion-nav"]):not([${owned}="toggler-icon"]):not([${owned}="user-menu"])`).forEach(node => node.remove());
         document.querySelectorAll(`[${owned}="problem-switcher"]`).forEach(node => node.remove());
+        root.style.removeProperty("--xmoj-problem-switcher-width");
         routeData = null;
     }
 
@@ -3784,6 +3790,13 @@ async function InitializeContestWebApp() {
                     }
                 });
                 document.body.appendChild(switcher);
+                // Watch the switcher itself, not the window: its width also changes when
+                // the button font finishes loading or a media query hides it.
+                const ReserveSwitcherSpace = () => root.style.setProperty("--xmoj-problem-switcher-width", switcher.offsetWidth + "px");
+                ReserveSwitcherSpace();
+                const switcherResize = new ResizeObserver(ReserveSwitcherSpace);
+                switcherResize.observe(switcher);
+                controller.signal.addEventListener("abort", () => switcherResize.disconnect(), {once: true});
             }
         }
     }
